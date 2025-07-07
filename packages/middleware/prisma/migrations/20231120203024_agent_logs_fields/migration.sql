@@ -1,7 +1,0 @@
--- AlterTable
-ALTER TABLE `AiAgentLog` ADD COLUMN `componentName` VARCHAR(191) NULL,
-    ADD COLUMN `inputTokens` INTEGER NULL,
-    ADD COLUMN `outputTokens` INTEGER NULL,
-    ADD COLUMN `sessionID` MEDIUMTEXT NULL,
-    ADD COLUMN `sourceName` VARCHAR(191) NULL,
-    ADD COLUMN `tags` MEDIUMTEXT NULL;

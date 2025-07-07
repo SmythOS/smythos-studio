@@ -89,11 +89,6 @@ export const PRISMA_ERROR_CODES = {
   NON_EXISTENT_RECORD: 'P2025',
 };
 
-export const getServerAgentDomain = async (agentId: string) => {
-  const result: any = await axios.get(`${config.variables.SMYTH_AGENT_RUNTIME_API}/health`);
-  return result?.data?.agent_domain ? `${agentId}.${result.data.agent_domain}` : null;
-};
-
 export const dirExists = async (path: string): Promise<boolean> => {
   try {
     const stat = await fs.stat(path);

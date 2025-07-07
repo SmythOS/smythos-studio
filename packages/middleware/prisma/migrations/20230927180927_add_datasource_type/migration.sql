@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `DataSource` MODIFY `type` ENUM('PDF', 'SITEMAP', 'WEBPAGE', 'WORD', 'TRANSCRIPT') NOT NULL;

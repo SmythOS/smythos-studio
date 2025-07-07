@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import { ExpressHandler, ExpressHandlerWithParams } from '../../../../../types';
 import { aiAgentService, agentDeploymentsService, aiAgentChatsService } from '../../services';
-import { AiAgent, AiAgentSettings, AiAgentState } from '../../../../utils/models';
+import { AiAgent, AiAgentSettings, AiAgentState } from '@prisma/client';
 import ApiError from '../../../../utils/apiError';
 
 export const getAgentById: ExpressHandler<

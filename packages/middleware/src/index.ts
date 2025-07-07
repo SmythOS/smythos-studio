@@ -2,12 +2,14 @@ import { Server } from 'http';
 import { LOGGER } from '../config/logging';
 import { prisma } from '../prisma/prisma-client';
 import { appEvents } from './utils/app-events';
-import { startServers } from './management-router';
 // import { metricsManager } from './metrices';
 import { writeHeapSnapshot } from 'v8';
 import fs from 'fs';
+import { config } from '../config/config';
+import { app } from './app';
 
 let server: Server | null = null;
+const port = config.variables.port || 3000;
 (async () => {
   try {
     // metricsManager.collectMetrices();
@@ -21,9 +23,10 @@ let server: Server | null = null;
     //   LOGGER.info(`Listening to port ${config.variables.port}`);
     //   appEvents.emit('STARTUP', undefined); // emit startup event
     // });
-
-    // start management server
-    server = startServers();
+    app.listen(port, () => {
+      LOGGER.info(`Listening to port ${port}`);
+      appEvents.emit('STARTUP', undefined); // emit startup event
+    });
     appEvents.emit('STARTUP', undefined); // emit startup event
   } catch (error) {
     LOGGER.error(error);

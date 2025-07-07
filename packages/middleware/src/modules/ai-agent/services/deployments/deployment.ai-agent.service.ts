@@ -5,14 +5,8 @@ import { prisma } from '../../../../../prisma/prisma-client';
 import { versionUtils } from '../../../../utils';
 import ApiError from '../../../../utils/apiError';
 import { aiAgentService } from '..';
-import { quotaService } from '../../../quota/services';
 import { PrismaTransaction } from '../../../../../types';
-import errKeys from '../../../../utils/errorKeys';
-import { isNil } from 'lodash';
-import { PRISMA_ERROR_CODES } from '../../../../utils/general';
-import axios from 'axios';
 import { AbstractDeployer } from './strategies/AbstractDeployer';
-import { DistributionDeployer } from './strategies/DistributionDeployer';
 import { SmythOsDeployer } from './strategies/SmythOsDeployer';
 
 /*
@@ -31,15 +25,11 @@ export const createDeployment = async ({
   unformattedVersion,
   teamId,
   releaseNotes,
-  distributionId,
-  bypassQuotaCheck = false,
 }: {
   aiAgentId: string;
   unformattedVersion?: string | null;
   releaseNotes?: string | null;
   teamId: string;
-  distributionId?: string;
-  bypassQuotaCheck?: boolean;
 }) => {
   /**
    * Pre-conditions:
@@ -85,13 +75,6 @@ export const createDeployment = async ({
           aiAgentId,
         },
       });
-
-      if (depCount === 0 && !bypassQuotaCheck) {
-        const { quotaReached } = await quotaService.checkProdAiAgentsLimit({ teamId }, { tx });
-        if (quotaReached) {
-          throw new ApiError(httpStatus.FORBIDDEN, 'You have reached your quota for production agent deployments', errKeys.QUOTA_EXCEEDED);
-        }
-      }
 
       let _unformattedVersion = unformattedVersion;
 
@@ -144,27 +127,8 @@ export const createDeployment = async ({
         id: '',
       };
 
-      if (distributionId) {
-        // check if the user have access to this feature (distribution)
-        const { haveAccess } = await quotaService.checkPlanFeatureFlagAccess({ teamId, featureFlag: 'distributionsEnabled' }, { tx });
-
-        if (!haveAccess) {
-          throw new ApiError(httpStatus.PRECONDITION_FAILED, 'Distributions is not allowed in your plan');
-        }
-
-        distribution = await tx.distribution.findUnique({
-          where: {
-            id: distributionId,
-            teamId,
-          },
-        });
-        if (!distribution) {
-          throw new ApiError(httpStatus.NOT_FOUND, 'Distribution not found');
-        }
-      }
-
       // TODO: later, we will add more deployment strategies to AWS, GCP, etc.
-      const deploymentStrategy: AbstractDeployer = distributionId ? new DistributionDeployer() : new SmythOsDeployer();
+      const deploymentStrategy: AbstractDeployer = new SmythOsDeployer();
 
       const _deploymentResponse = deploymentStrategy.deploy({
         distribution,

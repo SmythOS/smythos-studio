@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Usage` ADD COLUMN `userKey` BOOLEAN NOT NULL DEFAULT false;

@@ -1,4 +1,4 @@
-import { TeamRole } from '../../../utils/models';
+import { TeamRole } from '@prisma/client';
 
 // These roles are added on top of the Super Admin role.
 export const DEFAULT_ROLES: Record<string, Partial<TeamRole>> = {

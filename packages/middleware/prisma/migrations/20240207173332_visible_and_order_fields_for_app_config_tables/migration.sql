@@ -1,7 +1,0 @@
--- AlterTable
-ALTER TABLE `Collection` ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `visible` BOOLEAN NOT NULL DEFAULT false;
-
--- AlterTable
-ALTER TABLE `Component` ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `visible` BOOLEAN NOT NULL DEFAULT false;

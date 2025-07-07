@@ -13,12 +13,14 @@ if (!rootPath) {
 }
 dotenv.config({ path: path.join(getDirname(), '../.env') });
 
+// Default to SQLite if no DATABASE_URL is provided
+const defaultSqliteUrl = `file:${path.join(rootPath, 'data', 'dev.db')}`;
+
 export const config = {
   variables: {
     env: process.env.NODE_ENV,
     port: Number(process.env.PORT),
     ADMIN_PORT: Number(process.env.ADMIN_PORT),
-    PINECONE_DEFAULT_INDEX_NAME: process.env.PINECONE_DEFAULT_INDEX_NAME,
 
     LOGTO_API_DOMAIN: process.env.LOGTO_API_DOMAIN!,
     LOGTO_APP_ID: process.env.LOGTO_APP_ID!,
@@ -26,29 +28,7 @@ export const config = {
     LOGTO_RESOURCE_INDICATOR: process.env.LOGTO_RESOURCE_INDICATOR!,
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID!,
     LOGTO_MACHINE_APP_SECRET: process.env.LOGTO_MACHINE_APP_SECRET!,
-
-    SMYTH_PROXY: process.env.SMYTH_PROXY!,
-    SMYTH_AGENT_RUNTIME_API: process.env.SMYTH_AGENT_RUNTIME_API!,
-
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-    AWS_SES_SENDING_EMAIL: process.env.AWS_SES_SENDING_EMAIL,
-    AWS_SES_ARN: process.env.AWS_SES_ARN,
-    AWS_REGION: process.env.AWS_REGION,
-    FRONTEND_BASE_URL: process.env.FRONTEND_BASE_URL,
-
-    REDIS_CLUSTER_SENTINELS: process.env.REDIS_CLUSTER_SENTINELS,
-    REDIS_CLUSTER_MASTER_NAME: process.env.REDIS_CLUSTER_MASTER_NAME,
-    REDIS_CLUSTER_PASSWORD: process.env.REDIS_CLUSTER_PASSWORD,
-
-    SMYTH_API_KEY: process.env.SMYTH_API_KEY,
-    DOMAIN_REGISTERATION_TARGET: process.env.DOMAIN_REGISTERATION_TARGET,
-
-    DATABASE_URL_READONLY_USER: process.env.DATABASE_URL_READONLY_USER,
-    DATABASE_URL: process.env.DATABASE_URL!,
-    LOGS_DATABASE_URL: process.env.LOGS_DATABASE_URL!,
-
-    PUSHGATEWAY_URL: process.env.PUSHGATEWAY_URL,
+    DATABASE_URL: process.env.DATABASE_URL || defaultSqliteUrl,
   },
 
   package: {

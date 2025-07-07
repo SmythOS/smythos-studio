@@ -7,7 +7,6 @@ import { _teamRouter } from '../../modules/team/routes/_sysapi/team.route';
 import { authMiddlewareFactory } from '../../modules/auth/middlewares/auth.middleware';
 import { _subscriptionRouter } from '../../modules/subscription/routes/_sysapi/subscription.route.m2m';
 import { _userRouter } from '../../modules/user/routes/_sysapi';
-import { _quotaRouter } from '../../modules/quota/routes/_sysapi';
 
 const mainRouter = Router();
 
@@ -38,10 +37,6 @@ const defaultRoutes: Route[] = [
   {
     rootPath: '/',
     route: _userRouter,
-  },
-  {
-    rootPath: '/',
-    route: _quotaRouter,
   },
 ];
 

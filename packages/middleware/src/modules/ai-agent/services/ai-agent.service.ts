@@ -5,10 +5,9 @@ import httpStatus from 'http-status';
 import { prisma } from '../../../../prisma/prisma-client';
 import ApiError from '../../../utils/apiError';
 import { PrismaTransaction } from '../../../../types';
-import { AiAgentSettings, AiAgentState } from '../../../utils/models';
+import { AiAgentSettings, AiAgentState, Prisma } from '@prisma/client';
 import crypto from 'crypto';
 import { PRISMA_ERROR_CODES, includePagination } from '../../../utils/general';
-import { quotaService } from '../../quota/services';
 import errKeys from '../../../utils/errorKeys';
 import { createLogger } from '../../../../config/logging-v2';
 
@@ -75,7 +74,7 @@ export const getAllAiAgents = async ({
     sort = undefined;
   }
 
-  let agents: any = await _p.aiAgent.findMany({
+  let agents: any = await (_p as unknown as typeof prisma).aiAgent.findMany({
     where: {
       team: {
         id: teamId,
@@ -195,12 +194,11 @@ export const saveAgent = async ({
   data: { name: string; json: { [key: string]: any }; description?: string; teamId?: string };
 }) => {
   if (data.json) {
-    data.json.teamId = teamId; // sanity check to make sure teamId of the agent is the same as the teamId of the user
+    data.json.teamId = teamId;
     data.json.parentTeamId = parentTeamId;
   }
 
   if (!aiAgentId) {
-    // create new agent
     const newAgent = await createNewAgent({
       userId,
       teamId,
@@ -222,7 +220,6 @@ export const saveAgent = async ({
       select: {
         id: true,
         teamId: true,
-
         lockId: true,
       },
     });
@@ -235,7 +232,6 @@ export const saveAgent = async ({
       throw new ApiError(httpStatus.CONFLICT, 'Invalid lock id');
     }
 
-    // update existing agent
     const updated = await tx.aiAgent.update({
       where: {
         id: aiAgentId,
@@ -243,17 +239,13 @@ export const saveAgent = async ({
       data: {
         name: data.name,
         description: data.description,
-
-        //* LOCKS updates
         lastLockSaveOperation: new Date(),
-        lastLockBeat: new Date(), // a save operation is considered a beat as well
-
+        lastLockBeat: new Date(),
         aiAgentData: {
           update: {
             data: data.json,
           },
         },
-
         contributors: {
           upsert: {
             where: {
@@ -273,7 +265,6 @@ export const saveAgent = async ({
           },
         },
       },
-
       select: {
         id: true,
         name: true,
@@ -283,7 +274,7 @@ export const saveAgent = async ({
     return updated;
   };
 
-  const updatedAgent = await prisma.$transaction(runOperations, {
+  const updatedAgent = await prisma.$transaction(runOperations as unknown as Parameters<typeof prisma.$transaction>[0], {
     timeout: 30_000,
   });
 
@@ -306,11 +297,6 @@ export const createNewAgent = async ({
   spaceId: string | null;
 }) => {
   const agent = await prisma.$transaction(async tx => {
-    const { quotaReached } = await quotaService.checkDevAiAgentsLimit({ teamId }, { tx });
-    if (quotaReached) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'You have reached the maximum number of agents', errKeys.QUOTA_EXCEEDED);
-    }
-
     const spaceConnection = {
       space: {
         connect: {

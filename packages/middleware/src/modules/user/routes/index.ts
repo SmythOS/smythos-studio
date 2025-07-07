@@ -17,6 +17,4 @@ router.put('/settings', userAuthMiddleware, validate(userValidations.createSetti
 
 router.delete('/settings/:settingKey', userAuthMiddleware, validate(userValidations.deleteSetting), asyncHandler(userController.deleteSetting));
 
-router.delete('/account', userAuthMiddleware, asyncHandler(userController.deleteAccount));
-
 export { router as userRouter };

@@ -137,7 +137,6 @@ export const postDeployment = {
 
     releaseNotes: Joi.string().optional().allow(null),
     agentId: Joi.string().required(),
-    distributionId: Joi.string().optional().allow(null),
   }),
 };
 

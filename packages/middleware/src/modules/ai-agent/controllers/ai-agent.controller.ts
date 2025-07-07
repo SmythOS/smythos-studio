@@ -1,16 +1,15 @@
 import { Response } from 'express';
 import httpStatus from 'http-status';
-import { AiAgentRes, ExpressHandler, ExpressHandlerWithParams } from '../../../../types';
+import { ExpressHandler, ExpressHandlerWithParams } from '../../../../types';
 import { agentDeploymentsService, aiAgentChatsService, aiAgentService, modelAgentService } from '../services';
-import { AiAgentSettings, AiAgentState } from '../../../utils/models';
+import { AiAgentSettings, AiAgentState } from '@prisma/client';
 import { checkAgentExistsOrThrow } from '../services/ai-agent.service';
 import { authExpressHelpers } from '../../auth/helpers/auth-express.helper';
 import ApiError from '../../../utils/apiError';
 import { teamService } from '../../team/services';
-import { mailService } from '../../mail/services';
 import errKeys from '../../../utils/errorKeys';
 
-export const getModelAgents: ExpressHandler<null, AiAgentRes> = async (req, res: Response) => {
+export const getModelAgents: ExpressHandler<null, any> = async (req, res: Response) => {
   const teamId = authExpressHelpers.getTeamId(res);
   const agents = await modelAgentService.listModelAgents(teamId);
 
@@ -20,7 +19,7 @@ export const getModelAgents: ExpressHandler<null, AiAgentRes> = async (req, res:
   });
 };
 
-export const getAiAgents: ExpressHandler<null, AiAgentRes> = async (req, res: Response) => {
+export const getAiAgents: ExpressHandler<null, any> = async (req, res: Response) => {
   const teamId = authExpressHelpers.getTeamId(res);
   const { includeSettings, contributors, agentActivity, page, limit, search, sortField, order } = req.query;
 
@@ -395,13 +394,12 @@ export const createDeployment: ExpressHandler<
     version?: string | null;
     agentId: string;
     releaseNotes?: string | null;
-    distributionId?: string | null;
   },
   {
     deployment: any;
   }
 > = async (req, res) => {
-  const { version: unformattedVersion, agentId, releaseNotes, distributionId } = req.body;
+  const { version: unformattedVersion, agentId, releaseNotes } = req.body;
   const teamId = authExpressHelpers.getTeamId(res);
 
   const newDeployment = await agentDeploymentsService.createDeployment({
@@ -409,7 +407,6 @@ export const createDeployment: ExpressHandler<
     unformattedVersion,
     releaseNotes,
     teamId,
-    distributionId,
   });
 
   res.status(httpStatus.CREATED).json({

@@ -2,7 +2,6 @@ import httpStatus from 'http-status';
 import ApiError from '../../../utils/apiError';
 import { prisma } from '../../../../prisma/prisma-client';
 import { aiAgentService } from '../../ai-agent/services';
-import { quotaService } from '../../quota/services';
 import { PrismaTransaction } from '../../../../types';
 
 export const checkEmbodimentExistsOrThrow = async (
@@ -43,12 +42,6 @@ export const createEmbodiment = async ({
   teamId: string;
 }) => {
   const embodiment = await prisma.$transaction(async tx => {
-    const { haveAccess } = await quotaService.checkPlanFeatureFlagAccess({ teamId, featureFlag: 'embodimentsEnabled' }, { tx });
-
-    if (!haveAccess) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Embodiments are not enabled for this team');
-    }
-
     await aiAgentService.checkAgentExistsOrThrow(aiAgentId, teamId, {
       tx,
     });
@@ -142,12 +135,6 @@ export const updateEmbodiment = async ({
   teamId: string;
 }) => {
   await prisma.$transaction(async tx => {
-    const { haveAccess } = await quotaService.checkPlanFeatureFlagAccess({ teamId, featureFlag: 'embodimentsEnabled' }, { tx });
-
-    if (!haveAccess) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Embodiments are not enabled for this team');
-    }
-
     await checkEmbodimentExistsOrThrow(embodimentId, teamId, { tx });
 
     await tx.embodiment.updateMany({
@@ -167,12 +154,6 @@ export const updateEmbodiment = async ({
 
 export const deleteEmbodiment = async (embodimentId: number, teamId: string) => {
   await prisma.$transaction(async tx => {
-    const { haveAccess } = await quotaService.checkPlanFeatureFlagAccess({ teamId, featureFlag: 'embodimentsEnabled' }, { tx });
-
-    if (!haveAccess) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Embodiments are not enabled for this team');
-    }
-
     const deleted = await tx.embodiment.deleteMany({
       where: {
         id: embodimentId,

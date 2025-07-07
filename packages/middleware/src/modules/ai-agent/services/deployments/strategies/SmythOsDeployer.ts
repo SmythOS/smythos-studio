@@ -1,11 +1,4 @@
-import { isNil } from 'lodash';
-import { Prisma } from '../../../../../utils/models';
 import { AbstractDeployer, DeployParams } from './AbstractDeployer';
-import httpStatus from 'http-status';
-import ApiError from '../../../../../utils/apiError';
-import errKeys from '../../../../../utils/errorKeys';
-import { quotaService } from '../../../../quota/services';
-import { versionUtils } from '../../../../../utils';
 
 export class SmythOsDeployer extends AbstractDeployer {
   async deploy(params: DeployParams) {

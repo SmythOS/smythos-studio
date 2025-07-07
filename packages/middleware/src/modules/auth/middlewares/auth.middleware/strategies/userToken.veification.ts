@@ -7,7 +7,6 @@ import { userService } from '../../../../user/services';
 import axios from 'axios';
 import qs from 'qs';
 import { stringifyErr } from '../../../../../utils/general';
-import redisConn from '../../../../../connections/redis.connection';
 
 interface UserTokenData {
   logtoUser?: LogtoUser;
@@ -30,26 +29,8 @@ export default class UserToken implements AuthStrategy {
     }
 
     const oidcUrl = `${config.variables.LOGTO_API_DOMAIN}/oidc/.well-known/openid-configuration`;
-    // let openid = (await cache.get('openid')) as any;
-    const openidStr = await redisConn.get('mw:openid').catch(err => {
-      LOGGER.error(new Error(`Failed to get openid from redis with message: ${stringifyErr(err)}`));
-    });
 
-    let openid: { introspection_endpoint: string; userinfo_endpoint: string } | null = null;
-    if (openidStr) {
-      try {
-        openid = JSON.parse(openidStr);
-      } catch (err) {
-        LOGGER.error(new Error(`Failed to parse openid from redis with message: ${stringifyErr(err)}`));
-      }
-    }
-    if (!openid) {
-      openid = (await axios.get(oidcUrl)).data;
-      // cache.set('openid', openid, 60 * 60 * 24); // cache for 1 day
-      redisConn.set('mw:openid', JSON.stringify(openid), 'EX', 60 * 60 * 24).catch(err => {
-        LOGGER.error(new Error(`Failed to set openid in redis with message: ${stringifyErr(err)}`));
-      });
-    }
+    const openid: { introspection_endpoint: string; userinfo_endpoint: string } = (await axios.get(oidcUrl)).data;
 
     const introspectionEndpoint = openid.introspection_endpoint;
     const userinfoEndpoint = openid.userinfo_endpoint;

@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 import { createLogger } from '../../config/logging-v2';
-import { usageReporter } from '../modules/quota/services/UsageReporter';
 
 const LOGGER = createLogger('AppEvents');
 
@@ -28,7 +27,4 @@ class AppEvents extends EventEmitter {
 
 export const appEvents: AppEvents = new AppEvents();
 
-appEvents.on('STARTUP', () => {
-  usageReporter.onStartup();
-  LOGGER.info('Usage reporter started');
-});
+appEvents.on('STARTUP', () => {});

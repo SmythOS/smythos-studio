@@ -1,4 +1,4 @@
-import { UserSetting } from '../../../utils/models';
+import { UserSetting } from '@prisma/client';
 import ApiError from '../../../utils/apiError';
 import { prisma } from '../../../../prisma/prisma-client';
 

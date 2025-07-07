@@ -154,7 +154,6 @@ class ModelAgentService {
     await agentDeploymentsService.createDeployment({
       aiAgentId: agent.id,
       teamId,
-      bypassQuotaCheck: true,
     });
 
     return agent;

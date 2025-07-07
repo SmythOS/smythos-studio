@@ -5,8 +5,6 @@ import { aiAgentRouter } from '../../modules/ai-agent/routes';
 import { embodimentRouter } from '../../modules/embodiment/routes';
 import { teamRouter } from '../../modules/team/routes/team.route';
 import { subscriptionRouter } from '../../modules/subscription/routes/subscription.route';
-import { quotaRouter } from '../../modules/quota/routes/quota.route';
-import internalDebugRouter from '../../utils/internal-debug-router';
 
 const mainRouter = Router();
 
@@ -37,10 +35,6 @@ const defaultRoutes: Route[] = [
   {
     rootPath: '/',
     route: subscriptionRouter,
-  },
-  {
-    rootPath: '/',
-    route: quotaRouter,
   },
 ];
 

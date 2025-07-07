@@ -1,7 +1,7 @@
 import { ExpressHandlerWithParams } from '../../../../../types';
 import { userService, userSettingsService } from '../../services';
 
-import { UserSetting } from '../../../../utils/models';
+import { UserSetting } from '@prisma/client';
 
 export const getSettings: ExpressHandlerWithParams<
   { userId: number },

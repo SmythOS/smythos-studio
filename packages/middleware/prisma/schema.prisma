@@ -8,32 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// #region PRE launch models
-model WaitList {
-  id         Int      @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  email      String   @unique
-  phone      String?
-  department String?
-  useCase    String?
-  createdAt  DateTime @default(now())
-}
-
-model AiPlugin {
-  id            Int      @id @default(autoincrement())
-  name          String
-  iconUrl       String
-  description   String   @db.MediumText
-  createdAt     DateTime @default(now())
-  jsonUrl       String   @unique
-  dataDirectory String?
-  status        Int      @default(0)
-}
-
-// #endregion PRE launch models
-
-// #region Core models
 model User {
   id     Int     @id @default(autoincrement())
   email  String  @unique
@@ -53,15 +27,11 @@ model User {
   // user role
   userTeamRole UserTeamRole[]
 
-  // user invitations
-  createdInvitations TeamInvitation[]
 
   agentChangeActivities AiAgentActivity[]
 
   agentContributions AiAgentContributor[]
   agentConversations AiAgentConversation[]
-  spaceMemberships   SpaceMembership[]
-  spaces             Space[]
 
   @@index([email])
 }
@@ -77,7 +47,6 @@ model UserSetting {
 
   @@unique([userId, settingKey])
 }
-
 model Team {
   id        String   @id @default(cuid())
   name      String
@@ -94,23 +63,15 @@ model Team {
   referredBy         String?
 
   aiAgents    AiAgent[]
-  domains     Domain[]
-  namespaces  Namespace[]
-  dataSources DataSource[]
 
   // team roles
   teamRoles TeamRole[]
 
   // team invitations
-  invitations TeamInvitation[]
 
   teamSettings TeamSetting[]
 
-  // team jobs
-  jobs               Job[]
   agentConversations AiAgentConversation[]
-  Distribution       Distribution[]
-  spaces             Space[]
 
   // team hierarchy 
   parent   Team?   @relation("TeamParent", fields: [parentId], references: [id], onDelete: SetNull)
@@ -149,13 +110,10 @@ model TeamRole {
 
   userTeamRole UserTeamRole[]
 
-  // team invitations
-  linkedInvitations TeamInvitation[]
 
   @@unique([teamId, id])
 }
 
-// connects a user to a team role
 model UserTeamRole {
   userId Int
   roleId Int
@@ -166,36 +124,6 @@ model UserTeamRole {
   isTeamInitiator Boolean  @default(false)
 
   @@id([userId, roleId])
-}
-
-//
-
-model TeamInvitation {
-  id        Int      @id @default(autoincrement())
-  email     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId String
-
-  // invitation status
-  status InvitationStatus @default(PENDING)
-
-  code String @unique @default(uuid())
-
-  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdById Int
-
-  expiresAt DateTime?
-
-  teamRole   TeamRole @relation(fields: [teamRoleId], references: [id], onDelete: Cascade)
-  teamRoleId Int
-}
-
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
 }
 
 enum SubscriptionStatus {
@@ -246,22 +174,6 @@ model Plan {
   subscriptions Subscription[]
 }
 
-model PaymentLogs {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  paymentIdentifier String?
-  error             String? @db.Text
-  logs              Json?
-
-  paymentObject Json?
-}
-
-// #endregion Core models
-
-// #region AI Agent
-
 model AiAgent {
   id          String   @id @default(cuid())
   name        String
@@ -271,7 +183,6 @@ model AiAgent {
   salt        String   @unique @default(cuid()) // for M2M
 
   changeActivity AiAgentActivity[]
-  logs           AiAgentLog[]
   contributors   AiAgentContributor[]
 
   // AI Agent subscription
@@ -279,15 +190,12 @@ model AiAgent {
   teamId      String?
   embodiments Embodiment[]
 
-  // AI Agent endpoints
-  aiAgentEndpoint AiAgentEndpoint[]
 
   // AI Agent data
   aiAgentData AiAgentData?
 
   // AI Agent state
   aiAgentState    AiAgentState[]
-  domain          Domain[]
   aiAgentSettings AiAgentSettings[]
 
   // AI Agent Locking properties
@@ -300,12 +208,8 @@ model AiAgent {
   // AI Agent deployments
   AiAgentDeployment AiAgentDeployment[]
 
-  // AI Agent jobs
-  jobs               Job[]
   agentConversations AiAgentConversation[]
 
-  space   Space?  @relation(fields: [spaceId], references: [id], onDelete: SetNull)
-  spaceId String?
 
   @@unique([teamId, id])
   @@index([createdAt])
@@ -325,45 +229,6 @@ model AiAgentActivity {
   aiAgentId String
 }
 
-// #region Analytics models
-model AiAgentLog {
-  id              Int       @id @default(autoincrement())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  domain          String?
-  sourceId        String?
-  componentId     String?
-  input           Json?
-  output          Json?
-  result          String?   @db.MediumText
-  error           String?   @db.MediumText
-  inputTimestamp  DateTime?
-  outputTimestamp DateTime?
-
-  inputTokens  Int?
-  outputTokens Int?
-
-  sourceName    String?
-  componentName String?
-
-  sessionID  String? @db.MediumText
-  workflowID String? @db.MediumText
-  processID  String? @db.MediumText
-
-  tags String? @db.MediumText
-
-  aiAgent   AiAgent @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
-  aiAgentId String
-
-  @@index([createdAt])
-  @@index([aiAgentId])
-  @@index([sourceId])
-  @@index([componentId])
-  @@index([inputTimestamp])
-  @@index([outputTimestamp])
-}
-
-// #endregion Analytics models
 
 model AiAgentContributor {
   id        Int      @id @default(autoincrement())
@@ -421,29 +286,6 @@ model AiAgentDeployment {
   @@index([id, aiAgentId])
 }
 
-enum AiAgentEndpointMethods {
-  GET
-  POST
-  PUT
-  DELETE
-}
-
-model AiAgentEndpoint {
-  id          Int                    @id @default(autoincrement())
-  componentId String
-  method      AiAgentEndpointMethods
-  path        String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  aiAgent   AiAgent @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
-  aiAgentId String
-
-  domainId Int
-  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
-}
-
 model AiAgentState {
   id        Int      @id @default(autoincrement())
   key       String
@@ -455,111 +297,6 @@ model AiAgentState {
   aiAgentId String
 }
 
-// #endregion AI Agent
-
-model Domain {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  aiAgentEndpoint AiAgentEndpoint[]
-  verified        Boolean           @default(false)
-  lastStatus      String?
-
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId String?
-
-  // link domain to an agent
-  aiAgent   AiAgent? @relation(fields: [aiAgentId], references: [id], onDelete: SetNull)
-  aiAgentId String?
-
-  @@unique([aiAgentId, name])
-}
-
-// #region Pinecone Vector
-
-model Namespace {
-  // id is a form of concatenation of the namespace name and the subscription id
-  id        String   @id @default(cuid())
-  // the friendly name of the namespace
-  name      String
-  indexName String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  team              Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            String?
-  dataSources       DataSource[]
-  isOnCustomStorage Boolean      @default(false)
-}
-
-enum DataSourceTypes {
-  PDF
-  SITEMAP
-  WEBPAGE
-  WORD
-  TRANSCRIPT
-}
-
-model DataSource {
-  id         String          @id @default(cuid())
-  name       String
-  type       DataSourceTypes
-  url        String
-  properties Json?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-
-  // the namespace in which the data source is stored
-  namespace   Namespace @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
-  namespaceId String
-
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId String?
-
-  @@unique([namespaceId, url])
-}
-
-//#endregion Pinecone Vector Namespaces
-
-enum JobStatus {
-  ACTIVE
-  PAUSED
-  DONE
-  DELETED
-}
-
-model Job {
-  id        String   @id @default(cuid())
-  name      String?  @default("Untitled Job")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  type      String
-  lastRunAt DateTime?
-
-  status        JobStatus @default(ACTIVE)
-  data          Json?
-  options       Json?
-  signature     String?
-  signatureAlgo String?
-
-  componentId String? // the component that is responsible for running the job
-
-  aiAgent   AiAgent? @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
-  aiAgentId String
-
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId String?
-
-  // job logs
-  jobLogs Json?
-
-  @@index([aiAgentId])
-  @@index([teamId])
-  @@index([componentId])
-}
 
 model Embodiment {
   id         Int      @id @default(autoincrement())
@@ -571,43 +308,6 @@ model Embodiment {
   aiAgent   AiAgent @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
   aiAgentId String
 }
-
-model GlobalSetting {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
-  settingKey   String
-  settingValue String   @db.MediumText
-
-  @@unique([settingKey])
-}
-
-model Component {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
-  name         String   @unique
-  data         String   @db.MediumText
-  order        Int      @default(0)
-  visible      Boolean  @default(false)
-  collectionId String?
-
-  collection Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-}
-
-model Collection {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  name      String   @unique
-  icon      String?  @db.MediumText
-  order     Int      @default(0)
-  visible   Boolean  @default(false)
-  color     String?
-
-  components Component[]
-}
-
 model AiAgentConversation {
   id        String   @id @default(cuid())
   label     String?
@@ -628,46 +328,5 @@ model AiAgentConversation {
   ownerId Int?
 }
 
-model Distribution {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  name     String
-  url      String
-  metadata Json?
 
-  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId String
-}
-
-// #region Space
-model Space {
-  id          String   @id @default(cuid())
-  name        String
-  ownerId     Int
-  teamId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  description String?  @db.MediumText
-  archived    Boolean  @default(false)
-  acl         Json?
-
-  agents  AiAgent[]
-  members SpaceMembership[]
-  team    Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  owner   User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-}
-
-// #region Space membership
-model SpaceMembership {
-  userId    Int
-  spaceId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id])
-  space Space @relation(fields: [spaceId], references: [id])
-
-  @@id([userId, spaceId])
-}

@@ -3,8 +3,7 @@ import { ExpressHandler, ExpressHandlerWithParams } from '../../../../types';
 import ApiError from '../../../utils/apiError';
 import { authExpressHelpers } from '../../auth/helpers/auth-express.helper';
 import { userSettingsService, userService } from '../services';
-
-import { UserSetting } from '../../../utils/models';
+import { UserSetting } from '@prisma/client';
 
 export const getUserInfo: ExpressHandler<
   {},
@@ -92,17 +91,5 @@ export const deleteSetting: ExpressHandlerWithParams<
   const deletedSetting = await userSettingsService.deleteSetting(userId, settingKey);
   res.json({
     message: 'Setting deleted successfully',
-  });
-};
-
-export const deleteAccount: ExpressHandler<{}, {}> = async (req, res) => {
-  const userId = authExpressHelpers.getUserId(res);
-  const email = authExpressHelpers.getUserEmail(res);
-  const teamId = authExpressHelpers.getParentTeamId(res);
-
-  await userService.deleteAccount({ email, userId, teamId });
-
-  res.json({
-    message: 'Account deleted successfully',
   });
 };

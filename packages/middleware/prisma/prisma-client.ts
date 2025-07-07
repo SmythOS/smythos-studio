@@ -18,15 +18,6 @@ import { config } from '../config/config';
 // main app prisma instance
 const prisma = (global.prisma as PrismaClient) || new PrismaClient();
 
-// for readonly queries
-// @ts-ignore
-const prismaReadonly = config.variables.DATABASE_URL_READONLY_USER
-  ? new PrismaClient({
-      // @ts-ignore
-      datasourceUrl: config.variables.DATABASE_URL_READONLY_USER,
-    })
-  : (null as unknown as PrismaClient);
-
 //* disabled for now becuse it breaks some of the current code
 // TODO: enable this as soon as we have some time to fix the code
 // prisma.$use(async (params, next) => { // middleware for ensuring that no "undefined" values are passed to prisma
@@ -52,4 +43,4 @@ if (process.env.NODE_ENV === 'development') {
   global.prisma = prisma;
 }
 
-export { prisma, prismaReadonly };
+export { prisma };

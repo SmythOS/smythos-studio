@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Plan` ADD COLUMN `paid` BOOLEAN NOT NULL DEFAULT true;
