@@ -187,7 +187,6 @@
         "security": [
           {
             "Bearer": [],
-            "TeamId": [],
             "TeamId": []
           }
         ],
@@ -1493,7 +1492,7 @@
             }
           }
         ],
-        
+
         "responses": {
           "200": {
             "description": "valid: boolean, promoCode: any",
@@ -1504,7 +1503,6 @@
         }
       }
     },
-    
 
     "/quota/usage": {
       "get": {
@@ -1555,47 +1553,6 @@
       }
     },
 
-    "/quota/usage/{teamId}/llm-tokens-and-api-requests": {
-      "get": {
-        "tags": ["Quota"],
-        "summary": "Get monthly LLM tokens and API requests usage",
-        "description": "Get monthly LLM tokens and API requests usage for a specific team",
-        "operationId": "getMonthlyLLMTokensAndApiRequestsUsage",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "teamId",
-            "in": "path",
-            "description": "Team id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "date",
-            "in": "query",
-            "description": "Date for which to get usage (optional)",
-            "required": false,
-            "type": "string",
-            "format": "date"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Monthly LLM tokens and API requests usage",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-
     "/quota/current-cycle/usage": {
       "get": {
         "tags": ["Quota"],
@@ -1608,9 +1565,7 @@
             "Bearer": []
           }
         ],
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Total usage for current billing cycle",
@@ -1621,7 +1576,7 @@
         }
       }
     },
-    
+
     "/ai-agents": {
       "get": {
         "tags": ["Agents"],
@@ -2223,149 +2178,6 @@
                   }
                 }
               }
-            }
-          }
-        }
-      }
-    },
-
-    "/chats/{conversationId}": {
-      "get": {
-        "tags": ["Chats"],
-        "summary": "Get conversation by ID",
-        "description": "Get conversation by ID",
-        "operationId": "getConversationById",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "conversationId",
-            "in": "path",
-            "description": "Conversation ID",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "conversationId": {
-                  "type": "string"
-                },
-                "label": {
-                  "type": "string"
-                },
-                "summary": {
-                  "type": "string"
-                },
-                "teamId": {
-                  "type": "string"
-                },
-                "ownerId": {
-                  "type": "number"
-                },
-                "aiAgentId": {
-                  "type": "string"
-                },
-                "chunkSize": {
-                  "type": "number"
-                },
-                "lastChunkID": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Chats"],
-        "summary": "Update conversation",
-        "description": "Update conversation",
-        "operationId": "updateConversation",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "conversationId",
-            "in": "path",
-            "description": "Conversation ID",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Object containing conversation data",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "conversation": {
-                  "type": "object",
-                  "properties": {
-                    "label": {
-                      "type": "string",
-                      "default": null
-                    },
-                    "summary": {
-                      "type": "string",
-                      "default": null
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Chats"],
-        "summary": "Delete conversation",
-        "description": "Delete conversation",
-        "operationId": "deleteConversation",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "conversationId",
-            "in": "path",
-            "description": "Conversation ID",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
             }
           }
         }
@@ -3011,106 +2823,6 @@
       }
     },
 
-    "/ai-agent/{agentId}/bulk-calls": {
-      "post": {
-        "tags": ["Agent Bulk Calls"],
-        "summary": "Create bulk agent call",
-        "description": "Create bulk agent call",
-        "operationId": "postBulkAgentCall",
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "parameters": [
-          {
-            "name": "agentId",
-            "in": "path",
-            "description": "Agent id",
-            "required": true,
-            "type": "string"
-          },
-
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Object containing agent call logs data",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "rows": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "payload": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                },
-                "componentId": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "produces": ["application/json"],
-
-        "responses": {
-          "200": {
-            "description": "agent call logs",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      },
-
-      "delete": {
-        "tags": ["Agent Bulk Calls"],
-        "summary": "Delete bulk agent call",
-        "description": "Delete bulk agent call",
-        "operationId": "deleteBulkAgentCall",
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "parameters": [
-          {
-            "name": "agentId",
-            "in": "path",
-            "description": "Agent id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "componentId",
-            "in": "query",
-            "description": "Component id",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "produces": ["application/json"],
-
-        "responses": {
-          "200": {
-            "description": "agent call logs",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
     "/ai-agent/{agentId}/bulk-calls/progress": {
       "get": {
         "tags": ["Agent Bulk Calls"],
