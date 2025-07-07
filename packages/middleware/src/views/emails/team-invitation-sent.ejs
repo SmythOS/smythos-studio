@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Invite</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 20px 20px;
+            text-align: center;
+            border-collapse: collapse;
+        }
+        .logo img{
+            background-color: #ffffff;
+            width: 150px;
+            height: auto;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px 20px;
+            color: #1d1d1d;
+        }
+        .content h2 {
+            color: #2AAD8E;
+        }
+        .content h3 {
+            color: #1d1d1d;
+        }
+        .content h4 {
+            color: #1d1d1d;
+        }
+        .button {
+            background-color: #2AAD8E;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #1d1d1d;
+            padding: 20px;
+        }
+        .social-icons img {
+            width: 24px;
+            height: auto;
+            margin: 0 5px;
+        }
+        
+        /* Responsive styles */
+        @media only screen and (max-width: 620px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            .logo img {
+                width: 100px; /* Adjust based on your logo size */
+            }
+            .button {
+                width: 100%;
+                padding: 15px 0;
+            }
+            .social-icons img {
+                width: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <!-- Include your logo image here -->
+            <img src="https://app.smythos.dev/img/smythos-logo.png" alt="SmythOS Logo">
+        </div>
+        <div class="content">
+            <h2>Ready to Join a Winning Team?</h2>
+            <h3>Congratulations<% if (invitee?.name) { %>, <%= invitee.name %><% } %>!</h3>
+            <p>Here is your exclusive invitation<% if (inviter?.name) { %> from <strong><%= inviter.name %></strong><% } %> to join <strong style="color: #2AAD8E; font-weight: bold;"><%= team?.name %> team</strong>.</p>
+            <p>Don't miss the opportunity to collaborate and build powerful AI agents together with a team.</p>
+            <h4>⏰👇Accept your invitation before it expires!</h4>
+            <a href="<%= config.FRONTEND_BASE_URL %>/teams/accept-invitation/<%= invitation.code %>" class="button">Accept Team Invite</a>
+            <p>Once you accept, you'll be officially part of the team and be able to collaborate with your team members. Your role and permissions will be defined by your team admin.</p>
+            <p>We're excited to see what powerful AI agents you'll build with your team!</p>
+        </div>
+        <div class="footer">
+            <p>Join our community:</p>
+            <div class="social-icons">
+                <!-- Include your LinkedIn and Discord icons here -->
+                <a href="https://www.linkedin.com/company/smythos/mycompany/" target="_blank">
+                    <!--   <img src="path-to-linkedin-icon.png" alt="LinkedIn" /> -->
+                    Linkedin
+                  </a>
+                  <a href="https://discord.gg/pF8GSzbBEM" target="_blank">
+                    <!-- <img src="path-to-discord-icon.png" alt="Discord" /> -->
+                    Discord
+                  </a>
+            </div>
+            <div>
+                <a href="mailto:support@inkco.co">Contact Us</a>
+            </div>
+            <p>© 2024 SmythOS an INK Content, Inc. company   •   1321 Upland Dr. 1036   •   Houston, TX 77339</p>
+            <a href="https://smythos.com" target="_blank">www.smythos.com</a>
+        </div>
+    </div>
+</body>
+</html>

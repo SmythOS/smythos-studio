@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `AiAgentLog` ADD COLUMN `processID` MEDIUMTEXT NULL,
+    ADD COLUMN `workflowID` MEDIUMTEXT NULL;

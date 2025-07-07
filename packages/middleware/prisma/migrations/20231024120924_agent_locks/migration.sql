@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE `AiAgent` ADD COLUMN `lastLockBeat` DATETIME(3) NULL,
+    ADD COLUMN `lastLockSaveOperation` DATETIME(3) NULL,
+    ADD COLUMN `lockAt` DATETIME(3) NULL,
+    ADD COLUMN `lockId` VARCHAR(191) NULL,
+    ADD COLUMN `lockedById` INTEGER NULL,
+    ADD COLUMN `lockedByName` VARCHAR(191) NULL;

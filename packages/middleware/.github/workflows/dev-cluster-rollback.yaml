@@ -1,0 +1,37 @@
+name: DEV:Cluster ROLLBACK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    env:
+        REPO_NAME: "smyth-middleware"
+        BRANCH_NAME: "dev"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_NAME }} # Use the selected branch from input
+        
+      - name: Set branch name variable
+        id: get_branch
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+  
+      - name: Print branch and repository names
+        run: |
+          echo "Branch name is ${{ env.BRANCH_NAME }}"
+          echo "Repository name is ${{ env.REPO_NAME }}"
+
+      - name: ROLLBACK to previous version
+        env:
+            PRIVATE_KEY: ${{ secrets.DEV_SERVER_SSH_PRIVATE_KEY }}
+            HOST: ${{ secrets.DEV_SERVER_HOST }}
+            USER: ${{ secrets.DEV_SERVER_USER }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "/opt/git/${{ env.REPO_NAME }}/rollback-cluster.sh ${{ env.REPO_NAME }} ${{ env.BRANCH_NAME }}"
+          rm -f private_key.pem

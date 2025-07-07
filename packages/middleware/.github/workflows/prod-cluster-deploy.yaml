@@ -1,0 +1,63 @@
+name: PROD:Cluster DEPLOY
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+        REPO_NAME: "smyth-middleware"
+        BRANCH_NAME: "main"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_NAME }} # Use the selected branch from input
+
+      - name: Set branch name variable
+        id: get_branch
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      
+      - name: Print branch and repository names
+        run: |
+          echo "Branch name is ${{ env.BRANCH_NAME }}"
+          echo "Repository name is ${{ env.REPO_NAME }}"
+
+      - name: Check version
+        env:
+          PRIVATE_KEY: ${{ secrets.PROD_SERVER_SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.PROD_SERVER_HOST }}
+          USER: ${{ secrets.PROD_SERVER_USER }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          # Extract version from repository package.json
+          repo_version=$(jq -r '.version' package.json)
+          # Extract version from server package.json
+          server_version=$(ssh -i private_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "jq -r '.version' /opt/apps/cluster/${{ env.REPO_NAME }}/package.json")
+          echo "Server version : $server_version"
+          echo "Repo version   : $repo_version"
+          # Compare versions using sort
+          highest_version=$(echo -e "$repo_version\n$server_version" | sort -V | tail -n 1)
+          if [[ "$highest_version" == "$repo_version" ]] && [[ "$repo_version" != "$server_version" ]]; then
+            echo "Version check passed."
+          else
+            echo "Version check failed. Halting deployment."
+            exit 1
+          fi
+          rm -f private_key.pem
+
+      - name: Deploy to server
+        env:
+          PRIVATE_KEY: ${{ secrets.PROD_SERVER_SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.PROD_SERVER_HOST }}
+          USER: ${{ secrets.PROD_SERVER_USER }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          echo "Attempting to SSH into $USER@$HOST"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "echo 'SSH connection successful.'"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST "/opt/git/${{ env.REPO_NAME }}/deploy-cluster.sh ${{ env.REPO_NAME }} ${{ env.BRANCH_NAME }}"
+          rm -f private_key.pem

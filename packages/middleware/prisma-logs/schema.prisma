@@ -1,0 +1,42 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../node_modules/@~internal/prisma-logs/client"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("LOGS_DATABASE_URL")
+}
+
+model TaskStats {
+    id      Int      @id @default(autoincrement())
+    agentId String
+    teamId  String
+    day     DateTime
+    number  Int
+}
+
+model Usage {
+    id             Int      @id @default(autoincrement())
+    day            DateTime
+    units          Float
+    class          String
+    agentId        String
+    teamId         String
+    sourceId       String
+    cost           Float
+    multipliedCost Float    @default(0)
+    userKey        Boolean  @default(false)
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    @@index([day, class, agentId, sourceId])
+}
+
+model Costs {
+    id        Int      @id @default(autoincrement())
+    sourceId  String
+    unitCost  Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,41 @@
+# Ignore node_modules directory
+node_modules
+
+# Ignore build output directories
+dist
+build
+
+# Ignore coverage reports
+coverage
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore compiled files
+*.min.js
+*.min.css
+
+# Ignore package lock files
+package-lock.json
+yarn.lock
+
+# Ignore editor and IDE specific files
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# Ignore configuration files
+*.config.js
+*.config.json
+
+# Ignore git related files
+.git
+.gitignore
+.gitattributes
+.gitkeep
+
+# Ignore Docker files
+Dockerfile
+docker-compose.yml

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Cancellation</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            border-collapse: collapse;
+        }
+        .logo img{
+            background-color: #ffffff;
+            width: 150px;
+            height: auto;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px 20px;
+            color: #1d1d1d;
+        }
+        .content h2 {
+            color: #2AAD8E;
+        }
+        .content h3 {
+            color: #1d1d1d;
+        }
+        .content h4 {
+            color: #1d1d1d;
+        }
+        .button {
+            background-color: #2AAD8E;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 10px;
+            border-radius: 5px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #1d1d1d;
+            padding: 20px;
+        }
+        .social-icons img {
+            width: 24px;
+            height: auto;
+            margin: 0 5px;
+        }
+        
+        /* Responsive styles */
+        @media only screen and (max-width: 620px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            .logo img {
+                width: 100px; /* Adjust based on your logo size */
+            }
+            .button {
+                width: 100%;
+                padding: 15px 0;
+            }
+            .social-icons img {
+                width: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <!-- Include your logo image here -->
+            <img src="https://app.smythos.dev/img/smythos-logo.png" alt="SmythOS Logo" />
+        </div>
+        <div class="content">
+            <h2>We Will Miss You ☹️</h2>
+            <p>This email is to confirm that your subscription has been cancelled. Your plan will remain active until the end of your current billing period, which is on <strong><%= subs.periodEnd %></strong>.</p>
+            <p>After the said date, your account will revert to our default plan and you will lose access to all your <strong><%= subs.product.name %></strong> plan's privileges.</p>
+            <p>In case you change your mind and want to pick up where you left off, you may restart your plan or select a new premium plan.</p><b>
+            <p><a href="<%= config.FRONTEND_BASE_URL %>/my-plan" class="button">Restart Subscription</a> <a href="<%= config.FRONTEND_BASE_URL %>/my-plan" class="button">Explore Other Plans</a>
+        </div>
+        <div class="footer">
+            <div class="social-icons">
+                <!-- Include your LinkedIn and Discord icons here -->
+                <p>Join our community:</p>
+                <a href="https://www.linkedin.com/company/smythos/mycompany/" target="_blank">
+                    <!--   <img src="path-to-linkedin-icon.png" alt="LinkedIn" /> -->
+                    Linkedin
+                  </a>
+                  <a href="https://discord.gg/pF8GSzbBEM" target="_blank">
+                    <!-- <img src="path-to-discord-icon.png" alt="Discord" /> -->
+                    Discord
+                  </a>
+            </div>
+            <div>
+                <a href="mailto:support@inkco.co">Contact Us</a>
+            </div>
+            <p>© 2024 SmythOS an INK Content, Inc. company   •   1321 Upland Dr. 1036   •   Houston, TX 77339</p>
+            <a href="https://smythos.com" target="_blank">www.smythos.com</a>
+        </div>
+    </div>
+</body>
+</html>

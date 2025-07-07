@@ -1,0 +1,23 @@
+name: DEV:03 !!ROLLBACK!! Secondary
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Deploy to server
+        env:
+          PRIVATE_KEY: ${{ secrets.DEV_SERVER_SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.DEV_SERVER_HOST }}
+          USER: ${{ secrets.DEV_SERVER_USER }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USER@$HOST " /opt/git/rollback-02.sh smyth-middleware"
+          rm -f private_key.pem
