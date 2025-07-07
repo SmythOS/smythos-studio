@@ -35,27 +35,3 @@ export const getFeaturesUsage: ExpressHandler<
     usage,
   });
 };
-
-export const getMonthlyLLMTokensAndApiRequestsUsage: ExpressHandler<
-  { teamId: string },
-  {
-    usage: any;
-  }
-> = async (req, res) => {
-  const { teamId } = req.params;
-  const { date } = req.query;
-
-  const usage = await quotaService.getMonthlyLLMTokensAndApiRequestsUsage({ teamId, date });
-
-  return res.status(httpStatus.OK).json({
-    usage,
-  });
-};
-
-export const getTotalUsageForBillingCycle: ExpressHandlerWithParams<{}, {}, any> = async (req, res) => {
-  const teamId = authExpressHelpers.getTeamId(res);
-
-  const result = await quotaService.getTotalUsageForBillingCycle(teamId);
-
-  return res.status(httpStatus.OK).json(result);
-};
