@@ -45,7 +45,7 @@ class ArrayTransport extends Transport {
   }
 }
 
-export class Logger {
+class Logger {
   public startTime = Date.now();
   public get output() {
     return Array.isArray(this.data) ? this.data.join('\n') : undefined;

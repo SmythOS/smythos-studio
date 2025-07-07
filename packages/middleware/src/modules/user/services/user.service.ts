@@ -11,7 +11,6 @@ import { teamService } from '../../team/services';
 import * as dateFns from 'date-fns';
 
 import Stripe from 'stripe';
-import { captureSignupReferral } from '../../marketing/services/firstPromoter';
 import { PRISMA_ERROR_CODES } from '../../../utils/general';
 // import businessCustomMetrics from '../../../metrices/custom/business.custom.metrices';
 
@@ -135,28 +134,6 @@ export const getUserInfoById = async ({
       // },
     },
   });
-
-  //* SHOULD ONLY RUN ON PRODUCTION
-  const isProduction = process.env.NODE_ENV === 'production';
-  const isFreshAccount = dateFns.differenceInHours(new Date(), user.createdAt) < 1; // if the account is less than 1 hour old
-  if (referralHeaders.tid && !user.team!.referredBy && isFreshAccount && isProduction) {
-    await captureSignupReferral({ email: user.email, tid: referralHeaders.tid })
-      .then(() => {
-        //* ONLY IF THE REFERRAL ID IS VALID, WE UPDATE THE USER'S TEAM
-        LOGGER.info(`User ${user.email} was referred by ${referralHeaders.tid}`);
-        return prisma.team.update({
-          where: {
-            id: user.team!.id,
-          },
-          data: {
-            referredBy: referralHeaders.tid,
-          },
-        });
-      })
-      .catch(err => {
-        LOGGER.error(`Error capturing referral for user ${user.email}. Error: ${err.message}`);
-      });
-  }
 
   // @ts-ignore
   user.roles = user.userTeamRole;

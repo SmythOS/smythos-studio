@@ -28,7 +28,6 @@ const envVarsSchema = Joi.object()
     LOGTO_MACHINE_APP_SECRET: Joi.string().required().description('LOGTO_MACHINE_APP_SECRET'),
     SMYTH_PROXY: Joi.string().required().description('SMYTH_PROXY'),
     SMYTH_AGENT_RUNTIME_API: Joi.string().required().description('SMYTH_AGENT_RUNTIME_API'),
-    SMYTH_CRAWLER_API: Joi.string().required().description('SMYTH_CRAWLER_API'),
     PINECONE_DEFAULT_INDEX_NAME: Joi.string().required().description('PINECONE_DEFAULT_INDEX_NAME'),
     AWS_ACCESS_KEY_ID: Joi.string().required().description('AWS_ACCESS_KEY_ID'),
     AWS_SECRET_ACCESS_KEY: Joi.string().required().description('AWS_SECRET_ACCESS_KEY'),
@@ -42,13 +41,6 @@ const envVarsSchema = Joi.object()
     SMYTH_API_KEY: Joi.string().required().description('SMYTH_API_KEY'),
     DOMAIN_REGISTERATION_TARGET: Joi.string().required().description('DOMAIN_REGISTERATION_TARGET'),
 
-    STRIPE_WEBHOOK_SECRET_KEY: Joi.string().required().description('STRIPE_WEBHOOK_SECRET_KEY'),
-    STRIPE_SECRET_KEY: Joi.string().required().description('STRIPE_SECRET_KEY'),
-    STRIPE_METER_NAME: Joi.string().required().description('STRIPE_METER_NAME'),
-    STRIPE_V4_SEATS_METER_NAME: Joi.string().required().description('STRIPE_V4_SEATS_METER_NAME'),
-    STRIPE_V4_MODAL_USAGE_METER_NAME: Joi.string().required().description('STRIPE_V4_MODAL_USAGE_METER_NAME'),
-    HUBSPOT_API_KEY: Joi.string().required().description('HUBSPOT_API_KEY'),
-    FIRST_PROMOTER_API_KEY: Joi.string().required().description('FIRST_PROMOTER_API_KEY'),
     DATABASE_URL_READONLY_USER: Joi.string().required().description('DATABASE_URL_READONLY_USER'),
     DATABASE_URL: Joi.string().required().description('DATABASE_URL'),
     LOGS_DATABASE_URL: Joi.string().required().description('LOGS_DATABASE_URL'),
@@ -85,7 +77,6 @@ type configType = {
 
     SMYTH_PROXY: string;
     SMYTH_AGENT_RUNTIME_API: string;
-    SMYTH_CRAWLER: string;
 
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -142,7 +133,6 @@ export const config: configType = {
 
     SMYTH_PROXY: envVars.SMYTH_PROXY!,
     SMYTH_AGENT_RUNTIME_API: envVars.SMYTH_AGENT_RUNTIME_API!,
-    SMYTH_CRAWLER: envVars.SMYTH_CRAWLER_API!,
 
     AWS_ACCESS_KEY_ID: envVars.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: envVars.AWS_SECRET_ACCESS_KEY,
@@ -157,14 +147,6 @@ export const config: configType = {
 
     SMYTH_API_KEY: envVars.SMYTH_API_KEY,
     DOMAIN_REGISTERATION_TARGET: envVars.DOMAIN_REGISTERATION_TARGET,
-
-    STRIPE_WEBHOOK_SECRET_KEY: envVars.STRIPE_WEBHOOK_SECRET_KEY,
-    STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY,
-    STRIPE_METER_NAME: envVars.STRIPE_METER_NAME,
-    STRIPE_V4_MODAL_USAGE_METER_NAME: envVars.STRIPE_V4_MODAL_USAGE_METER_NAME,
-    STRIPE_V4_SEATS_METER_NAME: envVars.STRIPE_V4_SEATS_METER_NAME,
-    HUBSPOT_API_KEY: envVars.HUBSPOT_API_KEY,
-    FIRST_PROMOTER_API_KEY: envVars.FIRST_PROMOTER_API_KEY,
 
     DATABASE_URL_READONLY_USER: envVars.DATABASE_URL_READONLY_USER,
     DATABASE_URL: process.env.DATABASE_URL!,
