@@ -3094,6 +3094,315 @@
           }
         }
       }
+    },
+
+    "/quota/agent/{agentId}/tasks/subscription": {
+      "get": {
+        "tags": ["Quota"],
+        "summary": "Get agent subscription tasks",
+        "description": "Get agent subscription tasks",
+        "operationId": "getAgentSubscriptionTasks",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "name": "agentId",
+            "in": "path",
+            "description": "Agent id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "tasks",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/quota/agent/{agentId}/tasks": {
+      "put": {
+        "tags": ["Quota"],
+        "summary": "Update agent tasks",
+        "description": "Update agent tasks",
+        "operationId": "updateAgentTasks",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "name": "agentId",
+            "in": "path",
+            "description": "Agent id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Object containing tasks data",
+            "required": true,
+            "schema": {
+              "properties": {
+                "number": {
+                  "type": "number"
+                },
+                "day": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    "/quota/agent/{agentId}/tasks/monthly": {
+      "get": {
+        "tags": ["Quota"],
+        "summary": "Get agent monthly tasks within range",
+        "description": "Get agent monthly tasks",
+        "operationId": "getAgentMonthlyTasks",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "name": "agentId",
+            "in": "path",
+            "description": "Agent id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Start date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "End date",
+            "required": false,
+            "type": "string"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "tasks",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/quota/team/{teamId}/tasks/subscription": {
+      "get": {
+        "tags": ["Quota"],
+        "summary": "Get team subscription tasks",
+        "description": "Get team subscription tasks",
+        "operationId": "getTeamSubscriptionTasks",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "tasks",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/quota/team/{teamId}/tasks/monthly": {
+      "get": {
+        "tags": ["Quota"],
+        "summary": "Get team monthly tasks within range",
+        "description": "Get team monthly tasks",
+        "operationId": "getTeamMonthlyTasks",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Start date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "End date",
+            "required": false,
+            "type": "string"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "tasks",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/quota/team/{teamId}/agent/{agentId}/track-usage": {
+      "post": {
+        "tags": ["Quota"],
+        "summary": "Track LLM tokens and API requests usage",
+        "description": "Track LLM tokens and API requests usage",
+        "operationId": "trackLLMTokensAndApiRequestsUsage", 
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "agentId", 
+            "in": "path",
+            "description": "Agent id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Usage tracking details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "Usage date"
+                },
+                "units": {
+                  "type": "number",
+                  "description": "Number of units used"
+                },
+                "class": {
+                  "type": "string",
+                  "description": "Usage class"
+                },
+                "sourceId": {
+                  "type": "string",
+                  "description": "Source identifier"
+                },
+                "userKey": {
+                  "type": "boolean",
+                  "description": "User key flag"
+                }
+              },
+              "required": ["units", "class", "sourceId", "userKey"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage tracked successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/quota/team/{teamId}/current-cycle/usage": {
+      "get": {
+        "tags": ["Quota"],
+        "summary": "Get total usage for current billing cycle",
+        "description": "Get total usage for current billing cycle",
+        "operationId": "getTotalUsageForBillingCycle",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Total usage for current billing cycle",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
     }
   },
 
