@@ -2,32 +2,24 @@ import { Server } from 'http';
 import { LOGGER } from '../config/logging';
 import { prisma } from '../prisma/prisma-client';
 import { appEvents } from './utils/app-events';
-// import { metricsManager } from './metrices';
-import { writeHeapSnapshot } from 'v8';
-import fs from 'fs';
-import { config } from '../config/config';
+import ensureDataDir from './scripts/ensure-data-dir';
 import { app } from './app';
+import { config } from '../config/config';
 
 let server: Server | null = null;
-const port = config.variables.port || 3000;
 (async () => {
   try {
-    // metricsManager.collectMetrices();
-    // metricsManager.startExportingMetrices();
+    // Ensure data directory exists for SQLite
+    ensureDataDir();
 
-    // esablish connection to database
+    // establish connection to database
     await prisma.$connect();
-    LOGGER.info('Connected to SQL database');
+    LOGGER.info('Connected to database');
 
-    // server = app.listen(config.variables.port, () => {
-    //   LOGGER.info(`Listening to port ${config.variables.port}`);
-    //   appEvents.emit('STARTUP', undefined); // emit startup event
-    // });
-    app.listen(port, () => {
-      LOGGER.info(`Listening to port ${port}`);
+    server = app.listen(config.variables.port, () => {
+      LOGGER.info(`Listening to port ${config.variables.port}`);
       appEvents.emit('STARTUP', undefined); // emit startup event
     });
-    appEvents.emit('STARTUP', undefined); // emit startup event
   } catch (error) {
     LOGGER.error(error);
   }
@@ -49,14 +41,6 @@ const unexpectedErrorHandler = (error: Error) => {
   LOGGER.error(error);
   exitHandler();
 };
-
-// on specific signal, take a heap snapshot using v8
-process.on('SIGUSR2', () => {
-  LOGGER.info('SIGUSR2 received');
-  const heapSnapshotPath = `/tmp/middleware-heapdump-${Date.now()}.heapsnapshot`;
-  writeHeapSnapshot(heapSnapshotPath);
-  LOGGER.info(`Heap snapshot written to ${heapSnapshotPath}`);
-});
 
 process.on('uncaughtException', err => LOGGER.error(err));
 process.on('unhandledRejection', err => LOGGER.error(err));

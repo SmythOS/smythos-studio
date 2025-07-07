@@ -187,7 +187,6 @@
         "security": [
           {
             "Bearer": [],
-            "TeamId": [],
             "TeamId": []
           }
         ],
@@ -947,106 +946,6 @@
       }
     },
 
-    "/teams/invitations": {
-      "post": {
-        "tags": ["Teams"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "summary": "Invite team member",
-        "description": "Invite team member",
-        "operationId": "inviteTeamMember",
-        "produces": ["application/json"],
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Invite data",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "roleId": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "invited team member",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": ["Teams"],
-        "summary": "List all team invitations",
-        "description": "List team invitations",
-        "operationId": "getTeamInvitations",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "responses": {
-          "200": {
-            "description": "team invitations",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-
-    "/teams/invitations/{invitationId}/accept": {
-      "post": {
-        "tags": ["Teams"],
-        "summary": "Accept team invitation",
-        "description": "Accept team invitation",
-        "operationId": "acceptTeamInvitation",
-        "produces": ["application/json"],
-        "parameters": [
-          {
-            "name": "invitationId",
-            "in": "path",
-            "description": "Invitation id",
-            "required": true,
-            "type": "string"
-          }
-        ],
-
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "accepted team invitation",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-
     "/teams/settings": {
       "get": {
         "tags": ["Teams"],
@@ -1493,7 +1392,7 @@
             }
           }
         ],
-        
+
         "responses": {
           "200": {
             "description": "valid: boolean, promoCode: any",
@@ -1504,124 +1403,7 @@
         }
       }
     },
-    
 
-    "/quota/usage": {
-      "get": {
-        "tags": ["Quota"],
-        "summary": "Get team subs quota usage",
-        "description": "Get team subs quota",
-        "operationId": "getTeamSubsQuotaUsage",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "responses": {
-          "200": {
-            "description": "task quota",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-    "/quota/usage/features": {
-      "get": {
-        "tags": ["Quota"],
-        "summary": "Get team features quota usage",
-        "description": "Get team features quota",
-        "operationId": "getTeamFeaturesQuotaUsage",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-
-        "responses": {
-          "200": {
-            "description": "features quota",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-
-    "/quota/usage/{teamId}/llm-tokens-and-api-requests": {
-      "get": {
-        "tags": ["Quota"],
-        "summary": "Get monthly LLM tokens and API requests usage",
-        "description": "Get monthly LLM tokens and API requests usage for a specific team",
-        "operationId": "getMonthlyLLMTokensAndApiRequestsUsage",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": [],
-            "TeamId": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "teamId",
-            "in": "path",
-            "description": "Team id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "date",
-            "in": "query",
-            "description": "Date for which to get usage (optional)",
-            "required": false,
-            "type": "string",
-            "format": "date"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Monthly LLM tokens and API requests usage",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-
-    "/quota/current-cycle/usage": {
-      "get": {
-        "tags": ["Quota"],
-        "summary": "Get total usage for current billing cycle for all spaces",
-        "description": "Get total usage for current billing cycle",
-        "operationId": "getTotalUsageForBillingCycle",
-        "produces": ["application/json"],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          
-        ],
-        "responses": {
-          "200": {
-            "description": "Total usage for current billing cycle",
-            "schema": {
-              "$ref": "#/definitions/ResponseMessage"
-            }
-          }
-        }
-      }
-    },
-    
     "/ai-agents": {
       "get": {
         "tags": ["Agents"],
