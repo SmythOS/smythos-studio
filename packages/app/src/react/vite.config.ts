@@ -58,7 +58,6 @@ export default defineConfig({
     alias: {
       '@src': path.resolve(__dirname, '../'),
       '@react': path.resolve(__dirname, '../react'),
-      '@legacy_react': path.resolve(__dirname, '../webapp'),
       '@shared': path.resolve(__dirname, '../shared'),
     },
   },

@@ -1485,3 +1485,44 @@ export const ChatIconWithTail = (props?: any) => (
     />
   </svg>
 );
+
+export const RedoIcon = ({ color = '', ...props }) => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.0361 11.9687C11.8511 13.6862 9.86348 14.8112 7.61337 14.8112C3.98326 14.8112 1.03564 11.8712 1.03564 8.23351C1.03564 4.60337 3.98326 1.65576 7.61337 1.65576C11.1911 1.65576 14.1011 4.50587 14.1986 8.06098"
+      stroke={color || 'currentColor'}
+      strokeWidth="1.235"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M15.8929 4.6084L14.3995 8.14026L10.8872 6.65519"
+      stroke={color}
+      strokeWidth="1.235"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const DeleteIcon = ({ color = '', ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color || 'currentColor'}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-trash2 h-4 w-4 cursor-pointer"
+    {...props}
+  >
+    <path d="M3 6h18"></path>
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+    <line x1="10" x2="10" y1="11" y2="17"></line>
+    <line x1="14" x2="14" y1="11" y2="17"></line>
+  </svg>
+);

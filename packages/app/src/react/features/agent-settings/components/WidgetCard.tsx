@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { CustomFlowbiteTheme, Tooltip } from 'flowbite-react';
-import { isNil } from 'lodash';
+import { isNil } from 'lodash-es';
 import React from 'react';
 
 type Props = {
