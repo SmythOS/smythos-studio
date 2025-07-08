@@ -52,7 +52,7 @@ export class ModelsPollingService {
   private async hasModelsChanged() {
     try {
       const url = `${config.env.API_SERVER}/models`;
-      const result = await axios.head(url);
+      const result = await axios.head(url, { headers: { 'x-smyth-debug': true } });
 
       const currentHash = memCache.get(MODELS_HASH_CACHE_KEY);
       const newHash = result.headers['x-models-hash'];

@@ -61,7 +61,7 @@ export default [
         compact: true,
       }),
       copy({
-        targets: [{ src: 'src/frontend/data/*', dest: 'static/data' }],
+        targets: [{ src: 'src/builder-ui/data/*', dest: 'static/data' }],
       }),
       postcss({
         plugins: [],
@@ -77,7 +77,7 @@ export default [
   },
 
   {
-    input: './src/frontend/index.ts',
+    input: './src/builder-ui/index.ts',
     output: {
       entryFileNames: 'index.min.js',
       dir: './static/js/build',
@@ -111,7 +111,7 @@ export default [
         compact: true,
       }),
       copy({
-        targets: [{ src: 'src/frontend/data/*', dest: 'static/data' }],
+        targets: [{ src: 'src/builder-ui/data/*', dest: 'static/data' }],
       }),
       postcss({
         plugins: [],

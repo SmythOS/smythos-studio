@@ -8,9 +8,7 @@
     "build:backend": "rollup --config ./scripts/build/dev/rollup-be.config.mjs",
     "build:frontend:prod": "rollup --config ./scripts/build/prod/rollup-fe.config.mjs",
     "build:backend:prod": "rollup --config ./scripts/build/prod/rollup-be.config.mjs",
-    "build:all": "echo 'DEPRECATED command, consider using bundle:dev and bundle:prod instead' && pnpm run bundle:dev",
-    "build:all:prod": "echo 'DEPRECATED command, consider using bundle:prod instead' && pnpm run bundle:prod",
-    "build:css": "tailwindcss build -i src/frontend/styles/tailwind-v2.css -o static/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
+    "build:css": "tailwindcss build -i src/builder-ui/styles/tailwind-v2.css -o static/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
     "preview": "node ./dist/server/index.js",
     "bundle:prod": "pnpm run build:backend:prod && pnpm run build:css && pnpm run build:frontend:prod",
     "bundle:dev": "pnpm run build:backend && pnpm run build:css && pnpm run build:frontend",
@@ -20,10 +18,8 @@
     "shadcn:add": "shadcn add -o",
     "type-check": "tsc --noEmit --skipLibCheck",
     "type-check:all": "tsc --noEmit --skipLibCheck && tsc --noEmit --skipLibCheck ",
-    "migration:analyze": "node scripts/migration-analyzer.js",
-    "migration:easy-wins": "node scripts/migration-helper.js easy-wins",
     "dev:react": "cd src/react && pnpm run dev",
-    "dev": "concurrently -n views,backend,vanilla,react -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
+    "dev": "concurrently -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
   },
   "type": "module",
   "author": "Alaa-eddine KADDOURI",

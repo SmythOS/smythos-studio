@@ -76,7 +76,7 @@ export default [
       copy({
         targets: [
           {
-            src: path.resolve(currentDir, '../../../src/frontend/data/*'),
+            src: path.resolve(currentDir, '../../../src/builder-ui/data/*'),
             dest: path.resolve(currentDir, '../../../static/data'),
           },
         ],

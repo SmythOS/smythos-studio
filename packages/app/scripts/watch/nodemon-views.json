@@ -1,5 +1,5 @@
 {
-  "watch": ["views", "src/react", "src/frontend", "tailwind.config.js"],
+  "watch": ["views", "src/builder-ui", "tailwind.config.js"],
   "ext": "ts,tsx,js,jsx,ejs,css,html",
   "ignore": ["static/js/*", "server/**/*"],
   "exec": "npm run build:css"

@@ -1,25 +1,24 @@
 {
-    "compilerOptions": {
-        "moduleResolution": "node",
-        "target": "ES2020",
-        "module": "ES2020",
-        "esModuleInterop": true,
-        "sourceMap": true,
-        "outDir": "./static/js",
-        "rootDir": "./src",
-        "noImplicitAny": false,
-        "resolveJsonModule": true,
-        "jsx": "react-jsx",
-        //"sourceRoot": "./",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "module": "ES2020",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "outDir": "./static/js",
+    "rootDir": "./src",
+    "noImplicitAny": false,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    //"sourceRoot": "./",
 
-        "baseUrl": ".",
-        "paths": {
-          "@src/*": ["src/*"], // deprecated (Should be removed)
-          "@react/*": ["src/react/*"],
-          "@legacy_react/*": ["src/webapp/*"],
-          "@shared/*": ["src/shared/*"],
-        }
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"], // deprecated (Should be removed)
+      "@react/*": ["src/react/*"],
+      "@shared/*": ["src/shared/*"]
+    }
   },
   "include": ["src/**/*", "node_modules/@types", "eslint.config.js"],
-    "exclude": ["node_modules"]
+  "exclude": ["node_modules"]
 }

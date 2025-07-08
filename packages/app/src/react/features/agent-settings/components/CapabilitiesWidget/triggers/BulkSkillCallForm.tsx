@@ -13,8 +13,8 @@ import {
 import { PlanNames } from '@react/shared/types/subscription';
 import { createLocalStorageArrayRetriever } from '@react/shared/utils/utils';
 import { useQuery } from '@tanstack/react-query';
-// @import '~ag-grid-community/styles/ag-grid.css';
-// @import '~ag-grid-community/styles/ag-theme-quartz.css';
+// import 'ag-grid-community/styles/ag-grid.css';
+// import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { AgGridReact as AgGridReactType } from 'ag-grid-react';
 import classNames from 'classnames';
 import { isNil } from 'lodash-es';

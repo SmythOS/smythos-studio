@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMutation } from '@tanstack/react-query';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import { subTeamsAPI, teamAPI } from '@react/features/teams/clients';
@@ -22,7 +22,6 @@ import { PostHog } from '@shared/posthog';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
-import { delay } from '@shared/utils';
 import { Tooltip } from 'flowbite-react';
 
 interface Props {
@@ -69,9 +68,9 @@ export const AssignMemberModal: FC<Props> = ({
   const [emailInput, setEmailInput] = useState<string>('');
   const [isContinuing, setIsContinuing] = useState<boolean>(false);
   const [isEmailNewMember, setIsEmailNewMember] = useState<boolean>(false);
-  const [isValidating, setIsValidating] = useState<boolean>(false);
   const storeUserSettings = useStoreUserSettings(userSettingKeys.USER_TEAM);
   const [isAddBtnDisabled, setIsAddBtnDisabled] = useState<boolean>(false);
+  const validationTimeoutRef = useRef<NodeJS.Timeout>();
 
   const { refreshUserData, currentUserTeam, getPageAccessParentTeam, getPageAccess } = useAuthCtx();
   const membersAccess = getPageAccess('/teams/members');
@@ -79,6 +78,7 @@ export const AssignMemberModal: FC<Props> = ({
   const finalMemberAccess = !currentUserTeam.parentId
     ? membersAccess?.write
     : parentTeamMembersAccess?.write;
+
   // Add these hooks for team-specific roles
   const { data: userTeamSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
   const { data: roleSettings } = useGetTeamSettings(teamSettingKeys.DEFAULT_ROLE);
@@ -269,10 +269,19 @@ export const AssignMemberModal: FC<Props> = ({
       setIsLoading(true);
       setIsAddBtnDisabled(true);
 
+      // Force validation if there's a pending timeout
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+        validateEmail(emailInput);
+      }
+
       const isAddingMember =
         !isUpdatingRole && !options?.find((option) => option.email === emailInput);
 
-      if (finalMemberAccess && isAddingMember) {
+      // Check if we should attempt invitation for new member
+      const shouldInviteNewMember = isAddingMember && emailInput && isValidEmail(emailInput);
+
+      if (shouldInviteNewMember) {
         try {
           await inviteMembersMutation.mutateAsync({
             email: emailInput,
@@ -338,6 +347,19 @@ export const AssignMemberModal: FC<Props> = ({
         } catch {
           // Error is handled in mutation's onError
         }
+      } else {
+        // Show appropriate error message
+        if (!emailInput) {
+          toast('Please enter an email address');
+        } else if (!isValidEmail(emailInput)) {
+          toast('Please enter a valid email address');
+        } else if (!finalMemberAccess) {
+          toast('You do not have permission to add members to this team');
+        } else {
+          toast('Please select a valid member or enter a new email address');
+        }
+        setIsAddBtnDisabled(false);
+        setIsLoading(false);
       }
     } catch (error) {
       // Only log unexpected top-level errors
@@ -366,55 +388,101 @@ export const AssignMemberModal: FC<Props> = ({
     return `Select a role (default: ${defaultRole?.name})`;
   }, [getEffectiveRoleId, roleData]);
 
-  // Add debounced validation
-  const debouncedValidate = useCallback(
-    async (email: string) => {
-      if (isValidating) return;
-
-      setIsValidating(true);
-      await delay(300); // Add a small delay to prevent rapid updates
-
+  // Optimized email validation with proper debouncing
+  const validateEmail = useCallback(
+    (email: string) => {
       if (!email) {
         setIsEmailNewMember(false);
         setEmailError('');
         setSelectedMemberId('');
-        setIsValidating(false);
-        return false;
+        return;
       }
 
-      const isExistingMember = options?.some(
-        ({ email: optionEmail }) => optionEmail.toLowerCase() === email.toLowerCase(),
+      // Check if email exists in options (case-insensitive)
+      const existingMember = options?.find(
+        (option) => option.email.toLowerCase() === email.toLowerCase(),
       );
 
-      // Batch state updates
-      const updates = {
-        isEmailNewMember: !isExistingMember && !!email.trim(),
-        emailError: '',
-        selectedMemberId: '',
-      };
-
-      if (!isValidEmail(email)) {
-        updates.emailError = 'Please enter a valid email address.';
-      } else if (!isExistingMember && !finalMemberAccess) {
-        updates.emailError =
-          'Entered email is not part of organization. You do not have access to add members out of your organization.';
-      } else {
-        const member = options?.find(
-          (option) => option.email.toLowerCase() === email.toLowerCase(),
-        );
-        if (member) updates.selectedMemberId = member.id.toString();
+      if (existingMember) {
+        // Email exists in dropdown options
+        setSelectedMemberId(existingMember.id.toString());
+        setIsEmailNewMember(false);
+        setEmailError('');
+        return;
       }
 
-      // Apply all state updates at once
-      setIsEmailNewMember(updates.isEmailNewMember);
-      setEmailError(updates.emailError);
-      setSelectedMemberId(updates.selectedMemberId);
+      // Email doesn't exist in options - validate as new member
+      setSelectedMemberId('');
+      setIsEmailNewMember(true);
 
-      setIsValidating(false);
-      return !!updates.selectedMemberId;
+      if (!isValidEmail(email)) {
+        setEmailError('Please enter a valid email address.');
+      } else if (!finalMemberAccess) {
+        setEmailError(
+          'Entered email is not part of organization. You do not have access to add members out of your organization.',
+        );
+      } else {
+        setEmailError('');
+      }
     },
-    [options, finalMemberAccess, isValidating],
+    [options, finalMemberAccess],
   );
+
+  // Handle email input changes with proper debouncing
+  const handleEmailChange = useCallback(
+    (email: string) => {
+      setEmailInput(email);
+
+      // Clear selectedMemberId immediately if user types something different from selected email
+      if (selectedMemberId) {
+        const selectedOption = options?.find((option) => option.id.toString() === selectedMemberId);
+        if (selectedOption && selectedOption.email !== email) {
+          setSelectedMemberId('');
+        }
+      }
+
+      // Clear previous timeout
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+
+      // Set new timeout for validation
+      validationTimeoutRef.current = setTimeout(() => {
+        validateEmail(email);
+      }, 300);
+    },
+    [validateEmail, selectedMemberId, options],
+  );
+
+  // Handle dropdown selection changes
+  const handleDropdownChange = useCallback(
+    (value: string) => {
+      const selectedOption = options?.find((option) => option.id.toString() === value);
+
+      if (selectedOption) {
+        // Clear any pending validation
+        if (validationTimeoutRef.current) {
+          clearTimeout(validationTimeoutRef.current);
+        }
+
+        // Update states for selected option
+        setSelectedMemberId(value);
+        setEmailInput(selectedOption.email);
+        setEmailError('');
+        setIsEmailNewMember(false);
+      }
+    },
+    [options],
+  );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Update the continue button handler to only redirect when explicitly clicked
   const handleContinue = async () => {
@@ -557,15 +625,12 @@ export const AssignMemberModal: FC<Props> = ({
                       })) || []
                   }
                   dropDownClasses="max-h-[236px] overflow-y-auto"
-                  onChange={(value) => {
-                    setSelectedMemberId(value);
-                    const selectedOption = options?.find(
-                      (option) => option.id.toString() === value,
-                    );
-                    setEmailInput(selectedOption ? selectedOption.email : '');
-                  }}
+                  onChange={handleDropdownChange}
+                  onInputChange={handleEmailChange}
                   disabled={isUpdatingRole}
                   value={selectedMemberId}
+                  inputValue={emailInput}
+                  useInputValue={true}
                   placeholder="Select a member"
                   isEmailDropdown
                 />

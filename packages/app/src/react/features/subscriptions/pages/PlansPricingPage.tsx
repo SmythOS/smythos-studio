@@ -1,4 +1,10 @@
-import config from '@src/frontend/config';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { FaAngleRight, FaArrowRight, FaCheck } from 'react-icons/fa6';
+import { toast } from 'react-toastify';
+
+import { BuildAgents } from '@react/features/subscriptions/components/plans/build-agents';
+import config from '@src/builder-ui/config';
 import plansDev from '@src/react/features/subscriptions/data/plans.v4.dev.json';
 import plansProd from '@src/react/features/subscriptions/data/plans.v4.prod.json';
 import { FeatureFlagged } from '@src/react/shared/components/featureFlags';
@@ -7,9 +13,7 @@ import {
   EnterprisePlanIcon,
   FreePlanIcon,
   ScaleupPlanIcon,
-  StartIcon,
   StartupPlanIcon,
-  UserFeedbackIcon,
 } from '@src/react/shared/components/svgs';
 import { Input } from '@src/react/shared/components/ui/input';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
@@ -23,10 +27,6 @@ import { extractError } from '@src/react/shared/utils/errors';
 import { navigateTo } from '@src/react/shared/utils/general';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { Analytics } from '@src/shared/posthog/services/analytics';
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { FaAngleRight, FaArrowRight, FaCheck } from 'react-icons/fa6';
-import { toast } from 'react-toastify';
 
 const pricingTiers = config.env.IS_DEV ? plansDev : plansProd;
 
@@ -101,7 +101,7 @@ const PricingTierItem: FC<PricingTier> = ({
         body: JSON.stringify({
           newPriceIds: priceIds,
           isUserAcknowledged: true,
-          ...(!!promoCode.trim() ? { promoCode: promoCode.trim() } : {}),
+          ...(promoCode.trim() ? { promoCode: promoCode.trim() } : {}),
         }),
       });
       await res.json();
@@ -122,7 +122,7 @@ const PricingTierItem: FC<PricingTier> = ({
         subs?.plan?.name === 'Early Adopters'
       ) {
         toast.error(
-          `Early Adopter is a custom plan and can't be changed directly. Contact support to change your plan.`,
+          "Early Adopter is a custom plan and can't be changed directly. Contact support to change your plan.",
         );
       } else {
         toast.error(errorMessage || 'Something went wrong. Please try again.');
@@ -611,7 +611,7 @@ export const PlansPricingPage: FC<{ isInternalPage?: boolean }> = ({ isInternalP
           </div>
         )}
 
-        <div className="mt-8 md:mt-12 flex gap-6 md:gap-12 flex-col md:flex-row justify-center items-center text-center">
+        {/* <div className="mt-8 md:mt-12 flex gap-6 md:gap-12 flex-col md:flex-row justify-center items-center text-center">
           <div>
             <StartIcon className="mx-auto mb-2" />
             <p>Rated 4.9/5 stars in 100+ reviews</p>
@@ -620,7 +620,9 @@ export const PlansPricingPage: FC<{ isInternalPage?: boolean }> = ({ isInternalP
             <UserFeedbackIcon className="mx-auto mb-2" />
             <p>Incredible Support Community</p>
           </div>
-        </div>
+        </div> */}
+
+        <BuildAgents />
       </div>
     );
   };

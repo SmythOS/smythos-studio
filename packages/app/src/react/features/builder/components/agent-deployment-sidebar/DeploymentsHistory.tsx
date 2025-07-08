@@ -1,5 +1,5 @@
-import { closeTwDialog, twEditValuesWithCallback } from '@src/frontend/ui/tw-dialogs';
-import { importSmythFile } from '@src/frontend/workspace/FileDrag';
+import { closeTwDialog, twEditValuesWithCallback } from '@src/builder-ui/ui/tw-dialogs';
+import { importSmythFile } from '@src/builder-ui/workspace/FileDrag';
 import { useDeploymentSidebarCtx } from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
