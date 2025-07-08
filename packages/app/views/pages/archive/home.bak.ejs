@@ -1,0 +1,188 @@
+<main>
+    <div class="p-4 mx-4 md:flex md:items-center md:justify-between md:p-6 xl:p-8 dark:bg-gray-800">
+        <div class="flex flex-wrap ml-6 items-center mb-6 space-y-1 md:mb-0">
+            <div class="g-title">All Agents</div>
+        </div>
+        <div class="flex space-x-6 sm:justify-center">
+            <div class="relative mt-1 lg:w-96">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <img class="search-icon" src="/img/home.icons/search.svg" />
+                </div>
+                <input type="text" name="email" id="topbar-search"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Search">
+            </div>
+
+            <div class="relative mt-1 lg:w-48">
+                <a href="/builder" type="button"
+                    class="flex space-x-6 items-center px-3 py-2 mr-6 text-sm font-medium text-center text-white rounded-lg bg-[#F35063] hover:bg-[#F35063]/80 ">
+                    <img class="mr-2" alt="plus" src="/img/home.icons/plus-round.svg" />
+                    Create Agent
+                </a>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+
+
+
+<div class="sm-container">
+
+
+    <!-- ChatBot Dialog -->
+    <div class="dialog bg-white" data-role="dialog" id="chatbotDialog">
+        <div class="dialog-content" id="home_chatbot">
+            <h2 class="text-center">ChatBot</h2>
+            <form>
+                <div>
+                    <label for="name" class="fg-primary">Chatbot Name:</label>
+                    <input type="text" class="form-control metro-input" name="name" id="name" data-role="input" />
+                </div>
+                <div>
+                    <label for="personality" class="fg-primary">Personality:</label>
+                    <textarea name="personality" id="personality" data-role="textarea"></textarea>
+                </div>
+                <div>
+                    <label for="icons" class="fg-primary">Select an Icon:</label>
+                    <input type="file" data-role="file" data-button-title="Choose file" name="icons" id="icons" />
+                </div>
+                <div class="chatbots">
+                    <div>
+                        <div class="color-selection">
+                            <label for="botTextColor" class="fg-primary">Bot Text Color:</label>
+                            <input type="text" data-coloris id="botTextColor" />
+                        </div>
+                        <div class="color-selection">
+                            <label for="humanTextColor" class="fg-primary">Human Text Color:</label>
+                            <input type="text" data-coloris id="humanTextColor" />
+                        </div>
+                        <div class="color-selection">
+
+                            <label for="botBubbleBackgroundColor" class="fg-primary">Bot Bubble Background
+                                Color:</label>
+                            <input type="text" data-coloris id="botBubbleBackgroundColor" />
+                        </div>
+                        <div class="color-selection">
+
+                            <label for="humanBubbleBackgroundColor" class="fg-primary">Human Bubble Background
+                                Color:</label>
+                            <input type="text" data-coloris id="humanBubbleBackgroundColor" />
+                        </div>
+                        <div class="color-selection">
+                            <label for="chatWindowBackgroundColor" class="fg-primary">Chat Window Background
+                                Color:</label>
+                            <input type="text" data-coloris id="chatWindowBackgroundColor" />
+                        </div>
+                    </div>
+                    <div class="chatbot-container">
+                        <div class="user-message">
+                            <p>Hi</p>
+                        </div>
+                        <div class="chatbot-message">
+                            <p>Hello! How can I assist you today?</p>
+                        </div>
+                        <!-- <div class="user-message">
+                            <p>Hi, I have a question.</p>
+                        </div> -->
+                        <div class="chatbot-message waiting-message">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="dialog-actions">
+            <button class="button js-dialog-close">Cancel</button>
+            <button class="button primary js-dialog-close" id="submitChatbotDialog">Submit</button>
+        </div>
+    </div>
+    <!-- Chat GPT Dialog -->
+    <div class="dialog bg-white" data-role="dialog" id="chatgptDialog">
+        <div class="dialog-content" id="home_chatgpt">
+            <h2 class="text-center">Chat GPT</h2>
+            <form>
+                <div>
+                    <label for="gpt-name" class="fg-primary">Name for Human:</label>
+                    <input type="text" class="form-control metro-input" name="gpt-name" id="gpt-name"
+                        data-role="input" />
+                </div>
+                <div>
+                    <label for="gpt-model" class="fg-primary">Name for Model:</label>
+                    <input class="form-control metro-input" name="gpt-model" id="gpt-model" data-role="input" />
+                </div>
+                <div>
+                    <label for="gpt-description" class="fg-primary">Description for Human:</label>
+                    <textarea class="form-control metro-input" name="gpt-human-description" id="gpt-human-description"
+                        data-role="textarea"></textarea>
+                </div>
+                <div>
+                    <label for="gpt-description" class="fg-primary">Description for Model:</label>
+                    <textarea class="form-control metro-input" name="gpt-description" id="gpt-description"
+                        data-role="textarea"></textarea>
+                </div>
+                <div>
+                    <label for="gpt-logo_url" class="fg-primary">Logo URL:</label>
+                    <input type="text" class="form-control metro-input" name="gpt-logo_url" id="gpt-logo_url"
+                        data-role="input" />
+                </div>
+                <div>
+                    <label for="gpt-contact_email" class="fg-primary">Contact Email:</label>
+                    <input type="text" class="form-control metro-input" name="gpt-contact_email" id="gpt-contact_email"
+                        data-role="input" />
+                </div>
+                <div>
+                    <label for="gpt-legal_info_url" class="fg-primary">Legal Info URL:</label>
+                    <input type="text" class="form-control metro-input" name="gpt-legal_info_url"
+                        id="gpt-legal_info_url" data-role="input" />
+                </div>
+            </form>
+        </div>
+        <div class="dialog-actions">
+            <button class="button js-dialog-close">Cancel</button>
+            <button class="button primary js-dialog-close" id="submitChatgptDialog">Submit</button>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <div class="row">
+            <% if (agents && agents.length> 0) { %> <% agents.forEach(agent=> { %>
+            <div class="cell-3" data-agent-id="<%= agent.id %>" style="height: 100%">
+                <div>
+                    <div class="g-card" style="height: 250px">
+                        <div class="d-flex flex-justify-between flex-align-center">
+                            <div>
+                                <div class="secondary-grey reduce-3 d-none">
+                                    <%= agent.description ? agent.description : "Customer Service" %>
+                                </div>
+                                <a href="/builder/<%= agent.id %>">
+                                    <div class="font-600 enlarge-3">
+                                        <%= agent.name %>
+                                    </div>
+                                </a>
+                            </div>
+                            <input class="d-none" type="checkbox" data-role="switch" data-cls-switch="mySwitch"
+                                data-cls-caption="fg-cyan text-bold" data-cls-check="bd-cyan myCheck" />
+                        </div>
+                        <hr class="mt-2 mb-2" />
+                        <div class="settings-placeholder">
+                            <div class="text-center fg-cyan">
+                                <!-- <span class="mif-spinner ani-spin"></span> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }); %>
+            <% } else { %>
+            <p class="secondary-grey mt-15">
+                Your agents will be available here soon.
+                <a href="/builder" class="text-bold g-blue text-underline c-pointer"> Build your first
+                    agent. </a>
+            </p>
+            <% } %>
+        </div>
+    </div>
+</div>

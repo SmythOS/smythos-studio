@@ -1,0 +1,15 @@
+<div class="sm-container pt-2 mx-auto ">
+
+    <div class="flex items-center mb-6  justify-between">
+        <h2 class="text-2xl font-bold">Analytics</h2>
+    </div>
+</div>
+<div class="mx-auto w-full">
+    <main>
+        <div class="py-5 mx-auto">
+
+            <iframe class="w-full h-[2000px]"
+                src="/grafana/d/d9fb1ca5-939e-40c3-8e84-a473764df7f6/agents-analytics?orgId=1&fullscreen&from=now-7d&to=now&var-teamId=<%= teamId %>&var-AgentID=ALL"></iframe>
+        </div>
+    </main>
+</div>

@@ -1,0 +1,60 @@
+{
+  "page": {
+    "/css": { "access": "rw", "name": "css", "internal": true },
+    "/js": { "access": "rw", "name": "js", "internal": true },
+    "/error": { "access": "r", "name": "Error", "internal": true },
+    "/metroui": { "access": "rw", "name": "metroui", "internal": true },
+    "/img": { "access": "rw", "name": "img", "internal": true },
+    "/favicon.ico": { "access": "rw", "name": "favicon", "internal": true },
+    "/accept-invitation": { "access": "rw", "name": "Accept Invitation", "internal": true },
+    "/teams/accept-invitation": { "access": "rw", "name": "Accept Invitation", "internal": true },
+    "/subscriptions": { "access": "rw", "name": "subscriptions", "internal": true },
+    "/_auth": { "access": "rw", "name": "Auth", "internal": true },
+    "/oauth2": { "access": "r", "name": "OAuth2", "internal": true },
+    "/doc": { "access": "r", "name": "Documentation", "internal": true },
+
+    "/grafana": { "access": "r", "name": "Grafana", "internal": true },
+    "/": { "access": "r", "redirect": "/agents", "name": "Agents", "internal": true },
+
+    "/agents": { "access": "", "name": "Agents List" },
+    "/agent-settings": { "access": "", "name": "Agent Settings" },
+    "/builder": { "access": "", "name": "Agent Builder" },
+    "/newagent": { "access": "", "name": "Basic Agent Builder", "internal": true },
+    "/templates": { "access": "", "name": "Templates" },
+    "/domains": { "access": "", "name": "Domains" },
+    "/data": { "access": "", "name": "Data Pool" },
+    "/vault": { "access": "", "name": "Vault" },
+    "/analytics": { "access": "", "name": "Analytics" },
+    "/my-plan": { "access": "", "name": "My Plan" },
+    "/onboard": { "access": "rw", "name": "Onboarding", "internal": true },
+    "/welcome": { "access": "rw", "name": "Welcome", "internal": true },
+
+    "/logs": { "access": "r", "name": "Logs", "internal": true },
+
+    "/teams": { "access": "rw", "name": "Teams", "internal": true },
+    "/teams/roles": { "access": "", "name": "Team Roles" },
+    "/teams/members": { "access": "", "name": "Team Members" },
+    "/plansframe": { "access": "rw", "name": "Plans Frame", "internal": true },
+    "/plansframev2": { "access": "rw", "name": "Plans Frame", "internal": true },
+    "/plansframev3": { "access": "rw", "name": "Plans Frame", "internal": true },
+    "/enterprise": { "access": "rw", "name": "Enterprise Plan", "internal": true },
+    "/account": { "access": "rw", "name": "Account", "internal": true },
+    "/account-deleted": { "access": "r", "name": "Account Deleted", "internal": true },
+    "/partners": { "access": "r", "name": "Partners", "internal": true },
+    "/aiagents": { "access": "rw", "name": "AI Agents", "internal": true },
+    "/chat": { "access": "rw", "name": "AI Chats", "internal": true },
+    "/test_v2": { "access": "rw", "name": "Test V2", "internal": true },
+
+    "/analyticsv2": { "access": "rw", "name": "Analytics", "internal": true },
+    "/enterprise-t1": { "access": "rw", "name": "Enterprise T1", "internal": true },
+    "/enterprise-t2": { "access": "rw", "name": "Enterprise T2", "internal": true },
+    "/enterprise-t3": { "access": "rw", "name": "Enterprise T3", "internal": true },
+    "/enterprise-t4": { "access": "rw", "name": "Enterprise T4", "internal": true },
+    "/plans-legacy": { "access": "rw", "name": "Plans", "internal": true }
+  },
+  "api": {
+    "/user": { "access": "", "name": "User API" },
+    "/api": { "access": "", "name": "API" },
+    "/app": { "access": "r", "name": "App" }
+  }
+}

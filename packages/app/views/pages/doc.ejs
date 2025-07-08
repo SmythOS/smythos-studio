@@ -1,0 +1,216 @@
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+<link
+  rel="stylesheet"
+  href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css"
+/>
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css"> -->
+<div id="docsify">
+  <div id="app"></div>
+</div>
+<style>
+  html {
+    background-color: transparent !important;
+  }
+
+  nav {
+    position: fixed !important;
+    width: 100% !important;
+    margin: 0px !important;
+  }
+
+  .app-nav a {
+    color: white;
+  }
+
+  .app-nav a:hover {
+  }
+
+  .app-nav a.active {
+    border-bottom: 0px !important;
+  }
+
+  .app-nav li {
+    margin: 0px;
+    padding: 0px;
+  }
+  .sidebar .search {
+    margin-top: 1rem;
+  }
+
+  .sidebar-nav .level-1 {
+    margin-bottom: 20px !important;
+  }
+  /**
+   * Pseudo-element trick:
+   * Inserts an invisible element before every heading that effectively offsets it.
+   * This is useful when scroll-margin-top is insufficient or overridden.
+   */
+  #main h1::before,
+  #main h2::before,
+  #main h3::before,
+  #main h4::before,
+  #main h5::before,
+  #main h6::before {
+    content: '';
+    display: block;
+    height: 4rem; /* Height of the sticky navbar */
+    margin-top: -4rem;
+    pointer-events: none; /* Ensure the pseudo-element doesn't intercept clicks */
+    visibility: hidden;
+  }
+</style>
+<script>
+  /**
+   * Adjusts the scroll position so that the target element
+   * is placed at the correct vertical position, taking into account the fixed header.
+   *
+   * @param {string} targetId - The ID of the target element to which to scroll.
+   */
+  function adjustScrollOffset(targetId) {
+    // Select the fixed header element. In our case the <nav> element is fixed.
+    const header = document.querySelector('nav');
+    // Get the target element by its id.
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) {
+      console.error(`Target element with id '${targetId}' not found.`);
+      return;
+    }
+    // Use header.offsetHeight as the offset; if header is not found, fallback to 0.
+    const headerHeight = header ? header.offsetHeight : 0;
+    // Calculate the element's top offset relative to the document.
+    const elementTop = targetElement.getBoundingClientRect().top + window.pageYOffset;
+    // Scroll so that the top of the element is just below the fixed header.
+    window.scrollTo({
+      top: elementTop - headerHeight,
+      behavior: 'smooth',
+    });
+  }
+
+  /**
+   * Retrieves the id of the second <h1> element in the document.
+   *
+   * @returns {string} The id of the second heading or an empty string if not available.
+   */
+  function getSecondHeadingId() {
+    // Select all <h1> elements in the document.
+    const headings = document?.querySelectorAll('h1');
+    if (!headings || headings.length < 2) {
+      console.error('Expected at least two <h1> elements.');
+      return '';
+    }
+    // The second element (index 1) from the NodeList.
+    const secondHeading = headings[1];
+    if (!secondHeading.id) {
+      console.error('The second <h1> element does not have an id.');
+      return '';
+    }
+    return secondHeading.id;
+  }
+
+  /**
+   * A debouncing function to ensure that scroll adjustment is only executed once,
+   * if multiple events trigger within a short period.
+   *
+   * Designed using a delay of 150ms.
+   */
+  let scrollDebounceTimeout = null;
+  let isManualScroll = false;
+
+  function scheduleScroll() {
+    if (scrollDebounceTimeout !== null) {
+      clearTimeout(scrollDebounceTimeout);
+    }
+    scrollDebounceTimeout = window.setTimeout(() => {
+      scrollDebounceTimeout = null;
+      // Only adjust scroll if it's not a manual scroll.
+      if (!isManualScroll) {
+        const targetId = getSecondHeadingId();
+        if (targetId) {
+          adjustScrollOffset(targetId);
+        }
+      }
+      // Reset manual scroll flag after the scheduled scroll adjustment.
+      isManualScroll = false;
+    }, 50);
+  }
+
+  // Listen for scroll events to detect manual scrolling.
+  window.addEventListener(
+    'scroll',
+    () => {
+      // If a scroll event is detected, set the manual scroll flag to true.
+      isManualScroll = true;
+    },
+    { passive: true },
+  );
+
+  // Docsify configuration.
+  window.$docsify = {
+    name: 'SmythOS',
+    repo: '',
+    loadSidebar: true,
+    auto2top: true, // Docsify will scroll to top on every route change by default.
+    maxLevel: 4,
+    subMaxLevel: 2,
+    search: 'auto',
+    sidebarDisplayLevel: 1,
+    search: {
+      maxAge: 86400000,
+      paths: 'auto',
+      placeholder: 'Type to search',
+      noData: 'No Results!',
+      depth: 2,
+      hideOtherSidebarContent: false,
+    },
+  };
+
+  // Flag to check if initial load of the sidebar is complete.
+  let initialLoadComplete = false;
+
+  // Attach a Docsify plugin hook so that after each content render we adjust the UI and scroll.
+  window.$docsify.plugins = [].concat(window.$docsify.plugins || [], function (hook) {
+    hook.doneEach(function () {
+      // Apply classes for fixed nav and margin-top adjustments.
+      document.body.classList.add('fixed-nav');
+      document.getElementById('docsify')?.classList?.add?.('mt-12');
+
+      // Select all elements with the class "file" inside the sidebar
+      document.querySelectorAll('.sidebar-nav .file').forEach(function (el) {
+        el.classList.remove('file'); // Remove the old class
+        el.classList.add('docsify-file'); // Add the new custom class
+      });
+
+      // Scroll the active sidebar link into view on initial load.
+      if (!initialLoadComplete) {
+        setTimeout(function () {
+          const activeLink = document.querySelector('.sidebar-nav .active');
+          if (activeLink) {
+            const sidebar = document.querySelector('.sidebar');
+            const activeLinkRect = activeLink.getBoundingClientRect();
+            const sidebarRect = sidebar.getBoundingClientRect();
+            // If the active link isn't completely visible, scroll it into view.
+            if (
+              activeLinkRect.top < sidebarRect.top ||
+              activeLinkRect.bottom > sidebarRect.bottom
+            ) {
+              activeLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+          initialLoadComplete = true;
+        }, 300);
+      }
+
+      // Instead of scrolling immediately, schedule a debounced scroll adjustment.
+      scheduleScroll();
+    });
+  });
+
+  // Listen for hash change events so that clicking an in-page link always adjusts the scroll correctly.
+  window.addEventListener('hashchange', function () {
+    scheduleScroll();
+  });
+</script>
+<!-- Docsify v4 -->
+<script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+<script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>

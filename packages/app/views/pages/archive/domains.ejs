@@ -1,0 +1,137 @@
+<div class="sm-container" id="sm-container">
+    <div class="d-flex flex-justify-between flex-align-center container-spacer pb-8">
+        <div class="g-title">Domain Registry</div>
+        <div class="d-flex">
+            <div class="input-container mx-2">
+                <input class="input-primary" placeholder="Search" />
+                <img class="search-icon" alt="plus" src="/img/home.icons/search.svg" />
+            </div>
+            <button id="registerDomainButton" class="button-primary">
+                <img alt="plus" src="/img/home.icons/plus-round.svg" /> Add Domain
+            </button>
+        </div>
+    </div>
+
+    <!--Add New Domain Modal -->
+    <!-- <div class="dialog" data-role="dialog" id="addDomainDialog">
+        <div id="addDomainTitle">
+            <div class="d-flex flex-justify-end"><img id="closeDialog" class="c-pointer" src="/img/domain.icons/close.svg" alt="" /></div>
+            <div class="modal-title">Enter New Domain</div>
+        </div>
+        <div class="dialog-content" id="dialog-Content">
+            <div class="d-flex flex-align-start flex-justify-between">
+                <div style="width: 100%">
+                    <input class="input-secondary" type="text" name="" id="input" placeholder="Enter Domain Name" />
+                    <p class="m-0 pt-1 invalid_feedback" id="error">Domain not verified</p>
+                    <p id="successText" class="success-text">Domain verified successfully ✅</p>
+                </div>
+                <button class="ml-2 verifyButton d-flex flex-align-center" id="verifyButton">
+                    <div id="green-loader" class="circular-loader-green"></div>
+                    <span class=""> Verify </span>
+                </button>
+            </div>
+            <p class="reduce-1 pt-2 pb-4">Create a CNAME record with the following values then click verify.</p>
+            <div class="border secondary-grey border-solid rounded-md border-[#DFDFDF] border-radius-8 p-3">
+                <div>
+                    <span class="font-bold">Host :</span>
+                    <span id="hostValue"> </span>
+                </div>
+                <div class="pt-2">
+                    <span class="font-bold">Target :</span>
+                    <span> proxy-dev.api.smyth.ai.</span>
+                </div>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button class="button-primary w-100-sm d-flex flex-align-center flex-justify-center" id="addDomainButton">
+                <div id="loader" class="circular-loader"></div>
+                <span class="">Add Domain </span>
+            </button>
+            <p class="m-0 pt-2 invalid_feedback" id="addDomainError">
+                Domain configuration failed, this can be due to DNS propagation, please try again in a few seconds.
+            </p>
+        </div>
+    </div> -->
+    <!-- Add New Domain Modal End -->
+
+    <!-- Delete Modal -->
+
+    <!-- <div class="dialog" data-role="dialog" id="deleteModal">
+        <div class="d-flex flex-justify-end">
+            <img id="closeDeleteDialog" class="c-pointer js-dialog-close" src="/img/domain.icons/close.svg" alt="" />
+        </div>
+        <div class="modal-title">Confirm Domain URL Deletion</div>
+        <div class="dialog-content">
+            <div class="card-lg-text">
+                Please be aware that deleting this Domain URL will permanently remove it from your records and could
+                impact linked agents.
+            </div>
+            <div class="card-lg-text pb-4 font-bold">Type the domaine name to confirm : <strong id="deleteHelperText">
+                </strong></div>
+            <div class="">
+                <input class="input-secondary" type="text" name="" id="delete-input" placeholder="Type domain name" />
+                <p class="m-0 pt-1 invalid_feedback" id="deleteDomainError">Domain name does not exists</p>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button class="button-primary w-100-sm d-flex flex-justify-center flex-align-center" id="deleteDomainBtn">
+                <div id="delete-loader" class="circular-loader"></div>
+                <span class="pl-2"> Delete </span>
+            </button>
+        </div>
+    </div> -->
+
+    <!-- Delete Modal End -->
+    <ul class="responsive-table" id="responsiveTable">
+        <% if (domains && domains.length > 0) { %>
+
+        <li class="table-header row">
+            <div class="cell" data-id="1">Name <img src="/img/domain.icons/arrow-up.svg" alt="" /></div>
+            <div class="cell agent flex-justify-center d-flex" data-id="2">
+                Agent
+                <img class="pl-2" src="/img/domain.icons/arrow-up.svg" alt="" />
+            </div>
+            <div class="cell agent flex-justify-center d-flex" data-id="3">
+                Endpoints <img class="pl-2" src="/img/domain.icons/arrow-up.svg" alt="" />
+            </div>
+            <div class="cell flex-justify-end d-flex" data-id="4">Actions</div>
+        </li>
+        <div>
+            <div class="verfication d-flex flex-align-center">
+                <img src="/img/domain.icons/check-badge.svg" alt="" />
+                <span class="pl-1">VERIFIED DOMAINS</span>
+            </div>
+        </div>
+
+        <% } %> <% if (domains && domains.length > 0) { %> <% domains.forEach(item => { %>
+        <div id="domainRow_<%= item.name %>">
+            <li class="table-row row">
+                <div class="cell d-flex flex-align-center" data-label="Job Id"><%= item?.name %></div>
+                <div class="cell d-flex flex-align-center flex-justify-center" data-label="Customer Name">
+                    <% if (item && item.aiAgent) { %>
+                    <a class="c-pointer agentName" href="/builder/<%= item.aiAgent.id %>" target="_blank">
+                        <%= item.aiAgent.name %> </a>
+                    <% } else { %>
+                    <div>N/A</div>
+                    <% } %>
+                </div>
+                <div class="cell d-flex flex-justify-center flex-align-center flex-column dataApi" id="dataApi"
+                    data-label="Amount">
+                    <% if (item.aiAgentEndpoint && item.aiAgentEndpoint.length > 0) { %>
+                    <% item.aiAgentEndpoint.forEach(data => { %>
+                    <div><%= data?.path ? data.path : 'N/A' %></div>
+                    <% }); %> <% } else { %>
+                    <div>N/A</div>
+                    <% } %>
+                </div>
+                <div class="cell last-col flex-align-start" data-label="Payment Status">
+                    <img class="ml-2 c-pointer deleteIcon" id="deleteDomain" src="/img/icons/delete_v2.svg" alt=""
+                        data-domain-name="<%= item.name %>" />
+                </div>
+            </li>
+        </div>
+        <% }); %> <% } else { %>
+        <div class="text-center h5 text-bold pt-10" id="emptyMessage">Click Add domain to register new domain.</div>
+        <% } %>
+    </ul>
+</div>

@@ -1,0 +1,110 @@
+<div
+  x-data="{dropdownOpen: false}"
+  class="w-full flex-col items-center relative justify-center flex"
+>
+  <button
+    id="<%= dropdownId %>"
+    data-dropdown-offset-distance="0"
+    @click="dropdownOpen = !dropdownOpen"
+    class="text-gray-950 bg-gray-50 hover:bg-gray-100 focus:ring-0 focus:outline-none font-medium text-sm px-5 py-1.5 text-center inline-flex items-center justify-between w-11/12 mx-auto border border-solid border-gray-950"
+    :class="dropdownOpen ? 'rounded-ss-lg rounded-se-lg' : 'rounded-lg'"
+    type="button"
+  >
+    <div class="flex items-center gap-2">
+      <img :src="selectedOption.icon" :alt="selectedOption.name + ' Logo'" class="w-4 h-4" />
+      <span x-text="selectedOption.name"></span>
+    </div>
+    <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M4.44922 6L8.44922 10L12.4492 6"
+        stroke="#09090B"
+        stroke-width="1.33333"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+  <!-- Dropdown menu -->
+  <div
+    id="dropdown"
+    x-show="dropdownOpen"
+    @click.away="dropdownOpen = false"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 transform scale-100"
+    x-transition:enter-end="opacity-100 transform scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 transform scale-100"
+    x-transition:leave-end="opacity-0 transform scale-100"
+    class="absolute top-full left-0 right-0 z-50 bg-gray-50 divide-y divide-gray-100 rounded-es-lg rounded-ee-lg shadow-md w-11/12 border border-solid border-gray-950 border-t-0 mx-auto"
+  >
+    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="<%= dropdownId %>">
+      <%
+      const menuItems = [
+        {
+          name: 'Agent Weaver',
+          icon: '/img/icons/weaver.svg',
+          tab: 'agentBuilderTab',
+          id: 'left-sidebar-agentBuilder-btn'
+        },
+        {
+          name: 'Components',
+          icon: '/img/icons/hashtag.svg',
+          tab: 'buildTab',
+          id: 'left-sidebar-build-btn'
+        },
+        {
+          name: 'Agent Settings',
+          icon: '/img/icons/settings.svg',
+          tab: 'agentTab',
+          id: 'left-sidebar-agent-btn'
+        },
+        {
+          name: 'Global Variables',
+          icon: '/img/icons/network-ai.svg',
+          tab: 'variablesTab',
+          id: 'left-sidebar-variables-btn'
+        },
+        {
+          name: 'API Auth',
+          icon: '/img/icons/lock.svg',
+          tab: 'authTab',
+          id: 'left-sidebar-auth-btn'
+        },
+        {
+          name: 'Deploy Agent',
+          icon: '/img/icons/space-rocket.svg',
+          tab: 'deployTab',
+          id: 'left-sidebar-deploy-btn'
+        }
+      ];
+
+      // Add Template Editor for staff only
+      if (isSmythStaff) {
+        menuItems.push({
+          name: 'Template Editor',
+          icon: '/img/icons/user-ai.svg',
+          tab: 'templateTab',
+          id: 'left-sidebar-template-btn',
+          isInternal: true
+        });
+      }
+      %>
+
+      <% menuItems.forEach(item => { %>
+        <li>
+          <a
+            href="#"
+            @click.prevent="setSelectedOption({ name: '<%= item.name %>', icon: '<%= item.icon %>' }); dropdownOpen = false; setSidebarTab('<%= item.tab %>'); isSidebarOpen = true;"
+            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            <% if (item.id) { %>id="<%= item.id %>"<% } %>
+          >
+            <div class="flex items-center gap-2">
+              <img src="<%= item.icon %>" alt="<%= item.name %> Icon" class="w-4 h-4" />
+              <span><%= item.name %><% if (item.isInternal) { %> <strong>(Internal)</strong><% } %></span>
+            </div>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+</div>

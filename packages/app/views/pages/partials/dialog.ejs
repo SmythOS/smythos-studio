@@ -1,0 +1,112 @@
+<div class="flex justify-center items-center h-screen hidden" id="editValuesDialogTpl">
+    <div>
+        <!-- Modal Overlay -->
+        <div class="fixed inset-0 px-2 z-[11] overflow-hidden flex items-center justify-center">
+            <div
+                class="__overlay absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity ease-out duration-300 opacity-25">
+            </div>
+            <!-- Modal Content -->
+            <div class="__dialog smyth-dialog bg-white shadow-xl max-w-2xl w-full max-h-screen z-50 transition-all ease-out duration-300 transform scale-0 border-solid border-white rounded-xl overflow-y-auto scroll-smooth">
+                <!-- Modal Header -->
+                <div class="text-gray-900 pt-4 px-4 flex justify-between">
+                    <h2 class="__title text-lg font-semibold"></h2>
+
+
+                    <button class="__btnClose" aria-label="Close modal">
+                        <svg class="w-[15px] h-[15px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                </div>
+                <!-- Modal Body -->
+                <div class="__content p-2">
+                </div>
+                <!-- Modal Footer -->
+                <div class="__actions px-4 pb-3 flex justify-end space-x-2">
+                    <!-- <button
+                        class="__btnCancel px-3 py-1 bg-gray-400 text-white transition-opacity rounded-md w-full sm:w-auto hover:opacity-75">
+                        Cancel </button>
+                    <button
+                        class="__btnAccept px-3 py-1 bg-emerald-500 text-white transition-opacity rounded-md w-full sm:w-auto hover:opacity-75">
+                        Save </button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div data-role="dialog" class="dialog smyth-dialog shadow-on bg-white rounded-md shadow dark:bg-gray-700"
+    data-width="600" id="smyth-dialog" data-overlay="false">
+    <div class="dialog-title flex items-start justify-between px-2 py-0 border-b rounded-t dark:border-gray-600">Dialog
+        Title</div>
+    <div class="dialog-content px-2 py-3 max-h-[60vh] overflow-y-auto">Dialog Content</div>
+    <div class="dialog-actions flex space-x-4 justify-center items-center py-4">
+        <button
+            class="text-gray-700 text-center text-sm font-medium py-2 px-3 w-40 rounded-lg border border-gray-700 hover:opacity-75 focus:ring-4 focus:outline-none js-dialog-close btn-cancel">
+            Cancel
+        </button>
+
+        <button
+            class="text-white text-center text-sm font-medium py-2 px-3 w-40 bg-smyth-emerald-400 rounded-lg border border-smyth-emerald-400 hover:opacity-75 focus:ring-4 focus:outline-none btn-submit">
+            Save
+        </button>
+    </div>
+</div>
+
+<div class="flex justify-center items-center h-screen hidden" id="tweditValuesDialogTpl">
+    <div>
+        <!-- Modal Overlay -->
+        <div class="fixed inset-0 px-2 z-[11] overflow-hidden flex items-center justify-center">
+            <div class="__overlay absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity ease-out duration-300 opacity-25"></div>
+            <!-- Modal Content -->
+            <div class="__dialog smyth-dialog bg-white rounded-xl shadow-xl max-w-2xl min-w-[550px] p-2 z-50 transition-all ease-out duration-300 transform scale-0 border-solid border-white border-2 max-h-screen overflow-y-auto scroll-smooth"">
+                <!-- Modal Header -->
+                <div class="bg-white text-black px-4 py-2 flex justify-between items-center">
+                    <h2 class="__title text-lg font-semibold"></h2>
+                    <button class="__btnClose" aria-label="Close modal">
+                        <svg class="w-4 h-4" fill="none" stroke="#666" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Modal Body -->
+                <div class="__content max-h-[60vh] overflow-y-auto scroll-smooth px-4">
+                </div>
+                <!-- Modal Footer -->
+                <div class="__actions px-4 py-2 flex justify-center">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 
+  Note: Flowbite tooltips require static HTML elements to function properly.
+  Dynamic tooltips created via JavaScript will not work correctly.
+  This tooltip must be defined in the HTML template directly.
+-->
+<div
+    href="#"
+    class="inline-block align-text-bottom ml-2 hidden"
+    id="add-skill-input-info-icon"
+    data-tooltip-target="add-skill-input-info-tooltip"
+    data-tooltip-placement="top"
+>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M3 12C3 16.9699 7.02908 21 12 21C16.9709 21 21 16.9699 21 12C21 7.02908 16.9709 3 12 3C7.02908 3 3 7.02908 3 12Z" stroke="#757575" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12.0057 15.6932V11.3936M12 8.35426V8.29102" stroke="#757575" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</div>
+
+<div
+    id="add-skill-input-info-tooltip"
+    role="tooltip"
+    class="absolute z-20 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-950 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-64"
+>
+A skill input, also known as an API endpoint parameter, is an input provided to your agent skill that you will use in your workflow.
+</div>
+

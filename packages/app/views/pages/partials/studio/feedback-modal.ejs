@@ -1,0 +1,277 @@
+<div id="feedbackModal" class="fixed inset-0 z-[1000] hidden">
+  <div class="fixed inset-0 bg-black/50 transition-opacity"></div>
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div
+      class="bg-white rounded-xl shadow-lg max-w-[670px] w-full h-[390px] p-6 m-4 overflow-auto sm:h-auto"
+    >
+      <h2 class="text-[24px] font-semibold text-[#1E1E1E] mb-2">Leave Feedback</h2>
+      <p class="text-[14px] leading-[20px] text-[#1E1E1E] mb-4">
+        We'd love to hear what went well or how we can improve the product experience.
+      </p>
+      <textarea
+        id="feedbackText"
+        rows="6"
+        class="w-full bg-white border text-gray-900 rounded outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 mb-4 resize-none"
+        placeholder="Your Feedback"
+      ></textarea>
+      <div class="flex gap-2 mb-6">
+        <button
+          class="w-10 h-10 rounded-lg border border-[#D0D5DD] flex items-center justify-center hover:border-smyth-blue hover:bg-[#F5FAFF] transition-all"
+          data-emoji="sad"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 18.333c4.602 0 8.333-3.73 8.333-8.333 0-4.602-3.73-8.333-8.333-8.333C5.398 1.667 1.667 5.398 1.667 10c0 4.602 3.73 8.333 8.333 8.333Z"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M6.667 13.333s1.666-1.666 3.333-1.666c1.667 0 3.333 1.666 3.333 1.666M7.5 7.5h.008M12.5 7.5h.008"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          class="w-10 h-10 rounded-lg border border-[#D0D5DD] flex items-center justify-center hover:border-smyth-blue hover:bg-[#F5FAFF] transition-all"
+          data-emoji="neutral"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 18.333c4.602 0 8.333-3.73 8.333-8.333 0-4.602-3.73-8.333-8.333-8.333C5.398 1.667 1.667 5.398 1.667 10c0 4.602 3.73 8.333 8.333 8.333Z"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M7.5 7.5h.008M12.5 7.5h.008M6.667 11.667h6.666"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          class="w-10 h-10 rounded-lg border border-[#D9D9D9] flex items-center justify-center hover:border-smyth-blue hover:bg-[#F5FAFF] transition-all"
+          data-emoji="happy"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 18.333c4.602 0 8.333-3.73 8.333-8.333 0-4.602-3.73-8.333-8.333-8.333C5.398 1.667 1.667 5.398 1.667 10c0 4.602 3.73 8.333 8.333 8.333Z"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M7.5 7.5h.008M12.5 7.5h.008M13.333 11.667s-1.666 1.666-3.333 1.666c-1.667 0-3.333-1.666-3.333-1.666"
+              stroke="#667085"
+              stroke-width="1.67"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button
+          id="cancelFeedback"
+          class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none bg-white text-smyth-dark border-gray-300 hover:border-smyth-light hover:bg-smyth-white"
+        >
+          Cancel
+        </button>
+        <button
+          id="submitFeedback"
+          class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none bg-smythos-blue-500 text-white border-transparent hover:bg-smyth-blue"
+        >
+          <span>Submit</span>
+          <div id="submitLoader" class="hidden ml-2">
+            <svg
+              class="animate-spin h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const feedbackBtn = document.getElementById('feedback-button');
+  const feedbackModal = document.getElementById('feedbackModal');
+  const cancelFeedback = document.getElementById('cancelFeedback');
+  const submitFeedback = document.getElementById('submitFeedback');
+  const emojiButtons = document.querySelectorAll('[data-emoji]');
+  const feedbackTextarea = document.getElementById('feedbackText');
+  const userEmail = '<%= user?.email || "anonymous@feedback.com" %>';
+
+  let selectedEmoji = null;
+
+  function openFeedbackModal() {
+    feedbackModal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeFeedbackModal() {
+    feedbackModal?.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    resetFeedbackForm();
+  }
+
+  function resetFeedbackForm() {
+    if (feedbackTextarea) {
+      feedbackTextarea.value = '';
+    }
+    selectedEmoji = null;
+    emojiButtons?.forEach((btn) => {
+      btn.classList.remove('border-[#84CAFF]', 'bg-[#F5FAFF]', 'shadow-[0_0_0_4px_#EBF5FF]');
+    });
+  }
+
+  async function submitToHubSpot(feedbackData) {
+    try {
+      const response = await fetch('/api/page/feedback/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          feedbackData,
+          userEmail,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      return null;
+    }
+  }
+
+  function setLoadingState(isLoading) {
+    const submitBtn = document.getElementById('submitFeedback');
+    const cancelBtn = document.getElementById('cancelFeedback');
+    const submitLoader = document.getElementById('submitLoader');
+    const submitText = submitBtn?.querySelector('span');
+
+    if (isLoading) {
+      if (submitBtn) submitBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
+      submitLoader?.classList.remove('hidden');
+      if (submitText) submitText.textContent = 'Submitting...';
+    } else {
+      if (submitBtn) submitBtn.disabled = false;
+      if (cancelBtn) cancelBtn.disabled = false;
+      submitLoader?.classList.add('hidden');
+      if (submitText) submitText.textContent = 'Submit';
+    }
+  }
+
+  function validateFeedback(text, emoji) {
+    const errors = [];
+
+    if (!text?.trim()) {
+      errors.push('Please enter your feedback');
+    }
+
+    if (!emoji) {
+      errors.push('Please select an emoji');
+    }
+
+    return errors;
+  }
+
+  feedbackBtn?.addEventListener('click', openFeedbackModal);
+  cancelFeedback?.addEventListener('click', closeFeedbackModal);
+
+  submitFeedback?.addEventListener('click', async () => {
+    const feedbackText = feedbackTextarea?.value || '';
+    const errors = validateFeedback(feedbackText, selectedEmoji);
+
+    if (errors.length > 0) {
+      toast?.(`${errors.join(' and ')}`, 'Error', 'alert');
+      return;
+    }
+
+    const feedbackData = {
+      text: feedbackText,
+      emoji: selectedEmoji,
+    };
+
+    setLoadingState(true);
+
+    const result = await submitToHubSpot(feedbackData);
+
+    setLoadingState(false);
+
+    if (result) {
+      toast?.('Thank you for your feedback!', 'Success', 'success');
+      console.log('Feedback submitted successfully to HubSpot');
+      closeFeedbackModal();
+    } else {
+      toast?.('Failed to submit feedback. Please try again.', 'Error', 'alert');
+      console.error('Failed to submit feedback to HubSpot');
+    }
+  });
+
+  emojiButtons?.forEach((button) => {
+    button?.addEventListener('click', () => {
+      emojiButtons?.forEach((btn) => {
+        btn.classList.remove('border-[#84CAFF]', 'bg-[#F5FAFF]', 'shadow-[0_0_0_4px_#EBF5FF]');
+      });
+      button.classList.add('border-[#84CAFF]', 'bg-[#F5FAFF]', 'shadow-[0_0_0_4px_#EBF5FF]');
+      selectedEmoji = button.dataset?.emoji;
+    });
+  });
+
+  feedbackModal?.addEventListener('click', (event) => {
+    if (event?.target === feedbackModal) {
+      closeFeedbackModal();
+    }
+  });
+</script>

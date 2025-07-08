@@ -1,0 +1,34 @@
+<div
+  class="z-10 right-sidebar border border-gray-300/80 border-solid rounded-lg embodiment h-full pb-4"
+  x-data="{ width: '520px' }"
+  x-init="width = localStorage.getItem('embodiment-sidebar-width') || '520px'"
+  :style="'width:' + width"
+  id="embodiment-sidebar"
+>
+  <div class="container flex flex-col h-full">
+    <div class="dialog-title flex">
+      <div class="inline-flex w-full overflow-visible" role="group">
+        <div class="title flex items-center flex-1 text-base font-semibold overflow-visible"></div>
+
+        <!-- <div class="title-left-buttons inline-flex text-sm"></div>
+        <div class="title-right-buttons inline-flex" dir="rtl">
+          <div class="dialog-actions actions m-0 flex">
+            <div class="action-buttons w-full inline-flex justify-end px-0 m-0">
+              <div class="action-content w-full flex"></div>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="close-btn items-center py-2 text-xs font-medium text-gray-900 bg-transparent hover:text-gray-600 active:text-gray-900 focus:z-10"
+          >
+            <span class="mif-cross"></span>
+          </button>
+        </div> -->
+      </div>
+    </div>
+    <div class="tab-container border-b border-gray-200 order-2 py-3 px-4">
+      <nav class="flex -mb-px" aria-label="Tabs"></nav>
+    </div>
+    <div class="dialog-content content flex-grow overflow-y-auto overflow-x-hidden"></div>
+  </div>
+</div>

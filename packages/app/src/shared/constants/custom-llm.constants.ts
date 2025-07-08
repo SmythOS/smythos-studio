@@ -1,0 +1,75 @@
+export const CUSTOM_LLM_PROVIDERS = [
+  { text: 'Bedrock', value: 'Bedrock' },
+  { text: 'Vertex AI', value: 'VertexAI' },
+];
+
+export const CUSTOM_LLM_FEATURES = [
+  { text: 'Text Completion', value: 'text' },
+  { text: 'Tools', value: 'tools' },
+  { text: 'Image', value: 'image' },
+  { text: 'Audio', value: 'audio' },
+  { text: 'Video', value: 'video' },
+  { text: 'Document', value: 'document' },
+];
+
+export const BEDROCK_REGIONS = [
+  { text: 'US East (N. Virginia) - us-east-1', value: 'us-east-1' },
+  { text: 'US West (Oregon) - us-west-2', value: 'us-west-2' },
+  { text: 'Asia Pacific (Mumbai) - ap-south-1', value: 'ap-south-1' },
+  { text: 'Asia Pacific (Singapore) - ap-southeast-1', value: 'ap-southeast-1' },
+  { text: 'Asia Pacific (Sydney) - ap-southeast-2', value: 'ap-southeast-2' },
+  { text: 'Asia Pacific (Tokyo) - ap-northeast-1', value: 'ap-northeast-1' },
+  { text: 'Canada (Central) - ca-central-1', value: 'ca-central-1' },
+  { text: 'Europe (Frankfurt) - eu-central-1', value: 'eu-central-1' },
+  { text: 'Europe (Ireland) - eu-west-1', value: 'eu-west-1' },
+  { text: 'Europe (London) - eu-west-2', value: 'eu-west-2' },
+  { text: 'Europe (Paris) - eu-west-3', value: 'eu-west-3' },
+  { text: 'South America (São Paulo) - sa-east-1', value: 'sa-east-1' },
+  { text: 'AWS GovCloud (US-West) - us-gov-west-1', value: 'us-gov-west-1' },
+];
+
+export const VERTEX_AI_REGIONS = [
+  { text: 'Iowa (us-central1)', value: 'us-central1' },
+  { text: 'Columbus, Ohio (us-east5)', value: 'us-east5' },
+  { text: 'Dallas, Texas (us-south1)', value: 'us-south1' },
+  { text: 'Las Vegas, Nevada (us-west4)', value: 'us-west4' },
+  { text: 'Los Angeles, California (us-west2)', value: 'us-west2' },
+  { text: 'Moncks Corner, South Carolina (us-east1)', value: 'us-east1' },
+  { text: 'Northern Virginia (us-east4)', value: 'us-east4' },
+  { text: 'Oregon (us-west1)', value: 'us-west1' },
+  { text: 'Salt Lake City, Utah (us-west3)', value: 'us-west3' },
+  { text: 'Montréal (northamerica-northeast1)', value: 'northamerica-northeast1' },
+  { text: 'Toronto (northamerica-northeast2)', value: 'northamerica-northeast2' },
+  { text: 'São Paulo, Brazil (southamerica-east1)', value: 'southamerica-east1' },
+  { text: 'Santiago, Chile (southamerica-west1)', value: 'southamerica-west1' },
+  { text: 'Johannesburg, South Africa (africa-south1)', value: 'africa-south1' },
+  { text: 'Belgium (europe-west1)', value: 'europe-west1' },
+  { text: 'Finland (europe-north1)', value: 'europe-north1' },
+  { text: 'Frankfurt, Germany (europe-west3)', value: 'europe-west3' },
+  { text: 'London, United Kingdom (europe-west2)', value: 'europe-west2' },
+  { text: 'Madrid, Spain (europe-southwest1)', value: 'europe-southwest1' },
+  { text: 'Milan, Italy (europe-west8)', value: 'europe-west8' },
+  { text: 'Netherlands (europe-west4)', value: 'europe-west4' },
+  { text: 'Paris, France (europe-west9)', value: 'europe-west9' },
+  { text: 'Turin, Italy (europe-west12)', value: 'europe-west12' },
+  { text: 'Warsaw, Poland (europe-central2)', value: 'europe-central2' },
+  { text: 'Zürich, Switzerland (europe-west6)', value: 'europe-west6' },
+  { text: 'Hong Kong (asia-east2)', value: 'asia-east2' },
+  { text: 'Jakarta, Indonesia (asia-southeast2)', value: 'asia-southeast2' },
+  { text: 'Melbourne, Australia (australia-southeast2)', value: 'australia-southeast2' },
+  { text: 'Mumbai, India (asia-south1)', value: 'asia-south1' },
+  { text: 'Osaka, Japan (asia-northeast2)', value: 'asia-northeast2' },
+  { text: 'Seoul, South Korea (asia-northeast3)', value: 'asia-northeast3' },
+  { text: 'Singapore (asia-southeast1)', value: 'asia-southeast1' },
+  { text: 'Sydney, Australia (australia-southeast1)', value: 'australia-southeast1' },
+  { text: 'Taiwan (asia-east1)', value: 'asia-east1' },
+  { text: 'Tokyo, Japan (asia-northeast1)', value: 'asia-northeast1' },
+  { text: 'Doha, Qatar (me-central1)', value: 'me-central1' },
+  { text: 'Dammam, Saudi Arabia (me-central2)', value: 'me-central2' },
+  { text: 'Tel Aviv, Israel (me-west1)', value: 'me-west1' },
+];
+
+export const CUSTOM_LLM_REGIONS = {
+  Bedrock: BEDROCK_REGIONS,
+  VertexAI: VERTEX_AI_REGIONS,
+};

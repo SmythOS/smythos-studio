@@ -1,0 +1,6 @@
+export const MAX_CHAT_MESSAGE_LENGTH = 8000;
+
+export const errKeys = {
+  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+  AGENT_LOCK_FAIL: 'AGENT_LOCK_FAIL',
+};

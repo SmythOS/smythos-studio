@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" class="">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+  <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
+  <title>SmythOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap"
+    rel="stylesheet" />
+  <!-- <link rel="stylesheet" href="/metroui/css/metro-all.css" /> -->
+
+  <link rel="stylesheet" href="/metroui/css/metro-reset.css" />
+  <!-- <link rel="stylesheet" href="/metroui/css/metro-common.css" /> -->
+  <!-- <link rel="stylesheet" href="/metroui/css/metro-colors.css" /> -->
+  <link rel="stylesheet" href="/metroui/css/metro-components.css" />
+  <link rel="stylesheet" href="/metroui/css/metro-icons.css" />
+  <link rel="stylesheet" href="/css/smyth-metro-override.css" />
+
+  <link rel="stylesheet" href="/css/smyth-global.css" />
+  <link rel="stylesheet" href="/css/smyth-builder.css" />
+  <link rel="stylesheet" href="/css/smyth-builder-override.css" />
+  <link rel="stylesheet" href="/css/menus.css" />
+  <link rel="stylesheet" href="/css/smyth-debugger.css" />
+  <link rel="stylesheet" href="/css/smyth-components.css" />
+  <!-- <link rel="stylesheet" href="/css/smyth-domain.css" /> -->
+  <link rel="stylesheet" href="/css/smyth-vector.css" />
+  <link rel="stylesheet" href="/css/smyth-form.css" />
+  <link rel="stylesheet" href="/css/react-toastify.css" />
+
+  <link rel="stylesheet" href="/css/icons.css" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
+  <!-- Conditional loading of Tailwind CSS2 -->
+  <link rel="stylesheet" href="/css/tailwind-v2.css" />
+  <!-- <link rel="stylesheet" href="/css/tailwind.css" /> -->
+
+  <link rel="stylesheet" href="/css/smyth-tailwind.css" />
+
+
+
+  <%- include('tracking/posthog-tracking'); -%> <% if (env !== 'DEV' && typeof includeTracking !==
+    'undefined' && includeTracking) { %> <%- include('tracking/head-tracking'); -%> <% } %>
+</head>
+
+<body>
+  <div id="preload-overlay"></div>
+
+  <% if (typeof showTopMenuBar !== 'undefined' && showTopMenuBar) { %> <%-
+    include('menus/main-menu'); -%> <% } %> <%- include('pages/'+page); -%>
+
+  <div id="overlay" class="hidden"></div>
+  <div class="overlay-secondary hidden"></div>
+  <div id="modal-root"></div>
+
+  <script>
+    window.__LLM_MODELS__ = JSON.parse(
+      `<% if (typeof LLMModels !== 'undefined') { %><%- JSON.stringify(LLMModels) %><% } %>`,
+    );
+  </script>
+
+  <script src="/metroui/js/metro.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+  <script async
+    src="//smythos.com/wp-content/themes/generatepress_child/js/iframeResizer.contentWindow.min.js"></script>
+    <!-- Should be placed in builder partial so it does not load on other pages -->
+  <% if (env === 'DEV') { %>
+  <script src="/js/build/index.dev.js"></script>
+  <% } else { %>
+  <script src="/js/build/index.min.js"></script>
+  <% } %>
+  <script src="/js/misc.js"></script>
+
+
+  <% if (env !== 'DEV' && typeof includeTracking !== 'undefined' && includeTracking) { %> <%-
+    include('tracking/body-tracking'); -%> <% } %>
+
+  <%- include('modals/index'); -%>
+
+
+  <script type="module">
+    import { Boarding } from "https://unpkg.com/boarding.js/dist/main.js";
+    window.Tutorial = Boarding;
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/main.css" />
+  <!-- optionally include the base theme -->
+  <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/themes/basic.css" />
+
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+nav#top li a {
+  transition: color 0.3s;
+}
+
+#navbar-user ul li a:hover,
+#navbar-user ul li a.active {
+  color: #3efcc2 !important;
+}
+
+@layer components {
+  .glitch {
+    position: relative;
+    font-size: 1rem;
+  }
+
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    overflow: hidden;
+  }
+  .glitch::before {
+    top: -2px;
+    left: -2px;
+    color: red;
+    animation: glitch 4s infinite;
+  }
+
+  .glitch::after {
+    top: 2px;
+    left: 2px;
+    color: blue;
+    animation: glitch 4s infinite;
+  }
+
+  @keyframes glitch {
+    0% {
+      clip: rect(42px, 9999px, 44px, 0);
+      transform: skew(0.3deg);
+    }
+    10% {
+      clip: rect(12px, 9999px, 14px, 0);
+      transform: skew(0.5deg);
+    }
+    20% {
+      clip: rect(22px, 9999px, 24px, 0);
+      transform: skew(0.2deg);
+    }
+    25% {
+      clip: rect(32px, 9999px, 34px, 0);
+      transform: skew(0.4deg);
+    }
+    26%,
+    100% {
+      clip: rect(0, 0, 0, 0);
+      transform: none;
+    }
+  }
+}
+
+.chat-rich-text-response {
+  a {
+    color: #3b82f6;
+  }
+  ol,
+  ul {
+    padding-left: 1.5rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: bold;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+  h2 {
+    font-size: 1.2rem;
+  }
+  h3 {
+    font-size: 1.15rem;
+  }
+  h4 {
+    font-size: 1.1rem;
+  }
+  h5 {
+    font-size: 1.05rem;
+  }
+  h6 {
+    font-size: 1.01rem;
+  }
+  pre {
+    div {
+      overflow: hidden !important;
+      border-radius: 6px;
+      width: 100%;
+    }
+    :not(pre) > code[class*='language-'],
+    pre[class*='language-'] {
+      background: transparent !important;
+      text-shadow: none !important;
+    }
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+      background: transparent !important;
+    }
+    code {
+      span {
+        max-width: 100%;
+        word-break: break-word;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-wrap: break-word;
+      }
+    }
+  }
+}

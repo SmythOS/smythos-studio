@@ -1,0 +1,74 @@
+<div class="h-16 flex flex-shrink-0 p-4">
+  <div class="flex items-center justify-between w-full">
+    <div class="flex items-center gap-2 text-[#374151]">
+      <%- include('icons/plugin') %>
+      <span class="text-2xl font-semibold text-v2-gray-darker">Integrations</span>
+    </div>
+    <button
+    type="button"
+    class="close-btn p-0.5 rounded-full text-[#757575]"
+    data-tooltip-target="tooltip-close-integrations"
+    data-tooltip-placement="left"
+    @click="toggleSidebar"
+    >
+        <%- include('icons/close-icon'); -%>
+    </button>
+    <div
+        id="tooltip-close-integrations"
+        role="tooltip"
+        class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+        style="font-family: 'Inter', sans-serif"
+    >
+        Close
+    </div>
+  </div>
+</div>
+
+<div class="flex items-center p-4 flex-shrink-0 border-solid border-b border-b-gray-200">
+  <div class="integration-search-container suggest-box w-full bg-white dark:bg-gray-800 relative">
+    <input
+      type="search"
+      id="integrations-cpt-search"
+      autocomplete="off"
+      placeholder="Search integrations"
+      class="bg-white border text-gray-900 shadow-none sm:text-sm rounded block w-full pl-3 pr-10 py-2.5 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 focus:outline-none focus:ring-0 focus:shadow-none transition-colors duration-200"
+    />
+    <div class="absolute inset-y-0 right-0 flex items-center pr-3 w-7">
+      <i class="search-clear-btn fa-solid fa-xmark cursor-pointer text-gray-500 hidden"></i>
+      <!-- don't like using icons like this, we'll need to replace this and stick with an icon library -->
+      <img class="search-glass-icon" src="/img/home.icons/search.svg" />
+    </div>
+  </div>
+  <button
+    id="collapse-all-btn"
+    class="p-2 rounded-full hover:bg-gray-100 group relative ml-2"
+    data-tooltip-target="tooltip-collapse-all"
+    data-tooltip-placement="top"
+  >
+    <img
+      src="/img/home.icons/collapse.svg"
+      alt="Collapse all"
+      class="w-6 h-6 group-hover:text-primary-600"
+    />
+  </button>
+  <div
+    id="tooltip-collapse-all"
+    role="tooltip"
+    class="tooltip absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 -ml-[2.5rem]! after:absolute after:content-[''] after:border-[6px] after:border-t-gray-900 after:border-x-transparent after:border-b-transparent after:top-full after:left-[calc(50%+16px)] after:-translate-x-1/2"
+  >
+    Collapse all
+  </div>
+</div>
+
+<div class="overflow-y-auto overflow-x-hidden h-[calc(100dvh-165px)]">
+  <aside id="left-sidebar-integrations-menu" aria-label="Integrations Sidebar" class="p-0 m-0">
+    <div class="bg-gray-100">
+      <ul class="divide-y divide-solid divide-gray-200">
+        <% if (menu.Integrations) { %> <% menu.Integrations.forEach(integration => { %> <%-
+        include('left-sidebar-category', { icon: integration.icon || '', label: integration.label,
+        id: integration.label.replace(/\s+/g, ''), entry: integration.children }) %> <% }) %> <% }
+        %>
+      </ul>
+    </div>
+  </aside>
+</div>

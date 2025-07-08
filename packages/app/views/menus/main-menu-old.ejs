@@ -1,0 +1,135 @@
+<nav
+  id="primary-topbar"
+  class="h-12 flex items-center bg-white w-full max-w-full px-4 relative z-10"
+>
+  <!-- Absolutely positioned logo -->
+  <div class="absolute pl-1 left-2 top-1/2 transform -translate-y-1/2">
+    <a href="/agents" class="flex items-center">
+      <img src="/img/smythos-logo.png" class="h-6 w-6" alt="SmythOS" />
+      <img src="/img/smythos-text.svg" alt="SmythOS" class="ml-3 h-6 w-auto" />
+    </a>
+  </div>
+
+  <!-- Navigation Links starting at 76rem from left -->
+  <div class="hidden xl:flex items-center ml-[18rem] border-l border-solid border-gray-100 h-full">
+    <% navPages?.forEach(page => { %>
+    <a
+      href="<%= page.url %>"
+      class="px-3 font-medium text-gray-700 hover:bg-emerald-50 h-full flex items-center"
+      ><%= page.name %></a
+    >
+    <% }) %>
+  </div>
+
+  <!-- Right side: New Agent, Agent Chat, and User Menu -->
+  <div class="flex items-center gap-4 ml-auto">
+    <!-- <a href="/builder" class="py-2 px-4 text-sm rounded-md flex gap-2 justify-between items-center bg-[#3B82F6] text-white border-[#3B82F6] border border-solid">
+        New Agent
+        <svg class="w-4 h-4" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0.984375C10.3139 0.984375 13 3.67043 13 6.98438C13 10.2976 10.3139 12.9844 7 12.9844C3.68605 12.9844 1 10.2976 1 6.98438C1 3.67043 3.68605 0.984375 7 0.984375Z" stroke="white" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M9.19861 6.98438H4.79883" stroke="white" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M7 4.78906V9.18429" stroke="white" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+      <% if (isSmythStaff) { %>
+        <a href="/chat" class="py-2 px-4 text-sm rounded-md flex gap-2 justify-between items-center bg-white text-[#3B82F6] border-[#3B82F6] border border-solid">
+          Agent Chat
+          <svg class="w-4 h-4" width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.9999 4.97656L1 4.97656" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M6.9668 0.959628L11.0001 4.97557L6.9668 8.99219" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      <% } %> -->
+
+    <div class="relative">
+      <button
+        type="button"
+        class="flex text-sm rounded-full focus:ring-2 focus:ring-primary-100"
+        id="user-menu-button"
+        aria-expanded="false"
+        data-dropdown-toggle="user-dropdown"
+        data-dropdown-placement="bottom"
+      >
+        <span class="sr-only">Open user menu</span>
+        <% if (user?.picture) { %>
+        <img
+          class="w-8 h-8 rounded-full"
+          src="<%= user.picture %>"
+          alt="user photo"
+          onerror="this.onerror=null;this.src='/img/user_default.svg';"
+        />
+        <% } else { %>
+        <div
+          class="bg-uipink rounded-full w-8 h-8 flex items-center justify-center text-white font-medium text-xl"
+        >
+          <%= (user?.name || user?.email || 'A').charAt(0).toLocaleUpperCase() %>
+        </div>
+        <% } %>
+      </button>
+
+      <div
+        class="hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        id="user-dropdown"
+      >
+        <div class="px-4 pt-3 pb-1">
+          <span class="block text-sm text-gray-900"><%= user?.name %></span>
+          <span class="block text-sm text-gray-500 truncate"><%= user?.email %></span>
+        </div>
+        <ul class="block pb-2">
+          <% profilePages?.forEach(page => { %>
+          <li class="block w-full hover:bg-gray-100">
+            <a href="<%= page.url %>" class="block px-4 py-2 text-sm text-gray-700"
+              ><%= page.name %></a
+            >
+          </li>
+          <% }) %>
+          <li class="block w-full hover:bg-gray-100">
+            <a href="/logto/sign-out" class="block px-4 py-2 text-sm text-gray-700">Sign out</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="relative xl:hidden">
+      <button
+        type="button"
+        class="flex xl:hidden text-sm p-1 border-2 border-solid border-transparent focus:border-primary-100 rounded-lg focus:ring-0"
+        id="hamburger-menu-button"
+        aria-expanded="false"
+        data-dropdown-toggle="hamburger-dropdown"
+        data-dropdown-placement="bottom"
+      >
+        <span class="sr-only">Open menu</span>
+        <svg
+          class="w-5 h-5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 17 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M1 1h15M1 7h15M1 13h15"
+          ></path>
+        </svg>
+      </button>
+
+      <div
+        class="hidden xl:hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        id="hamburger-dropdown"
+      >
+        <ul class="block py-2">
+          <% navPages?.forEach(page => { %>
+          <li class="block w-full hover:bg-gray-100">
+            <a href="<%= page.url %>" class="block px-4 py-2 text-sm text-gray-700"
+              ><%= page.name %></a
+            >
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

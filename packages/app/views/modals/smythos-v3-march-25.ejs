@@ -1,0 +1,84 @@
+<div
+  id="smythos-v3-march-25"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999] p-4"
+>
+  <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">What's new? The features you've been asking for!</h3>
+      <button onclick="closeSmythosV3March25Modal()" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="mb-6">
+      <div class="text-sm mb-6">
+        <p class="text-gray-700 mb-3">
+          For those of you who are new, welcome! And to those of you who have been here for a while,
+          thank you so much for being here. This latest update is loaded with exciting enhancements,
+          including <b>one-click access</b> to leading models from OpenAI, Claude, Gemini, and more.
+          You'll also find a new <b>Form UI</b> for viewing and testing your agent's Skills,
+          <b>tools that require no API configuration</b> for tasks like web scraping and web
+          searching, among many other updates!
+        </p>
+        <p class="text-gray-700 mb-3">Want to learn more? Check out this demo video 👇</p>
+      </div>
+      <!--YOUTUBE EMBED START-->
+      <iframe
+        width="100%"
+        height="360"
+        frameborder="0"
+        title="SmythOS March 2025 Update"
+        src="https://www.youtube.com/embed/-Aoog97_nHc?si=k60ZCgGuOqE1MqVn"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+      <!--YOUTUBE EMBED END-->
+    </div>
+    <p class="text-sm text-gray-600">
+      Thank you for choosing SmythOS to bring your ideas to life. Your feedback drives us to make
+      SmythOS even better every day. Happy building!
+    </p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkAndShowSmythosV3March25Modal = () => {
+      const now = new Date();
+      const startDate = new Date('2025-03-20'); // 20 Mar 2025
+      const endDate = new Date('2025-03-31'); // 31 Mar 2025
+
+      if (now >= startDate && now <= endDate) {
+        const hasSeenModal = localStorage.getItem('smythosV3March25ModalSeen');
+
+        if (!hasSeenModal) {
+          const modal = document.getElementById('smythos-v3-march-25');
+          const path = window.location.pathname;
+          // not show on onboarding page
+          if (modal && !path.includes('/welcome')) {
+            modal.classList.remove('hidden');
+            localStorage.setItem('smythosV3March25ModalSeen', 'true');
+            posthog?.capture?.('smythos-v3-march-25-modal-seen');
+          }
+        }
+      }
+    };
+
+    window.closeSmythosV3March25Modal = () => {
+      const modal = document.getElementById('smythos-v3-march-25');
+      posthog?.capture?.('smythos-v3-march-25-modal-closed');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    setTimeout(checkAndShowSmythosV3March25Modal, 1000);
+  });
+</script>

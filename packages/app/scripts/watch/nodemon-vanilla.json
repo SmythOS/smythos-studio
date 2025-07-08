@@ -1,0 +1,15 @@
+{
+  "watch": [
+    "scripts/nodemon-fe.json",
+    "scripts/rollup-fe.config.mjs",
+    "src/frontend",
+    "src/react",
+    "src/webapp",
+    "src/chat",
+    "src/shared",
+    "package.json"
+  ],
+  "ext": "ts,tsx,ejs,css,html,json",
+  "ignore": ["static/js/*", "server/**/*"],
+  "exec": "npm run build:vanilla"
+}

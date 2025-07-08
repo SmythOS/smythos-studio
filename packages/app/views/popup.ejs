@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmythOS</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter" />
+    <link rel="stylesheet" href="/metroui/css/metro-all.css" />
+    <link rel="stylesheet" href="/css/smyth-global.css" />
+    <link rel="stylesheet" href="/css/smyth-builder.css" />
+    <link rel="stylesheet" href="/css/smyth-builder-override.css" />
+    <link rel="stylesheet" href="/css/menus.css" />
+    <link rel="stylesheet" href="/css/smyth-debugger.css" />
+    <link rel="stylesheet" href="/css/smyth-components.css" />
+    <!-- <link rel="stylesheet" href="/css/smyth-domain.css" /> -->
+    <link rel="stylesheet" href="/css/smyth-vector.css" />
+    <link rel="stylesheet" href="/css/icons.css" />
+    <!-- <link rel="stylesheet" href="./css/jsplumb.css"> -->
+
+
+    <link rel="stylesheet" href="/css/smyth-metro-override.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css" />
+    <link rel="stylesheet" href="/css/smyth-form.css" />
+
+</head>
+
+<body>
+    <div id="preload-overlay">
+        <div data-role="activity" data-type="atom" class="activity"></div>
+    </div>
+    <%- include('pages/'+page); -%>
+    <div id="overlay" class="hidden"></div>
+
+
+    <script src="/metroui/js/metro.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+    <script src="/js/index.js"></script>
+</body>
+
+</html>

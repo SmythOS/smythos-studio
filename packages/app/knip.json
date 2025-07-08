@@ -1,0 +1,31 @@
+{
+    "entry": [
+      "src/backend/index.ts",
+      "src/frontend/index.ts", 
+      "src/react/index.tsx",
+      "scripts/**/*.{js,mjs,ts}",
+      "views/**/*.ejs",
+      "eslint.config.js",
+      "postcss.config.cjs",
+      "components.json"
+    ],
+    "project": [
+      "src/**/*.{js,ts,tsx,json}",
+      "scripts/**/*.{js,mjs,ts}",
+      "views/**/*.ejs"
+    ],
+    "ignore": [
+      "src/**/node_modules/**",
+      "**/dist/**", 
+      "**/build/**",
+      "static/**",
+      "_data/**",
+      "docs/**",
+      ".contentlayer/**",
+      "lambda_archives/**"
+    ],
+    "ignoreDependencies": [
+      "react",
+      "react-dom"
+    ]
+  }

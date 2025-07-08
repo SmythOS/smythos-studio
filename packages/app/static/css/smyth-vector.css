@@ -1,0 +1,48 @@
+/* .accordion.marker-on .heading::before {
+  margin-top: 9px !important;
+} */
+.namespaceRow {
+    /* background-color: white; */
+    border: 12px;
+    padding: 10px !important;
+    border-radius: 12px !important;
+}
+.datasource {
+    font-size: 14px;
+    color: #787878;
+}
+
+.datasourceHeading {
+    color: #3c89f9;
+    font-size: 13px;
+}
+#listItem .cell {
+    min-height: 42px !important;
+}
+
+.cellItem {
+    min-height: 40px;
+}
+#addDataModal #menu-select {
+    border: none; /* Remove the border */
+    outline: none; /* Remove the outline when focused */
+    /* Remove default platform appearance (for browsers that support it) */
+    background-color: transparent; /* Set background color to transparent */
+    padding: 0; /* Remove any padding */
+    background-color: #f7f7f8;
+    border-radius: 8px;
+    font-size: 12px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#addDataModal #menu-select:focus {
+    border: none; /* Remove the border when focused */
+    outline: none; /* Remove the outline when focused */
+}
+
+.row-item {
+    background-color: white;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}

@@ -1,0 +1,154 @@
+<div id="keyboard-shortcuts-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="hideKeyboardShortcutsModal()"></div>
+  <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold">Keyboard Shortcuts</h2>
+      <button class="p-1 hover:bg-gray-100 rounded-md transition-colors" onclick="hideKeyboardShortcutsModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-4" style="max-height: calc(90vh - 5rem);">
+      <%   const shortcutSections = [
+      {
+        title: "Navigation",
+        shortcuts: [
+          {
+            // Updated zoom in icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14" /></svg>`,
+            description: 'Zoom in',
+            mac: '⌘ + Scroll Up',
+            windows: 'Ctrl + Scroll Up'
+          },
+          {
+            // Updated zoom out icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /></svg>`,
+            description: 'Zoom out',
+            mac: '⌘ + Scroll Down',
+            windows: 'Ctrl + Scroll Down'
+          }
+        ]
+      },
+      {
+        title: "Actions",
+        shortcuts: [
+          {
+            // Updated cursor icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z" /></svg>`,
+            description: 'Select multiple components',
+            mac: '⌘ + Left Click + Drag',
+            windows: 'Ctrl + Left Click + Drag'
+          },
+          {
+            // Updated duplicate icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M4 16V4a2 2 0 0 1 2-2h12" /></svg>`,
+            description: 'Duplicate selected components',
+            mac: '⌘ + C, ⌘ + V',
+            windows: 'Ctrl + C, Ctrl + V'
+          },
+          {
+            // Updated delete icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>`,
+            description: 'Delete selected components',
+            action: 'Delete',
+          }
+        ]
+      },
+      {
+        title: "Import & Export Agents",
+        shortcuts: [
+          {
+            // Updated export icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>`,
+            description: 'Export agent',
+            mac: '⌘ + Shift + E',
+            windows: 'Ctrl + Shift + E'
+          },
+          {
+            // Updated import icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>`,
+            description: 'Import agent',
+            action: 'Drag & Drop .smyth file',
+          }
+        ]
+      },
+      {
+        title: "Undo/Redo Functionality",
+        shortcuts: [
+          {
+            // Updated undo icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" /></svg>`,
+            description: 'Undo',
+            mac: '⌘ + Z',
+            windows: 'Ctrl + Z'
+          },
+          {
+            // Updated redo icon
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" /></svg>`,
+            description: 'Redo',
+            mac: '⌘ + Shift + Z',
+            windows: 'Ctrl + Shift + Z'
+          }
+        ]
+      }
+    ]; %>
+
+      <% shortcutSections.forEach(section => { %>
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold mb-4"><%= section.title %></h3>
+          <div class="grid gap-4">
+            <% section.shortcuts.forEach(shortcut => { %>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-gray-500"><%- shortcut.icon %></span>
+                  <span class="text-sm font-normal"><%= shortcut.description %></span>
+                </div>
+                <div class="flex items-center gap-2" x-data="{ isMac: navigator.platform.toLowerCase().includes('mac') }">
+                  <% if (shortcut.action) { %>
+                    <div class="flex items-center gap-1.5">
+                      <kbd class="flex h-5 items-center justify-center rounded border font-mono text-[10px] font-medium text-gray-600 bg-muted px-4 py-1.5">
+                        <%= shortcut.action %>
+                      </kbd>
+                    </div>
+                  <% } else { %>
+                    <div class="flex items-center gap-1.5">
+                      <kbd class="flex h-5 items-center justify-center rounded border font-mono text-[10px] font-medium text-gray-600 bg-muted px-4 py-1.5"
+                        x-text="isMac ? '<%= shortcut.mac %>' : '<%= shortcut.windows %>'">
+                      </kbd>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<script>
+function showKeyboardShortcutsModal() {
+  const modal = document?.getElementById('keyboard-shortcuts-modal');
+  modal?.classList?.remove('hidden');
+
+  // Add escape key listener
+  document?.addEventListener('keydown', handleEscape);
+}
+
+function hideKeyboardShortcutsModal() {
+  const modal = document?.getElementById('keyboard-shortcuts-modal');
+  modal?.classList?.add('hidden');
+
+  // Remove escape key listener
+  document?.removeEventListener('keydown', handleEscape);
+}
+
+function handleEscape(e) {
+  if (e?.key === 'Escape') {
+    hideKeyboardShortcutsModal();
+  }
+}
+</script>

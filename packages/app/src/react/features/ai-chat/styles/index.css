@@ -1,0 +1,79 @@
+.type-effect:after {
+    content: ' ';
+    animation: blink 200ms linear infinite alternate;
+    border-left: 2px solid #444;
+    margin-left: 1px;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0.2;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.type-writer-text {
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
+.type-writer-inner {
+    display: inline-block;
+    width: 100%;
+}
+
+.type-writer-text:hover,
+.type-writer-inner:hover {
+    width: auto;
+}
+
+.type-writer-inner:hover .type-writer-text {
+    animation: type-write-scroll infinite linear;
+}
+
+.type-writer-scroll {
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+}
+
+@keyframes type-write-scroll {
+    0% {
+        left: 0px;
+    }
+
+    100% {
+        left: calc(-100% + var(--my-scroll-var) - 10px);
+    }
+}
+
+.conversation-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    display: flex;
+}
+
+.query-input {
+    display: block;
+    width: 100%;
+    font-family: 'Inter';
+    cursor: text;
+}
+
+.query-input:empty::before {
+    content: attr(data-placeholder);
+    display: block;
+    height: 100%;
+    color: #777;
+    font-size: 14px;
+    font-family: 'Inter';
+    font-weight: 300;
+}

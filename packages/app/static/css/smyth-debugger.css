@@ -1,0 +1,752 @@
+.dbg-element {
+  visibility: hidden;
+}
+
+.debug-enabled .dbg-element {
+  visibility: visible;
+}
+
+.endpoint.disabled-endpoint .ep {
+  background-color: #949494 !important;
+}
+
+/*When debug mode enabled prevent adding / editing endpoints*/
+/*.debug-enabled .jtk-endpoint,*/
+.debug-enabled .component .input-container button,
+.debug-enabled .component .output-container button,
+.debug-enabled .component .ep-control button {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.debug-enabled.debugging .smyth.endpoint:hover .button {
+  display: none !important;
+}
+.debug-enabled.debugging .component #component-button:has(.form-preview-button) {
+  display: none !important;
+}
+.debug-enabled.debugging .component .btn-settings {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+.debug-enabled.debugging .component .btn-close {
+  display: none !important;
+}
+
+.debug-enabled .component .debug-bar {
+  height: 26px;
+}
+.debug-enabled .component .debug-bar::after {
+  content: attr(debug-time);
+  position: absolute;
+  right: -40px;
+  font-size: 11px;
+  color: #69cb07;
+  top: 15px;
+  font-weight: bold;
+  display: block;
+  width: 35px;
+  white-space: nowrap;
+}
+
+.debug-enabled .debug-bar .btn-debug {
+  display: inline-block;
+  background: #adadad82;
+  border-radius: 0px;
+  width: 24px;
+  height: 100%;
+  padding: 0px !important;
+  color: #0366d6;
+  position: absolute;
+  right: 0;
+  top: 0px;
+}
+.debug-enabled .debug-bar .btn-debug-log {
+  background: #adadad82;
+  font-size: 12px;
+  border-radius: 2px;
+  width: 42px;
+  height: 100%;
+  padding: 0px;
+  color: #0366d6;
+  position: absolute;
+  right: 26px;
+  top: 0;
+  border: 1px solid #aaa;
+}
+.debug-enabled .debug-bar .btn-debug-log:hover {
+  background: #adadad;
+  color: #3d83d3;
+}
+.debug-enabled .debug-bar .btn-debug:hover {
+  background: #adadad;
+  color: #3d83d3;
+}
+
+.debug-enabled .debug-bar .btn-debug-log.error {
+  color: #c90000;
+  font-weight: 900;
+}
+.debug-enabled .debug-bar .btn-debug-log.error:hover {
+  color: #680000 !important;
+}
+
+.debug-enabled .debug-bar .btn-debug-log::after {
+  content: ' ';
+  display: inline-block;
+  transform: rotate(45deg);
+  height: 25px;
+  width: 16px;
+  margin-left: 60%;
+  border-bottom: 7px solid #69cb07;
+  border-right: 7px solid #69cb07;
+  position: absolute;
+  left: 56px;
+  top: -15px;
+}
+.debug-enabled .debug-bar .btn-debug-log.error::after {
+  content: '❌';
+  display: block;
+  margin: 0px 2px;
+  color: #fff;
+  font-size: 24px;
+  border-radius: 10px;
+  position: absolute;
+  left: 70px;
+  border-bottom: 0;
+  border-right: 0;
+  transform: none;
+}
+
+/* if already debugging disable the components debug buttons */
+.debug-enabled.debugging .debug-bar .btn-debug {
+  color: #444;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.component .endpoint .dbg-output {
+  display: none;
+}
+.component .endpoint.output-endpoint .dbg-output .icon {
+  position: absolute;
+  left: 0px;
+  top: -4px;
+  padding: 5px;
+}
+
+.component .endpoint.input-endpoint .dbg-output .icon {
+  position: absolute;
+  right: 0px;
+  top: 4px;
+  padding: 5px;
+}
+
+.component .endpoint.pinned .dbg-output,
+.component .endpoint:hover .dbg-output {
+  display: block;
+  position: absolute;
+  padding: 15px 10px 0;
+  background-color: #dcdcdc;
+  z-index: 10;
+  top: 0px;
+  min-height: 40px;
+  text-align: left;
+  word-wrap: break-word;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 110;
+  border-radius: 0px 10px 10px 10px;
+  width: calc(100% - 80px);
+}
+
+.component .endpoint.pinned .dbg-output {
+  resize: both !important;
+}
+
+.component .input-endpoint .dbg-output {
+  direction: rtl;
+}
+
+.component .endpoint:hover .dbg-output {
+  z-index: 120;
+}
+.component .endpoint.pinned:hover .dbg-output {
+  z-index: 130;
+}
+
+.component .output-endpoint.pinned .dbg-output,
+.component .output-endpoint:hover .dbg-output {
+  left: -1px;
+}
+
+.component .input-endpoint.pinned .dbg-output,
+.component .input-endpoint:hover .dbg-output {
+  right: -1px;
+}
+
+.component .output-endpoint.pinned .dbg-output,
+.component .output-endpoint:hover .dbg-output {
+  border-right: 0;
+}
+
+.smyth.endpoint .pin.button {
+  background: transparent !important;
+}
+.smyth.endpoint .pin.button:hover .icon {
+  color: #006500;
+  font-size: 30px;
+}
+
+.debug-enabled.debugging .smyth.endpoint.pinned .pin.button,
+.debug-enabled.debugging .smyth.endpoint:hover .pin.button,
+.smyth.endpoint:hover .pin.button,
+.smyth.endpoint .pin.button {
+  display: block !important;
+  pointer-events: auto !important;
+  line-height: 30px;
+  width: 40px;
+}
+.component .endpoint .dbg-output .pin .icon {
+  font-size: 25px;
+  padding: 0px;
+  margin: 0px 7px;
+  line-height: 30px;
+}
+.component .endpoint .dbg-output .pin {
+  position: absolute;
+  right: -6px;
+  top: -1px;
+}
+.component .input-endpoint .dbg-output .pin {
+  left: -6px;
+  right: auto;
+}
+
+.component .endpoint .dbg-output.pinned .pin .icon {
+  display: none;
+}
+.component .endpoint .dbg-output.pinned .pin::after {
+  content: ' ';
+  font-size: 20px;
+  padding: 0px;
+  margin: auto;
+  border-radius: 20px;
+  background: #006500;
+  border: 1px solid black;
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+
+/* .component .endpoint.input-endpoint:hover .dbg-output {
+    text-align: right;
+} */
+
+.component .endpoint .dbg-output img,
+.component .endpoint .dbg-output audio,
+.component .endpoint .dbg-output video {
+  max-width: 100%;
+}
+.component .endpoint .dbg-output pre {
+  white-space: pre-wrap;
+}
+.component .endpoint .dbg-output pre > span {
+  display: inline-block;
+  width: 100%;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+.component .endpoint.pinned .name.dbg-info,
+.component .endpoint:hover .name.dbg-info {
+  background-color: #dcdcdc;
+  display: block;
+  width: 100%;
+
+  border-image: none !important;
+  height: 30px;
+  border-radius: 10px 0px 0px 0px;
+}
+
+.component .dbg-loop-info {
+  color: #347534;
+  display: block;
+  height: 20px;
+  line-height: 20px;
+  float: right;
+  margin-right: 50px;
+}
+
+.debug-bar {
+  margin: 0px;
+  padding: 0px;
+  background-color: #cbd3dfbf;
+  height: 0;
+  border: 0;
+  transition: all 0.3s;
+}
+
+.debug-bar .btn-debug {
+  border-radius: 10px;
+  padding: 0px 5px !important;
+  border: 0px;
+  margin-left: 5px;
+  color: #ffffff00;
+  position: relative;
+}
+
+.debug-bar .btn-debug.active {
+  color: #00ff00;
+  transition: all 0.5s ease-in-out;
+  animation: blink-green normal 1.5s infinite ease-in-out;
+}
+
+@keyframes blink-green {
+  0% {
+    background-color: rgba(0, 255, 0, 1);
+  }
+  50% {
+    background-color: rgba(0, 100, 0, 1);
+  }
+  100% {
+    background-color: rgba(0, 255, 0, 1);
+  }
+}
+
+.debug-box {
+  z-index: 999;
+  position: absolute;
+  left: 0;
+  overflow: hidden;
+  top: 25px;
+  padding: 0px;
+  resize: both !important;
+  border-radius: 10px;
+  color: #fff;
+}
+.dbg-textarea {
+  font-size: 12px;
+  font-family: monospace;
+  /* white-space: pre; */ /* Disabled it to prevent the horizontal scrollbar */
+  margin: 0px;
+  border: 2px solid transparent;
+  resize: none !important;
+  width: 100% !important;
+  height: calc(100% - 30px) !important;
+  direction: ltr;
+  overflow-y: auto;
+}
+.dbg-textarea.dbg-textarea-with-footer {
+  height: calc(100% - 60px) !important;
+}
+.dbg-log-download-link {
+  text-decoration: underline;
+}
+
+.dbg-textarea.syntax {
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #41bcd5;
+  font-size: 14px;
+  user-select: text;
+  cursor: text;
+  padding: 0px 10px;
+}
+
+.dbg-textarea.syntax .token.error {
+  color: #ff8686; /* Customize the color as needed */
+}
+
+.dbg-textarea.syntax .token.error .token.keyword {
+  color: #ffffff;
+  background: red;
+}
+
+.dbg-textarea.syntax .token.property {
+  color: #a4e1ff;
+}
+/* .debug-bar:hover .debug-info {
+    display: block;
+} */
+
+.debug-box pre {
+  max-width: 500px;
+  max-height: 500px;
+  margin: 0;
+  padding: 20px;
+}
+#debug-menu [disabled] {
+  color: #a4a4a4 !important;
+}
+
+#debug-menu .debugger {
+  display: none;
+}
+#debug-menu .switch input[type='checkbox']:checked ~ .check {
+  background: #416dec !important;
+  border-color: #416dec !important;
+  color: #1d1d1d !important;
+}
+
+#debug-menu .debug-btn {
+  height: 100%;
+  display: inline-block;
+}
+#server-status {
+  pointer-events: none;
+}
+/* #server-status .label {
+    font: 500 16px Inter;
+    margin: 5px 0px;
+}
+#server-status .status {
+    font: 500 16px Inter;
+    color: #4a5d78;
+    margin-left: 5px;
+} */
+
+#server-status .status.offline {
+  color: #ff0000;
+}
+
+#server-status .status.online {
+  color: #14bb3d;
+}
+
+.debug-unavailable {
+  display: block;
+  font: 500 14px Inter;
+  padding: 0px 10px;
+  line-height: 30px;
+}
+
+/* Debug menu ---------------------------------------------*/
+/* #debug-menu {
+    position: absolute;
+    right: 0px;
+    top: 52px;
+    display: block;
+    z-index: 5;
+    background-color: transparent !important;
+    padding-left: 20px;
+    border-radius: 10px 0px 0px 10px;
+    line-height: 30px;
+    height: 30px;
+} */
+
+#debug-menu .separator {
+  width: 30px;
+}
+
+#debug-menu .input,
+#debug-menu input {
+  height: 30px;
+  overflow-y: hidden;
+  /* font: 700 12px Inter; */
+}
+#debug-menu div.prepend {
+  height: 30px;
+  padding: 0px 10px;
+  /* font: 500 14px Inter; */
+}
+#debug-menu > li > a {
+  height: 30px;
+  line-height: 30px;
+  padding: 0px 5px;
+  margin: 0px 5px;
+}
+#debug-menu button.input-custom-button {
+  height: 20px;
+}
+
+#debug-menu button.input-custom-button span::before {
+  font-size: 11px;
+  line-height: 20px;
+}
+#debug-menu .switch .check {
+  border-radius: 20px;
+  height: 17px;
+}
+#debug-menu .switch .check::after {
+  height: 0.5rem;
+  width: 0.5rem;
+}
+#debug-menu .switch {
+  height: 100%;
+}
+
+#debug-menu .switch .caption {
+  line-height: 15px;
+  height: 16px;
+  font-size: 16px;
+}
+#debug-menu .right {
+  height: 30px;
+}
+
+.dbg-textarea:focus {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 0 !important;
+  border: 2px solid #bbb;
+}
+
+.component.dbg-async {
+  outline: 1px solid #188b31 !important;
+}
+.component.dbg-async .internal-name::after {
+  content: 'Async Running...';
+  display: block;
+  /* float: right; */
+  background: #1d7a1d;
+  font-weight: 700;
+  color: white;
+  position: absolute;
+  z-index: 5;
+  right: 10px;
+  padding: 0px 10px;
+  border-radius: 0px 10px;
+  transition: all 0.5s ease-in-out;
+  animation: blink-green normal 1.5s infinite ease-in-out;
+}
+
+.component.dbg-active {
+  border: 2px solid #00ff00;
+  transition: all 0.3s;
+}
+
+.component.dbg-active .debug-bar {
+  background: #00ff0080;
+}
+
+.component.dbg-active.dbg-always-active {
+  border: 2px solid #00aeff;
+}
+.component.dbg-active.dbg-always-active .debug-bar {
+  background: 2px solid #00aeff80;
+}
+
+.component.dbg-active.dbg-active-waiting {
+  border: 2px solid #ff9900 !important;
+}
+
+.component.dbg-active-waiting .debug-bar {
+  background: #ff990080;
+}
+
+.component.dbg-active.dbg-active-in_progress {
+  border: 2px solid #347534 !important;
+}
+
+.component.dbg-active.dbg-active-in_progress .debug-bar {
+  background: #34753480;
+}
+
+.dbg-active-waiting .dbg-loader {
+  visibility: hidden;
+}
+
+.component .cpt-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #0000008c;
+  border-radius: 5px;
+  top: 0px;
+  left: 0px;
+}
+.component .cpt-overlay .animation {
+  margin: 30px auto;
+}
+
+.component .cpt-overlay .content {
+  margin: 30px 0px;
+  padding: 10px;
+  display: block;
+  text-align: center;
+  color: white;
+}
+.component .loading-icon {
+  border-radius: 10px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+.overlay-loader svg {
+  margin: auto;
+}
+
+.overlay-loader svg polyline {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.overlay-loader svg polyline#front {
+  fill: none;
+  stroke: black;
+  stroke-dasharray: 48, 144;
+  stroke-dashoffset: 192;
+  animation: heartbeat 1.4s linear infinite;
+}
+
+@keyframes heartbeat {
+  72.5% {
+    opacity: 0;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.dbg-loader svg {
+  margin: auto;
+}
+
+.dbg-loader svg polyline {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dbg-loader svg polyline#front {
+  fill: none;
+  stroke: #51ff00;
+  stroke-dasharray: 48, 144;
+  stroke-dashoffset: 192;
+  animation: heartbeat 1s linear infinite;
+}
+
+@keyframes heartbeat {
+  72.5% {
+    opacity: 0;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+
+.dbg-loader {
+    width: 82px;
+    height: 6px;
+    display: block;
+    margin: auto;
+    position: relative;
+    border-radius: 4px;
+    color: #006500;
+    box-sizing: border-box;
+    animation: cmp-animloader 0.6s linear infinite;
+}
+
+@keyframes cmp-animloader {
+    0% {
+        box-shadow:
+            -10px 20px,
+            10px 35px,
+            0px 50px;
+    }
+    25% {
+        box-shadow:
+            0px 20px,
+            0px 35px,
+            10px 50px;
+    }
+    50% {
+        box-shadow:
+            10px 20px,
+            -10px 35px,
+            0px 50px;
+    }
+    75% {
+        box-shadow:
+            0px 20px,
+            0px 35px,
+            -10px 50px;
+    }
+    100% {
+        box-shadow:
+            -10px 20px,
+            10px 35px,
+            0px 50px;
+    }
+}
+*/
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.6;
+}
+
+.debug-buttons-container {
+  display: none;
+}
+
+.debug-enabled .debug-buttons-container {
+  display: flex;
+  margin-top: 0.5rem;
+}
+
+/* Hide debug button when debug mode is off */
+.btn-debug {
+  visibility: hidden;
+}
+
+/* Show debug button when debug mode is on */
+.debug-enabled .btn-debug {
+  visibility: visible;
+}
+
+/* Styles for input status icons */
+.input-status-icon {
+  position: absolute;
+  left: -8px;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  z-index: 10;
+}
+
+/* Component with at least one empty input */
+.component.has-empty-inputs .input-endpoint {
+  position: relative;
+  /* Ensure relative positioning for absolute icon placement */
+}
+
+/* Override the existing CSS that's not working */
+.component:has(
+    .input-endpoint.jtk-endpoint.jtk-endpoint-anchor.jtk-draggable.jtk-droppable:not(.jtk-connected)
+  )
+  .input-endpoint.jtk-endpoint.jtk-endpoint-anchor.jtk-draggable.jtk-droppable.jtk-connected {
+  background-image: none !important;
+  /* Remove the background image approach */
+}
+
+.component
+  .input-endpoint.jtk-endpoint.jtk-endpoint-anchor.jtk-draggable.jtk-droppable:not(.jtk-connected) {
+  background-image: none !important;
+  /* Remove the background image approach */
+}
+
+.component.async .debug-icon {
+  margin-top: 0.75rem;
+  /* equivalent to mt-3 in Tailwind */
+}
+
+#workspace:not(.debug-enabled) .component .computer-state-container {
+  display: none;
+}

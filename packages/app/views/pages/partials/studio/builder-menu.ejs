@@ -1,0 +1,865 @@
+<div
+  id="primary-builder-topbar"
+  class="h-16 items-center justify-end xl:justify-between max-w-full px-2 md:px-0 z-10 absolute w-full pointer-events-none"
+>
+  <div class="hidden xl:flex items-center gap-2 px-4">
+    <div
+      class="max-w-[20rem] flex items-center h-10 px-2 gap-2 bg-white rounded-lg border border-solid border-gray-200 pointer-events-auto hidden"
+    >
+      <% if (typeof agent !== 'undefined' && agent) { %> <% if (agent.avatar) { %>
+      <img
+        class="w-6 h-6 rounded-full"
+        id="agent-avatar"
+        src="<%= agent.avatar %>"
+        alt="agent avatar"
+        onerror="this.onerror=null;this.src='/img/user_default.svg';"
+      />
+      <% } else { %>
+      <div
+        class="bg-uipink rounded-full w-8 h-8 flex items-center justify-center text-white font-medium text-xl truncate"
+      >
+        <%= (agent.name || 'A').charAt(0).toLocaleUpperCase() %>
+      </div>
+      <% } %> <% } else { %>
+      <div
+        class="agent-avatar-placeholder-topbar bg-uipink rounded-full w-8 h-8 flex items-center justify-center text-white font-medium text-xl"
+      ></div>
+      <% } %>
+      <p class="builder-topbar-agent-name font-medium truncate">
+        <% if (typeof agent !== 'undefined' && agent) { %> <%= agent.name %> <% } %>
+      </p>
+    </div>
+    <%- include('agent-status'); -%>
+  </div>
+
+  <!-- Right side: New Agent, Agent Chat, and User Menu -->
+
+  <div class="flex items-center gap-2 px-4 pointer-events-auto relative">
+    <div id="embodiments-toolbar" class="items-center space-x-4 h-10 z-[1]">
+      <%- include('./embodiments-new'); -%>
+    </div>
+    <div class="nav-action-buttons hidden md:flex gap-2 h-10">
+      <div class="relative rounded-lg border border-solid border-gray-200 text-gray-900 bg-white">
+        <div class="flex items-center rounded-lg h-full" id="btn-emb-chatbot-main-wrapper">
+          <button
+            id="btn-emb-chatbot-main"
+            type="button"
+            class="flex items-center justify-center p-2 h-full text-sm"
+            data-tooltip-target="tooltip-test"
+            data-tooltip-placement="bottom"
+          >
+            <span class="icon" id="active-embodiment-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g clip-path="url(#clip0_15811_12327)">
+                  <g clip-path="url(#clip1_15811_12327)">
+                    <path
+                      d="M4.948 2.89844L16.0007 10.0037L4.948 17.109V2.89844Z"
+                      stroke="#111827"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </g>
+                </g>
+                <defs>
+                  <clipPath id="clip0_15811_12327">
+                    <rect width="20" height="20" fill="#111827" />
+                  </clipPath>
+                  <clipPath id="clip1_15811_12327">
+                    <rect width="20" height="20" fill="#111827" />
+                    s
+                  </clipPath>
+                </defs>
+              </svg>
+            </span>
+            <span class="text-sm ml-1">Test</span>
+          </button>
+          <div
+            id="tooltip-test"
+            role="tooltip"
+            class="hidden absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0"
+            style="font-family: 'Inter', sans-serif"
+          >
+            Test
+          </div>
+          <!-- Dropdown trigger button -->
+          <button
+            id="run-embodiments-dropdown-trigger"
+            type="button"
+            data-dropdown-toggle="embodiments-dropdown"
+            class="h-full px-1 rounded-r-lg border-l border-solid hidden"
+          >
+            <svg
+              class="w-2 h-2"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 10 6"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 4 4 4-4"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div
+          id="embodiments-dropdown"
+          class="hidden absolute right-0 z-50 mt-0 w-56 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        >
+          <h4 class="text-sm font-semibold text-gray-700 px-4 pt-2 flex items-center gap-2">
+            Test with Embodiments
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              data-tooltip-target="embodiments-help-tooltip"
+            >
+              <g clip-path="url(#clip0_13454_57651)">
+                <path
+                  d="M6.06065 5.99967C6.21739 5.55412 6.52675 5.17841 6.93395 4.9391C7.34116 4.69978 7.81992 4.6123 8.28544 4.69215C8.75096 4.772 9.1732 5.01402 9.47737 5.37536C9.78154 5.7367 9.94802 6.19402 9.94732 6.66634C9.94732 7.99967 7.94732 8.66634 7.94732 8.66634M8.00065 11.333H8.00732M14.6673 7.99967C14.6673 11.6816 11.6825 14.6663 8.00065 14.6663C4.31875 14.6663 1.33398 11.6816 1.33398 7.99967C1.33398 4.31778 4.31875 1.33301 8.00065 1.33301C11.6825 1.33301 14.6673 4.31778 14.6673 7.99967Z"
+                  stroke="#757575"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_13454_57651">
+                  <rect width="16" height="16" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+            <!-- Tooltip -->
+            <div
+              id="embodiments-help-tooltip"
+              role="tooltip"
+              class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-normal text-gray-700 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 tooltip"
+            >
+              Deploy and test your agent through multiple interfaces: interact via chat, evaluate
+              core LLM functionality, test API endpoints, or integrate with ChatGPT. Choose the
+              testing environment that best matches your deployment needs.
+            </div>
+          </h4>
+          <div class="py-1" role="none">
+            <button
+              id="btn-emb-chatbot"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left active"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- ChatEmbodimentIcon() -%></span>
+              Test Chatbot
+            </button>
+
+            <button
+              id="btn-emb-agentllm"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- LLMIcon() -%></span>
+              Agent LLM
+            </button>
+
+            <button
+              id="btn-emb-api"
+              data-dropdown-toggle="embodiments-dropdown"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- ApiEmbodimentIcon() -%></span>
+              API Endpoints
+            </button>
+
+            <button
+              id="btn-emb-chatgpt"
+              data-dropdown-toggle="embodiments-dropdown"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- ChatGPTIcon() -%></span>
+              Deploy to ChatGPT
+            </button>
+
+            <!-- <button
+              id="btn-emb-skill-preview"
+              data-dropdown-toggle="embodiments-dropdown"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- SkillPreviewIcon() -%></span>
+              Skill Preview
+            </button> -->
+
+            <button
+              id="btn-emb-postman"
+              data-dropdown-toggle="embodiments-dropdown"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              role="menuitem"
+            >
+              <span class="w-4 h-4"><%- PostmanIcon() -%></span>
+              Postman Import/Export
+            </button>
+          </div>
+        </div>
+      </div>
+      <% const freePlans = ['SmythOS Free', 'Free']; if (freePlans?.includes(plan?.name)) { %>
+      <a
+        id="upgrade-button-topbar"
+        href="/plans"
+        target="_blank"
+        data-plan="<%= plan?.name?.toLowerCase() %>"
+        class="upgrade-button text-white rounded-lg p-2 h-full bg-smythos-blue-500 flex items-center text-sm border border-solid border-gray-200"
+      >
+        Upgrade
+      </a>
+      <% } %>
+      <button
+        id="deploy-button-topbar"
+        class="user-select-none deploy-button border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
+        type="button"
+        data-tooltip-target="tooltip-deploy"
+        data-tooltip-placement="bottom"
+        @click="() => {
+          if (document.body.classList.contains('locked')) return;
+          window.handleDeployModalOpen ? window.handleDeployModalOpen(true) : console.warn('Deploy modal handler not ready')
+        }"
+      >
+        <%- include('icons/deploy'); -%> <span>Deploy</span>
+      </button>
+      <div
+        id="tooltip-deploy"
+        role="tooltip"
+        class="hidden absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0"
+        style="font-family: 'Inter', sans-serif"
+      >
+        Deploy
+      </div>
+      <div
+        id="tooltip-deploy-locked"
+        role="tooltip"
+        class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+        style="font-family: 'Inter', sans-serif"
+      >
+        Deployment is locked in view mode.
+      </div>
+      <button
+        id="share-agent-button-topbar"
+        class="text-gray-900 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm disabled:opacity-50 border border-solid border-gray-200"
+        type="button"
+        disabled="true"
+        data-tooltip-target="tooltip-share"
+        data-tooltip-placement="bottom"
+        @click="
+            window.handleShareAgentModalOpen
+              ? window.handleShareAgentModalOpen(true)
+              : console.warn('Share agent modal handler not ready')
+          "
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5.60959 3.0293H4.91713C3.12427 3.0293 2 4.29772 2 6.09276V10.9372C2 12.7323 3.11878 14.0007 4.91713 14.0007H10.0621C11.861 14.0007 12.9804 12.7323 12.9804 10.9372V9.20938"
+            stroke="black"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M10.6933 5.53751C9.10859 5.53751 7.88166 6.08579 7.20312 7.5842C7.20312 7.5842 6.61651 3.4717 10.6933 3.4717C10.6933 3.4717 10.6937 2.86559 10.6941 2.34397C10.6945 2.05143 11.0373 1.89295 11.2607 2.08222L13.8767 4.29825C14.0352 4.43269 14.0409 4.67491 13.8861 4.81461C13.3115 5.33435 12.0193 6.50226 11.2667 7.18233C11.0456 7.38213 10.6933 7.22407 10.6933 6.92587V5.53751Z"
+            stroke="black"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Share</span>
+      </button>
+      <div
+        id="tooltip-share"
+        role="tooltip"
+        class="hidden absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0"
+        style="font-family: 'Inter', sans-serif"
+      >
+        Share
+      </div>
+    </div>
+
+    <!-- <%- include('top-user-menu', { dropdownId: 'top-user-menu-dropdown-desktop' }); -%> -->
+    <!-- <div class="relative xl:hidden">
+      <button
+        type="button"
+        class="flex xl:hidden text-sm p-1 border-2 border-solid border-transparent focus:border-primary-100 rounded-lg focus:ring-0"
+        id="hamburger-menu-button"
+        aria-expanded="false"
+        data-dropdown-toggle="hamburger-dropdown"
+        data-dropdown-placement="bottom"
+      >
+        <span class="sr-only">Open menu</span>
+        <svg
+          class="w-5 h-5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 17 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M1 1h15M1 7h15M1 13h15"
+          ></path>
+        </svg>
+      </button>
+
+      <div
+        class="hidden xl:hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        id="hamburger-dropdown"
+      >
+        <ul class="block py-2">
+          <% navPages?.forEach(page => { %>
+          <li class="block w-full hover:bg-gray-100">
+            <a href="<%= page.url %>" class="block px-4 py-2 text-sm text-gray-700"
+              ><%= page.name %></a
+            >
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+    </div> -->
+  </div>
+</div>
+
+<div
+  id="bottom-toolbar"
+  class="h-16 items-center justify-between max-w-full px-4 z-10 absolute w-full pointer-events-none bottom-0 left-0"
+>
+  <div class="flex items-end gap-2 pointer-events-auto -mt-8">
+    <div
+      class="border border-solid border-gray-200 rounded-lg p-3 h-full bg-white flex flex-col gap-3 items-center text-sm text-gray-900"
+    >
+      <button id="cmp-zoom-in-btn" type="button"><%- include('icons/zoom-in.ejs'); -%></button>
+      <button id="cmp-zoom-out-btn" type="button"><%- include('icons/zoom-out.ejs'); -%></button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 pointer-events-auto">
+    <button
+      id="cmp-collapse-btn"
+      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
+      type="button"
+    >
+      <%- include('icons/collapse.ejs'); -%>
+      <span class="text text-xs">Expand</span>
+    </button>
+    <button
+      id="cmp-prettify-btn"
+      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
+      type="button"
+    >
+      <%- include('icons/prettify.ejs'); -%>
+      <span class="text-xs">Prettify</span>
+    </button>
+    <button
+      id="cmp-inspect-btn"
+      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 stroke-[#111827] [&.active]:bg-smythos-blue-500 [&.active]:text-white [&.active]:stroke-white"
+      type="button"
+    >
+      <%- include('icons/inspect.ejs'); -%>
+      <span class="text-xs">Inspect</span>
+    </button>
+    <div id="view-only-mode" class="hidden opacity opacity-0">
+      <div class="text-xs flex gap-1 items-center ml-3 h-full" style="min-width: 64px">
+        <span class="text-grey-200 font-bold pr-1 pointer-events-none opacity-50">Viewer Mode</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  id="mobile-builder-sub-menu"
+  class="md:min-h-[4rem] flex flex-col gap-2 md:hidden bg-white max-w-full relative p-2 z-50"
+>
+  <div class="flex items-center justify-between w-full">
+    <div class="relative">
+      <button
+        type="button"
+        class="flex text-sm rounded-full"
+        id="app-menu-button"
+        aria-expanded="false"
+        data-dropdown-placement="bottom"
+        data-dropdown-toggle="app-menu-dropdown"
+      >
+        <span class="sr-only">SmythOS</span>
+        <div class="w-8 h-8 flex items-center justify-center">
+          <%- include('icons/smyth-grayscale'); -%>
+        </div>
+      </button>
+
+      <div
+        class="hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        id="app-menu-dropdown"
+      >
+        <ul class="block py-2">
+          <li class="block w-full hover:bg-gray-100">
+            <a href="/" class="block px-4 py-2 text-sm text-gray-700">Home</a>
+          </li>
+          <li class="block w-full hover:bg-gray-100">
+            <a
+              href="/builder"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block px-4 py-2 text-sm text-gray-700"
+              >New Agent</a
+            >
+          </li>
+          <li class="block w-full hover:bg-gray-100">
+            <a
+              href="<%= SMYTHOS_DOCS_URL %>"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block px-4 py-2 text-sm text-gray-700"
+              >Documentation</a
+            >
+          </li>
+          <li class="block w-full hover:bg-gray-100">
+            <a
+              href="https://discord.gg/smythos"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block px-4 py-2 text-sm text-gray-700"
+              >Discord</a
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <%- include('top-user-menu', { dropdownId: 'top-user-menu-dropdown' }); -%>
+  </div>
+  <div
+    class="flex items-center justify-start gap-4"
+    x-data="sidebarState()"
+    :class="{
+      'flex': !isSidebarOpen && isMobile,
+      'hidden': isSidebarOpen
+    }"
+  >
+    <div @click="toggleSidebar" class="w-8 flex justify-center">
+      <i class="fa-solid fa-arrow-left"></i>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <% if (typeof agent !== 'undefined' && agent) { %> <% if (agent.avatar) { %>
+      <img
+        class="w-8 h-8 rounded-full"
+        src="<%= agent.avatar %>"
+        alt="agent avatar"
+        onerror="this.onerror=null;this.src='/img/user_default.svg';"
+      />
+      <% } else { %>
+      <div
+        class="bg-uipink rounded-full w-8 h-8 flex items-center justify-center text-white font-medium text-xl"
+      >
+        <%= (agent.name || 'A').charAt(0).toLocaleUpperCase() %>
+      </div>
+      <% } %> <% } else { %>
+      <div
+        class="agent-avatar-placeholder-topbar bg-uipink rounded-full w-8 h-8 flex items-center justify-center text-white font-medium text-xl"
+      ></div>
+      <% } %>
+      <p class="builder-topbar-agent-name font-medium">
+        <% if (typeof agent !== 'undefined' && agent) { %> <%= agent.name %> <% } %>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Embodiment Icon -->
+<% function ChatEmbodimentIcon() { %>
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M7.12109 11.6211C7.51395 12.4148 8.41494 12.9718 9.46121 12.9718C10.5075 12.9718 11.4077 12.4148 11.8006 11.6211"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M9.6385 2.77148C5.6464 2.77148 2.41016 6.00773 2.41016 9.99983C2.41016 11.1404 2.67432 12.2193 3.1448 13.1785C3.55983 14.0423 3.1624 14.9894 2.95205 15.8559C2.83218 16.3311 3.30741 16.8063 3.78257 16.6864C4.64841 16.468 5.59533 16.0782 6.4599 16.4937C7.41922 16.9641 8.49803 17.2283 9.63858 17.2283C13.6307 17.2283 16.8669 13.992 16.8669 9.99991C16.8669 9.09251 16.6997 8.22408 16.3944 7.42387"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M11.8769 4.22168L11.805 4.41648C11.5336 5.15099 10.9553 5.73011 10.2218 6.0019L10.0273 6.07398L10.2218 6.14607C10.9553 6.41786 11.5336 6.99698 11.805 7.73148L11.8769 7.9263L11.9489 7.73148C12.2203 6.99698 12.7985 6.41786 13.532 6.14607L13.7266 6.07398L13.532 6.0019C12.7985 5.73011 12.2203 5.15099 11.9489 4.41648L11.8769 4.22168Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M15.9216 2.77148C15.7838 3.225 15.4294 3.57992 14.9766 3.71796C15.4294 3.85599 15.7838 4.21091 15.9216 4.66443C16.0594 4.21091 16.4138 3.85599 16.8666 3.71796C16.4138 3.57992 16.0594 3.225 15.9216 2.77148Z"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
+
+<% } %>
+
+<!-- API Embodiment Icon -->
+<% function ApiEmbodimentIcon() { %>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M4.55027 3.13086H13.4498C15.33 3.13086 16.5 4.45816 16.5 6.33599V11.6639C16.5 13.5416 15.33 14.869 13.4489 14.869H4.55027C2.67 14.869 1.5 13.5416 1.5 11.6639V6.33599C1.5 4.45816 2.67568 3.13086 4.55027 3.13086Z"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M7.76525 10.7585L5.69941 7.24219L3.63281 10.7585"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M4.37305 9.50195H7.02799"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M9.73828 10.7585V7.32426C9.73828 7.32426 12.9471 6.81887 12.9471 8.31631C12.9471 9.8138 9.73828 9.35122 9.73828 9.35122"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M14.9141 7.24219V10.7585"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
+
+<% } %>
+
+<!-- ChatGPT Icon -->
+<% function ChatGPTIcon() { %>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M14.8632 7.77441C15.1728 6.85481 15.0656 5.84823 14.5692 5.01212C13.8226 3.73036 12.3222 3.07102 10.8569 3.38084C10.0312 2.47479 8.77825 2.07189 7.56979 2.3238C6.36134 2.57571 5.38079 3.44418 4.99725 4.60231C4.03472 4.79701 3.20397 5.39148 2.71758 6.2336C1.96294 7.51329 2.13422 9.12751 3.14114 10.2253C2.8304 11.1445 2.93659 12.1512 3.43251 12.9876C4.17995 14.2698 5.68132 14.9291 7.14742 14.6189C7.79954 15.3432 8.73639 15.7554 9.71845 15.7499C11.2204 15.7513 12.551 14.7948 13.0098 13.3841C13.9722 13.1891 14.8028 12.5947 15.2895 11.7528C16.035 10.4754 15.863 8.86989 14.8632 7.77441ZM9.71845 14.8664C9.11895 14.8673 8.53825 14.6601 8.07817 14.2809L8.1591 14.2357L10.8839 12.6842C11.0219 12.6044 11.107 12.4588 11.1078 12.301V8.51155L12.2598 9.16885C12.2713 9.17465 12.2794 9.18553 12.2814 9.19812V12.3383C12.2784 13.7333 11.1327 14.8635 9.71845 14.8664ZM4.20948 12.5459C3.90884 12.0338 3.80089 11.4335 3.90463 10.8507L3.98556 10.8986L6.71307 12.4501C6.85049 12.5296 7.02079 12.5296 7.15821 12.4501L10.49 10.5553V11.8673C10.4894 11.881 10.4825 11.8938 10.4711 11.9019L7.71127 13.4719C6.48486 14.1689 4.91796 13.7545 4.20948 12.5459ZM3.49186 6.69131C3.79459 6.17593 4.27243 5.78284 4.84077 5.58161V8.775C4.83869 8.93214 4.92345 9.07795 5.062 9.15555L8.37763 11.0423L7.22566 11.6996C7.213 11.7062 7.19784 11.7062 7.18519 11.6996L4.4307 10.1322C3.2067 9.43238 2.78693 7.88795 3.49186 6.67801V6.69131ZM12.9558 8.86016L9.62942 6.95477L10.7787 6.30012C10.7914 6.2935 10.8065 6.2935 10.8192 6.30012L13.5737 7.87021C14.4333 8.35955 14.9293 9.29453 14.8467 10.2702C14.7642 11.2459 14.1179 12.0868 13.1879 12.4288V9.23538C13.183 9.0787 13.0949 8.93612 12.9558 8.86016ZM14.1024 7.15968L14.0215 7.11178L11.2994 5.54702C11.1611 5.46699 10.9898 5.46699 10.8515 5.54702L7.52242 7.44176V6.12981C7.52097 6.11622 7.52719 6.10295 7.5386 6.09522L10.2931 4.52779C11.1549 4.03807 12.226 4.08377 13.0417 4.64507C13.8574 5.20637 14.2708 6.18213 14.1024 7.14903V7.15968ZM6.89382 9.48553L5.74185 8.83088C5.73021 8.82393 5.7223 8.81223 5.72027 8.79895V5.66677C5.72158 4.6859 6.29737 3.79412 7.19791 3.37817C8.09846 2.96222 9.16157 3.09703 9.92618 3.72412L9.84525 3.76936L7.12044 5.32082C6.98248 5.40064 6.89739 5.54627 6.89652 5.70403L6.89382 9.48553ZM7.51972 8.15495L9.00353 7.31136L10.49 8.15495V9.84212L9.00892 10.6857L7.52242 9.84212L7.51972 8.15495Z"
+    fill="currentColor"
+  />
+</svg>
+
+<% } %>
+
+<!-- LLM ICON -->
+<% function LLMIcon() { %>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect
+    x="1"
+    y="2.5"
+    width="16"
+    height="13"
+    rx="3"
+    stroke="currentColor"
+    stroke-width="0.80315"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M2.71541 12V6.90909H3.63764V11.2269H5.87983V12H2.71541ZM6.33026 12V6.90909H7.25249V11.2269H9.49467V12H6.33026ZM9.9451 6.90909H11.0737L12.585 10.598H12.6447L14.156 6.90909H15.2846V12H14.3996V8.50249H14.3524L12.9455 11.9851H12.2842L10.8773 8.49503H10.83V12H9.9451V6.90909Z"
+    fill="currentColor"
+  />
+</svg>
+<% } %>
+
+<!-- Skill Preview Icon -->
+<% function SkillPreviewIcon() { %>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M9.81092 2.70353C13.282 3.14773 15.7388 6.32728 15.2945 9.80611C14.8435 13.2845 11.6636 15.7406 8.18552 15.2965C4.71397 14.8457 2.25727 11.6591 2.70158 8.18713C3.1457 4.71662 6.33824 2.25913 9.81092 2.70353Z"
+    stroke="currentColor"
+    stroke-width="0.80315"
+  />
+</svg>
+<% } %>
+
+<!-- Postman Icon -->
+<% function PostmanIcon() { %>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M9.81092 2.70353C13.282 3.14773 15.7388 6.32728 15.2945 9.80611C14.8435 13.2845 11.6636 15.7406 8.18552 15.2965C4.71397 14.8457 2.25727 11.6591 2.70158 8.18713C3.1457 4.71662 6.33824 2.25913 9.81092 2.70353Z"
+    stroke="currentColor"
+    stroke-width="0.80315"
+  />
+  <path
+    d="M11.0753 6.90053L8.66288 9.31292L8.00698 8.65702C8.60027 8.06425 9.06056 7.63188 9.4248 7.32344C9.79281 7.01182 10.0616 6.82775 10.2695 6.73236C10.4767 6.63731 10.6213 6.63127 10.743 6.67265C10.8602 6.71253 10.9594 6.7972 11.0753 6.90053Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.63872 9.37124L8.63879 9.37132C8.64316 9.37568 8.64656 9.37799 8.64961 9.37935C8.65256 9.38066 8.65637 9.38161 8.66223 9.38161C8.66451 9.38161 8.66841 9.38092 8.67195 9.37935C8.6744 9.37826 8.67535 9.37737 8.67555 9.37718L8.67896 9.37036L8.6799 9.3713L11.1276 6.92942L8.63872 9.37124ZM8.63872 9.37124L7.94276 8.68109M8.63872 9.37124L7.94276 8.68109M7.94276 8.68109C7.94275 8.68107 7.94273 8.68106 7.94272 8.68105M7.94276 8.68109L7.94272 8.68105M7.94272 8.68105C7.92904 8.66732 7.92905 8.64791 7.94276 8.6342C8.55448 8.02248 9.0288 7.57861 9.40421 7.26407C9.77988 6.94931 10.0553 6.76512 10.2692 6.67155C10.4823 6.57834 10.6325 6.57582 10.7599 6.62193C10.8892 6.6687 10.9982 6.76632 11.128 6.88296C11.1321 6.88712 11.1343 6.8904 11.1356 6.89335C11.1369 6.8963 11.1379 6.90011 11.1379 6.90597C11.1379 6.91184 11.1369 6.91565 11.1356 6.91859C11.1343 6.92164 11.132 6.92504 11.1276 6.9294L7.94272 8.68105ZM8.03605 8.64049L8.01889 8.65765L8.03605 8.67481L8.64507 9.28383L8.66223 9.30099L8.67939 9.28383L11.0401 6.92313L11.0583 6.90497L11.0391 6.88786C10.9319 6.79226 10.8292 6.70923 10.7 6.6781C10.5697 6.64674 10.4168 6.66893 10.2102 6.77263C9.79858 6.97915 9.16074 7.51579 8.03605 8.64049Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M9.36083 10.0154L8.72768 9.38227L11.1407 6.96921C11.2866 7.12508 11.3409 7.30305 11.3199 7.50355C11.298 7.71309 11.1939 7.9485 11.0222 8.20887C10.6816 8.72554 10.0815 9.33156 9.36083 10.0154Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M11.3157 7.43337C11.3216 7.27597 11.2611 7.1195 11.1591 6.99947L11.142 6.97939L11.1234 6.99804L8.76271 9.36454L8.74572 9.38157L8.7626 9.3987C9.05257 9.69321 9.21184 9.84993 9.29517 9.93193C9.31853 9.95492 9.33592 9.97203 9.34855 9.98466L9.3653 10.0014L9.38245 9.98508C9.86961 9.52112 10.3506 9.05037 10.7105 8.61335C10.8905 8.39481 11.0408 8.18408 11.1465 7.98629C11.252 7.78885 11.3141 7.60263 11.3157 7.43337ZM11.3157 7.43337C11.3157 7.43349 11.3156 7.43361 11.3156 7.43373L11.2914 7.4328L11.3157 7.43301C11.3157 7.43313 11.3157 7.43325 11.3157 7.43337ZM11.1406 7.01518L11.1578 7.03232L11.156 7.03406C11.151 7.02767 11.1459 7.02138 11.1406 7.01518ZM11.1406 7.01518L11.1221 7.0309C11.1225 7.03141 11.123 7.03191 11.1234 7.03242L11.1406 7.01518ZM11.1756 6.91054L11.1756 6.91055L11.1763 6.91121C11.3219 7.04558 11.4003 7.236 11.3947 7.43211L11.3947 7.43236C11.3891 7.74589 11.2079 8.10592 10.8663 8.5394C10.5256 8.97182 10.0284 9.47347 9.39702 10.0702C9.38265 10.0794 9.37065 10.0824 9.36571 10.0824C9.35984 10.0824 9.35604 10.0815 9.35309 10.0802C9.35004 10.0788 9.34664 10.0765 9.34227 10.0721L8.67524 9.40512C8.67277 9.40265 8.67209 9.401 8.67162 9.39889C8.67087 9.39549 8.67075 9.39112 8.67075 9.38168C8.67075 9.37581 8.6717 9.372 8.67301 9.36906C8.67437 9.36601 8.67668 9.3626 8.68104 9.35824L11.1287 6.91054C11.1425 6.89681 11.1619 6.89681 11.1756 6.91054Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M7.96748 8.69725C7.96866 8.69607 7.96983 8.69513 7.97089 8.69438L8.46083 9.18432L7.44187 9.40432C7.40324 9.40804 7.36832 9.38239 7.35924 9.34212C7.35534 9.32212 7.3635 9.30123 7.37585 9.28888L7.96748 8.69725ZM8.45846 9.18743C8.45841 9.18748 8.45841 9.18747 8.45847 9.18742L8.45846 9.18743Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.50528 9.13838L8.50521 9.13845L8.50691 9.13986C8.52911 9.15836 8.53156 9.19378 8.50528 9.22006C8.49754 9.2278 8.49002 9.23203 8.47539 9.23699L7.45807 9.45664C7.45033 9.45702 7.44321 9.45881 7.4385 9.45999C7.43823 9.46006 7.43797 9.46013 7.43771 9.46019C7.43134 9.46178 7.42849 9.46236 7.4262 9.46236C7.35378 9.46236 7.29966 9.40485 7.29966 9.33003C7.29966 9.29612 7.31431 9.26162 7.33895 9.23698L7.92975 8.64619C7.95517 8.62555 7.98767 8.62555 8.01309 8.64619L8.50528 9.13838ZM7.98278 8.72124L7.96562 8.70408L7.94846 8.72124L7.38004 9.28967C7.37152 9.29818 7.36423 9.3097 7.36172 9.32351C7.35928 9.33694 7.36167 9.35099 7.36952 9.36402C7.37501 9.37781 7.38532 9.38795 7.39833 9.39316C7.41135 9.39836 7.42551 9.39806 7.4383 9.39409L8.39421 9.18553L8.4376 9.17606L8.4062 9.14466L7.98278 8.72124Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M12.1969 7.02291C11.8453 7.21931 11.4084 7.16395 11.1164 6.88296L11.1163 6.88289C10.7491 6.5326 10.7377 5.95635 11.0881 5.58895C11.4327 5.22766 12.0014 5.21089 12.364 5.5437L11.558 6.34967L11.5408 6.36683L11.558 6.38399L12.1969 7.02291Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M11.7536 7.12718C11.8905 7.12716 12.0277 7.09738 12.1533 7.0316L12.1827 7.01621L12.1591 6.99286L11.5502 6.38972C11.5502 6.38971 11.5502 6.3897 11.5502 6.38969C11.5458 6.38534 11.5435 6.38194 11.5422 6.3789C11.5408 6.37595 11.5399 6.37215 11.5399 6.36628C11.5399 6.36041 11.5408 6.3566 11.5422 6.35366C11.5435 6.35061 11.5458 6.3472 11.5502 6.34284L12.3274 5.56561L12.346 5.54702L12.326 5.52997C12.1648 5.39264 11.9619 5.32117 11.7476 5.32117C11.2471 5.32117 10.8417 5.72638 10.8475 6.22722C10.8476 6.72767 11.2528 7.13306 11.7536 7.12718ZM11.7536 7.12718C11.7535 7.12718 11.7535 7.12718 11.7534 7.12718V7.10291L11.7537 7.12717C11.7537 7.12718 11.7536 7.12718 11.7536 7.12718ZM12.1421 7.01011L12.125 7.02735L12.1192 7.02161C12.1269 7.01791 12.1345 7.01408 12.1421 7.01011ZM12.1421 7.01011L12.1308 6.98861C12.1285 6.9898 12.1262 6.99099 12.1239 6.99216L12.1421 7.01011ZM11.6377 6.34912L11.6205 6.36628L11.6377 6.38344L12.2525 6.99826C12.2662 7.01199 12.2662 7.03142 12.2525 7.04515L12.2429 7.05472C12.0964 7.14429 11.9219 7.19465 11.7476 7.19465C11.21 7.19465 10.7743 6.75889 10.7743 6.22127C10.7743 5.68365 11.21 5.2479 11.7476 5.2479C11.9967 5.2479 12.24 5.34413 12.421 5.51947L12.4379 5.50204L12.4207 5.5192C12.4251 5.52357 12.4274 5.52697 12.4287 5.53003C12.4301 5.53297 12.431 5.53678 12.431 5.54265C12.431 5.54851 12.4301 5.55232 12.4287 5.55527C12.4274 5.55832 12.4251 5.56172 12.4207 5.56609L11.6377 6.34912Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M12.4002 6.86461L12.4001 6.86475C12.354 6.91082 12.2982 6.95262 12.2408 6.99011L11.6165 6.36581L12.4113 5.58207C12.7618 5.9384 12.76 6.51049 12.4002 6.86461Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M12.4285 5.51894L12.4282 5.51928L12.4322 5.52197L12.4476 5.53223C12.825 5.9114 12.8246 6.52131 12.4516 6.9058C12.3953 6.96206 12.3339 7.01233 12.2673 7.05145C12.2611 7.05358 12.2555 7.05572 12.2511 7.05741C12.2497 7.05795 12.2484 7.05845 12.2472 7.05889L12.2413 7.06095C12.2407 7.06112 12.2405 7.06116 12.2405 7.06115C12.2406 7.06113 12.2414 7.06097 12.2427 7.06097C12.2368 7.06097 12.233 7.06002 12.23 7.05871C12.227 7.05736 12.2236 7.05505 12.2192 7.05068L11.558 6.38945C11.5536 6.38509 11.5513 6.38168 11.55 6.37863C11.5487 6.37569 11.5477 6.37188 11.5477 6.36601C11.5477 6.36014 11.5487 6.35634 11.55 6.35339C11.5513 6.35034 11.5536 6.34694 11.558 6.34257L12.3816 5.51894C12.3954 5.50521 12.4148 5.50521 12.4285 5.51894ZM11.6456 6.34878L11.6283 6.36594L11.6455 6.38317L12.2313 6.96899L12.245 6.98264L12.2613 6.97241C12.3099 6.94209 12.3577 6.90011 12.3932 6.86459C12.7329 6.52494 12.7509 5.97073 12.423 5.61298L12.4059 5.59437L12.388 5.61215L11.6456 6.34878Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M11.1816 7.50731L11.1816 7.50731L11.1813 7.5076L8.88408 9.52269L8.5519 9.19051L10.7214 7.02098C10.8512 6.89125 11.062 6.89125 11.1917 7.02098L11.1918 7.02105C11.1974 7.02665 11.2044 7.03362 11.2165 7.04042C11.3329 7.18165 11.3203 7.38993 11.1816 7.50731Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.89534 9.57867L8.89406 9.57721L8.88964 9.58606C8.88909 9.58716 8.88854 9.5877 8.88744 9.58825C8.88596 9.589 8.8827 9.59004 8.87654 9.59004C8.87067 9.59004 8.86687 9.58909 8.86392 9.58778C8.86087 9.58643 8.85747 9.58412 8.8531 9.57975L8.48769 9.21434C8.47396 9.20061 8.47396 9.18117 8.48769 9.16745L10.6744 6.98076C10.8273 6.82783 11.0729 6.82783 11.2259 6.98076C11.3788 7.13369 11.3788 7.37934 11.2259 7.53227L11.2172 7.54097L11.209 7.54911L8.89534 9.57867ZM8.58095 9.17376L8.56384 9.19092L8.58097 9.20805L8.86518 9.49226L8.88126 9.50834L8.89835 9.49334L11.1717 7.49833C11.3103 7.38469 11.3217 7.17804 11.2096 7.04104C11.096 6.90221 10.8892 6.89064 10.7521 7.00282L10.752 7.00273L10.7503 7.00444C10.745 7.00974 10.7414 7.01329 10.7334 7.0173L10.7328 7.01612L10.727 7.02187L8.58095 9.17376Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M6.88551 12.1597L6.88578 12.1597L6.78725 11.7424C6.78723 11.7423 6.78722 11.7423 6.7872 11.7422L6.78717 11.7421L6.88551 12.1597ZM6.88551 12.1597L6.88686 12.1631C6.90446 12.2071 6.878 12.262 6.82761 12.2757L6.82758 12.2756L6.82547 12.2764C6.7896 12.2898 6.74804 12.2764 6.72503 12.2488L6.72511 12.2487L6.72347 12.2471L6.10276 11.632L8.16053 9.57423L8.85966 9.58551L9.32157 10.0474M6.88551 12.1597L9.32157 10.0474M9.32157 10.0474C9.31638 10.052 9.31062 10.0571 9.30429 10.0628C9.11257 10.2332 8.39563 10.8708 6.82891 11.6568L9.32157 10.0474Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M9.2628 10.0649C8.65551 10.5875 7.83245 11.1156 6.81612 11.6267C6.76972 11.6499 6.74651 11.6963 6.75811 11.7485L9.2628 10.0649ZM9.2628 10.0649L9.26406 10.0662L9.28122 10.049M9.2628 10.0649L9.28122 10.049M9.28122 10.049L9.26532 10.0307C9.26489 10.031 9.26445 10.0314 9.26401 10.0318M9.28122 10.049L9.26401 10.0318M9.26401 10.0318L8.852 9.61979L8.18497 9.60819L9.26401 10.0318ZM6.68975 12.2898L6.68983 12.2897L6.68827 12.2881L6.05604 11.6559C6.05168 11.6515 6.04937 11.6481 6.04801 11.6451C6.0467 11.6421 6.04575 11.6383 6.04575 11.6325C6.04575 11.6266 6.0467 11.6228 6.04801 11.6199C6.04937 11.6168 6.05168 11.6134 6.05604 11.609L8.13833 9.52675C8.14137 9.52371 8.14565 9.521 8.15048 9.51907C8.15531 9.51714 8.15942 9.51648 8.16163 9.51646C8.16168 9.51645 8.16173 9.51645 8.16177 9.51645L8.88061 9.52805V9.52806H8.881C8.88687 9.52806 8.89068 9.529 8.89362 9.53031C8.89667 9.53167 8.90008 9.53398 8.90444 9.53835L9.39166 10.0256C9.39768 10.0316 9.40196 10.0422 9.40196 10.0548C9.40196 10.0607 9.40099 10.0636 9.39994 10.0655C9.39879 10.0676 9.39626 10.0708 9.38956 10.0752L9.38946 10.0751L9.38723 10.077L9.34663 10.1118L9.34642 10.112C8.73362 10.6496 7.90031 11.1879 6.86332 11.7035L6.84602 11.7121L6.85052 11.7309L6.94908 12.1426C6.94908 12.1426 6.94909 12.1426 6.9491 12.1426C6.96397 12.2073 6.93426 12.2775 6.87416 12.313C6.843 12.3284 6.8179 12.3332 6.79292 12.3332C6.752 12.3332 6.71315 12.3178 6.68975 12.2898ZM6.13775 11.6153L6.12046 11.6325L6.13781 11.6497L6.73324 12.2394C6.75706 12.2761 6.80475 12.2929 6.846 12.2681C6.88356 12.2456 6.90186 12.1986 6.87954 12.1571L6.7818 11.7432C6.78179 11.7432 6.78178 11.7431 6.78177 11.7431C6.77271 11.702 6.79037 11.6667 6.82697 11.6484L6.82702 11.6484C7.85482 11.1315 8.68611 10.5969 9.29711 10.0673L9.31681 10.0503L9.29838 10.0319L8.86916 9.60263L8.86223 9.5957L8.85242 9.59553L8.1854 9.58393L8.17512 9.58375L8.16784 9.59101L6.13775 11.6153Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M5.59003 12.1518L5.59029 12.1522L5.59372 12.1488L6.07539 11.6671L6.75485 12.3466L5.63678 12.2699C5.59901 12.2654 5.57308 12.2319 5.57748 12.1923L5.57763 12.1923V12.1896C5.57763 12.1684 5.58326 12.1563 5.59003 12.1518Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M6.81693 12.4268L5.62789 12.3456C5.54088 12.3398 5.48288 12.2644 5.48868 12.1774M6.81693 12.4268C6.84014 12.4268 6.85754 12.4152 6.86914 12.392C6.88074 12.3688 6.87494 12.3456 6.85754 12.3282L6.11511 11.5858C6.0919 11.5626 6.0571 11.5626 6.0339 11.5858L5.53508 12.0846C5.50608 12.1078 5.49448 12.1426 5.48868 12.1774M6.81693 12.4268L6.81859 12.4026L6.81767 12.4025M6.81693 12.4268V12.4025C6.81718 12.4025 6.81743 12.4025 6.81767 12.4025M5.48868 12.1774L5.51262 12.1814C5.51268 12.181 5.51275 12.1806 5.51282 12.1802M5.48868 12.1774L5.51289 12.179C5.51287 12.1794 5.51284 12.1798 5.51282 12.1802M5.51282 12.1802C5.51836 12.1478 5.5286 12.1208 5.55024 12.1035L5.55033 12.1036L5.55224 12.1017L6.05106 11.6029C6.06479 11.5892 6.08422 11.5892 6.09795 11.6029L6.84038 12.3453C6.85145 12.3564 6.85373 12.3686 6.84743 12.3811C6.84307 12.3899 6.83836 12.3949 6.83392 12.3979C6.82979 12.4007 6.82465 12.4024 6.81767 12.4025M5.51282 12.1802C5.50838 12.2551 5.55796 12.3166 5.6295 12.3214L5.62954 12.3214L6.81767 12.4025M6.09166 11.6962L6.0745 11.679L6.05734 11.6962L5.60056 12.153C5.58544 12.1643 5.57897 12.1819 5.57897 12.1977C5.57897 12.2135 5.58544 12.2311 5.60056 12.2424C5.60691 12.2487 5.6185 12.2593 5.63856 12.2596L6.66449 12.3292L6.72903 12.3336L6.68329 12.2878L6.09166 11.6962Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.52861 9.25994L8.51145 9.24238L8.49409 9.25974L8.11128 9.64256L8.0533 9.70053L8.13349 9.68345L8.75992 9.55005L8.803 9.54087L8.77222 9.50935L8.52861 9.25994ZM7.94863 9.79206C7.92878 9.79206 7.91489 9.77552 7.91489 9.75832C7.91489 9.75245 7.91584 9.74865 7.91715 9.7457C7.91851 9.74265 7.92082 9.73925 7.92519 9.73488L8.48781 9.17226C8.50153 9.15853 8.52097 9.15853 8.53469 9.17226L8.90011 9.53767C8.90693 9.5445 8.91007 9.54991 8.91147 9.55447C8.91277 9.55867 8.91315 9.56395 8.91137 9.57163C8.90799 9.58063 8.8976 9.59163 8.88275 9.59548L7.95768 9.79206H7.95766H7.95763H7.9576H7.95756H7.95753H7.9575H7.95746H7.95743H7.9574H7.95737H7.95733H7.9573H7.95727H7.95723H7.9572H7.95717H7.95713H7.9571H7.95707H7.95704H7.957H7.95697H7.95694H7.95691H7.95687H7.95684H7.95681H7.95677H7.95674H7.95671H7.95668H7.95664H7.95661H7.95658H7.95655H7.95651H7.95648H7.95645H7.95642H7.95639H7.95635H7.95632H7.95629H7.95626H7.95622H7.95619H7.95616H7.95613H7.9561H7.95606H7.95603H7.956H7.95597H7.95594H7.9559H7.95587H7.95584H7.95581H7.95578H7.95575H7.95571H7.95568H7.95565H7.95562H7.95559H7.95556H7.95553H7.95549H7.95546H7.95543H7.9554H7.95537H7.95534H7.95531H7.95528H7.95524H7.95521H7.95518H7.95515H7.95512H7.95509H7.95506H7.95503H7.955H7.95497H7.95494H7.95491H7.95488H7.95484H7.95481H7.95478H7.95475H7.95472H7.95469H7.95466H7.95463H7.9546H7.95457H7.95454H7.95451H7.95448H7.95445H7.95442H7.95439H7.95436H7.95433H7.9543H7.95427H7.95424H7.95421H7.95418H7.95416H7.95413H7.9541H7.95407H7.95404H7.95401H7.95398H7.95395H7.95392H7.95389H7.95386H7.95383H7.95381H7.95378H7.95375H7.95372H7.95369H7.95366H7.95363H7.9536H7.95358H7.95355H7.95352H7.95349H7.95346H7.95343H7.95341H7.95338H7.95335H7.95332H7.95329H7.95327H7.95324H7.95321H7.95318H7.95316H7.95313H7.9531H7.95307H7.95305H7.95302H7.95299H7.95296H7.95294H7.95291H7.95288H7.95286H7.95283H7.9528H7.95278H7.95275H7.95272H7.9527H7.95267H7.95264H7.95262H7.95259H7.95256H7.95254H7.95251H7.95248H7.95246H7.95243H7.95241H7.95238H7.95236H7.95233H7.9523H7.95228H7.95225H7.95223H7.9522H7.95218H7.95215H7.95213H7.9521H7.95208H7.95205H7.95203H7.952H7.95198H7.95195H7.95193H7.9519H7.95188H7.95185H7.95183H7.9518H7.95178H7.95176H7.95173H7.95171H7.95168H7.95166H7.95164H7.95161H7.95159H7.95157H7.95154H7.95152H7.9515H7.95147H7.95145H7.95143H7.9514H7.95138H7.95136H7.95133H7.95131H7.95129H7.95127H7.95124H7.95122H7.9512H7.95118H7.95115H7.95113H7.95111H7.95109H7.95107H7.95104H7.95102H7.951H7.95098H7.95096H7.95094H7.95092H7.95089H7.95087H7.95085H7.95083H7.95081H7.95079H7.95077H7.95075H7.95073H7.95071H7.95069H7.95067H7.95065H7.95063H7.95061H7.95059H7.95057H7.95055H7.95053H7.95051H7.95049H7.95047H7.95045H7.95043H7.95041H7.95039H7.95037H7.95035H7.95033H7.95031H7.9503H7.95028H7.95026H7.95024H7.95022H7.9502H7.95019H7.95017H7.95015H7.95013H7.95011H7.9501H7.95008H7.95006H7.95004H7.95003H7.95001H7.94999H7.94998H7.94996H7.94994H7.94992H7.94991H7.94989H7.94987H7.94986H7.94984H7.94983H7.94981H7.94979H7.94978H7.94976H7.94975H7.94973H7.94972H7.9497H7.94968H7.94967H7.94965H7.94964H7.94962H7.94961H7.94959H7.94958H7.94957H7.94955H7.94954H7.94952H7.94951H7.94949H7.94948H7.94947H7.94945H7.94944H7.94943H7.94941H7.9494H7.94939H7.94937H7.94936H7.94935H7.94933H7.94932H7.94931H7.9493H7.94928H7.94927H7.94926H7.94925H7.94924H7.94922H7.94921H7.9492H7.94919H7.94918H7.94917H7.94916H7.94914H7.94913H7.94912H7.94911H7.9491H7.94909H7.94908H7.94907H7.94906H7.94905H7.94904H7.94903H7.94902H7.94901H7.949H7.94899H7.94898H7.94897H7.94896H7.94896H7.94895H7.94894H7.94893H7.94892H7.94891H7.9489H7.94889H7.94888H7.94887H7.94886H7.94886H7.94885H7.94884H7.94884H7.94883H7.94882H7.94881H7.94881H7.9488H7.94879H7.94879H7.94878H7.94878H7.94877H7.94876H7.94876H7.94875H7.94875H7.94874H7.94874H7.94873H7.94873H7.94872H7.94872H7.94871H7.94871H7.9487H7.9487H7.94869H7.94869H7.94869H7.94868H7.94868H7.94867H7.94867H7.94867H7.94867H7.94866H7.94866H7.94866H7.94865H7.94865H7.94865H7.94865H7.94864H7.94864H7.94864H7.94864H7.94864H7.94864H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863H7.94863Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.81469 9.54761L8.22046 9.67726L8.22046 9.67725L8.21975 9.67743C8.18703 9.68561 8.15361 9.6654 8.14491 9.63183C8.14062 9.60965 8.14519 9.58952 8.16159 9.57312L8.49838 9.23633L8.81469 9.54761Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M8.5303 9.25974L8.51314 9.24258L8.49598 9.25974L8.18277 9.57295C8.174 9.58172 8.16795 9.59227 8.16642 9.6045C8.16493 9.61648 8.16812 9.62717 8.17242 9.63577C8.18375 9.65842 8.206 9.66658 8.22893 9.66658V9.66715L8.23409 9.66603L8.76771 9.55002L8.81114 9.54058L8.77971 9.50915L8.5303 9.25974ZM8.22313 9.73405C8.15533 9.73405 8.10239 9.68112 8.10239 9.61331C8.10239 9.58046 8.11622 9.5512 8.13686 9.5251L8.4897 9.17226C8.50342 9.15853 8.52286 9.15853 8.53659 9.17226L8.902 9.53767C8.90883 9.5445 8.91196 9.54991 8.91337 9.55447C8.91466 9.55867 8.91504 9.56395 8.91326 9.57163C8.90988 9.58064 8.89946 9.59166 8.88459 9.59549L8.24952 9.73405H8.24948H8.24942H8.24935H8.24928H8.24921H8.24915H8.24908H8.24901H8.24894H8.24887H8.24881H8.24874H8.24867H8.2486H8.24854H8.24847H8.2484H8.24833H8.24827H8.2482H8.24813H8.24806H8.248H8.24793H8.24786H8.24779H8.24773H8.24766H8.24759H8.24752H8.24746H8.24739H8.24732H8.24725H8.24719H8.24712H8.24705H8.24699H8.24692H8.24685H8.24678H8.24672H8.24665H8.24658H8.24652H8.24645H8.24638H8.24631H8.24625H8.24618H8.24611H8.24605H8.24598H8.24591H8.24585H8.24578H8.24571H8.24565H8.24558H8.24551H8.24544H8.24538H8.24531H8.24524H8.24518H8.24511H8.24505H8.24498H8.24491H8.24485H8.24478H8.24471H8.24465H8.24458H8.24451H8.24445H8.24438H8.24431H8.24425H8.24418H8.24412H8.24405H8.24398H8.24392H8.24385H8.24379H8.24372H8.24365H8.24359H8.24352H8.24346H8.24339H8.24332H8.24326H8.24319H8.24313H8.24306H8.243H8.24293H8.24287H8.2428H8.24273H8.24267H8.2426H8.24254H8.24247H8.24241H8.24234H8.24228H8.24221H8.24215H8.24208H8.24202H8.24195H8.24189H8.24182H8.24176H8.24169H8.24163H8.24156H8.2415H8.24143H8.24137H8.2413H8.24124H8.24118H8.24111H8.24105H8.24098H8.24092H8.24085H8.24079H8.24073H8.24066H8.2406H8.24053H8.24047H8.2404H8.24034H8.24028H8.24021H8.24015H8.24009H8.24002H8.23996H8.23989H8.23983H8.23977H8.2397H8.23964H8.23958H8.23951H8.23945H8.23939H8.23932H8.23926H8.2392H8.23914H8.23907H8.23901H8.23895H8.23888H8.23882H8.23876H8.2387H8.23863H8.23857H8.23851H8.23845H8.23838H8.23832H8.23826H8.2382H8.23813H8.23807H8.23801H8.23795H8.23789H8.23782H8.23776H8.2377H8.23764H8.23758H8.23752H8.23745H8.23739H8.23733H8.23727H8.23721H8.23715H8.23709H8.23702H8.23696H8.2369H8.23684H8.23678H8.23672H8.23666H8.2366H8.23654H8.23648H8.23642H8.23636H8.2363H8.23624H8.23617H8.23611H8.23605H8.23599H8.23593H8.23587H8.23581H8.23575H8.23569H8.23564H8.23558H8.23552H8.23546H8.2354H8.23534H8.23528H8.23522H8.23516H8.2351H8.23504H8.23498H8.23492H8.23487H8.23481H8.23475H8.23469H8.23463H8.23457H8.23451H8.23446H8.2344H8.23434H8.23428H8.23422H8.23416H8.23411H8.23405H8.23399H8.23393H8.23388H8.23382H8.23376H8.2337H8.23365H8.23359H8.23353H8.23347H8.23342H8.23336H8.2333H8.23325H8.23319H8.23313H8.23308H8.23302H8.23296H8.23291H8.23285H8.2328H8.23274H8.23268H8.23263H8.23257H8.23252H8.23246H8.2324H8.23235H8.23229H8.23224H8.23218H8.23213H8.23207H8.23202H8.23196H8.23191H8.23185H8.2318H8.23174H8.23169H8.23163H8.23158H8.23152H8.23147H8.23142H8.23136H8.23131H8.23125H8.2312H8.23115H8.23109H8.23104H8.23099H8.23093H8.23088H8.23083H8.23077H8.23072H8.23067H8.23061H8.23056H8.23051H8.23046H8.2304H8.23035H8.2303H8.23025H8.23019H8.23014H8.23009H8.23004H8.22999H8.22994H8.22988H8.22983H8.22978H8.22973H8.22968H8.22963H8.22958H8.22953H8.22947H8.22942H8.22937H8.22932H8.22927H8.22922H8.22917H8.22912H8.22907H8.22902H8.22897H8.22892H8.22887H8.22882H8.22877H8.22872H8.22867H8.22863H8.22858H8.22853H8.22848H8.22843H8.22838H8.22833H8.22828H8.22823H8.22819H8.22814H8.22809H8.22804H8.22799H8.22795H8.2279H8.22785H8.2278H8.22776H8.22771H8.22766H8.22762H8.22757H8.22752H8.22747H8.22743H8.22738H8.22733H8.22729H8.22724H8.2272H8.22715H8.2271H8.22706H8.22701H8.22697H8.22692H8.22688H8.22683H8.22679H8.22674H8.2267H8.22665H8.22661H8.22656H8.22652H8.22647H8.22643H8.22638H8.22634H8.2263H8.22625H8.22621H8.22617H8.22612H8.22608H8.22603H8.22599H8.22595H8.22591H8.22586H8.22582H8.22578H8.22574H8.22569H8.22565H8.22561H8.22557H8.22552H8.22548H8.22544H8.2254H8.22536H8.22532H8.22528H8.22523H8.22519H8.22515H8.22511H8.22507H8.22503H8.22499H8.22495H8.22491H8.22487H8.22483H8.22479H8.22475H8.22471H8.22467H8.22463H8.22459H8.22455H8.22452H8.22448H8.22444H8.2244H8.22436H8.22432H8.22429H8.22425H8.22421H8.22417H8.22413H8.2241H8.22406H8.22402H8.22398H8.22395H8.22391H8.22387H8.22384H8.2238H8.22376H8.22373H8.22369H8.22366H8.22362H8.22358H8.22355H8.22351H8.22348H8.22344H8.22341H8.22337H8.22334H8.2233H8.22327H8.22323H8.2232H8.22316H8.22313Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+  <path
+    d="M12.3985 6.1251L12.3982 6.12517L12.3998 6.12828C12.4532 6.23508 12.4378 6.36426 12.356 6.4678L12.3751 6.48284L12.3561 6.46768C12.3411 6.48652 12.3163 6.48966 12.2985 6.47631C12.2839 6.46074 12.2811 6.43472 12.2954 6.41679L12.2955 6.41681L12.2961 6.41591C12.3464 6.34681 12.3603 6.25207 12.3232 6.17404C12.3227 6.1718 12.3221 6.16987 12.3215 6.16835C12.3208 6.16642 12.3199 6.1646 12.3193 6.16325L12.3169 6.15615C12.309 6.13243 12.3217 6.10668 12.3422 6.09984C12.3659 6.09194 12.3916 6.10459 12.3985 6.1251Z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="0.0485343"
+  />
+</svg>
+
+<% } %>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const activeEmbodimentIcon = document.querySelector('#active-embodiment-icon');
+    if (activeEmbodimentIcon) {
+      // Add active class to the chat embodiment button
+      const chatbotButton = document.querySelector('#btn-emb-chatbot');
+      if (chatbotButton) {
+        // Remove active class from all embodiment buttons
+        document.querySelectorAll('[id^="btn-emb-"]').forEach((btn) => {
+          btn.classList.remove('active');
+        });
+        // Add active class to chat embodiment
+        chatbotButton.classList.add('active');
+      }
+    }
+    // Get dropdown element
+    const dropdown = document.getElementById('embodiments-dropdown');
+
+    // Function to close dropdown
+    const closeDropdown = () => {
+      dropdown.classList.add('hidden');
+    };
+
+    // Function to handle embodiment selection
+    const handleEmbodimentSelect = (iconContent, buttonId) => {
+      // Update the active icon
+      const activeIcon = document.getElementById('active-embodiment-icon');
+      activeIcon.innerHTML = iconContent;
+
+      // Close the dropdown
+      closeDropdown();
+
+      // Call the original click handler if it exists
+      const dropdownButton = document.getElementById(buttonId);
+      if (dropdownButton) {
+        dropdownButton.click();
+      }
+    };
+
+    document.getElementById('btn-emb-chatbot-main').addEventListener('click', () => {
+      return;
+      // Get the current icon content
+      const activeIcon = document.getElementById('active-embodiment-icon');
+      const currentIconContent = activeIcon.innerHTML;
+
+      // Get the sidebar container
+      const sidebarContainer = document.querySelector('.sidebar-container');
+
+      // Check if sidebar is currently open
+      const isOpen = sidebarContainer.classList.contains('open');
+
+      if (isOpen) {
+        // If sidebar is open, close it
+        const closeBtn = document.querySelector('#right-sidebar .close-btn');
+        if (closeBtn) {
+          closeBtn.click();
+        }
+      } else {
+        // If sidebar is closed, open it
+        const dropdownButtons = document.querySelectorAll('[id^="btn-emb-"]');
+        for (const button of dropdownButtons) {
+          if (button.querySelector('span').innerHTML === currentIconContent) {
+            const buttonId = button.id;
+            const sidebarButton = document.getElementById(buttonId);
+            if (sidebarButton && sidebarButton.onclick) {
+              sidebarButton.onclick();
+            }
+            break;
+          }
+        }
+      }
+    });
+
+    // Set up click handlers for dropdown items
+    const dropdownItems = dropdown.querySelectorAll('button');
+    dropdownItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        const iconContent = item.querySelector('span').innerHTML;
+        handleEmbodimentSelect(iconContent, item.id);
+      });
+    });
+  });
+
+  const dropdown = document.getElementById('embodiments-dropdown');
+
+  // Function to close dropdown
+  const closeDropdown = () => {
+    dropdown.classList.add('hidden');
+  };
+
+  function handleEmbodimentIconClick(event) {
+    // Prevent the default button behavior
+    event.preventDefault();
+
+    // Get the sidebar container
+    const sidebarContainer = document.querySelector('.sidebar-container');
+
+    if (sidebarContainer?.classList.contains('open')) {
+      // If sidebar is open, close it
+      const closeBtn = document.querySelector(
+        '#right-sidebar .close-btn, #embodiment-sidebar .close-btn',
+      );
+      if (closeBtn) {
+        closeBtn.click();
+      }
+    } else {
+      // If sidebar is closed, find and click the corresponding embodiment button
+      const activeIcon = document.getElementById('active-embodiment-icon');
+      const currentIconContent = activeIcon?.innerHTML;
+
+      // Find the matching button in the dropdown
+      const dropdownButtons = document.querySelectorAll('#embodiments-dropdown [id^="btn-emb-"]');
+      for (const button of dropdownButtons) {
+        const buttonIcon = button.querySelector('span')?.innerHTML;
+        if (buttonIcon === currentIconContent) {
+          button.click();
+          closeDropdown();
+          break;
+        }
+      }
+    }
+  }
+</script>

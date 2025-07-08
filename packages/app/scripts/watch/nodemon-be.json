@@ -1,0 +1,6 @@
+{
+  "watch": ["scripts/nodemon-be.json", "src/shared", "src/backend", "package.json"],
+  "ext": "ts,ejs,css,html,json",
+  "ignore": ["server/**/*"],
+  "exec": "npm run build:backend && node ./dist/server/index.js"
+}

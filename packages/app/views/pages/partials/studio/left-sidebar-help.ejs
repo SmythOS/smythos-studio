@@ -1,0 +1,303 @@
+<div class="h-full w-full flex flex-col !m-0">
+  <div class="m-0 h-16 px-4 flex items-center justify-between w-full border-b border-zinc-200">
+    <div class="flex items-center gap-2">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#374151"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide-help-circle"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <span class="text-2xl font-semibold text-v2-gray-darker">Help</span>
+    </div>
+    <div>
+      <button
+        type="button"
+        class="close-btn size-10 p-0.5 rounded-full text-[#757575]"
+        data-tooltip-target="tooltip-close-help"
+        data-tooltip-placement="left"
+        @click="
+      if (previousTab && previousTab !== 'helpTab') {
+        currentSidebarTab = previousTab;
+      } else {
+          toggleSidebar()
+      }
+      "
+      >
+        <%- include('icons/close-icon'); -%>
+      </button>
+      <div
+        id="tooltip-close-help"
+        role="tooltip"
+        class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+        style="font-family: 'Inter', sans-serif"
+      >
+        Close
+      </div>
+    </div>
+  </div>
+  <div
+    dir="ltr"
+    class="relative overflow-hidden flex-1 px-4 py-6"
+    style="
+      position: relative;
+      --radix-scroll-area-corner-width: 0px;
+      --radix-scroll-area-corner-height: 0px;
+    "
+  >
+    <style>
+      [data-radix-scroll-area-viewport] {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+    <div
+      data-radix-scroll-area-viewport=""
+      class="h-full w-full rounded-[inherit]"
+      style="overflow: hidden scroll"
+    >
+      <div style="min-width: 100%; display: table">
+        <div class="space-y-6" data-id="6">
+          <!-- Overview Tutorial Card -->
+          <div class="space-y-6 mb-6">
+            <div
+              class="rounded-lg border border-solid border-gray-200 hover:border-gray-300 bg-card text-card-foreground shadow-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity group"
+              onclick="showOverviewTutorial()"
+            >
+              <img
+                alt="Overview Tutorial"
+                class="w-full h-[160px] object-cover"
+                src="/img/overview-tutorial-thumbnail.png"
+                style="aspect-ratio: 16/9; object-fit: cover"
+              />
+              <div class="p-4 flex items-center gap-4 text-sm text-zinc-500">
+                <div class="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-play w-4 h-4 mr-2 group-hover:text-smyth-blue group-hover:fill-smyth-blue"
+                  >
+                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                  </svg>
+                  Quick Tutorial
+                </div>
+                <span>(1min)</span>
+              </div>
+            </div>
+          </div>
+
+          <section data-id="14">
+            <h2 class="text-[14px] leading-6 font-semibold text-zinc-500 mb-3" data-id="15">
+              Videos
+            </h2>
+            <ul class="space-y-3" data-id="16">
+              <li data-id="17">
+                <a
+                  href="https://youtu.be/Uo6x1EIDqLY"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/youtueb-video.ejs'); -%> LLM Prompt
+                </a>
+              </li>
+              <li data-id="17">
+                <a
+                  href="https://youtu.be/Q89zubN8EGM"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/youtueb-video.ejs'); -%> API Call
+                </a>
+              </li>
+              <li data-id="17">
+                <a
+                  href="https://youtu.be/peC5fzJn1Ts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/youtueb-video.ejs'); -%> Components
+                </a>
+              </li>
+              <li data-id="17">
+                <a
+                  href="https://youtu.be/C1ACMMfyh00"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/youtueb-video.ejs'); -%> Code Component
+                </a>
+              </li>
+              <li data-id="18">
+                <a
+                  href="https://www.youtube.com/@Smyth_OS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  See More
+                </a>
+              </li>
+            </ul>
+          </section>
+          <section data-id="20">
+            <h2 class="text-[14px] leading-6 font-semibold text-zinc-500 mb-3" data-id="21">
+              General
+            </h2>
+            <ul class="space-y-3" data-id="22">
+              <li data-id="23">
+                <a
+                  href="<%= SMYTHOS_DOCS_URL %>"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/book.ejs'); -%> Documentation
+                </a>
+              </li>
+              <li data-id="23">
+                <a
+                  href="https://discord.gg/smythos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/chat.ejs'); -%> Ask SmythOS developers
+                </a>
+              </li>
+              <li data-id="23">
+                <a
+                  href="mailto:support@smythos.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/email.ejs'); -%> Email support
+                </a>
+              </li>
+              <li data-id="23">
+                <a
+                  href="https://discord.gg/smythos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/discord.ejs'); -%> Discord
+                </a>
+              </li>
+              <li data-id="23">
+                <button
+                  onclick="showKeyboardShortcutsModal()"
+                  class="inline-flex items-center gap-3 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/keyboard.ejs'); -%> Keyboard Shortcuts
+                </button>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showOverviewTutorial() {
+    // Create modal container if it doesn't exist
+    let modalContainer = document.getElementById('arcade-modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'arcade-modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    // Create and style the modal overlay
+    modalContainer.innerHTML = `
+    <div class="fixed inset-0 bg-black bg-opacity-75 z-[99999] flex items-center justify-center"
+         onclick="closeOverviewTutorial(event)">
+      <div class="relative w-[90%] max-w-[1200px] h-[90vh] bg-white rounded-lg overflow-hidden"
+           onclick="event.stopPropagation()">
+        <!-- Close button -->
+        <button
+          onclick="closeOverviewTutorial(event)"
+          class="absolute top-3 right-3 z-10 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+
+        <!-- Arcade iframe -->
+        <iframe
+          src="https://app.arcade.software/xAGgTWEM6EVP57670ikM"
+          frameborder="0"
+          loading="lazy"
+          allowfullscreen
+          allow="clipboard-write"
+          style="width: 100%; height: 100%; border: none;"
+        ></iframe>
+      </div>
+    </div>
+  `;
+
+    // Prevent body scrolling when modal is open
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeOverviewTutorial(event) {
+    event.preventDefault();
+    const modalContainer = document.getElementById('arcade-modal-container');
+    if (modalContainer) {
+      modalContainer.remove();
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Handle Arcade iframe messages
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://app.arcade.software') return;
+
+    try {
+      const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+      if (data.event === 'arcade-popout-close') {
+        closeOverviewTutorial({ preventDefault: () => {} });
+      }
+    } catch (err) {
+      // Ignore parsing errors
+    }
+  });
+</script>

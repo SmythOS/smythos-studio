@@ -1,0 +1,41 @@
+<span id="emb-text" class="text-gray-300 font-bold pr-1 pointer-events-none"></span>
+
+<button
+    id="btn-emb-video-tutorial"
+    class="embodiment-btn endpoint-embodiment transition-transform transform w-8 hover:scale-125 hidden"
+    data-state="muted"
+    onmouseover="setActiveIcon(this, 'VideoTutorialActive.svg')"
+    onmouseout="setMutedIcon(this, 'VideoTutorialMuted.svg')"
+    title="Check Video Tutorial"
+>
+    <span class="sr-only">API</span>
+    <img src="/img/icons/VideoTutorialMuted.svg" class="h-full w-full object-contain rounded-md icon" />
+</button>
+
+<button
+    id="btn-emb-doc"
+    class="embodiment-btn endpoint-embodiment transition-transform transform w-8 hover:scale-125 hidden"
+    data-state="muted"
+    onmouseover="setActiveIcon(this, 'DocActive.svg')"
+    onmouseout="setMutedIcon(this, 'DocMuted.svg')"
+    title="Check Documentation"
+>
+    <span class="sr-only">API</span>
+    <img src="/img/icons/DocMuted.svg" class="h-full w-full object-contain rounded-md icon" />
+</button>
+
+<script>
+    function setActiveIcon(button, activeSrc) {
+        const img = button.querySelector('.icon');
+        if (button.getAttribute('data-state') === 'muted') {
+            img.src = '/img/icons/' + activeSrc;
+        }
+    }
+
+    function setMutedIcon(button, mutedSrc) {
+        const img = button.querySelector('.icon');
+        if (button.getAttribute('data-state') === 'muted') {
+            img.src = '/img/icons/' + mutedSrc;
+        }
+    }
+</script>

@@ -1,0 +1,225 @@
+.responsive-table {
+  margin: 0;
+  padding: 0;
+}
+.verfication {
+  color: #186ade;
+  font-family: 500;
+  font-size: 12px;
+  padding-bottom: 16px;
+}
+.unverification {
+  color: #505876;
+  font-family: 500;
+  font-size: 12px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.responsive-table li {
+  border-radius: 13px;
+  padding: 5px 5px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.responsive-table .table-header {
+  /* background-color: aliceblue; */
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0px;
+  margin-bottom: 6px;
+}
+.responsive-table .table-row {
+  background-color: #fff;
+  box-shadow: 0px 0px 9px 0px #0000001a;
+  margin: 0px;
+  margin-bottom: 10px;
+}
+.responsive-table .col-1 {
+  flex-basis: 7%;
+}
+.responsive-table .col-2 {
+  flex-basis: 4%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.responsive-table .col-3 {
+  display: flex;
+  align-items: center;
+  flex-basis: 50%;
+}
+.responsive-table .col-4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-basis: 5%;
+}
+@media all and (max-width: 767px) {
+  .responsive-table .table-header {
+    display: none;
+  }
+  .responsive-table li {
+    display: block;
+  }
+  .responsive-table .col {
+    flex-basis: 100%;
+  }
+  .responsive-table .col {
+    display: flex;
+    padding: 10px 0;
+  }
+  .responsive-table .col:before {
+    color: #6c7a89;
+    padding-right: 10px;
+    content: attr(data-label);
+    flex-basis: 50%;
+    text-align: right;
+  }
+}
+.last-col {
+  display: flex;
+  justify-content: end;
+  align-items: flex-end;
+}
+
+.show {
+  display: none;
+  width: 300px;
+  padding: 1rem;
+  background-color: #fff;
+  margin: 1rem;
+}
+#delete-input[disabled] {
+  color: #030229 !important;
+}
+
+.agentName {
+  color: #161616;
+  text-decoration: none;
+}
+.agentName:hover {
+  color: #186ade;
+}
+
+#chatgptDialog {
+  font-size: 12px;
+}
+
+#chatgptDialog label {
+  font-size: 12px;
+}
+
+#chatgptDialog input[type="text"],
+#chatgptDialog textarea,
+#chatgptDialog select {
+  font-size: 12px;
+}
+
+#chatgptDialog .button {
+  font-size: 12px;
+}
+#chatgptDialog h2 {
+  font-size: 16px;
+  font-weight: bold;
+}
+#chatgptDialog .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#chatgptDialog .dialog-actions button {
+  margin-left: 10px; /* Add some space between the buttons if needed */
+}
+
+/* chatbot */
+#chatbotDialog {
+  font-size: 12px;
+}
+
+#chatbotDialog label {
+  font-size: 12px;
+}
+
+#chatbotDialog input[type="text"],
+#chatbotDialog textarea,
+#chatbotDialog select {
+  font-size: 12px;
+}
+
+#chatbotDialog .button {
+  font-size: 12px;
+}
+
+#chatbotDialog h2 {
+  font-size: 16px;
+  font-weight: bold;
+}
+#chatbotDialog .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#chatbotDialog .dialog-actions button {
+  margin-left: 10px; /* Add some space between the buttons if needed */
+}
+.color-selection .clr-field button {
+  width: 50px !important;
+  right: unset;
+  left: 70px;
+  border-radius: 0 !important;
+}
+.color-selection .clr-field input {
+  width: 60px;
+}
+
+.chatbot-container {
+  height: 420px;
+  overflow-y: scroll;
+  padding: 10px;
+}
+
+/* User message */
+.user-message {
+  background-color: #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+  float: right;
+  clear: both;
+  max-width: 75%;
+}
+
+/* Chatbot message */
+.chatbot-message {
+  background-color: #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+  float: left;
+  clear: both;
+}
+
+/* Waiting message animation */
+.waiting-message::after {
+  content: "...";
+  animation: dots 1.5s infinite;
+  font-weight: bold;
+}
+
+.chatbots {
+  display: flex;
+  margin-top: 10px;
+}
+
+@keyframes dots {
+  0% {
+    content: "...";
+  }
+  33% {
+    content: "..";
+  }
+  66% {
+    content: ".";
+  }
+}

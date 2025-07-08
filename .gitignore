@@ -10,6 +10,9 @@ lerna-debug.log*
 .pnpm-debug.log*
 dist
 
+static/js/build/
+static/js/webappv2/
+
 # SQLite database files
 data/
 *.db

@@ -1,0 +1,58 @@
+<div data-role="appbar" data-expand-point="md" id="main-menu" class="pos-relative app-bar">
+    <a href="/" class="brand no-hover">
+        <img alt="" loading="lazy" width="26" height="26" decoding="async" data-nimg="1" style="color:transparent"
+            src="/img/smythos-logo.png">
+    </a>
+
+    <div class="app-bar-containe">
+        <ul class="app-bar-menu">
+            <li><a href="/" class="<%= ejsHelper?.setMenuActiveStatus(currentUrl, '/') %>">Home</a></li>
+            <li><a href="/builder" class="<%= ejsHelper?.setMenuActiveStatus(currentUrl,'/builder') %>">Builder</a></li>
+            <li><a href="/domains" class="<%= ejsHelper?.setMenuActiveStatus(currentUrl,'/domains') %>">Domains</a></li>
+            <li><a href="/vectors" class="<%= ejsHelper?.setMenuActiveStatus(currentUrl,'/vectors') %>">Data Pool</a>
+            </li>
+            <li><a href="<%= SMYTHOS_DOCS_URL %>" class="<%= ejsHelper?.setMenuActiveStatus(currentUrl,'/doc') %>">Documentation</a></li>
+            <!-- <li><a href="#">Analytics</a></li> -->
+        </ul>
+    </div>
+
+
+
+    <div class="app-bar-container ml-auto">
+        <a href="#" class="app-bar-item user-menu">
+            <img src="<%= user?.picture %>" class="avatar" width="45px">
+            <span class="ml-2 app-bar-name"></span>
+        </a>
+        <div class="user-block shadow-1" data-role="collapse" data-collapsed="true">
+            <div class="bg-lightGrayBlue fg-white p-2 text-center">
+                <img src="<%= user?.picture %>" class="avatar">
+                <div class="h4 mb-0"><%= user?.name %></div>
+                <div>Title</div>
+            </div>
+            <div class="bg-white d-flex flex-justify-between flex-equal-items p-2">
+                <button class="button flat-button">Users</button>
+                <button class="button flat-button">Subscription</button>
+                <button class="button flat-button">Settings</button>
+            </div>
+            <div class="bg-white d-flex flex-justify-between flex-equal-items p-2 bg-light">
+                <button class="button mr-1">Profile</button>
+                <a href="/logto/sign-out" class="button ml-1">Sign out</a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+<!-- <a class="button pos-absolute pos-top-right" id="account-button">
+    <img data-role="gravatar" data-email="a@b.com" data-default="mp">
+</a>
+<ul class="d-menu context pos-absolute pos-top-right" id="account-menu" data-role="dropdown"
+    data-toggle-element="#account-button">
+    <li><a href="#"><span class="mif-user icon"></span> Profile</a></li>
+    <li><a href="#">Users & Roles</a></li>
+    <li><a href="#">Subscription</a></li>
+    <li class="divider"></li>
+    <li><a href="#"><span class="mif-target icon"></span> Log Out</a></li>
+</ul> -->

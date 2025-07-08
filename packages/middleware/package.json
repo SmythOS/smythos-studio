@@ -1,12 +1,11 @@
 {
-  "name": "smyth-middleware",
+  "name": "smythos-core-api",
   "version": "1.4.281",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "vitest --config vitest.config.ts",
-    "prepare": "husky install",
     "bump": "pnpm version patch",
     "lint": "eslint --ext .ts src/",
     "ts-error-scan": "tsc --noEmit",

@@ -1,0 +1,230 @@
+<div class="flex-shrink-0 p-1 px-4" id="agent-auth-settings" x-data="{ currentAuthTab: 'none' }">
+  <p class="text-md font-semibold">Auth Settings (beta)</p>
+
+  <div id="agent-auth-settings-feature-wrapper" class="mt-4 hidden">
+    <label for="auth-method" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Select an Auth Method</label
+    >
+    <select
+      id="auth-method"
+      x-model="currentAuthTab"
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+    >
+      <option value="none">None</option>
+      <option value="api-key-bearer">Bearer API Key</option>
+      <!-- <option value="api-key">API Key</option> -->
+      <option value="oauth-oidc">OAuth OIDC</option>
+    </select>
+
+    <div id="authtab-none" x-show="(currentAuthTab == 'none' || !currentAuthTab)" class="mt-4"></div>
+    <div id="authtab-api-key-bearer" x-show="(currentAuthTab == 'api-key-bearer')" class="mt-2">
+      <label
+        for="auth-bearer-token"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >Token <span class="text-red-600">*</span></label
+      >
+      <input
+        type="password"
+        id="auth-bearer-token"
+        placeholder="MHjp4...Random Token"
+        class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ph-no-capture"
+        required
+        value=""
+      />
+
+      <label
+        for="auth-bearer-openai-verification"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >OpenAI Verification</label
+      >
+      <input
+        type="text"
+        id="auth-bearer-openai-verification"
+        placeholder="...Verification Token"
+        class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ph-no-capture"
+        required
+        value=""
+      />
+    </div>
+    <div id="authtab-oauth-oidc" x-show="(currentAuthTab == 'oauth-oidc')" class="mt-3">
+      <div class="mb-2">
+        <label
+          for="auth-oidc-config-url"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+          OIDC Config Endpoint <span class="text-red-600">*</span></label
+        >
+        <input
+          type="text"
+          id="auth-oidc-config-url"
+          placeholder="https://auth.server.com/oicd/.well-known/openid-configuration"
+          class="mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          required
+          value=""
+        />
+        <div
+          class="mb-4 text-xs font-medium text-red-600 hidden leading"
+          id="auth-oidc-config-url-error"
+        >
+          Please enter a valid URL for OIDC Config.
+        </div>
+      </div>
+
+      <label for="auth-id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >Client ID <span class="text-red-600">*</span></label
+      >
+      <input
+        type="text"
+        id="auth-id"
+        placeholder="ID..."
+        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        required
+        value=""
+      />
+
+      <div x-data="{ passwordVisible: false, password: '' }" class="relative mb-2">
+        <label
+          for="auth-secret"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >Client Secret <span class="text-red-600">*</span></label
+        >
+        <input
+          :type="passwordVisible ? 'text' : 'password'"
+          x-model="password"
+          id="auth-secret"
+          placeholder="Secret..."
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 pl-2 pr-9 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          required
+        />
+        <div class="absolute inset-y-0 right-0 top-7 pr-1 flex items-center text-sm leading-5">
+          <!-- The reveal icon -->
+          <button
+            type="button"
+            @click="passwordVisible = !passwordVisible"
+            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          >
+            <!-- Replace with eye and eye-slash icon from your preferred icons library when passwordVisible is true or false -->
+            <span
+              x-show="!passwordVisible"
+              class="text-xs text-gray-400"
+              style="font-size: 10px !important"
+              >SHOW</span
+            >
+            <span
+              x-show="passwordVisible"
+              class="text-xs text-gray-400"
+              style="font-size: 10px !important"
+              >HIDE</span
+            >
+          </button>
+          <!-- The copy icon -->
+          <!--
+                <button type="button"
+                    @click="navigator.clipboard.writeText(password).then(() => { console.log('clipboard', password) }, (err) => { console.error('Error in copying text: ', err); })"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white ml-3">                    
+                    📋
+                </button>
+            -->
+        </div>
+      </div>
+
+      <label
+        for="auth-oidc-allowed-emails"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >Allowed Emails</label
+      >
+      <input
+        type="text"
+        id="auth-oidc-allowed-emails"
+        placeholder="Comma separated emails or domains list"
+        class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        required
+        value=""
+      />
+
+      <label
+        for="auth-oidc-openai-verification"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >OpenAI Verification</label
+      >
+      <input
+        type="text"
+        id="auth-oidc-openai-verification"
+        placeholder="...Verification Token"
+        class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        required
+        value=""
+      />
+    </div>
+
+    <button
+      id="auth-save-btn"
+      class="agent-save-btn w-full px-4 py-2 text-center text-white transition-colors bg-smyth-emerald-400 hover:opacity-75 rounded-lg focus:outline-none focus:ring focus:ring-emerald-600 focus:ring-offset-2 focus:ring-offset-gray-100"
+    >
+      Save Settings
+    </button>
+
+    <div x-show="(currentAuthTab == 'oauth-oidc')" class="mt-4">
+      <h4>Test Authorize Endpoint</h4>
+      <input
+        type="text"
+        id="test-oidc-authorize-ep"
+        onClick="this.select();"
+        class="select-all mb-4 bg-gray-50 border-0 text-gray-900 rounded-lg block w-full p-0 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white text-xs"
+        readonly
+        value=".../authorize"
+      />
+
+      <h4>Test Token Endpoint</h4>
+      <input
+        type="text"
+        id="test-oidc-token-ep"
+        onClick="this.select();"
+        class="select-all mb-4 bg-gray-50 border-0 text-gray-900 rounded-lg block w-full p-0 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white text-xs"
+        readonly
+        value=".../authorize"
+      />
+
+      <h4>Prod Authorize Endpoint</h4>
+      <input
+        type="text"
+        id="prod-oidc-authorize-ep"
+        onClick="this.select();"
+        class="select-all mb-4 bg-gray-50 border-0 text-gray-900 rounded-lg block w-full p-0 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white text-xs"
+        readonly
+        value=".../authorize"
+      />
+
+      <h4>Prod Token Endpoint</h4>
+      <input
+        type="text"
+        id="prod-oidc-token-ep"
+        onClick="this.select();"
+        class="select-all mb-4 bg-gray-50 border-0 text-gray-900 rounded-lg block w-full p-0 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white text-xs"
+        readonly
+        value=".../authorize"
+      />
+    </div>
+  </div>
+</div>
+
+<div
+  class="agent-menu-loading-overlay absolute top-0 left-0 w-full h-full flex items-center justify-center border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
+>
+<div
+class="flex gap-2 items-center px-3 py-2 text-xs font-medium leading-none text-center text-gray-800 bg-gray-200 rounded-lg animate-pulse dark:bg-gray-900 dark:text-gray-400">
+<span>Loading</span>
+<div role="status">
+    <svg aria-hidden="true" class="inline w-4 h-4 text-white animate-spin fill-gray-950" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+    </svg>
+    <span class="sr-only">Loading...</span>
+</div>
+</div>
+</div>
+
+<!-- <div id="upsell hidden">
+    <h4>Upgrade to Pro</h4>
+    <p>Upgrade to Pro to use Agent Auth</p>
+</div> -->

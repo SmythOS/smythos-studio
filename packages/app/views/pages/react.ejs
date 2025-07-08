@@ -1,0 +1,24 @@
+<div id="root"></div>
+
+<% if (env === 'DEV') { %>
+<script type="module" src="/js/build/react/app.bundle.dev.js"></script>
+<% } else { %>
+<script type="module" src="/js/build/react/app.bundle.min.js"></script>
+<% } %>
+
+<script>
+  window.postHogSignupEvents = JSON.parse('<%- typeof postHogSignupEvents !== "undefined" ? JSON.stringify(postHogSignupEvents) : "[]" %>');
+
+  function sendPostHogEvents() {
+    if (posthog?.capture) {
+      window.postHogSignupEvents?.forEach((event) => {
+        if (event?.eventType && event?.eventData) {
+          posthog.capture(event.eventType, event.eventData);
+        }
+      });
+    } else {
+      setTimeout(sendPostHogEvents, 1000);
+    }
+  }
+  sendPostHogEvents();
+</script>

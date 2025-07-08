@@ -1,0 +1,46 @@
+.form-group + .form-group {
+  border: none !important;
+}
+
+.button:focus {
+  box-shadow: none !important;
+}
+
+.selected {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+  border: 2px solid black !important;
+}
+
+.selected::after {
+  right: -2px !important;
+  /* top: -2px !important; */
+}
+
+.button.mini.outline {
+  outline: 0 !important;
+}
+
+.button.alert {
+  color: #f00 !important;
+}
+.button.alert:hover {
+  color: #fff !important;
+  background-color: #f00 !important;
+}
+
+.button.success {
+  color: #33ce40 !important;
+}
+.button.success:hover {
+  color: #fff !important;
+  background-color: #33ce40 !important;
+}
+
+.form-group + .form-group {
+  margin-top: 0 !important;
+}
+
+.textarea textarea {
+  border-radius: 8px;
+}

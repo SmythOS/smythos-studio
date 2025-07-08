@@ -1,0 +1,80 @@
+<div
+  class="z-10 right-sidebar border border-solid border-gray-300/80 rounded-lg h-full"
+  x-data="{ width: '350px' }"
+  x-init="width = localStorage.getItem('right-sidebar-width') || '350px'"
+  :style="'width:' + width"
+  id="right-sidebar"
+>
+  <div class="container flex flex-col h-full">
+    <div class="dialog-title">
+      <div
+        class="right-sidebar-title flex justify-between items-center w-full px-4 py-3 pl-2"
+        role="group"
+      >
+        <div
+          class="title text-basic py-1 text-left grow w-full text-v2-gray-darker truncate flex-1 text-2xl"
+        ></div>
+
+        <div>
+          <div class="title-left-buttons inline-flex">
+            <button
+              type="button"
+              class="back-btn h-10 items-center py-1 text-sm font-medium text-[#757575] bg-transparent focus:z-10"
+            >
+              <span class="svg-icon delete"></span>
+            </button>
+          </div>
+
+          <div class="title-right-buttons inline-flex" dir="rtl">
+            <button
+              type="button"
+              class="save-btn h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
+              data-tooltip-target="tooltip-save-close"
+              data-tooltip-placement="left"
+            >
+              <span class="mif-cross"></span>
+            </button>
+            <div
+              id="tooltip-save-close"
+              role="tooltip"
+              class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+              style="font-family: 'Inter', sans-serif"
+            >
+              Save&nbsp;and&nbsp;Close
+            </div>
+            <button
+              type="button"
+              class="close-btn h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
+              data-tooltip-target="tooltip-close"
+              data-tooltip-placement="left"
+            >
+              <span class="mif-cross"></span>
+            </button>
+            <div
+              id="tooltip-close"
+              role="tooltip"
+              class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+              style="font-family: 'Inter', sans-serif"
+            >
+              Close
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-content content flex-grow overflow-y-auto overflow-x-hidden"></div>
+    <div class="dialog-actions actions w-full m-0">
+      <div
+        class="action-buttons w-full h-12 inline-flex justify-end px-0 border-t border-gray-100 border-solid bg-gray-50 m-0 align-middle"
+      >
+        <div class="action-content w-full"></div>
+        <button
+          type="button"
+          class="del-btn items-center h-12 p-3 text-sm font-medium bg-transparent hover:bg-red-200 focus:z-10 focus:ring-2 opacity-80 hover:opacity-100"
+        >
+          <span class="svg-icon delete h-5 w-5"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

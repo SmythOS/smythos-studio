@@ -1,0 +1,214 @@
+/* #left-menu {
+    background-color: #fff;
+    box-shadow: 0 0 5px 1px #b4b4b4;
+    z-index: 10;
+} */
+
+.compacted #left-menu.navview-pane {
+    width: 50px !important;
+}
+
+#left-menu .navview-menu-container {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+}
+
+#left-menu .navview-menu-container .navview-menu {
+    background-color: transparent !important;
+}
+/* This styles the container of the scrollbar */
+#left-menu .navview-menu-container::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+
+#left-menu:hover .navview-menu-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+/* This styles the background of the scrollbar */
+#left-menu .navview-menu-container::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+/* This styles the actual scrollbar itself */
+#left-menu .navview-menu-container::-webkit-scrollbar-thumb {
+    background: #bbbbbb;
+    border-radius: 10px;
+}
+
+/* Style the scrollbar when it's hovered */
+#left-menu .navview-menu-container::-webkit-scrollbar-thumb:hover {
+    background: #818181;
+}
+
+#left-menu .suggest-box .input,
+.cpt-search .input,
+#cpt-search {
+    background-color: #f8f8f8;
+    max-width: 230px;
+}
+
+.cpt-search .input.input.focused,
+#left-menu .suggest-box .input.focused {
+    box-shadow: 0px 0px 0px 0px #ffffff00 !important;
+    -webkit-box-shadow: 0px 0px 0px 0px #ffffff00 !important;
+}
+.cpt-search .input,
+.navview .suggest-box .input {
+    border: 0px !important;
+    border-radius: 100px !important;
+}
+.cpt-search .input input,
+.navview .suggest-box .input input {
+    border-radius: 12px !important;
+}
+
+#left-menu .navview-menu li.menuitem a.active {
+    font-weight: 700;
+}
+#left-menu .navview-menu li.menuitem a.active::before {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 24px;
+    top: 8px;
+    left: 0;
+    width: 60%;
+    background: linear-gradient(90deg, rgb(0 164 255 / 35%) 0%, rgba(255, 255, 255, 0) 97%);
+    z-index: 1;
+}
+#left-menu .navview-menu li.menuitem.active::before {
+    display: none !important;
+}
+
+.drag-menuitem {
+    z-index: 999999;
+    display: block;
+    padding: 10px;
+    max-width: 200px;
+    cursor: grabbing;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    transform: rotate(8deg);
+}
+
+#main-menu {
+    border-bottom: 2px solid #01151c;
+    height: 50px;
+    background: #01151c;
+}
+#main-menu .app-bar-menu > li > a {
+    color: #d9dcdd;
+}
+#main-menu .app-bar-menu > li > a.active {
+    color: #73f9bc;
+    font-weight: 500;
+}
+#main-menu .avatar {
+    border-radius: 100px;
+    border: 1px solid #01151c;
+    background: #fff;
+}
+#main-menu a.brand {
+    padding: 0 10px !important;
+}
+
+.menuitem.hidden {
+    display: none !important;
+}
+.name .highlight,
+.menuitem .caption .highlight {
+    color: #000;
+    font-weight: bold;
+    background-color: #8ad0ff;
+}
+/* top menu -----------------------------------------------*/
+#top-menu {
+    display: block;
+    box-shadow: 0 0 5px 1px #b4b4b4;
+    position: relative;
+    z-index: 4;
+    background-color: #fff !important;
+    border-bottom: 0px solid #aaa;
+    line-height: 30px;
+    height: 30px;
+}
+#top-menu > li > div.input {
+    border-radius: 0px 10px 10px 0px;
+}
+#top-menu .input,
+#top-menu input {
+    height: 30px;
+    overflow-y: hidden;
+    font: 700 12px;
+}
+#top-menu div.prepend {
+    height: 30px;
+    padding: 0px 10px;
+    font: 500 14px;
+    line-height: 30px;
+}
+#top-menu > li > a {
+    height: 30px;
+    padding: 0px 5px;
+    margin: 0px 5px;
+}
+#top-menu button.input-custom-button {
+    height: 30px;
+}
+
+#top-menu button.input-custom-button span::before {
+    font-size: 11px;
+    line-height: 30px;
+}
+/*---------------------------------------------------------*/
+
+/*---------------------------------------------------------*/
+.navview-menu .item-subheader {
+    font: 700 12px;
+}
+.menuitem .badges {
+    position: absolute;
+    top: 10px;
+    right: 0px;
+}
+
+.menuitem .badges .btn-info {
+    cursor: help;
+}
+
+.user-block {
+    display: block;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 280px;
+    line-height: 1.2;
+}
+.user-block .avatar {
+    width: 128px;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+.user-block .avatar img {
+    width: 100%;
+    height: auto;
+}
+
+#main-menu a.user-menu {
+    padding: 0px;
+}
+#main-menu a.user-menu:hover {
+    background-color: transparent;
+}
+
+#main-menu a.user-menu:hover img {
+    background-color: silver;
+}

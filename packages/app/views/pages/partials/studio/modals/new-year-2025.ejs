@@ -1,0 +1,105 @@
+<div
+  id="new-year-modal-2025"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999]"
+>
+  <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">New Year, New SmythOS</h3>
+      <button onclick="closeNewYearModal2025()" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="mb-6">
+      <div class="text-sm mb-6">
+        <p class="text-gray-700 mb-3">
+          We've given SmythOS a fresh new look to kick off your new year. Here's what's changed:
+        </p>
+        <div class="space-y-4">
+          <p class="text-gray-600">
+            <b>Unified Sidebar Navigation:</b> Say goodbye to switching between the agent dashboard
+            and the builder. Everything you need is now conveniently located in one streamlined
+            sidebar.
+          </p>
+          <p class="text-gray-600">
+            <b>Revamped Agent Settings:</b> All your agent's settings are now in one tab—task
+            assignments, logs, global variables, general controls—everything is easier to find and
+            conveniently located in the agent settings tab.
+          </p>
+        </div>
+      </div>
+      <!--ARCADE EMBED START-->
+      <div
+        style="
+          position: relative;
+          padding-bottom: calc(55.38194444444444% + 41px);
+          height: 0;
+          width: 100%;
+        "
+      >
+        <iframe
+          src="https://demo.arcade.software/25WpE1YxXr9aKVhsaZ1R?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+          title="New Year, New SmythOS"
+          frameborder="0"
+          loading="lazy"
+          webkitallowfullscreen
+          mozallowfullscreen
+          allowfullscreen
+          allow="clipboard-write"
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color-scheme: light;
+          "
+        ></iframe>
+      </div>
+      <!--ARCADE EMBED END-->
+    </div>
+    <p class="text-sm text-gray-600">
+      Thank you for choosing SmythOS to bring your ideas to life. Your feedback drives us to make
+      SmythOS even better every day. Here’s to another amazing year of building together!
+    </p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkAndShowNewYearModal2025 = () => {
+      const now = new Date();
+      const startDate = new Date('2025-01-09'); // 9 Jan 2025
+      const endDate = new Date('2025-01-27'); // 27 Jan 2025
+
+      if (now >= startDate && now <= endDate) {
+        const hasSeenModal = localStorage.getItem('newYearModal2025Seen');
+
+        if (!hasSeenModal) {
+          const modal = document.getElementById('new-year-modal-2025');
+          if (modal) {
+            modal.classList.remove('hidden');
+            localStorage.setItem('newYearModal2025Seen', 'true');
+            posthog?.capture?.('new-year-modal-2025-seen');
+          }
+        }
+      }
+    };
+
+    window.closeNewYearModal2025 = () => {
+      const modal = document.getElementById('new-year-modal-2025');
+      posthog?.capture?.('new-year-modal-2025-closed');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    setTimeout(checkAndShowNewYearModal2025, 1000);
+  });
+</script>

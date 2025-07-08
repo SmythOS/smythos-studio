@@ -1,0 +1,339 @@
+<!-- DEPRECATED -->
+
+<nav data-role="ribbonmenu">
+    <ul class="tabs-holder">
+        <!-- <li class="active"><a href="#section_Agent">Agent</a></li> -->
+        <li class="active"><a href="#section_Base">Base</a></li>
+        <li><a href="#section_Skills">Skills</a></li>
+        <li><a href="#section_Plugins">Plugins</a></li>
+        <li><a href="#section_Debug">Debug</a></li>
+        <li><a href="#section_Test">Testing</a></li>
+    </ul>
+
+    <div class="content-holder">
+        <div class="section" id="section_Agent" style="display: none">
+            <div class="group" style="width: 220px">
+                <div>
+                    <input data-role="input" placeholder="Agent Name" data-prepend="<span class='mif-user'>" />
+                </div>
+                <div>
+                    <input data-role="input" placeholder="https://example.com/icon.png" />
+                </div>
+            </div>
+            <div class="group" style="width: 300px">
+                <textarea data-role="textarea" style="width: 300px !important; height: 100%"></textarea>
+            </div>
+
+            <div class="group flex-column" style="width: 220px">
+                <select data-role="select">
+                    <option value="1">Value 1</option>
+                    <option value="2">Value 2</option>
+                    <option value="3">Value 3</option>
+                </select>
+            </div>
+            <div class="group flex-column" style="width: 220px">
+                <div>
+                    <input name="c1" type="checkbox" data-role="checkbox" data-caption="check it" />
+                </div>
+                <div>
+                    <input name="r1" type="radio" data-role="radio" data-caption="A" />
+                    <input name="r1" type="radio" data-role="radio" data-caption="B" />
+                    <input name="r1" type="radio" data-role="radio" data-caption="C" />
+                </div>
+                <div>
+                    <input name="c2" type="checkbox" data-role="switch" data-caption="check it" />
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="section_Base">
+            <div class="group">
+                <button class="ribbon-button" smt-component="FormParser">
+                    <span class="icon">
+                        <span class="mif-insert-template fg-cyan"></span>
+                    </span>
+                    <span class="caption">Form <br />Parser</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="EmailSender">
+                    <span class="icon">
+                        <span class="mif-contacts-mail fg-cyan"></span>
+                    </span>
+                    <span class="caption">Contact<br />Customer</span>
+                </button>
+
+                <span class="title">Customer</span>
+            </div>
+            <div class="group">
+                <button class="ribbon-button" smt-component="GmailReader">
+                    <span class="icon">
+                        <span class="mif-google-plus fg-cyan"></span>
+                    </span>
+                    <span class="caption">Gmail Reader</span>
+                </button>
+                <button class="ribbon-button" smt-component="GmailSender">
+                    <span class="icon">
+                        <span class="mif-mail fg-cyan"></span>
+                    </span>
+                    <span class="caption">Gmail Sender</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="EmailSender">
+                    <span class="icon">
+                        <span class="mif-mail fg-cyan"></span>
+                    </span>
+                    <span class="caption">Email Sender</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="EmailReader">
+                    <span class="icon">
+                        <span class="mif-mail-read fg-cyan"></span>
+                    </span>
+                    <span class="caption">Email Reader</span>
+                </button>
+
+                <span class="title">Email</span>
+            </div>
+
+            <div class="group">
+                <button class="ribbon-button" smt-component="SMSSender">
+                    <span class="icon">
+                        <span class="mif-mail fg-cyan"></span>
+                    </span>
+                    <span class="caption">SMS Sender</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="Memory">
+                    <span class="icon">
+                        <span class="mif-widgets fg-cyan"></span>
+                    </span>
+                    <span class="caption">Memory</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="Classifier">
+                    <span class="icon">
+                        <span class="mif-flow-tree fg-cyan"></span>
+                    </span>
+                    <span class="caption">Classifier</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="InputSync">
+                    <span class="icon">
+                        <span class="mif-calendar fg-cyan"></span>
+                    </span>
+                    <span class="caption">Scheduler</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="InputSync">
+                    <span class="icon">
+                        <span class="mif-share fg-cyan"></span>
+                    </span>
+                    <span class="caption">Input Sync</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="PromptGenerator">
+                    <span class="icon">
+                        <span class="mif-chat fg-cyan"></span>
+                    </span>
+                    <span class="caption">Prompt<br />Generator</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="APIEndpoint">
+                    <span class="icon">
+                        <span class="mif-embed fg-cyan"></span>
+                    </span>
+                    <span class="caption">API<br />Endpoint</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="Twitter">
+                    <span class="icon">
+                        <span class="mif-twitter fg-blue"></span>
+                    </span>
+                    <span class="caption">Twitter</span>
+                </button>
+                <span class="title">Base</span>
+            </div>
+        </div>
+
+        <div class="section" id="section_Skills">
+            <div class="group">
+                <button class="ribbon-button" smt-component="DataSourceLookup">
+                    <span class="icon">
+                        <span class="mif-database fg-cyan"></span>
+                    </span>
+                    <span class="caption">Data Source <br />Lookup</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="DBInsert">
+                    <span class="icon">
+                        <span class="mif-install fg-cyan"></span>
+                    </span>
+                    <span class="caption">DB <br />Insert</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="APICall">
+                    <span class="icon">
+                        <span class="mif-embed fg-cyan"></span>
+                    </span>
+                    <span class="caption">Call API</span>
+                </button>
+
+                <button class="ribbon-button">
+                    <span class="icon">
+                        <span class="mif-link fg-cyan"></span>
+                    </span>
+                    <span class="caption">Scrape URL</span>
+                </button>
+
+                <span class="title">Data Ingestion</span>
+            </div>
+
+            <div class="group flex-column">
+                <div class="toolbar">
+                    <button class="tool-button alert text-button w80" smt-component="FileExport" smt-export-format="PDF">
+                        <span class="icon mif-file-pdf"></span>
+                        .PDF
+                    </button>
+                    <button class="tool-button primary text-button w80" smt-component="FileExport" smt-export-format="DOCX">
+                        <span class="icon mif-file-word"></span>
+                        .Docx
+                    </button>
+                </div>
+                <div class="toolbar mt-1">
+                    <button class="tool-button warning text-button w80" smt-component="FileExport" smt-export-format="HTML">
+                        <span class="icon mif-html5"></span>
+                        .html
+                    </button>
+                    <button class="tool-button info text-button w80" smt-component="FileExport" smt-export-format="MD">
+                        <span class="icon mif-file-text"></span>
+                        .md
+                    </button>
+                </div>
+
+                <span class="title">Text Export</span>
+            </div>
+
+            <div class="group flex-column">
+                <div class="toolbar">
+                    <button class="tool-button dark text-button w120" smt-component="TTS" smt-provider="Elevenlabs">
+                        <span class="icon mif-keyboard-voice"></span>
+                        Elevenlabs
+                    </button>
+                    <button class="tool-button primary text-button w120" smt-component="TTS" smt-provider="Azure">
+                        <span class="icon mif-windows"></span>
+                        Azure TTS
+                    </button>
+                </div>
+                <div class="toolbar mt-1">
+                    <button class="tool-button success text-button w120" smt-component="TTS" smt-provider="Google">
+                        <span class="icon mif-google"></span>
+                        Google TTS
+                    </button>
+                    <button class="tool-button warning text-button w120" smt-component="TTS" smt-provider="AWS">
+                        <span class="icon mif-amazon"></span>
+                        AWS TTS
+                    </button>
+                </div>
+
+                <span class="title">Text To Speech</span>
+            </div>
+
+            <div class="group">
+                <span class="title">All others...</span>
+            </div>
+        </div>
+
+        <div class="section" id="section_Plugins">
+            <div class="group">
+                <div class="plugin_list"></div>
+
+                <!-- <button class="ribbon-button" smt-component="AIPlugin" smt-plugin-name="SEO.app">
+                    <span class="icon">
+                        <img src="https://smyth.seo.app/static/seo-app-icon.png" />
+                    </span>
+                    <span class="caption">SEO.app</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="AIPlugin" smt-plugin-name="Content.app">
+                    <span class="icon">
+                        <img src="https://smyth.content.app/icon.png" />
+                    </span>
+                    <span class="caption">Content.app</span>
+                </button> -->
+
+                <button class="ribbon-button button-action btn-import-plugin">
+                    <span class="icon">
+                        <span class="icon mif-plus" data-role="btn-icon"></span>
+                    </span>
+                    <span class="caption">Import</span>
+                </button>
+
+                <span class="title">ChatGPT plugins</span>
+            </div>
+
+            <div class="group">
+                <button class="ribbon-button" smt-component="AIPlugin">
+                    <span class="icon">
+                        <span class="icon mif-box"></span>
+                    </span>
+                    <span class="caption">MyPlugin</span>
+                </button>
+                <span class="title">My plugins</span>
+            </div>
+        </div>
+
+        <div class="section" id="section_Debug">
+            <div class="group">
+                <div>
+                    <input type="checkbox" data-role="switch" data-material="true" id="debug-menu-tgl" />
+                </div>
+            </div>
+
+            <div class="group">
+                <!--<div data-role="button-group" data-cls-active="btn-active" id="debug-menu">-->
+                <div id="debug-menu">
+                    <button class="ribbon-button" id="debug-menubtn-step" disabled>
+                        <span class="icon">
+                            <span class="mif-next"></span>
+                        </span>
+                        <span class="caption">Step</span>
+                    </button>
+
+                    <button class="ribbon-button" id="debug-menubtn-stop" disabled>
+                        <span class="icon">
+                            <span class="mif-stop"></span>
+                        </span>
+                        <span class="caption">stop</span>
+                    </button>
+                    <button class="ribbon-button" id="debug-menubtn-attach" disabled>
+                        <span class="icon">
+                            <span class="mif-link"></span>
+                        </span>
+                        <span class="caption">attach</span>
+                    </button>
+                </div>
+
+                <span class="title">Debug Control</span>
+            </div>
+        </div>
+
+        <div class="section" id="section_Test">
+            <div class="group">
+                <button class="ribbon-button" smt-component="MyComponent">
+                    <span class="icon">
+                        <span class="mif-insert-template fg-cyan"></span>
+                    </span>
+                    <span class="caption"> My Component</span>
+                </button>
+
+                <button class="ribbon-button" smt-component="LinkedIn">
+                    <span class="icon">
+                        <span class="mif-linkedin fg-blue"></span>
+                    </span>
+                    <span class="caption">LinkedIn</span>
+                </button>
+                <span class="title">For testing</span>
+            </div>
+        </div>
+    </div>
+</nav>

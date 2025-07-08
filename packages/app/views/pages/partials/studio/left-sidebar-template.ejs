@@ -1,0 +1,268 @@
+<div id="agent-template" x-data="{ currentAuthTab: 'none' }">
+  <div class="h-16 flex flex-shrink-0 p-4">
+    <div class="flex items-center justify-between w-full">
+      <div class="flex items-center gap-2">
+        <svg
+          width="24"
+          fill="none"
+          height="24"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            style="
+              fill: none;
+              stroke-width: 1;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+              stroke: #374151;
+              stroke-opacity: 1;
+              stroke-miterlimit: 4;
+            "
+            d="M 2.973958 13.161458 C 2.973958 11.690104 4.135417 9.859375 7.479167 9.859375 "
+            transform="matrix(1.5,0,0,1.5,0,0)"
+          ></path>
+          <path
+            style="
+              fill: none;
+              stroke-width: 1;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+              stroke: #374151;
+              stroke-opacity: 1;
+              stroke-miterlimit: 4;
+            "
+            d="M 10.359375 4.877604 C 10.359375 6.466146 9.070312 7.755208 7.481771 7.755208 C 5.893229 7.755208 4.604167 6.466146 4.604167 4.877604 C 4.604167 3.289062 5.893229 2 7.481771 2 C 9.070312 2 10.359375 3.289062 10.359375 4.877604 Z M 10.359375 4.877604 "
+            transform="matrix(1.5,0,0,1.5,0,0)"
+          ></path>
+          <path
+            style="
+              fill: none;
+              stroke-width: 1;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+              stroke: #374151;
+              stroke-opacity: 1;
+              stroke-miterlimit: 4;
+            "
+            d="M 11.210938 13.132812 L 11.28125 12.942708 C 11.546875 12.223958 12.114583 11.65625 12.830729 11.390625 L 13.023438 11.320312 L 12.830729 11.25 C 12.114583 10.984375 11.546875 10.416667 11.28125 9.697917 L 11.210938 9.507812 L 11.140625 9.697917 C 10.875 10.416667 10.309896 10.984375 9.591146 11.25 L 9.401042 11.320312 L 9.591146 11.390625 C 10.309896 11.65625 10.875 12.223958 11.140625 12.942708 Z M 11.210938 13.132812 "
+            transform="matrix(1.5,0,0,1.5,0,0)"
+          ></path>
+          <path
+            style="
+              fill: none;
+              stroke-width: 1;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+              stroke: #374151;
+              stroke-opacity: 1;
+              stroke-miterlimit: 4;
+            "
+            d="M 7.507812 14 C 7.627604 13.606771 7.934896 13.299479 8.328125 13.179688 C 7.934896 13.059896 7.627604 12.75 7.507812 12.356771 C 7.388021 12.75 7.080729 13.059896 6.6875 13.179688 C 7.080729 13.299479 7.388021 13.606771 7.507812 14 Z M 7.507812 14 "
+            transform="matrix(1.5,0,0,1.5,0,0)"
+          ></path>
+        </svg>
+        <span class="text-2xl font-semibold text-v2-gray-darker">Template</span>
+      </div>
+      <button
+        type="button"
+        class="close-btn p-0.5 rounded-full text-[#757575]"
+        data-tooltip-target="tooltip-close-template"
+        data-tooltip-placement="left"
+        @click="toggleSidebar"
+      >
+        <%- include('icons/close-icon'); -%>
+      </button>
+      <div
+        id="tooltip-close-template"
+        role="tooltip"
+        class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+        style="font-family: 'Inter', sans-serif"
+      >
+        Close
+      </div>
+    </div>
+  </div>
+
+  <div id="agent-agent-template-feature-wrapper" class="p-4">
+    <input
+      type="hidden"
+      id="agent-template-id-input"
+      class="mb-4 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+      placeholder="Template ID"
+      value=""
+    />
+
+    <label
+      for="agent-template-name-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Name</label
+    >
+    <input
+      type="text"
+      id="agent-template-name-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus:visible:border-b-blue-500"
+      placeholder="Template Name"
+      required
+      value=""
+    />
+
+    <label
+      for="agent-template-description-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Description</label
+    >
+    <textarea
+      id="agent-template-description-input"
+      rows="4"
+      class="mb-2 block w-full bg-white border text-gray-900 rounded outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+      placeholder="Template description goes here ..."
+    ></textarea>
+
+    <label
+      for="agent-template-icon-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Font Awesome Class or SVG</label
+    >
+    <textarea
+      id="agent-template-icon-input"
+      rows="4"
+      class="mb-2 block w-full bg-white border text-gray-900 rounded outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    ></textarea>
+
+    <label
+      for="agent-template-color-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Color</label
+    >
+    <div class="mb-2 coloris">
+      <input
+        type="text"
+        id="agent-template-color-input"
+        class="w-full border-0 py-2"
+        value="#000000"
+      />
+    </div>
+
+    <label
+      for="agent-template-category-input"
+      class="flex mb-2 text-sm font-medium text-gray-900 dark:text-white justify-between"
+    >
+      Category
+    </label>
+    <select
+      id="agent-template-category-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    >
+      <option value="">Select Category</option>
+      <option value="marketing">Marketing</option>
+      <option value="sales">Sales</option>
+      <option value="dev">Dev</option>
+      <option value="research">Research</option>
+      <option value="platform">Platform</option>
+      <option value="analysis">Analysis</option>
+      <option value="chat">Chat</option>
+      <option value="legal">Legal</option>
+      <option value="hr">HR</option>
+      <option value="education">Education</option>
+      <option value="finance">Finance</option>
+      <option value="ops">Ops</option>
+      <option value="success">Success</option>
+    </select>
+
+    <label
+      for="agent-template-image-url-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Image URL</label
+    >
+    <input
+      type="text"
+      id="agent-template-image-url-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    />
+
+    <label
+      for="agent-template-doc-link-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Documentation Link</label
+    >
+    <input
+      type="text"
+      id="agent-template-doc-link-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    />
+
+    <label
+      for="agent-template-video-link-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Video Tutorial Link</label
+    >
+    <input
+      type="text"
+      id="agent-template-video-link-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    />
+
+    <label
+      for="agent-template-value-proposition-input"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Value Proposition</label
+    >
+    <input
+      type="text"
+      id="agent-template-value-proposition-input"
+      class="mb-2 h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+    />
+
+    <label
+      class="flex mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white items-center cursor-pointer"
+    >
+      <input type="checkbox" id="agent-template-publish-input" class="mr-2 focus:outline-none" />
+      Publish
+    </label>
+
+    <button
+      id="agent-template-save-btn"
+      class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none w-full justify-center bg-smythos-blue-500 text-white border-transparent hover:bg-smyth-blue mt-4"
+    >
+      Save Template
+    </button>
+
+    <a
+      href="#"
+      id="agent-template-export-btn"
+      class="block w-full mt-3 text-center text-gray-900 underline hover:no-underline"
+    >
+      Export Template
+    </a>
+  </div>
+</div>
+
+<div
+  class="px-4agent-menu-loading-overlay absolute top-0 left-0 w-full h-full flex items-center justify-center border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 hidden"
+>
+  <div
+    class="flex gap-2 items-center px-3 py-2 text-xs font-medium leading-none text-center text-gray-800 bg-gray-200 rounded-lg animate-pulse dark:bg-gray-900 dark:text-gray-400"
+  >
+    <span>Loading</span>
+    <div role="status">
+      <svg
+        aria-hidden="true"
+        class="inline w-4 h-4 text-white animate-spin fill-gray-950"
+        viewBox="0 0 100 101"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+          fill="currentColor"
+        />
+        <path
+          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+          fill="currentFill"
+        />
+      </svg>
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,425 @@
+.svg-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+.title-bar .icon.tpl-fa-icon {
+  font-size: 45px !important;
+  line-height: 57px !important;
+  padding: 0px 3px;
+}
+
+.component .title-bar > .svg-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.default-icon-search {
+  background-image: url('/img/icons/Search.svg') !important;
+  display: block !important;
+}
+
+.suggest-box .svg-icon,
+.menuitem .svg-icon {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 10px auto;
+}
+/* a:hover .svg-icon,
+button:hover .svg-icon {
+    filter: brightness(100);
+} */
+
+.svg-icon.info {
+  background-image: url('/img/icons/Info.svg');
+}
+.svg-icon.delete {
+  background-image: url('/img/icons/delete_v2.svg');
+}
+
+.svg-icon.search {
+  background-image: url('/img/icons/Search.svg');
+}
+.default-icon-search {
+  background-image: url('/img/icons/Search.svg') !important;
+}
+
+.svg-icon.bin {
+  background-color: #000;
+  mask: url(/img/icons/Delete.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Delete.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.Component {
+  background-color: #000;
+  mask: url(/img/icons/Component.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Component.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.Code {
+  background-color: #000;
+  mask: url(/img/icons/Code.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Code.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.GenAILLM {
+  background-color: #37c771 !important;
+  mask: url(/img/icons/GenAILLM.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/GenAILLM.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.PromptGenerator {
+  background-color: #000 !important;
+  mask: url(/img/icons/PromptGenerator.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/PromptGenerator.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.MultimodalLLM {
+  background-color: #000 !important;
+  mask: url(/img/icons/MultimodalLLM.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/MultimodalLLM.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.LLMAssistant {
+  background-color: #000;
+  mask: url(/img/icons/LLMAssistant.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LLMAssistant.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.ForEach {
+  background-color: #000;
+  mask: url(/img/icons/ForEach.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ForEach.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.ImageGenerator {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/ImageGenerator.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ImageGenerator.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.TextToImage {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/TextToImage.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/TextToImage.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.ImageToImage {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/ImageToImage.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ImageToImage.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.ImageToText {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/ImageToText.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ImageToText.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.BackgroundRemoval {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/BackgroundRemoval.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/BackgroundRemoval.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.ImageUpscaling {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/ImageUpscaling.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ImageUpscaling.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.RestyleControlNet {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/RestyleControlNet.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/RestyleControlNet.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.RestyleIPAdapter {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/RestyleIPAdapter.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/RestyleIPAdapter.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.Inpainting {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/Inpainting.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Inpainting.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.Outpainting {
+  background-color: #7558dd !important;
+  mask: url(/img/icons/Outpainting.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Outpainting.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.VisionLLM {
+  background-color: #000 !important;
+  mask: url(/img/icons/VisionLLM.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/VisionLLM.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.Classifier {
+  /*background-image: url('/img/icons/Classifier.svg');*/
+  background-color: #ed6788 !important;
+  mask: url(/img/icons/Classifier.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Classifier.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.APIEndpoint {
+  background-color: #ed7f3b !important;
+  mask: url(/img/icons/APIEndpoint.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/APIEndpoint.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.POST_APIEndpoint {
+  background-color: #000;
+  mask: url(/img/icons/POST_APIEndpoint.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/POST_APIEndpoint.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.APICall {
+  background-color: #000;
+  mask: url(/img/icons/APICall.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/APICall.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.Async {
+  background-color: #000;
+  mask: url(/img/icons/Async.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Async.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.Await {
+  background-color: #000;
+  mask: url(/img/icons/Await.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Await.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.APIOutput {
+  background-color: #3cdc47 !important;
+  mask: url(/img/icons/APIOutput.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/APIOutput.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: rotate(180deg);
+}
+.svg-icon.ComputerUse {
+  background-color: #000 !important;
+  mask: url(/img/icons/ComputerUse.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/ComputerUse.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.DataSourceLookup {
+  background-color: #000;
+  mask: url(/img/icons/DataLookup.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/DataLookup.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.DataSourceIndexer {
+  background-color: #000;
+  mask: url(/img/icons/DataIndexer.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/DataIndexer.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.DataSourceCleaner {
+  background-color: #000;
+  mask: url(/img/icons/DataCleaner.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/DataCleaner.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.FCrypto {
+  background-color: #000;
+  mask: url(/img/icons/Function.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Function.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.FHash {
+  background-color: #000;
+  mask: url(/img/icons/FHash.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/FHash.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.FSign {
+  background-color: #000;
+  mask: url(/img/icons/FSign.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/FSign.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.FSleep {
+  background-color: #000;
+  mask: url(/img/icons/FSleep.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/FSleep.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.FTimestamp {
+  background-color: #000;
+  mask: url(/img/icons/Timestamp.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Timestamp.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.FEncDec {
+  background-color: #000;
+  mask: url(/img/icons/Function.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Function.svg) no-repeat center;
+  -webkit-mask-size: cover;
+  transform: scale(0.8);
+}
+.svg-icon.Note {
+  background-color: #40cfc8 !important;
+  mask: url(/img/icons/Note.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Note.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.JSONFilter {
+  background-color: #000;
+  mask: url(/img/icons/JSONFilter.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/JSONFilter.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.AgentPlugin {
+  background-color: #000;
+  mask: url(/img/smythos-logo.png) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/smythos-logo.png) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.Memory {
+  background-image: url('/img/icons/Memory.svg');
+}
+.svg-icon.FileStore {
+  background-image: url('/img/icons/Memory.svg');
+  background-color: white !important;
+}
+.svg-icon.dlg-delete {
+  /* background-image: url(/img/icons/PromptGenerator.svg); */
+  background-color: #ccc;
+  mask: url(/img/icons/Delete.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Delete.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.LogicAND {
+  background-color: #000;
+  mask: url(/img/icons/LogicAND.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LogicAND.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+
+.svg-icon.LogicOR {
+  background-color: #000;
+  mask: url(/img/icons/LogicOR.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LogicOR.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.LogicXOR {
+  background-color: #000;
+  mask: url(/img/icons/LogicXOR.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LogicXOR.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.LogicAtLeast {
+  background-color: #000;
+  mask: url(/img/icons/LogicAtLeast.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LogicAtLeast.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.LogicAtMost {
+  background-color: #000;
+  mask: url(/img/icons/LogicAtMost.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/LogicAtMost.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.WebSearch {
+  background-color: #000;
+  mask: url(/img/icons/WebSearch.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/WebSearch.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.WebScrape {
+  background-color: #000;
+  mask: url(/img/icons/WebScrape.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/WebScrape.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.ServerlessCode {
+  background-color: #000;
+  mask: url(/img/icons/Code.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/Code.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}
+.svg-icon.MCP,
+.svg-icon.MCPClient {
+  background-color: #000;
+  mask: url(/img/icons/MCP.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/MCP.svg) no-repeat center;
+  -webkit-mask-size: cover;
+}

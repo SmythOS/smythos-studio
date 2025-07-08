@@ -1,0 +1,90 @@
+.component.Memory {
+  border-radius: 0px 0px 40px;
+  background-color: rgba(189, 241, 255, 0.8);
+}
+
+.component.Memory:hover {
+  background-color: rgba(189, 241, 255, 1);
+}
+
+.APIEndpoint .input-container .ep {
+  display: none;
+}
+.APIOutput .output-container .ep {
+  display: none;
+}
+.Note {
+  border-radius: 0px !important;
+  background-color: #c7ff1529;
+  border-color: #c7ff1529;
+}
+.Note:hover {
+  background-color: #c8ff1556;
+}
+.Note .title-bar {
+  height: 40px;
+  background-color: transparent;
+}
+.Note .note-text {
+  padding: 0px 10px;
+  text-wrap: balance;
+  line-height: 30px;
+  overflow: auto;
+  max-height: calc(100% - 60px);
+  box-sizing: border-box;
+  margin-top: 15px;
+  position: relative;
+}
+.component.Note {
+  min-height: 40px !important;
+}
+
+.component.AgentPlugin .title-bar img {
+  height: 60px;
+}
+
+#collapse_toggle_OAuth::after {
+  content: 'beta';
+  color: #999;
+  font-size: 10px;
+  margin-top: -7px;
+}
+
+.component.Async .output-endpoint:not(.default) .name .label::before {
+  content: '[ async ]';
+  font-size: 10px;
+  font-weight: bold;
+  display: inline-block;
+  margin: 0px 10px 0px 0px;
+  color: #000;
+
+  text-shadow: 0 0 10px white;
+}
+
+.component.Async .ep-control.outputs {
+  height: 0px;
+}
+
+.bg-with-lines {
+  background: #fff url(/img/moving_arrows.svg) no-repeat;
+  background-size: cover;
+}
+
+/* Custom datepicker styles */
+.custom-datepicker > div:nth-child(2).absolute.top-10.z-50.block.pt-2 {
+  left: -153px; /* Adjusting the left position */
+}
+
+.component.Note .resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
+  background-color: transparent;
+  border-right: 3px solid rgba(0, 0, 0, 0.3);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.3);
+  border-radius: 0 0 3px 0;
+  z-index: 10;
+}

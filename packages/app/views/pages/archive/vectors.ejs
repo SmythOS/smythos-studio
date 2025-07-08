@@ -1,0 +1,192 @@
+<div class="sm-container" id="sm-container">
+    <div class="d-flex flex-justify-between flex-align-center container-spacer">
+        <div class="g-title">Vectors</div>
+        <div class="d-flex">
+            <div class="input-container mx-2">
+                <input class="input-primary" placeholder="Search" />
+                <img class="search-icon" alt="plus" src="/img/home.icons/search.svg" />
+            </div>
+
+            <button onclick="Metro.dialog.open('#demoDialog1')" id="addNamespace" class="button-primary">
+                <img alt="plus" src="/img/home.icons/plus-round.svg" /> Create Namespace
+            </button>
+        </div>
+    </div>
+
+    <!--Add New Namespace Modal -->
+    <div class="dialog" data-role="dialog" id="demoDialog1">
+        <div class="d-flex flex-justify-end">
+            <img onclick="Metro.dialog.close('#demoDialog1')" id="closeDialog" class="c-pointer" src="/img/domain.icons/close.svg" alt="" />
+        </div>
+        <div class="modal-title">Create Namespace</div>
+        <div class="dialog-content">
+            <div class="d-flex flex-align-start flex-justify-between">
+                <div style="width: 100%">
+                    <input class="input-secondary" type="text" name="" id="input" placeholder="Enter Namespace Name" />
+                    <p class="m-0 pt-1 invalid_feedback" id="addNamespaceError">Namespace already exists</p>
+                    <!-- <p id="successText" class="success-text">Domain verified successfully ✅</p> -->
+                </div>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button class="button-primary w-100-sm d-flex flex-align-center flex-justify-center" id="addNamespaceBtn">
+                <div id="loader" class="circular-loader"></div>
+                <span class="">Add Namespace </span>
+            </button>
+        </div>
+    </div>
+    <!-- Add New Namespace Modal End -->
+
+    <!-- Delete Namespace Modal -->
+    <div class="dialog" data-role="dialog" id="deleteModal">
+        <div class="d-flex flex-justify-end">
+            <img class="c-pointer js-dialog-close" id="closeNamespaceModal" src="/img/domain.icons/close.svg" alt="" />
+        </div>
+        <div class="modal-title">Confirm Namespace Deletion</div>
+        <div class="dialog-content">
+            <div class="card-lg-text">Please be aware that deleting this Namespace will permanently remove it from your records.</div>
+            <div class="card-lg-text pb-4">Type the namespace name to confirm : <span id="namespaceName"> </span></div>
+            <div class="">
+                <input class="input-secondary" type="text" name="" id="delete-namespace" placeholder="Type namespace name" />
+                <p class="m-0 pt-1 invalid_feedback" id="delNamespaceError">Something went wrong, Internal server error.</p>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button class="button-primary w-100-sm d-flex flex-justify-center" id="deleteNamespaceBtn">
+                <div id="delete-loader" class="circular-loader"></div>
+                <span class="pl-1"> Delete </span>
+            </button>
+        </div>
+    </div>
+    <!-- Delete Namespace Modal End -->
+
+    <!-- Delete Datasource Modal Start -->
+    <div class="dialog" data-role="dialog" id="deleteDatasourceModal">
+        <div class="d-flex flex-justify-end">
+            <img class="c-pointer js-dialog-close closeDatasourceModal" id="closeDatasourceModal" src="/img/domain.icons/close.svg" alt="" />
+        </div>
+        <div class="modal-title">Confirm Datasource Deletion</div>
+        <div class="dialog-content">
+            <div class="pb-2 w-100">Are you sure to delete this datasource ?</div>
+            <div class="card-lg-text pb-4"><span class="word-break" id="confirmDeleteSource"> </span></div>
+            <div class="">
+                <input
+                    disabled
+                    class="input-secondary hidden"
+                    type="text"
+                    name=""
+                    id="deleteDatasourceInput"
+                    placeholder="Type Datasource to DELETE"
+                />
+                <p class="m-0 pt-1 invalid_feedback" id="delDatasourceError">Something went wrong, Internal server error.</p>
+            </div>
+        </div>
+        <div class="dialog-actions d-flex">
+            <button class="button-secondary w-50 js-dialog-close closeDatasourceModal">Cancel</button>
+            <button class="button-primary d-flex flex-justify-center w-50" id="deleteDatasourceBtn">
+                <div id="deleteDatasource-loader" class="circular-loader"></div>
+                <span class="pl-1"> Delete </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Data Source Modal -->
+    <div class="dialog" data-role="dialog" id="addDataModal">
+        <div class="d-flex flex-justify-end">
+            <img class="c-pointer js-dialog-close" id="closeDatasource" src="/img/domain.icons/close.svg" alt="" />
+        </div>
+        <div class="modal-title">Add Data Source</div>
+        <!-- TEXT FIELD - OPTION 1 -->
+
+        <div class="mb-5 mt-2">
+            <input class="input-secondary" type="text" name="" id="datasource-name-input" placeholder="Type Datasource Name" />
+        </div>
+
+        <div id="vectorMethodRadioBtns">
+            <input type="radio" data-role="radio" name="method_option_choose" data-caption="URL" value="URL" checked />
+            <input type="radio" data-role="radio" name="method_option_choose" data-caption="File" value="File" />
+        </div>
+
+        <div class="dialog-content">
+            <!-- <div class="card-lg-text pb-4">Please be aware that deleting this Namespace will permanently remove it from your records.</div> -->
+            <div id="urlVectorMethod">
+                <div class="d-flex">
+                    <input class="input-secondary" type="text" name="" id="input-datasource" placeholder="Type Datasource URL" />
+                    <select id="menu-select" class="ml-3">
+                        <option value="SITEMAP">SITEMAP</option>
+                        <option value="WORD">WORD</option>
+                        <option value="PDF">PDF</option>
+                        <option value="WEBPAGE">WEBPAGE</option>
+                    </select>
+                </div>
+
+                <div class="pt-4 warning-message" id="detect-message">Cannot detect url format, assuming webpage</div>
+                <div class="pt-4 success-message" id="verify-message">
+                    <span id="selectedType"> </span> format automatically detected, if this is wrong please select the right format.
+                </div>
+            </div>
+
+            <!-- UPLOAD FIELD - OPTION 2 -->
+            <div id="fileVectorMethod">
+                <div id="uploadWrapper" class="pt-4">
+                    <input
+                        type="file"
+                        data-role="file"
+                        data-mode="drop"
+                        data-multiple="false"
+                        accept=".pdf,.doc,.docx,.txt,.xml,.html,.htm"
+                        id="datasourceFileUpload"
+                    />
+                </div>
+
+                <div id="filePlaceholder" style="display: none" class="mt-5 mb-5">
+                    <div class="d-flex flex-justify-between">
+                        <div>
+                            <span class="mif-file-text mif-3x"></span>
+                            <span id="filePlaceholder_fileName"></span>
+                        </div>
+                        
+                        <button id="deleteUploadedFileBtn" class="button dark cycle outline"><span class="mif-cross"></span></button>
+                    </div>
+                </div>
+            </div>
+
+            <p class="m-0 pt-1 invalid_feedback" id="datasource-error">An error occured while adding datasource, please try again.</p>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="button-primary w-100-sm d-flex flex-justify-center" id="addDataBtn">
+                <div id="datasource-loader" class="circular-loader"></div>
+                <span> Add Data Source </span>
+            </button>
+        </div>
+    </div>
+    <div id="rowSkeleton" class="rowSkeleton mt-5"></div>
+
+    <!-- Datasource Modal End -->
+    <div class="text-center h5 text-bold pt-10" id="emptyMessage">Please add a namespace, there is no namespace created.</div>
+
+    <ul class="responsive-table pt-5" id="tableContainer">
+        <li class="table-header row px-4">
+            <div class="cell-2">Name<img width="10px" class="pl-1" height="21px" src="/img/domain.icons/arrow-up.svg" alt="" /></div>
+            <div class="cell-5 d-flex flex-justify-center">
+                Datasource <img width="10px" height="21px" class="pl-1" src="/img/domain.icons/arrow-up.svg" alt="" />
+            </div>
+            <div class="cell-3 d-flex flex-justify-center">
+                Index Status <img width="10px" height="21px" class="pl-1" src="/img/domain.icons/arrow-up.svg" alt="" />
+            </div>
+            <div class="cell-2 d-flex flex-justify-end">Actions</div>
+        </li>
+        <div>
+            <!-- <div class="verfication d-flex flex-align-center">
+                <img src="/img/domain.icons/check-badge.svg" alt="" />
+                <span class="pl-1">NAMESPACES</span>
+            </div> -->
+            <!-- <div id="rowSkeleton" class="rowSkeleton"></div> -->
+
+            <div id="listItem" class="namespaceRow pt-2"></div>
+        </div>
+    </ul>
+</div>
+
+<script></script>

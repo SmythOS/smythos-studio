@@ -1,0 +1,10 @@
+<ul class="" id="right-sidebar">
+
+    <div class="container">
+        <div class="dialog-title title"></div>
+        <div class="dialog-content content">
+        </div>
+        <div class="dialog-actions actions">
+        </div>
+    </div>
+</ul>

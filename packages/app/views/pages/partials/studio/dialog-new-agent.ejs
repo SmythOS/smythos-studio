@@ -1,0 +1,50 @@
+<div id="newAgentModal" tabindex="-1" aria-hidden="true"
+    class="hidden  bg-gray-800/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-40 w-full md:inset-0 md:h-full flex h-screen items-center justify-center">
+    <div class="relative p-4  max-w-md h-full md:h-auto md:min-w-[600px] w-full">
+        <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5 ">
+
+
+            <div
+                class="dialog-title flex items-start justify-between px-2 py-4 border-b rounded-t dark:border-gray-600">
+                New
+                Agent</div>
+
+            <div class="dialog-content px-2 py-3 pb-0">
+                <form action="javascript:" class="form dlg-form">
+
+                    <input type="text"
+                        maxlength="60"
+                        class="agentName mb-6 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Agent Name" required>
+                        <div class="name-error text-right -mt-6 hidden text-red-500 text-xs leading-6"></div>
+
+                    <select
+                        class="agentTemplate  mb-6 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+
+                    </select>
+
+                    <textarea rows="4"
+                        class="agentDescription mb-6 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Agent description"></textarea>
+
+                </form>
+            </div>
+            <div class="dialog-actions grid grid-cols-2 gap-2 place-content-between">
+                <!-- <button
+            class="js-dialog-close btn-cancel
+            w-48 text-white bg-red-500 p-2 hover:opacity-75 focus:ring-4 focus:outline-none  font-medium rounded-lg text-center place-self-start ">
+            Cancel </button> -->
+                <div></div>
+                <button
+                    class="btnCreate
+            w-48 text-white bg-primary-100 p-2 hover:opacity-75 focus:ring-4 focus:outline-none  font-medium rounded-lg text-center place-self-end disabled:opacity-30 disabled:cursor-not-allowed">
+                    Create </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+</div>

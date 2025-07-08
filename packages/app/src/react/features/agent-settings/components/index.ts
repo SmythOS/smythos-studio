@@ -1,0 +1,9 @@
+export { default as AgentInfoWidget } from './AgentInfoWidget';
+export { default as CapabilitiesWidget } from './CapabilitiesWidget';
+export { default as MyToolsWidget } from './MyToolsWidget';
+export { default as LogsWidget } from './LogsWidget';
+export { default as SettingsWidget } from './SettingsWidget';
+export { default as ScheduleWidget } from './ScheduleWidget';
+export { default as SecurityWidget } from './SecurityWidget';
+export { default as EmbodimentsWidget } from './EmbodimentsWidget';
+export { default as OverviewWidgetsContainer } from './OverviewWidgetsContainer';

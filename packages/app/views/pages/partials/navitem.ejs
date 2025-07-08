@@ -1,0 +1,10 @@
+<li class="menuitem" data-label="<%= label %>">
+    <a href="#" smt-component="<%= name %>" <% for (const attr in attributes) { %><%= attr %>="<%= attributes[attr] %>"
+        <% } %>>
+        <span class="icon"><span class="svg-icon <%= icon %>"></span></span>
+        <span class="caption"><%= label %></span>
+    </a>
+    <!-- <div class="badges">
+        <button class="badge btn-info inline">i</button>
+    </div> -->
+</li>

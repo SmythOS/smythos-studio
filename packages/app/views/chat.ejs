@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <link rel="stylesheet" href="/css/tailwind.css" /> -->
+    <link rel="stylesheet" href="/css/tailwind-v2.css" />
+  </head>
+
+  <body class="" style="background: #edf2f7">
+    <%- include('pages/partials/chat/top-nav'); -%>
+    <div class="h-screen overflow-hidden flex items-center justify-center bg-gray-900">
+      <div class="flex flex-row h-screen antialiased text-gray-100 w-full">
+        <div class="left-part flex flex-row w-64 flex-shrink-0 p-2">
+          <!-- <%- include('pages/partials/chat/mini-sidebar'); -%> -->
+          <%- include('pages/partials/chat/left-sidebar'); -%>
+        </div>
+        <div class="flex flex-col h-full bg-white px-2 py-6 w-full space-y-4 text-gray-900">
+          <%- include('pages/partials/chat/team-header'); -%> <%-
+          include('pages/partials/chat/chatbox', {interactive:true}); -%>
+
+          <div class="flex justify-center w-full">
+            <button
+              type="button"
+              class="text-gray-100 bg-smyth-emerald-400 hover:opacity-75 focus:ring-emerald-400 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3 py-2.5 text-center inline-flex items-center mr-2 w-auto"
+            >
+              <svg
+                class="mr-2 w-3.5 h-3.5 text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 18 18"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 1v16M1 9h16"
+                />
+              </svg>
+              New Topic
+            </button>
+          </div>
+        </div>
+        <div class="right-part flex flex-col w-96 flex-shrink-0 p-2">
+          <%- include('pages/partials/chat/right-sidebar'); -%>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/chat.bundle.js"></script>
+  </body>
+</html>

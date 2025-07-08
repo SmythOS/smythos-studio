@@ -1,0 +1,35 @@
+<div id="root"></div>
+
+<% if (env === 'DEV') { %>
+<script type="module" src="/js/build/webappv2/app.bundle.dev.js"></script>
+<% } else { %>
+<script type="module" src="/js/webappv2/react/app.bundle.min.js"></script>
+<% } %>
+
+<script>
+  // if localhost print user a red message in console the you need to run npm run dev
+  if (window.location.hostname === 'localhost') {
+    console.log(
+      `%c npm run dev:v2`,
+      'background: #bc8686; color: white;font-weight:500;font-size:20px;line-height:40px',
+    );
+  }
+</script>
+
+<script>
+  window.postHogSignupEvents = JSON.parse('<%- typeof postHogSignupEvents !== "undefined" ? JSON.stringify(postHogSignupEvents) : "[]" %>');
+
+  function sendPostHogEvents() {
+    
+    if (posthog?.capture) {
+      window.postHogSignupEvents?.forEach((event) => {
+        if (event?.eventType && event?.eventData) {
+          posthog.capture(event.eventType, event.eventData);
+        }
+      });
+    } else {
+      setTimeout(sendPostHogEvents, 1000);
+    }
+  }
+  sendPostHogEvents();
+</script>

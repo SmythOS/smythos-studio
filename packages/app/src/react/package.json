@@ -1,0 +1,15 @@
+{
+  "name": "smythos-ui-react",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run update-html-template && vite",
+    "build": "tsc -b && vite build",
+    "update-html-template": "node ../../scripts/build/dev/render-index-ejs-to-vite.js",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "scan-errors": "tsc --project tsconfig.app.json --noEmit"
+  }
+
+}

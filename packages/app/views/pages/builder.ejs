@@ -1,0 +1,236 @@
+<div x-data="setup()" id="studio">
+  <div
+    class="studio-child flex antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light w-full overflow-hidden max-w-[100vw] max-h-screen"
+  >
+    <!-- Left Sidebar -->
+    <%- include('partials/studio/left-sidebar', { agentId: agentId, isSidebarOpen: 'isSidebarOpen',
+    currentSidebarTab: 'currentSidebarTab', previousTab: 'previousTab', rightSidebarOpen:
+    'rightSidebarOpen'}); -%>
+
+    <div class="flex-1 flex flex-col py-3 pr-3">
+      <!-- Main Content -->
+      <div
+        class="flex-1 h-full w-full border border-solid border-gray-300 rounded-lg relative"
+        id="builder-container"
+      >
+        <div
+          class="absolute bottom-14 right-4 overflow-hidden hidden md:block z-10"
+          x-data="myComponent()"
+          :class="mapDimensions"
+        >
+          <div class="group relative">
+            <div
+              x-show="minimapOpen"
+              class="border border-solid border-gray-300 rounded-lg bg-gray-200 opacity-80"
+            >
+              <button
+                class="absolute bottom-0 right-0 p-1 py-2 group-hover:block w-8 h-10"
+                @click="toggleMinimap"
+              >
+                <i
+                  class="opacity-0 fa-solid fa-down-left-and-up-right-to-center transition duration-75 text-gray-600 group-hover:opacity-50 hover:text-gray-950"
+                ></i>
+              </button>
+              <canvas id="minimap" width="288" height="150"></canvas>
+            </div>
+            <div x-show="!minimapOpen" class="w-12 h-10">
+              <button
+                class="absolute bottom-0 right-0 p-1 transition duration-75 opacity-25 hover:opacity-75"
+                @click="toggleMinimap"
+              >
+                <i class="fa-regular fa-object-group text-2xl"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <%- include('partials/studio/builder-menu.ejs', { agentId: agentId }); -%> <%-
+        include('partials/studio/workspace'); -%>
+      </div>
+
+      <div
+        id="bottom-bar"
+        class="z-2 hidden border border-solid border-gray-300 rounded-lg mt-3 overflow-hidden"
+        style="height: 400px"
+      >
+        <div id="debug-log-container-root" class="h-full"></div>
+      </div>
+    </div>
+    <div
+      class="sidebar-container hidden [&.open]:flex flex-row z-[2] h-screen transition-transform py-3 pr-3"
+      id="right-container"
+    >
+      <div class="h-full">
+        <%- include('partials/studio/right-sidebar-emb'); -%> <%-
+        include('partials/studio/right-sidebar'); -%> <%-
+        include('partials/studio/right-sidebar-agent-settings'); -%>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative">
+    <div class="absolute bottom-5 right-5 flex items-center space-x-4 h-8">
+      <!-- Embodiments -->
+      <%- include('partials/studio/embodiments'); -%>
+    </div>
+
+    <div class="absolute top-[calc(4rem+8px)] right-5 items-end hidden md:flex">
+      <div><%- include('partials/studio/debug-bar'); -%></div>
+    </div>
+  </div>
+  <!-- Panels -->
+
+  <!-- Settings Panel -->
+
+  <div id="builder-modals-container" class="z-20"></div>
+  <div id="self-contained-builder-modals" class="z-20"></div>
+</div>
+
+<script src="/js/alpine.min.js" defer></script>
+
+<script>
+  window.__LLM_MODELS__ = JSON.parse('<%- JSON.stringify(LLMModels) %>');
+  window.isSmythStaff = JSON.parse('<%- JSON.stringify(isSmythStaff) %>');
+  window.isSmythAlpha = JSON.parse('<%- JSON.stringify(isSmythAlpha) %>');
+  window.postHogSignupEvents = JSON.parse(
+    '<%- typeof postHogSignupEvents !== "undefined" ? JSON.stringify(postHogSignupEvents) : "[]" %>',
+  );
+
+  window.navPages = JSON.parse('<%- JSON.stringify(navPages) %>');
+  window.user = JSON.parse('<%- JSON.stringify(user) %>');
+  function sendPostHogEvents() {
+    if (posthog?.capture) {
+      window.postHogSignupEvents?.forEach((event) => {
+        if (event?.eventType && event?.eventData) {
+          posthog.capture(event.eventType, event.eventData);
+        }
+      });
+    } else {
+      setTimeout(sendPostHogEvents, 1000);
+    }
+  }
+  sendPostHogEvents();
+  const setup = () => {
+    const isSmythStaff = window.isSmythStaff || false;
+    const isSmythAlpha = window.isSmythAlpha || false;
+    const isWeaverEnabled = true; //isSmythStaff || isSmythAlpha;
+    const hasAgentId = location?.pathname?.split?.('/builder/')?.[1] !== undefined;
+    const agentId = location?.pathname?.split?.('/builder/')?.[1];
+    const menuItems = [
+      {
+        name: 'Agent Weaver',
+        icon: '/img/icons/weaver.svg',
+        tab: 'agentBuilderTab',
+        id: 'left-sidebar-agentBuilder-btn',
+      },
+      {
+        name: 'Components',
+        icon: '/img/icons/hashtag.svg',
+        tab: 'buildTab',
+        id: 'left-sidebar-build-btn',
+      },
+      {
+        name: 'Agent Settings',
+        icon: '/img/icons/settings.svg',
+        tab: 'agentTab',
+        id: 'left-sidebar-agent-btn',
+      },
+      {
+        name: 'Global Variables',
+        icon: '/img/icons/network-ai.svg',
+        tab: 'variablesTab',
+        id: 'left-sidebar-variables-btn',
+      },
+      {
+        name: 'API Auth',
+        icon: '/img/icons/lock.svg',
+        tab: 'authTab',
+        id: 'left-sidebar-auth-btn',
+      },
+      {
+        name: 'Deploy Agent',
+        icon: '/img/icons/space-rocket.svg',
+        tab: 'deployTab',
+        id: 'left-sidebar-deploy-btn',
+      },
+    ];
+
+    if (!hasAgentId) {
+      localStorage.setItem('sidebarOpen', true);
+    }
+
+    const storedTab = localStorage.getItem(`${agentId}-currentSidebarTab`);
+    const defaultTab = isWeaverEnabled ? 'agentBuilderTab' : 'buildTab';
+    const currentTab = hasAgentId ? storedTab || defaultTab : defaultTab;
+    const storedMenuItem = currentTab ? menuItems.find((item) => item.tab === currentTab) : null;
+
+    return {
+      windowWidth: window.innerWidth,
+      isMobile: window.innerWidth < 768,
+      isSidebarOpen: localStorage.getItem('sidebarOpen') === 'true',
+      rightSidebarOpen: false,
+      currentSidebarTab: currentTab,
+      isSettingsPanelOpen: false,
+      isSubHeaderOpen: false,
+      selectedOption: storedMenuItem,
+      setSelectedOption(option) {
+        this.selectedOption = option;
+      },
+      init() {
+        this.$watch('currentSidebarTab', (value) => {
+          const newTab = menuItems.find((item) => item.tab === value);
+          if (newTab) {
+            this.setSelectedOption(newTab);
+          }
+        });
+
+        // Listen for the sidebarStateChanged event
+        window.addEventListener('sidebarStateChanged', (event) => {
+          this.isSidebarOpen = event.detail.isSidebarOpen;
+          this.rightSidebarOpen = event.detail.rightSidebarOpen;
+          this.currentSidebarTab = event.detail.currentSidebarTab;
+        });
+
+        window.addEventListener('resize', () => {
+          this.windowWidth = window.innerWidth;
+          this.isMobile = this.windowWidth < 768;
+        });
+      },
+    };
+  };
+</script>
+<!-- Ace config -->
+<script src="/js/ace/js/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  ace.config.set('basePath', '/js/ace/js/src-min-noconflict/');
+</script>
+
+<!-- === Dialogs === -->
+<%- include('partials/dialog'); -%> <%- include('partials/dialog-secondary'); -%> <%-
+include('partials/dialog-extensions'); -%>
+<!-- =*= -->
+
+<div id="builder-scripts"></div>
+<%- include('partials/studio/dialog-confirm'); -%> <%- include('partials/studio/dialog-modal'); -%>
+<%- include('partials/studio/dialog-new-agent'); -%> <%-
+include('partials/studio/dialog-embodiment'); -%> <%-
+include('partials/studio/keyboard-shortcuts-modal'); -%> <%-
+include('partials/studio/feedback-modal') -%>
+
+<div id="mobile-handler-root"></div>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('myComponent', () => ({
+      minimapOpen: localStorage.getItem('minimapOpen') !== 'false' && !this.isMobile,
+
+      get mapDimensions() {
+        return this.minimapOpen ? 'w-72 h-40' : 'w-12 h-10';
+      },
+
+      toggleMinimap() {
+        this.minimapOpen = !this.minimapOpen;
+        localStorage.setItem('minimapOpen', this.minimapOpen);
+      },
+    }));
+  });
+</script>
