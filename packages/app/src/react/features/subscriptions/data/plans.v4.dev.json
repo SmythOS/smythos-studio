@@ -1,0 +1,126 @@
+[
+  {
+    "name": "Free Forever",
+    "description": "For enthusiasts and open source developers building modern AI agents and apps.",
+    "price": "$0",
+    "priceSubtext": "",
+    "features": [
+      { "text": "$5 in free credits / mo." },
+      { "text": "1 seat included" },
+      { "text": "2.5x model usage cost" }
+    ],
+    "additionalFeatures": [
+      { "text": "Public Agents" },
+      { "text": "Visual Agent IDE" },
+      { "text": "Free Local Deployment" },
+      { "text": "Bring your own Model" }
+    ],
+    "buttonText": "Start Free Now",
+    "buttonVariant": "secondary",
+    "buttonAction": "/"
+  },
+  {
+    "name": "Builder",
+    "description": "For developers building AI powered workflows, agents, and APIs.",
+    "price": "$39",
+    "priceSubtext": "per seat/month",
+    "features": [
+      { "text": "$20 in free credits / mo." },
+      { "text": "1 seat included" },
+      { "text": "3 GB storage" },
+      { "text": "1.5x model usage cost" }
+    ],
+    "additionalFeatures": [
+      { "text": "Private Agents" },
+      { "text": "Agent Weaver Chat-to-agent" },
+      { "text": "Bring your own Model" },
+      { "text": "100 fast API calls / day" }
+    ],
+    "buttonText": "Get Started",
+    "buttonVariant": "primary",
+    "buttonAction": "/subscriptions",
+    "priceIds": [
+      { "priceId": "price_1QkldOCl0hhyiPf9BfzQ8dh5", "for": "base price" },
+      { "priceId": "price_1QtXJ1Cl0hhyiPf90Jgje6W9", "for": "tasks usage" },
+      { "priceId": "price_1QkldOCl0hhyiPf9giHpuRxZ", "for": "user seats" }
+    ]
+  },
+  {
+    "name": "Startup",
+    "description": "For startups building AI automations, agents, and APIs.",
+    "price": "$399",
+    "priceSubtext": "per month",
+    "features": [
+      { "text": "$200 in free credits / mo." },
+      { "text": "3 seats included" },
+      { "text": "50 GB storage" },
+      { "text": "1.3x model usage cost" }
+    ],
+    "additionalFeatures": [
+      { "text": "RAG Agents" },
+      { "text": "Powerful Integrations" },
+      { "text": "10 Team Spaces" },
+      { "text": "5,000 fast API calls / day" },
+      { "text": "Everything in Builder" }
+    ],
+    "buttonText": "Get Started",
+    "buttonVariant": "secondary",
+    "buttonAction": "/subscriptions",
+    "priceIds": [
+      { "priceId": "price_1QkldQCl0hhyiPf9QqPpTYCL", "for": "base price" },
+      { "priceId": "price_1QtbXcCl0hhyiPf9lqgxG6Iu", "for": "tasks usage" },
+      { "priceId": "price_1QkldPCl0hhyiPf9aualbmo4", "for": "user seats" }
+    ]
+  },
+  {
+    "name": "Scaleup",
+    "description": "For growing companies. Let us build with you for ultimate support and hand-holding.",
+    "price": "$1499",
+    "priceSubtext": "per month",
+    "features": [
+      { "text": "$300 in free credits / mo." },
+      { "text": "5 seats included" },
+      { "text": "100 GB storage" },
+      { "text": "1.1x model usage cost" }
+    ],
+    "additionalFeatures": [
+      { "text": "Founders on WhatsApp/SMS" },
+      { "text": "White Labeling" },
+      { "text": "50 Team Spaces" },
+      { "text": "25,000 fast API calls / day" },
+      { "text": "Workshop to set up first API" },
+      { "text": "Forward deployed engineer" },
+      { "text": "Everything in Startup" }
+    ],
+    "buttonText": "Get Started",
+    "buttonVariant": "secondary",
+    "buttonAction": "/subscriptions",
+    "priceIds": [
+      { "priceId": "price_1QkldSCl0hhyiPf9WYC97XPg", "for": "base price" },
+      { "priceId": "price_1QtbXcCl0hhyiPf9NuM33IYQ", "for": "tasks usage" },
+      { "priceId": "price_1QkldSCl0hhyiPf9mhLHSITY", "for": "user seats" }
+    ]
+  },
+  {
+    "name": "Enterprise",
+    "description": "Empower your entire organization with AI transformation.",
+    "price": "Custom",
+    "priceSubtext": "",
+    "features": [
+      { "text": "Onboarding for entire team" },
+      { "text": "Enterprise & Fine-Tuned Models" },
+      { "text": "On-Prem & AWS Deployment" },
+      { "text": "Unlimited fast API calls/day" }
+    ],
+    "additionalFeatures": [
+      { "text": "Monthly workshops" },
+      { "text": "White glove support" },
+      { "text": "Custom retention policies" },
+      { "text": "Compliance tailoring" },
+      { "text": "Everything in Scaleup" }
+    ],
+    "buttonText": "Chat with Us",
+    "buttonVariant": "secondary",
+    "buttonAction": "COMPANY_PLAN_REDIRECT"
+  }
+]
