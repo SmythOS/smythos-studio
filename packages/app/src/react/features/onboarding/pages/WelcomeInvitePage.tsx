@@ -153,6 +153,7 @@ const BodyComponent = ({
 
     const index = e.target.name.split('-')[1];
     const email = e.target.value;
+    const trimmedEmail = email.trim();
 
     setEmailFields((prevEmails) => {
       if (!prevEmails) return prevEmails;
@@ -162,13 +163,13 @@ const BodyComponent = ({
         return prevEmails;
       }
       newEmails[index].email = email;
-      if (!email.length) {
-        newEmails[index].isValid = false;
-        newEmails[index].error = 'A valid email is required';
-      } else if (!isEmailValid(email)) {
+      if (!trimmedEmail.length) {
+        newEmails[index].isValid = null;
+        newEmails[index].error = '';
+      } else if (!isEmailValid(trimmedEmail)) {
         newEmails[index].isValid = false;
         newEmails[index].error = 'Invalid email';
-      } else if (isShareAgent && newEmails.filter((e) => e.email === email).length !== 1) {
+      } else if (newEmails.filter((e) => e.email.trim() === trimmedEmail).length !== 1) {
         newEmails[index].isValid = false;
         newEmails[index].error = 'Email already added';
       } else {

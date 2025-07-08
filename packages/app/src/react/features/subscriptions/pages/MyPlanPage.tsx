@@ -6,7 +6,7 @@ import {
 } from '@src/react/features/subscriptions/client/myPlanPage';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { extractError } from '@src/react/shared/utils/errors';
-import { convertToGB, formatDate, formatNumber } from '@src/react/shared/utils/format';
+import { convertToGB, formatNumber } from '@src/react/shared/utils/format';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -52,7 +52,6 @@ const MyPlanPage = () => {
   const isReadOnlyAccess = !isOwner || hasReadOnlyPageAccess('/my-plan', true);
   const hasWriteAccess = isOwner && getPageAccess('/my-plan', true)?.write;
 
-  const [subscriptionPeriod, setSubscriptionPeriod] = useState<string>('');
   const [loadingUpgrade, setLoadingUpgrade] = useState<boolean>(false);
   const [dataPoolProgress, setDataPoolProgress] = useState<number>(0);
 
@@ -146,24 +145,13 @@ const MyPlanPage = () => {
 
       // Note: The following line won't execute due to the redirect
       setLoadingUpgrade(false);
-    } catch (error) {
+    } catch {
       setLoadingUpgrade(false);
       toast.error('Failed to redirect to plans page');
     }
   };
 
   const customPlanStatus = useMemo(() => isCustomPlan(userSubs?.plan || {}), [userSubs]);
-
-  useEffect(() => {
-    // Get first and last day of current month
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Using 0 gets the last day of current month
-
-    setSubscriptionPeriod(
-      `${formatDate(firstDay.getTime() / 1000)} - ${formatDate(lastDay.getTime() / 1000)}`,
-    );
-  }, [userSubs]);
 
   return (
     <SubscriptionAnalytics
@@ -180,9 +168,7 @@ const MyPlanPage = () => {
       hasWriteAccess={hasWriteAccess}
       isCustomPlan={customPlanStatus}
       getFormattedNumber={formatNumber}
-      subscriptionPeriod={subscriptionPeriod}
       userDisplayName={userDisplayName}
-      dataPoolProgress={dataPoolProgress}
     />
   );
 };

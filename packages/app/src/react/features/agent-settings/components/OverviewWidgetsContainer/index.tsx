@@ -15,7 +15,7 @@ import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
-import { pick } from 'lodash-es';
+import { pick } from 'lodash';
 import {
   createContext,
   Dispatch,

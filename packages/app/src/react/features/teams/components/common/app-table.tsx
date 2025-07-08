@@ -94,7 +94,7 @@ export const AppTable = <T extends { id: string }>(props: Props<T>) => {
   }
 
   return (
-    <div className="relative overflow-x-auto sm:rounded-lg border border-solid border-gray-200">
+    <div className="relative sm:rounded-lg border border-solid border-gray-200 overflow-x-auto md:overflow-x-hidden  block w-full">
       <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead className="text-xs text-[#242424] uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>

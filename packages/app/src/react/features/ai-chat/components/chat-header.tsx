@@ -1,3 +1,4 @@
+import { Tooltip } from 'flowbite-react';
 import { FC } from 'react';
 import { FaRegPenToSquare, FaXmark } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
@@ -23,14 +24,16 @@ export const ChatHeader: FC<ChatHeaderProps> = ({ agentName, avatar }) => {
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-2">
-          <div className="cursor-pointer" onClick={clearChatSession}>
-            <FaRegPenToSquare className="text-gray-500 w-4 h-4" />
-          </div>
-          <div>
+          <Tooltip content={<>New&nbsp;Chat</>} placement="bottom">
+            <button className="cursor-pointer" onClick={clearChatSession}>
+              <FaRegPenToSquare className="text-gray-500 w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Exit" placement="bottom">
             <Link to="/agents">
               <FaXmark className="text-gray-500 w-6 h-6" />
             </Link>
-          </div>
+          </Tooltip>
         </div>
       </div>
     </div>

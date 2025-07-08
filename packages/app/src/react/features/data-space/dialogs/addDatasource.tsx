@@ -54,7 +54,7 @@ export const autoDetectDSByURL = (url: string) => {
 
 type DsForm = 'URL' | 'FILE';
 
-export default function AddDatasourceDialog({ namespaceName, onClose }: Props) {
+const AddDatasourceDialog = ({ namespaceName, onClose }: Props) => {
   const [dsFile, setDsFile] = useState<File>();
   const [uploadedFileUrl, setUploadedFileUrl] = useState('');
   const [fileName, setFileName] = useState('');
@@ -91,7 +91,7 @@ export default function AddDatasourceDialog({ namespaceName, onClose }: Props) {
     mutationFn: addDatasource,
 
     onError: (error: SmythAPIError) => {
-      let _errorMessage =
+      const _errorMessage =
         error.status === 403 && extractError(error) === 'Forbidden'
           ? 'You are not authorized to add a new data source'
           : extractError(error) || 'An error occurred. Please try again later.';
@@ -151,7 +151,7 @@ export default function AddDatasourceDialog({ namespaceName, onClose }: Props) {
           <div className="flex flex-col gap-4">
             <div className="w-full pb-4">
               <CustomInput
-                label="Label your data source"
+                label="Name"
                 labelExample="(required)"
                 value={dsDetails.name}
                 onChange={(event) => {
@@ -175,27 +175,25 @@ export default function AddDatasourceDialog({ namespaceName, onClose }: Props) {
               setFileUploadError={setFileUploadError}
             />
             <div className="py-4 text-center text-black">OR</div>
-            <>
-              <div>
-                <CustomInput
-                  value={dsDetails.url}
-                  fullWidth
-                  placeholder="Type data source URL"
-                  label="Enter URL"
-                  labelExample="(sitemap or website URL)"
-                  disabled={!!dsFile}
-                  onChange={(event) => handleDataSourceChange(event.target.value, 'URL')}
-                  required={true}
-                />
 
-                {dsDetails.type && (
-                  <div className="success-message pt-1" id="verify-message">
-                    <span id="selectedType">{dsDetails.type} </span> format automatically detected.
-                  </div>
-                )}
-                {errors?.url && <div className="text-red-600 text-sm">{errors.url}</div>}
-              </div>
-            </>
+            <div>
+              <CustomInput
+                value={dsDetails.url}
+                fullWidth
+                placeholder="Type data source URL"
+                label="Enter URL"
+                labelExample="(sitemap or website URL)"
+                disabled={!!dsFile}
+                onChange={(event) => handleDataSourceChange(event.target.value, 'URL')}
+              />
+
+              {dsDetails.type && (
+                <div className="success-message pt-1" id="verify-message">
+                  <span id="selectedType">{dsDetails.type} </span> format automatically detected.
+                </div>
+              )}
+              {errors?.url && <div className="text-red-600 text-sm">{errors.url}</div>}
+            </div>
 
             {addDsMutation.isError && (
               <div className="pt-2 text-red-600 text-sm">{errorMessage}</div>
@@ -222,4 +220,5 @@ export default function AddDatasourceDialog({ namespaceName, onClose }: Props) {
       </Modal>
     </>
   );
-}
+};
+export default AddDatasourceDialog;

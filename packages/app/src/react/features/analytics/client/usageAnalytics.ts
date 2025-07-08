@@ -17,3 +17,17 @@ export const fetchLLMAndApiUsage = async (teamId: string, date: any) => {
 
   return response.json();
 };
+
+export const fetchCurrentCycleUsage = async () => {
+  const response = await fetch('/api/page/quota/quota/current-cycle/usage', {
+    method: 'GET',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch usage data: ${response?.status} ${response?.statusText}`);
+  }
+
+  return response.json();
+};

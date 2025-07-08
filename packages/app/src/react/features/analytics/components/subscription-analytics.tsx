@@ -1,3 +1,5 @@
+/* eslint-disable max-len, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-console */
+
 import {
   Card,
   CardContent,
@@ -8,16 +10,20 @@ import {
 import { Tooltip } from 'flowbite-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { fetchLLMAndApiUsage } from '@react/features/analytics/client/usageAnalytics';
+import {
+  fetchCurrentCycleUsage,
+  fetchLLMAndApiUsage,
+} from '@react/features/analytics/client/usageAnalytics';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { formatDate } from '@src/react/shared/utils/format';
 import { teamSettingKeys } from '@src/shared/teamSettingKeys';
 import classNames from 'classnames';
 import { Loader2 } from 'lucide-react';
 import { HiOutlineArrowRight } from 'react-icons/hi';
 import { useAuthCtx } from '../../../shared/contexts/auth.context';
 import { useGetTeamSettings, useStoreTeamSettings } from '../../teams/hooks/useTeamSettings';
-import { ApiData } from '../pages/AnalyticsPage';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ENTERPRISE_PLAN_NAMES = [
   'Enterprise',
   'Enterprise T1',
@@ -25,6 +31,16 @@ export const ENTERPRISE_PLAN_NAMES = [
   'Enterprise T3',
   'Enterprise T4',
 ] as const;
+
+const V4_PLAN_NAMES = [
+  'builder',
+  'startup',
+  'scaleup',
+  'enterprise t1',
+  'enterprise t2',
+  'enterprise t3',
+  'enterprise t4',
+];
 
 function isValid(value: number | string | null | undefined): boolean {
   return value !== undefined && value !== null && value !== 0 && value !== '';
@@ -358,16 +374,16 @@ export default function SubscriptionAnalytics({
   isReadOnlyAccess,
   hasWriteAccess,
   isCustomPlan,
-  subscriptionPeriod,
   userDisplayName,
   loadingUpgrade,
-  dataPoolProgress,
 }) {
-  const [llmAndApiUsage, setLlmAndApiUsage] = useState<any>(null);
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [, setLlmAndApiUsage] = useState<any>(null); // llmAndApiUsage
+  const [selectedMonth] = useState<Date>(new Date());
   const [showModelUsage, setShowModelUsage] = useState(false);
   const [modelLimit, setModelLimit] = useState(0);
   const [showLimitCard, setShowLimitCard] = useState(false);
+  const [subscriptionPeriod, setSubscriptionPeriod] = useState<string>('');
+  const [totalModelUsage, setTotalModelUsage] = useState<string>('0');
 
   const [isShowLimitFeature, setIsShowLimitFeature] = useState(
     subs?.plan?.properties?.flags?.modelCostMultiplier,
@@ -401,34 +417,73 @@ export default function SubscriptionAnalytics({
     }
   }, [subs]);
 
-  const totalModelUsage = useMemo(() => {
-    if (!llmAndApiUsage) return 0;
+  useEffect(() => {
+    const isFreePlan = subs?.plan?.name.toLowerCase().includes('smythos free');
+    const isV4Plan = V4_PLAN_NAMES.includes(subs?.plan?.name.toLowerCase());
 
-    const totalUsage = (apiData: ApiData) => {
-      let totalCost = 0;
-
-      apiData.usage.analytics.forEach((team) => {
-        // Add null check for team.data.days
-        if (team.data?.days) {
-          Object.values(team.data.days as any).forEach((day: any) => {
-            Object.entries(day.agents || ({} as any)).forEach(([agentId, agentData]: any) => {
-              Object.values(agentData.sources || ({} as any)).forEach((source: any) => {
-                Object.values(source).forEach((metric: any) => {
-                  totalCost += metric.cost || 0;
-                });
-              });
-            });
-          });
-        }
-      });
-
-      return Number(totalCost.toFixed(2));
+    const subPeriodDate = (start: Date, end: Date) => {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      return `${formatDate(startDate.getTime() / 1000)} - ${formatDate(endDate.getTime() / 1000)}`;
     };
 
-    return totalUsage(llmAndApiUsage);
-  }, [llmAndApiUsage]);
+    if (isV4Plan && !isFreePlan) {
+      setSubscriptionPeriod(
+        subPeriodDate(subs.object.current_period_start, subs.object.current_period_end),
+      );
+    } else {
+      // Get first and last day of current month
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Using 0 gets the last day of current month
+
+      setSubscriptionPeriod(subPeriodDate(firstDay, lastDay));
+    }
+  }, [subs]);
+
+  useEffect(() => {
+    const fetchModelUsage = async () => {
+      try {
+        const currentCycleUsage = await fetchCurrentCycleUsage();
+        setTotalModelUsage(Number(currentCycleUsage?.usage || 0).toFixed(2));
+      } catch (error) {
+        console.error('Error fetching model usage:', error);
+        setTotalModelUsage('0');
+      }
+    };
+
+    fetchModelUsage();
+  }, []);
+
+  // const totalModelUsage = useMemo(() => {
+  //   if (!llmAndApiUsage) return 0;
+
+  //   const totalUsage = (apiData: ApiData) => {
+  //     let totalCost = 0;
+
+  //     apiData.usage.analytics.forEach((team) => {
+  //       // Add null check for team.data.days
+  //       if (team.data?.days) {
+  //         Object.values(team.data.days as any).forEach((day: any) => {
+  //           Object.entries(day.agents || ({} as any)).forEach(([, agentData]: any) => {
+  //             Object.values(agentData.sources || ({} as any)).forEach((source: any) => {
+  //               Object.values(source).forEach((metric: any) => {
+  //                 totalCost += metric.cost || 0;
+  //               });
+  //             });
+  //           });
+  //         });
+  //       }
+  //     });
+
+  //     return Number(totalCost.toFixed(2));
+  //   };
+
+  //   return totalUsage(llmAndApiUsage);
+  // }, [llmAndApiUsage]);
 
   // Load saved settings on component mount
+
   useEffect(() => {
     const isFree = subs?.plan?.name.toLowerCase() === 'smythos free';
     const parentTeamInitiator = userInfo?.user?.roles?.find(
@@ -640,8 +695,8 @@ export default function SubscriptionAnalytics({
               </>
             ) : subs?.plan?.name === 'Scaleup' ? (
               <>
-                You're on the Scaleup plan, which provides powerful features and high usage limits.
-                If you need even more capabilities or customized solutions,{' '}
+                You&apos;re on the Scaleup plan, which provides powerful features and high usage
+                limits. If you need even more capabilities or customized solutions,{' '}
                 <a
                   href="https://smythos.com/contact-us/"
                   target="_blank"
@@ -654,7 +709,7 @@ export default function SubscriptionAnalytics({
               </>
             ) : subs?.plan?.name === 'Builder' || subs?.plan?.name === 'Startup' ? (
               <>
-                You're on the {subs?.plan?.name} plan, which offers robust features and higher
+                You&apos;re on the {subs?.plan?.name} plan, which offers robust features and higher
                 limits on core tools. If you need additional capabilities, explore our Scaleup plan
                 for rapid-growth teams.
               </>
@@ -680,7 +735,7 @@ export default function SubscriptionAnalytics({
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-sm text-primary-pink">
-                  You've reached your credit limit. Credits will renew each billing period.
+                  You&apos;ve reached your credit limit. Credits will renew each billing period.
                 </span>
               </div>
             </div>
