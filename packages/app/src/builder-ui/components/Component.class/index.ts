@@ -8,7 +8,7 @@ import { Workspace, WorkspaceDefaults } from '../../workspace/Workspace.class';
 
 import { readFormValues, syncCompositeValues } from '../../ui/form';
 
-import { ComponentDocLinks } from '@src/frontend/enums/doc-links.enum';
+import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { jsonrepair } from 'jsonrepair';
@@ -1018,9 +1018,8 @@ export class Component extends EventEmitter {
         outputDiv.setAttribute('smt-color', newValues.color);
         outputDiv.querySelector('.ep').style.backgroundColor =
           newValues.color || `${WorkspaceDefaults.conStartColor}`;
-        outputDiv.querySelector(
-          '.name',
-        ).style.borderImage = `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
+        outputDiv.querySelector('.name').style.borderImage =
+          `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
         const endpoint: any = outputDiv.endpoint;
         if (endpoint && endpoint['connections']) {
           for (let connection of endpoint['connections'])
@@ -1109,9 +1108,8 @@ export class Component extends EventEmitter {
     epDiv.style.backgroundColor = outputProps?.color || `${WorkspaceDefaults.conStartColor}`;
     outputDiv.appendChild(epDiv);
 
-    outputDiv.querySelector(
-      '.name',
-    ).style.borderImage = `linear-gradient(90deg, transparent 20%, ${epColor}) 1`;
+    outputDiv.querySelector('.name').style.borderImage =
+      `linear-gradient(90deg, transparent 20%, ${epColor}) 1`;
     // set jsPlumb connection Color
     for (let connection of endpoint['connections'])
       this.workspace.updateConnectionColors(connection);
@@ -1429,9 +1427,8 @@ export class Component extends EventEmitter {
         inputDiv.querySelector('.ep').style.backgroundColor =
           newValues.color || `${WorkspaceDefaults.conEndColor}`;
 
-        inputDiv.querySelector(
-          '.name',
-        ).style.borderImage = `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
+        inputDiv.querySelector('.name').style.borderImage =
+          `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
 
         const endpoint: any = inputDiv.endpoint;
         if (endpoint && endpoint['connections']) {
@@ -2332,8 +2329,8 @@ export class Component extends EventEmitter {
       //this also prevents accidental settings opening if the user is just checking debug outputs
       const dbgInfo = div.querySelector('.debug-info');
       if (!dbgInfo.classList.contains('hidden')) return;
-      const dbgElements = [...div.querySelectorAll('.dbg-element')].filter(
-        (e) => e.checkVisibility?.(),
+      const dbgElements = [...div.querySelectorAll('.dbg-element')].filter((e) =>
+        e.checkVisibility?.(),
       ); // checkVisibility is not available in safari <= 17.3
       if (dbgElements.length > 0) return;
 
@@ -2699,9 +2696,8 @@ export class Component extends EventEmitter {
         inputDiv.querySelector('.ep').style.backgroundColor =
           newValues.color || `${WorkspaceDefaults.conEndColor}`;
 
-        inputDiv.querySelector(
-          '.name',
-        ).style.borderImage = `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
+        inputDiv.querySelector('.name').style.borderImage =
+          `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
 
         const endpoint: any = inputDiv.endpoint;
         if (endpoint && endpoint['connections']) {
@@ -2802,9 +2798,8 @@ export class Component extends EventEmitter {
         outputDiv.setAttribute('smt-color', newValues.color);
         outputDiv.querySelector('.ep').style.backgroundColor =
           newValues.color || `${WorkspaceDefaults.conStartColor}`;
-        outputDiv.querySelector(
-          '.name',
-        ).style.borderImage = `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
+        outputDiv.querySelector('.name').style.borderImage =
+          `linear-gradient(90deg, transparent 20%, ${newValues.color}) 1`;
         const endpoint: any = outputDiv.endpoint;
         if (endpoint && endpoint['connections']) {
           for (let connection of endpoint['connections'])

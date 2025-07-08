@@ -4,7 +4,7 @@ import { FaAngleRight, FaArrowRight, FaCheck } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 
 import { BuildAgents } from '@react/features/subscriptions/components/plans/build-agents';
-import config from '@src/frontend/config';
+import config from '@src/builder-ui/config';
 import plansDev from '@src/react/features/subscriptions/data/plans.v4.dev.json';
 import plansProd from '@src/react/features/subscriptions/data/plans.v4.prod.json';
 import { FeatureFlagged } from '@src/react/shared/components/featureFlags';

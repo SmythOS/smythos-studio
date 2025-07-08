@@ -7,7 +7,7 @@ import { errKeys } from '@react/shared/constants';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { Agent } from '@react/shared/types/agent-data.types';
 import { Embodiment } from '@react/shared/types/api-results.types';
-import { LLMFormController } from '@src/frontend/helpers/LLMFormController.helper';
+import { LLMFormController } from '@src/builder-ui/helpers/LLMFormController.helper';
 import { errorToast } from '@src/shared/components/toast';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { PostHog } from '@src/shared/posthog/index';

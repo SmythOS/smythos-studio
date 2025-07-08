@@ -11,7 +11,7 @@ const router = express.Router();
 const SETTINGS_KEY = 'GPTPlugins';
 
 // * This ID generation logic should be unchanged
-// * as IDs generated with same logic for this file data - src/frontend/data/no-auth-gpt-plugins.json
+// * as IDs generated with same logic for this file data - src/builder-ui/data/no-auth-gpt-plugins.json
 // * 'no-auth-gpt-plugins.json' generation script will be found here - https://drive.google.com/file/d/1a6oJzPdkKbGtXsO7739SA4VkFEiNaCIa/view?usp=sharing
 const generateGPTPluginId = (name: string, specUrl: string): string => {
   return generateKey(name + specUrl, 'gpt-plugin');

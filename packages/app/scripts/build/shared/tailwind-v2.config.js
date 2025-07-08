@@ -6,7 +6,7 @@ module.exports = {
   darkMode: ['class'],
   content: [
     'views/**/*.{html,ejs}',
-    'src/frontend/**/*.{js,jsx,ts,tsx}',
+    'src/builder-ui/**/*.{js,jsx,ts,tsx}',
     'src/webapp/**/*.{js,jsx,ts,tsx}',
     'src/react/**/*.{js,jsx,ts,tsx}',
     'node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}',

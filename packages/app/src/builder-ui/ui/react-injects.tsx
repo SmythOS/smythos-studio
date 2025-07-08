@@ -8,13 +8,16 @@ import { DebugLogMenu } from '@src/react/features/builder/components/debug-log-m
 import { useEffect, useRef, useState } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 
-import { Workspace } from '@src/frontend/workspace/Workspace.class';
+import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 import { AgentSettingsProvider } from '@src/react/features/agent-settings/contexts/agent-settings.context';
 import { AgentSettingTabs } from '@src/react/features/agent-settings/pages/AgentSettingsPage';
 import DeployAgentModal from '@src/react/features/agents/components/modals/deploy-agent-modal';
 import AgentDeploymentSidebar from '@src/react/features/builder/components/agent-deployment-sidebar';
 import EndpointFormPreviewSidebar from '@src/react/features/builder/components/endpoint-form-preview-sidebar';
-import { DeploymentSidebarProvider, useDeploymentSidebarCtx } from '@src/react/features/builder/contexts/deployment-sidebar.context';
+import {
+  DeploymentSidebarProvider,
+  useDeploymentSidebarCtx,
+} from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import ComponentInputEditor from '@src/react/features/builder/modals/ComponentInputEditor';
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
 import { WelcomeInvitePage } from '@src/react/features/onboarding/pages/WelcomeInvitePage';
@@ -300,17 +303,18 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
         setModalState(0);
       } else if (!authContext?.userInfo || !deploymentSidebarCtx?.allDeployments?.data) {
         setModalState(1);
-      } else if (appState.isDeployModalOpen && authContext?.userInfo && deploymentSidebarCtx?.allDeployments?.data) {
+      } else if (
+        appState.isDeployModalOpen &&
+        authContext?.userInfo &&
+        deploymentSidebarCtx?.allDeployments?.data
+      ) {
         setModalState(2);
       }
     }, [
       appState.isDeployModalOpen,
-      authContext?.userInfo, 
+      authContext?.userInfo,
       deploymentSidebarCtx?.allDeployments?.data,
     ]);
-
-
-    
 
     return (
       <>

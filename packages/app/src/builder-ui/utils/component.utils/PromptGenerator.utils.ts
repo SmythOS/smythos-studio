@@ -6,7 +6,7 @@ import { getAllowedContextTokens, getAllowedCompletionTokens } from '../LLM.util
 
 declare var Metro, $;
 
-// ! DEPRECATED file in favor of src/frontend/helpers/LLMFormController.helper.ts, will be replaced by LLMFormController
+// ! DEPRECATED file in favor of src/builder-ui/helpers/LLMFormController.helper.ts, will be replaced by LLMFormController
 
 const toggleFields = (modelField: HTMLSelectElement) => {
   const formGroupElms = modelField

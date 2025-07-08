@@ -1,4 +1,4 @@
-import { PostHog } from '@src/frontend/services/posthog';
+import { PostHog } from '@src/builder-ui/services/posthog';
 import { getUserInfo } from '@src/react/features/account/clients';
 import { getUserOnboardingInfo } from '@src/react/features/onboarding/clients';
 import { getTeamMembers, getTeamRoles } from '@src/react/features/teams/clients/subteam-api';

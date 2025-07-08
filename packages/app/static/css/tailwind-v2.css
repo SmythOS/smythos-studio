@@ -6133,6 +6133,16 @@ body {
   padding: 9.5px !important;
 }
 
+.\!px-0 {
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+.\!py-0 {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
 .px-0 {
   padding-left: 0px !important;
   padding-right: 0px !important;
@@ -11863,8 +11873,16 @@ body {
     display: flex !important;
   }
 
+  .sm\:table-cell {
+    display: table-cell !important;
+  }
+
   .sm\:h-10 {
     height: 2.5rem !important;
+  }
+
+  .sm\:h-5 {
+    height: 1.25rem !important;
   }
 
   .sm\:h-6 {
@@ -11881,6 +11899,10 @@ body {
 
   .sm\:w-10 {
     width: 2.5rem !important;
+  }
+
+  .sm\:w-5 {
+    width: 1.25rem !important;
   }
 
   .sm\:w-6 {
@@ -11968,6 +11990,11 @@ body {
     padding-right: 1.5rem !important;
   }
 
+  .sm\:py-4 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
   .sm\:pr-8 {
     padding-right: 2rem !important;
   }
@@ -11978,6 +12005,11 @@ body {
 
   .sm\:text-center {
     text-align: center !important;
+  }
+
+  .sm\:text-3xl {
+    font-size: 1.875rem !important;
+    line-height: 2.25rem !important;
   }
 
   .sm\:text-base {
@@ -12312,6 +12344,10 @@ body {
     overflow: hidden !important;
   }
 
+  .md\:overflow-x-hidden {
+    overflow-x: hidden !important;
+  }
+
   .md\:rounded-none {
     border-radius: 0px !important;
   }
@@ -12527,6 +12563,10 @@ body {
   .lg\:my-8 {
     margin-top: 2rem !important;
     margin-bottom: 2rem !important;
+  }
+
+  .lg\:inline {
+    display: inline !important;
   }
 
   .lg\:flex {

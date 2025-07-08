@@ -314,7 +314,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     formElement.setAttribute('id', entry.name);
     if (entry.name) formElement.setAttribute('name', entry.name);
 
-    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
+    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/builder-ui/ui/form/keyValueField.ts'.
     for (let attr in attributes) {
       if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
         formElement.setAttribute('disabled', 'disabled');
@@ -343,7 +343,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
   /*
     * "entry.smythValidate" allows custom validation using asynchronous functions. (Metro UI does not support asynchronous function.)
-    ? Logic is here - src/frontend/ui/form/smyth-validator.ts
+    ? Logic is here - src/builder-ui/ui/form/smyth-validator.ts
     */
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 

@@ -1,4 +1,4 @@
-import { Workspace } from 'src/frontend/workspace/Workspace.class';
+import { Workspace } from 'src/builder-ui/workspace/Workspace.class';
 
 import { autoResizeTextarea, runChatUI } from './ChatUI.helper';
 
@@ -31,7 +31,7 @@ function isAgentBuilderEnabled(userData) {
 }
 
 // function enableAlphaFeatures(userData) {
-  // if (!userData?.isSmythStaff) return;
-  // const agentAttachButton = document.getElementById('agentAttachButton');
-  // agentAttachButton.classList.remove('hidden');
+// if (!userData?.isSmythStaff) return;
+// const agentAttachButton = document.getElementById('agentAttachButton');
+// agentAttachButton.classList.remove('hidden');
 // }

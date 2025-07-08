@@ -2,14 +2,14 @@ import { createLockBadge } from '../ui/badges';
 
 // ! DEPRECATED: This entire file will be removed
 
-// ! DEPRECATED function in favor of src/frontend/helpers/LLMRegistry.helper.ts, will be replaced by LLMRegistry
+// ! DEPRECATED function in favor of src/builder-ui/helpers/LLMRegistry.helper.ts, will be replaced by LLMRegistry
 // Function to calculate the allowed maximum tokens for a given model
 export function getAllowedContextTokens(model: string) {
   // Use window models directly to ensure we always have the latest values
   return window['__LLM_MODELS__']?.[model]?.tokens;
 }
 
-// ! DEPRECATED function in favor of src/frontend/helpers/LLMRegistry.helper.ts, will be replaced by LLMRegistry
+// ! DEPRECATED function in favor of src/builder-ui/helpers/LLMRegistry.helper.ts, will be replaced by LLMRegistry
 export const getAllowedCompletionTokens = (model) => {
   // Use window models directly to ensure we always have the latest values
   const modelInfo = window['__LLM_MODELS__']?.[model];

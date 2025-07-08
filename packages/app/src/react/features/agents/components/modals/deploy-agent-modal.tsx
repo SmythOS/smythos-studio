@@ -18,7 +18,7 @@ import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
-import { PostHog } from '@src/frontend/services/posthog';
+import { PostHog } from '@src/builder-ui/services/posthog';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';

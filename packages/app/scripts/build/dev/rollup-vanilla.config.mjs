@@ -37,7 +37,7 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default [
   {
-    input: './src/frontend/index.ts',
+    input: './src/builder-ui/index.ts',
     output: {
       entryFileNames: 'index.dev.js',
       dir: path.resolve(currentDir, '../../../static/js/build'),
@@ -79,7 +79,7 @@ export default [
       copy({
         targets: [
           {
-            src: path.resolve(currentDir, '../../../src/frontend/data/*'),
+            src: path.resolve(currentDir, '../../../src/builder-ui/data/*'),
             dest: path.resolve(currentDir, '../../../static/data'),
           },
         ],

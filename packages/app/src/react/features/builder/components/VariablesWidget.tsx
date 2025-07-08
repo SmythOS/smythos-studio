@@ -1,4 +1,4 @@
-import { Workspace } from '@src/frontend/workspace/Workspace.class';
+import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 import { getAgent } from '@src/react/features/agent-settings/clients';
 import WidgetCard from '@src/react/features/agent-settings/components/WidgetCard';
 import * as agentSettingsUtils from '@src/react/features/agents/utils';

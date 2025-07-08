@@ -19,9 +19,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-json.js';
 import 'prismjs/themes/prism-okaidia.css';
 import { FEATURE_FLAGS } from '../shared/constants/featureflags';
-import {
-  SMYTHOS_DOCS_URL
-} from '../shared/constants/general';
+import { SMYTHOS_DOCS_URL } from '../shared/constants/general';
 import { EmbodimentRPCManager } from '../shared/services/embodiment_rpc_manager';
 import {
   DebugInjectOutputFields,
@@ -1978,7 +1976,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
   // Commented out, as we need to keep the debug UI info even if the new workflow is started
   // clearDebugUIInfo();
 
-  // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
+  // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
   // const runBtn = document.getElementById('debug-menubtn-run');
   // const stepBtn = document.getElementById('debug-menubtn-step');
   // const attachBtn = document.getElementById('debug-menubtn-attach');
@@ -2054,7 +2052,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
   })
     .then((res) => res.json())
     .catch((error) => {
-      // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
+      // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
       // runBtn.removeAttribute('disabled');
       // stepBtn.removeAttribute('disabled');
       // attachBtn.removeAttribute('disabled');
@@ -2067,7 +2065,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
 
   debugSessions[agentID].sessionID = result.dbgSession;
 
-  // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
+  // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
   // runBtn.removeAttribute('disabled');
   // stepBtn.removeAttribute('disabled');
   // attachBtn.removeAttribute('disabled');

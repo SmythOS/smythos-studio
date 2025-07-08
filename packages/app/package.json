@@ -10,7 +10,7 @@
     "build:backend:prod": "rollup --config ./scripts/build/prod/rollup-be.config.mjs",
     "build:all": "echo 'DEPRECATED command, consider using bundle:dev and bundle:prod instead' && pnpm run bundle:dev",
     "build:all:prod": "echo 'DEPRECATED command, consider using bundle:prod instead' && pnpm run bundle:prod",
-    "build:css": "tailwindcss build -i src/frontend/styles/tailwind-v2.css -o static/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
+    "build:css": "tailwindcss build -i src/builder-ui/styles/tailwind-v2.css -o static/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
     "preview": "node ./dist/server/index.js",
     "bundle:prod": "pnpm run build:backend:prod && pnpm run build:css && pnpm run build:frontend:prod",
     "bundle:dev": "pnpm run build:backend && pnpm run build:css && pnpm run build:frontend",

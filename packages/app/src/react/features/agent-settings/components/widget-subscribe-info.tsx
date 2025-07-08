@@ -2,7 +2,7 @@ import { Button } from '@react/shared/components/ui/newDesign/button';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { useEffect } from 'react';
-import config from '../../../../frontend/config';
+import config from '../../../../builder-ui/config';
 
 type Props = {
   infoText: string;

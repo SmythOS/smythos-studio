@@ -3,7 +3,10 @@ import * as dbg from '../../debugger';
 import { closeRightSidebar, createRightSidebar, showOverlay } from '../../ui/dialogs';
 import { Workspace } from '../../workspace/Workspace.class';
 
-import { renderAgentDeploymentSidebar, renderMobileHandler } from '@src/frontend/ui/react-injects';
+import {
+  renderAgentDeploymentSidebar,
+  renderMobileHandler,
+} from '@src/builder-ui/ui/react-injects';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
 import { popupValuesDialog } from '../../ui/tw-dialogs';
 import { delay } from '../../utils';
