@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { config } from '../../../config/config';
-import { userRouter } from '../../modules/user/routes';
 import { aiAgentRouter } from '../../modules/ai-agent/routes';
 import { embodimentRouter } from '../../modules/embodiment/routes';
-import { teamRouter } from '../../modules/team/routes/team.route';
 import { subscriptionRouter } from '../../modules/subscription/routes/subscription.route';
+import { teamRouter } from '../../modules/team/routes/team.route';
+import { userRouter } from '../../modules/user/routes';
+import { vaultRouter } from '../../modules/vault/routes/vault.route';
 
 const mainRouter = Router();
 
@@ -35,6 +36,10 @@ const defaultRoutes: Route[] = [
   {
     rootPath: '/',
     route: subscriptionRouter,
+  },
+  {
+    rootPath: '/vault/v1/api/',
+    route: vaultRouter,
   },
 ];
 
