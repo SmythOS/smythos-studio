@@ -4,7 +4,7 @@ import path from 'path';
 import { cwd } from 'process';
 import { vaultMessages } from '../constants/vault.constants';
 
-const sre = SRE.init({
+SRE.init({
   Vault: {
     Connector: 'JSONFileVault', Settings: {
       file: process.env.VAULT_FILE_PATH
@@ -33,22 +33,9 @@ export function formatSecretData(secret, secretId) {
 export async function createSecret({ teamId, secretId, key, value, metadata }) {
   try {
     // create secret in JSON vault
-    await sre.ready();
-    const vaultConnector = ConnectorService.getVaultConnector();
+    const vaultConnector = await getVaultConnector();
     let filePath = vaultConnector?._settings?.file;
-    if (!filePath) {
-      filePath = `${cwd()}/vault.json`
-      SRE.init({
-        Vault: {
-          Connector: 'JSONFileVault', Settings: {
-            file: filePath
-          }
-        }
-      });
-    }
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, '{}');
-    }
+
     const currentData = fs.readFileSync(filePath, 'utf8');
     const newData = JSON.parse(currentData);
     if (!newData[teamId]) {
@@ -76,8 +63,7 @@ export async function createSecret({ teamId, secretId, key, value, metadata }) {
 
 export async function updateSecretMetadata({ teamId, secretId, metadata }) {
   try {
-    await sre.ready();
-    const vaultConnector = ConnectorService.getVaultConnector();
+    const vaultConnector = await getVaultConnector();
     const secretFilePath = vaultConnector?._settings?.file;
     const metadataFilePath = getMetadataPath(secretFilePath);
 
@@ -97,8 +83,7 @@ export async function updateSecretMetadata({ teamId, secretId, metadata }) {
 
 export async function getAllSecrets(teamId: string, metadataFilter: string = '') {
   try {
-    await sre.ready();
-    const vaultConnector = ConnectorService.getVaultConnector();
+    const vaultConnector = await getVaultConnector();
     const allSecrets = await vaultConnector.team(teamId).listKeys();
     let secretsResponse = await Promise.all(allSecrets.map(secret => getSecret(teamId, secret)));
     let secrets = secretsResponse?.filter(secret => secret !== null);
@@ -172,8 +157,7 @@ export async function checkSecretExistsByName(teamId: string, secretName: string
 }
 
 export async function deleteSecretById(teamId: string, secretId: string) {
-  await sre.ready();
-  const vaultConnector = ConnectorService.getVaultConnector();
+  const vaultConnector = await getVaultConnector();
   const secretFilePath = vaultConnector?._settings?.file;
   const metadataFilePath = getMetadataPath(secretFilePath);
 
@@ -224,8 +208,7 @@ async function setSecretMetadata(teamId: string, secretId: string, metadataFileP
 
 export async function getSecretsCount(teamId: string) {
   try {
-    await sre.ready();
-    const vaultConnector = ConnectorService.getVaultConnector();
+    const vaultConnector = await getVaultConnector();
     const allSecrets = await vaultConnector.team(teamId).listKeys();
     return { success: vaultMessages.SUCCESS_GET_ALL_SECRETS_COUNT, count: allSecrets.length };
 
@@ -237,8 +220,7 @@ export async function getSecretsCount(teamId: string) {
 
 async function getSecret(teamId: string, secretId: string) {
   try {
-    await sre.ready();
-    const vaultConnector = ConnectorService.getVaultConnector();
+    const vaultConnector = await getVaultConnector();
     const secret = await vaultConnector.team(teamId).get(secretId);
     const metadataFilePath = getMetadataPath(vaultConnector?._settings?.file);
     const metadata = await getSecretMetadata(teamId, secretId, metadataFilePath);
@@ -274,4 +256,20 @@ function getMetadataPath(filePath: string) {
     fs.writeFileSync(metadataFilePath, '{}');
   }
   return metadataFilePath;
+}
+
+async function getVaultConnector() {
+  const vaultConnector = ConnectorService.getVaultConnector();
+  let filePath = vaultConnector?._settings?.file;
+  if (!filePath) {
+    filePath = `${cwd()}/vault.json`
+  }
+
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, '{}');
+  }
+
+  return vaultConnector.instance({
+    file: filePath
+  })
 }
