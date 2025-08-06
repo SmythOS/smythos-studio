@@ -410,7 +410,7 @@ export const SpaceSettings: FC = () => {
         isLoading={deleteSubTeamMutation.isLoading}
         btnText="Delete"
         title="Confirm Space Deletion"
-        description="Are you sure you want to delete this space?"
+        description="Are you sure you want to delete this space? Deleting space will remove all agents, data, and keys associated."
       />
 
       <SettingsModal

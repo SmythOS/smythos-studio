@@ -49,7 +49,7 @@ export default function UsageAnalytics({
   return (
     <div className="mx-auto pl-12 md:pl-0">
       <div className="rounded-lg bg-white pr-1 md:pr-0">
-        <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 mb-5 lg:flex-row lg:items-center lg:justify-between">
           <h1 className="text-[24px] font-semibold text-black">Model Usage</h1>
 
           <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-row">
@@ -114,7 +114,7 @@ export default function UsageAnalytics({
         </div>
 
         {totalUsage !== null && userSubs?.plan?.properties?.flags?.modelCostMultiplier && (
-          <div className="w-full lg:w-max bg-white rounded-[16px] px-5 py-4 border-[1px] border-solid border-gray-200 mb-6">
+          <div className="w-full lg:w-max bg-white rounded-[16px] px-5 py-4 border-[1px] border-solid border-gray-200 mb-8">
             <h2 className="text-[13px] font-normal text-[#6B7280]">Total Model Usage</h2>
             <p className="text-[32px] font-semibold text-black mt-1">${totalUsage.toFixed(5)}</p>
           </div>
@@ -131,10 +131,15 @@ export default function UsageAnalytics({
           )}
         </div>
 
-        <p className="text-[13px] leading-5 text-[#6B7280] mt-6">
+        <p className="text-[13px] leading-5 text-[#6B7280] mt-8">
           SmythOS provides API keys for many AI models for your convenience. When you use our
           models, you pay SmythOS instead of the AI model provider. See{' '}
-          <a href={`${SMYTHOS_DOCS_URL}/account-management/model-rates`} className="underline">
+          <a
+            href={`${SMYTHOS_DOCS_URL}/account-management/model-rates`}
+            className="underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             documentation
           </a>
           .

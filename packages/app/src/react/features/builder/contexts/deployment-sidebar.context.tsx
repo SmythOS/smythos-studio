@@ -1,7 +1,12 @@
-import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
+import { Workspace } from '@src/frontend/workspace/Workspace.class';
 import { queryClient } from '@src/react/shared/query-client';
 import { Deployment, Domain } from '@src/react/shared/types/api-results.types';
-import { UseMutationResult, UseQueryResult, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  UseMutationResult,
+  UseQueryResult,
+  useMutation,
+  useQuery
+} from '@tanstack/react-query';
 import { FC, ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
 declare const workspace: Workspace;
@@ -43,7 +48,9 @@ interface DeploymentSidebarProviderProps {
   workspace: Workspace;
 }
 
-export const DeploymentSidebarProvider: FC<DeploymentSidebarProviderProps> = ({ children }) => {
+export const DeploymentSidebarProvider: FC<DeploymentSidebarProviderProps> = ({
+  children,
+}) => {
   const ALL_DEPLOYMENTS_QUERY_KEY = ['all-deployments', workspace.agent.id];
   const [lastMajorVersion, setLastMajorVersion] = useState<number | null>(null);
   const [lastMinorVersion, setLastMinorVersion] = useState<number | null>(null);

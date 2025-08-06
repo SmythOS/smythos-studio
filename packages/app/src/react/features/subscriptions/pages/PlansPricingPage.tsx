@@ -4,9 +4,10 @@ import { FaAngleRight, FaArrowRight, FaCheck } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 
 import { BuildAgents } from '@react/features/subscriptions/components/plans/build-agents';
-import config from '@src/builder-ui/config';
+import config from '@src/frontend/config';
 import plansDev from '@src/react/features/subscriptions/data/plans.v4.dev.json';
 import plansProd from '@src/react/features/subscriptions/data/plans.v4.prod.json';
+import { generatePricingUrl } from '@src/react/features/subscriptions/utils';
 import { FeatureFlagged } from '@src/react/shared/components/featureFlags';
 import {
   BuilderPlanIcon,
@@ -106,12 +107,10 @@ const PricingTierItem: FC<PricingTier> = ({
       });
       await res.json();
       await refreshUserData();
+      window.location.href = '/my-plan?upgraded=true';
       setShowConfirmationDialog(false);
-      toast.success('Your subscription has been updated.');
-      navigateTo('/my-plan', false);
     } catch (error) {
       const errorMessage = extractError(error);
-
       if (errorMessage === 'Invalid promo code') {
         return setPromoCodeInfo({ type: 'error', message: errorMessage });
       }
@@ -188,13 +187,6 @@ const PricingTierItem: FC<PricingTier> = ({
 
       navigateTo(url);
     } catch (error) {}
-  };
-
-  const generatePricingUrl = (url: string, priceIds: { priceId: string; for: string }[]) => {
-    const queryParams = priceIds
-      .map(({ priceId, for: forWhat }) => `${forWhat}=${priceId}`)
-      .join('&');
-    return `${url}?${queryParams}`;
   };
 
   const getButtonContent = () => {
@@ -369,7 +361,7 @@ const PricingTierItem: FC<PricingTier> = ({
 
   return (
     <>
-      <div className="pricing-tier-item bg-white border border-solid border-[#313131] border-opacity-30 rounded-2xl w-full min-w-[290px] max-w-[360px] md:max-w-[340px] md:h-[610px] h-max overflow-hidden flex flex-col">
+      <div className="pricing-tier-item bg-white border border-solid border-[#313131] border-opacity-30 rounded-2xl w-full min-w-[260px] max-w-[360px] md:max-w-[340px] md:h-[610px] h-max overflow-hidden flex flex-col">
         <div className="pricing-tier-item-header h-[7rem] min-h-[7rem] bg-[#F5F5F5] flex flex-col gap-1 p-4 border-b-1 border-solid border-[#313131] border-opacity-30">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
@@ -559,7 +551,7 @@ export const PlansPricingPage: FC<{ isInternalPage?: boolean }> = ({ isInternalP
     );
 
     return (
-      <div className="pricing-page-iframe" data-iframe-height>
+      <div className="pricing-page-iframe ml-16 md:ml-0" data-iframe-height>
         {isInternalPage && (
           <div className="flex flex-col items-center md:items-start my-4">
             <h2 className="text-lg font-bold">Manage Your Subscription</h2>

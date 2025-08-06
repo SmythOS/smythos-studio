@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import UsageAnalytics from '@react/features/analytics/components/usage-analytics';
 import { fetchLLMAndApiUsage } from '@react/features/analytics/client/usageAnalytics';
+import UsageAnalytics from '@react/features/analytics/components/usage-analytics';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useAuthCtx } from '../../../shared/contexts/auth.context';
 
 export interface ApiData {
@@ -65,34 +66,45 @@ function AnalyticsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const data = await fetchLLMAndApiUsage(userContext?.currentUserTeam?.id, selectedMonth);
+      try {
+        const data = await fetchLLMAndApiUsage(userContext?.currentUserTeam?.id, selectedMonth);
 
-      let detectedType: 'usage' | 'tasks' | null = null;
+        let detectedType: 'usage' | 'tasks' | null = null;
 
-      // Loop through data to determine if it contains sources or tasks
-      if (data?.usage?.analytics) {
-        for (const team of data.usage.analytics) {
-          if (team.data?.days) {
-            for (const day of Object.values(team.data.days) as any) {
-              for (const agent of Object.values(day.agents || {}) as any) {
-                if ('sources' in agent) {
-                  detectedType = 'usage';
-                  break;
-                }
-                if ('tasks' in agent) {
-                  detectedType = 'tasks';
-                  break;
+        // Loop through data to determine if it contains sources or tasks
+        if (data?.usage?.analytics) {
+          for (const team of data.usage.analytics) {
+            if (team.data?.days) {
+              for (const day of Object.values(team.data.days) as any) {
+                for (const agent of Object.values(day.agents || {}) as any) {
+                  if ('sources' in agent) {
+                    detectedType = 'usage';
+                    break;
+                  }
+                  if ('tasks' in agent) {
+                    detectedType = 'tasks';
+                    break;
+                  }
                 }
               }
             }
+            if (detectedType) break;
           }
-          if (detectedType) break;
         }
-      }
 
-      setLlmAndApiUsage(data);
-      setDataType(detectedType);
-      setIsLoading(false);
+        setLlmAndApiUsage(data);
+        setDataType(detectedType);
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error('Error fetching usage data. Please try again later.');
+        }
+        setLlmAndApiUsage(null);
+        setDataType(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
@@ -393,6 +405,8 @@ function AnalyticsPage() {
 
     if (!hasNoData) {
       exportToCSV(chartData, dataType);
+    } else {
+      toast.info('No data to export');
     }
   };
 

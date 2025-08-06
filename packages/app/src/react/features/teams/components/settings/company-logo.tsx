@@ -58,19 +58,19 @@ export const CompanyLogo: FC<CompanyLogoProps> = (props) => {
           </>
         ) : (
           <div className="text-gray-600">
-            To access space customization and&nbsp;
+            To access space customization and{' '}
             <a
               href={`${SMYTHOS_DOCS_URL}/account-management/spaces-management/#branding-your-space`}
               target="_blank"
               className="text-blue-500 hover:underline"
             >
               whitelabeling
-            </a>
-            &nbsp;features,&nbsp;
+            </a>{' '}
+            features,{' '}
             <a href="/plans" className="text-blue-500 hover:underline">
               upgrade
-            </a>
-            &nbsp;to Scaleup or Enterprise license.
+            </a>{' '}
+            to Scaleup or Enterprise license.
           </div>
         )}
       </div>

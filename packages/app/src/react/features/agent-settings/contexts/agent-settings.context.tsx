@@ -12,7 +12,7 @@ import { createContext, FC, ReactNode, useContext, useEffect, useState } from 'r
 import { useParams } from 'react-router';
 
 import { useAgentSettings } from '@react/features/ai-chat/hooks/agent-settings';
-import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
+import { Workspace } from '@src/frontend/workspace/Workspace.class';
 
 declare const workspace: Workspace;
 

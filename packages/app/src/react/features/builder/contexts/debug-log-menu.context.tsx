@@ -1,18 +1,6 @@
 import { EventSourceMessage, fetchEventSource } from '@microsoft/fetch-event-source';
-import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
-import {
-  createContext,
-  Dispatch,
-  FC,
-  ReactNode,
-  SetStateAction,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { Workspace } from '@src/frontend/workspace/Workspace.class';
+import { createContext, Dispatch, FC, ReactNode, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Enum for available debug menu tabs
@@ -67,7 +55,7 @@ export interface NetworkRequest {
  * Type definitions for the Debug Log Menu context
  */
 interface DebugLogMenuContextType {
-  workspace?: Workspace;
+    workspace?: Workspace;
   /**
    * Currently active tab in the debug menu
    */
@@ -123,7 +111,7 @@ export const getTabHeight = (activeTab: DebugMenuTab) => {
  * Initial state for the Debug Log Menu context
  */
 const initialState: DebugLogMenuContextType = {
-  workspace: undefined,
+    workspace: undefined,
   activeTab: null,
   setActiveTab: () => undefined,
   isExpanded: false,
@@ -143,7 +131,7 @@ const initialState: DebugLogMenuContextType = {
     filters: {
       componentNames: [],
       selectedComponentNames: [],
-    },
+    }
   },
   updateNetworkUIState: () => {},
 };
@@ -154,9 +142,9 @@ const initialState: DebugLogMenuContextType = {
 const DebugLogMenuContext = createContext<DebugLogMenuContextType | null>(null);
 
 interface DebugLogMenuProviderProps {
-  children: ReactNode;
-  workspace: Workspace;
-}
+    children: ReactNode;
+    workspace: Workspace;
+  }
 
 /**
  * Creates and sets up a monitor connection using fetch-event-source
@@ -206,13 +194,13 @@ async function setupMonitor(
 /**
  * Provider component for Debug Log Menu context
  */
-export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, workspace }) => {
+export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({
+    children,
+  workspace,
+  }) => {
   const [activeTab, setActiveTab] = useState<DebugMenuTab | null>(DebugMenuTab.LOGS);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [monitorState, setMonitorState] = useState<MonitorState>({
-    monitorId: null,
-    controller: null,
-  });
+  const [monitorState, setMonitorState] = useState<MonitorState>({ monitorId: null, controller: null });
   const [logs, setLogs] = useState<DebugLogMenuContextType['logs']>([]);
   const [unreadLogsCount, setUnreadLogsCount] = useState(0);
   const [networkRequests, setNetworkRequests] = useState<Record<string, NetworkRequest>>({});
@@ -224,30 +212,30 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
     filters: {
       componentNames: [],
       selectedComponentNames: [],
-    },
+    }
   });
 
   // Create a ref to track the current recording state
   const isNetworkRecordingRef = useRef(true);
 
   // Derived state for UI rendering
-  const networkRequestsArray = useMemo(
-    () => Object.values(networkRequests).sort((a, b) => a.startTime - b.startTime),
-    [networkRequests],
+  const networkRequestsArray = useMemo(() =>
+    Object.values(networkRequests).sort((a, b) => a.startTime - b.startTime),
+    [networkRequests]
   );
 
   // Extract unique component names from network requests
   useEffect(() => {
     const uniqueComponentNames = Array.from(
-      new Set(networkRequestsArray.map((req) => req.componentName)),
+      new Set(networkRequestsArray.map(req => req.componentName))
     ).sort();
 
-    setNetworkUIState((prev) => {
+    setNetworkUIState(prev => {
       // If we have new component names, update the filters
       if (JSON.stringify(uniqueComponentNames) !== JSON.stringify(prev.filters.componentNames)) {
         // Add any new component names to the selected list
         const newSelectedNames = [...prev.filters.selectedComponentNames];
-        uniqueComponentNames.forEach((name) => {
+        uniqueComponentNames.forEach(name => {
           if (!prev.filters.componentNames.includes(name)) {
             newSelectedNames.push(name);
           }
@@ -258,7 +246,7 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
           filters: {
             componentNames: uniqueComponentNames,
             selectedComponentNames: newSelectedNames,
-          },
+          }
         };
       }
       return prev;
@@ -269,7 +257,7 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
   const handleNetworkEvent = useCallback((data: any) => {
     if (!data.eventId) return;
 
-    setNetworkRequests((prev) => {
+    setNetworkRequests(prev => {
       if (data.action === 'callStart') {
         // Create a new network request entry
         const newRequest: NetworkRequest = {
@@ -282,21 +270,22 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
           status: 0,
           startTime: data.startTime,
           requestBody: data.input,
-          state: 'pending',
+          state: 'pending'
         };
 
         // Update state with new request using hashmap approach
         return {
           ...prev,
-          [data.eventId]: newRequest,
+          [data.eventId]: newRequest
         };
-      } else if (data.action === 'callStop') {
+      }
+      else if (data.action === 'callStop') {
         // Update existing request using hashmap approach
         const existingRequest = prev[data.eventId];
 
         if (!existingRequest) {
           // Handle out-of-order events - create a complete request if start wasn't seen
-          return {
+            return {
             ...prev,
             [data.eventId]: {
               eventId: data.eventId,
@@ -312,8 +301,8 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
               requestBody: {},
               responseBody: data.output,
               responseHeaders: data.output?.headers || {},
-              state: 'complete',
-            },
+              state: 'complete'
+            }
           };
         }
 
@@ -327,25 +316,26 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
             status: data.status ? data.status : data.output?._error ? 400 : 200,
             responseHeaders: data.output?.headers || {},
             responseBody: data.output,
-            state: 'complete',
-          },
+            state: 'complete'
+          }
         };
-      } else if (data.action === 'usage') {
+      }
+      else if (data.action === 'usage') {
         // Update existing request with cost information
         const existingRequest = prev[data.eventId];
-
+        
         if (!existingRequest) {
           // If somehow we got usage data without an existing request, we can't do much
           return prev;
         }
-
+        
         // Add cost information to the existing request
         return {
           ...prev,
           [data.eventId]: {
             ...existingRequest,
-            cost: data.cost,
-          },
+            cost: data.cost
+          }
         };
       }
 
@@ -355,25 +345,32 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
 
   // Listen to workspace monitor events
   useEffect(() => {
-    console.log('EFFECT: running');
+    console.log("EFFECT: running")
     if (!workspace) return;
 
+
+
+    
+
+
     const setupMonitorListeners = () => {
+     
+
       const handleComponentEvent = (event: any) => {
         // Only process network events if recording is enabled
         if (!isNetworkRecordingRef.current) return;
 
         handleNetworkEvent(event.data);
 
-        let message = '';
+        let message = "";
 
-        if (event.data.action === 'callStart') {
+        if (event.data.action === "callStart") {
           message = `[Running Component] ${event.data.name}:${event.data.title}`;
-        } else if (event.data.action === 'callStop' && event.data.duration) {
-          message = `[Completed Component] ${event.data.name}:${event.data.title} (${event.data.duration / 1000}s)`;
-        } else if (event.data.action === 'log') {
+        } else if (event.data.action === "callStop" && event.data.duration) {
+          message = `[Completed Component] ${event.data.name}:${event.data.title} (${event.data.duration/1000}s)`;
+        } else if (event.data.action === "log") {
           message = `[Component Log] ${event.data.name}:${event.data.title}`;
-        } else if (event.data.action === 'usage') {
+        } else if (event.data.action === "usage") {
           const totalCost = event.data.cost.reduce((sum, item) => sum + item.units, 0).toFixed(8);
           message = `[Cost] ${event.data.name || 'Component'} - $${totalCost}`;
         }
@@ -381,19 +378,16 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
         // Only add to logs if we have a message
         if (message) {
           // Handle logs
-          setLogs((prev) => [
-            ...prev,
-            {
-              type: 'component',
-              timestamp: event.timestamp,
-              message: message,
-              data: event.data,
-            },
-          ]);
+          setLogs(prev => [...prev, {
+            type: 'component',
+            timestamp: event.timestamp,
+            message: message,
+            data: event.data
+          }]);
 
           // Handle unread count
           if (activeTab !== DebugMenuTab.LOGS) {
-            setUnreadLogsCount((prev) => prev + 1);
+            setUnreadLogsCount(prev => prev + 1);
           } else if (activeTab === DebugMenuTab.LOGS && unreadLogsCount > 0) {
             setUnreadLogsCount(0);
           }
@@ -401,20 +395,17 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
       };
 
       const handleAgentEvent = (event: any) => {
-        setLogs((prev) => [
-          ...prev,
-          {
-            type: 'agent',
-            timestamp: event.timestamp,
-            message: event.data.duration
-              ? `[Completed Agent] ${event.data.id}:${event.data.name} (${event.data.duration / 1000}s)`
-              : `[Running Agent] ${event.data.id}:${event.data.name}`,
-            data: event.data,
-          },
-        ]);
+        setLogs(prev => [...prev, {
+          type: 'agent',
+          timestamp: event.timestamp,
+          message: event.data.duration
+            ? `[Completed Agent] ${event.data.id}:${event.data.name} (${event.data.duration/1000}s)`
+            : `[Running Agent] ${event.data.id}:${event.data.name}`,
+          data: event.data
+        }]);
 
         if (activeTab !== DebugMenuTab.LOGS) {
-          setUnreadLogsCount((prev) => prev + 1);
+          setUnreadLogsCount(prev => prev + 1);
         }
       };
 
@@ -455,6 +446,7 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
     };
 
     setupMonitorListeners();
+    
   }, [workspace, activeTab, unreadLogsCount, handleNetworkEvent, isNetworkRecordingRef]);
 
   // Remove the old monitor initialization code
@@ -475,14 +467,14 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
   }, [isNetworkRecording]);
 
   // Add effect to toggle class on studio element
-  useEffect(() => {
+    useEffect(() => {
     const studioElement = document.getElementById('studio');
     const activeTabHeight = getTabHeight(activeTab);
     if (studioElement) {
       if (activeTab !== null) {
         // remove the rest of the debug-log-menu-opened-* classes
         const classes = studioElement.classList;
-        classes.forEach((cls) => {
+        classes.forEach(cls => {
           if (cls.startsWith('debug-log-menu-opened-')) {
             classes.remove(cls);
           }
@@ -491,7 +483,7 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
       } else {
         // remove all debug-log-menu-opened-* classes
         const classes = studioElement.classList;
-        classes.forEach((cls) => {
+        classes.forEach(cls => {
           if (cls.startsWith('debug-log-menu-opened-')) {
             classes.remove(cls);
           }
@@ -520,7 +512,7 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
 
   // Toggle network recording
   const toggleNetworkRecording = useCallback(() => {
-    setIsNetworkRecording((prev) => {
+    setIsNetworkRecording(prev => {
       const newValue = !prev;
       console.log('Network recording toggled from', prev, 'to', newValue);
       // Update the ref to match the new state
@@ -530,20 +522,17 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
   }, []);
 
   // Update network UI state
-  const updateNetworkUIState = useCallback(
-    (updates: Partial<DebugLogMenuContextType['networkUIState']>) => {
-      setNetworkUIState((prev) => ({
-        ...prev,
-        ...updates,
-      }));
-    },
-    [],
-  );
+  const updateNetworkUIState = useCallback((updates: Partial<DebugLogMenuContextType['networkUIState']>) => {
+    setNetworkUIState(prev => ({
+      ...prev,
+      ...updates
+    }));
+  }, []);
 
   return (
     <DebugLogMenuContext.Provider
-      value={{
-        workspace,
+        value={{
+          workspace,
         activeTab,
         setActiveTab,
         isExpanded,
@@ -560,9 +549,9 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
         toggleNetworkRecording,
         networkUIState,
         updateNetworkUIState,
-      }}
-    >
-      {children}
+        }}
+      >
+        {children}
     </DebugLogMenuContext.Provider>
   );
 };
@@ -573,8 +562,10 @@ export const DebugLogMenuProvider: FC<DebugLogMenuProviderProps> = ({ children, 
  */
 export const useDebugLogMenuCtx = (): DebugLogMenuContextType => {
   const context = useContext(DebugLogMenuContext);
-  if (!context) {
-    throw new Error('useDebugLogMenuCtx must be used within a DebugLogMenuProvider');
-  }
-  return context;
-};
+    if (!context) {
+    throw new Error(
+      'useDebugLogMenuCtx must be used within a DebugLogMenuProvider'
+    );
+    }
+    return context;
+  };

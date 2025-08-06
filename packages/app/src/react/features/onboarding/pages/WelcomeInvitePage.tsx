@@ -11,9 +11,8 @@ import { FRONTEND_USER_SETTINGS } from '@src/react/shared/enums';
 import { queryClient } from '@src/react/shared/query-client';
 import * as apiPayloadTypes from '@src/react/shared/types/api-payload.types';
 import { SmythAPIError } from '@src/react/shared/types/api-results.types';
-import { IMembershipTeam, ITeam } from '@src/react/shared/types/entities';
+import { cn } from '@src/react/shared/utils/general';
 import { teamSettingKeys } from '@src/shared/teamSettingKeys';
-import { userSettingKeys } from '@src/shared/userSettingKeys';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
@@ -25,11 +24,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { FaCheck, FaRegSquarePlus, FaTriangleExclamation } from 'react-icons/fa6';
+import { FaCheck, FaPlus, FaTriangleExclamation } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 import { InviteMemberWarning } from '../../teams/components/teams/invite-member-warning';
 import { PageCard } from '../components/PageCard';
@@ -114,19 +114,63 @@ const BodyComponent = ({
   const { emailFields, setEmailFields } = extraProps || {};
   const maxEmails = isShareAgent ? 10 : 25;
   const [lastSelectedRoleId, setLastSelectedRoleId] = useState<string | null>(
-    extraProps?.defaultCurrentTeamRole?.toString() || null,
+    extraProps?.defaultCurrentTeamRole !== null && extraProps?.defaultCurrentTeamRole !== undefined
+      ? extraProps.defaultCurrentTeamRole.toString()
+      : null,
   );
+  const {
+    parentTeamMembers,
+    currentUserTeamMembers,
+    currentUserTeam,
+    hasReadOnlyPageAccess,
+    userInfo,
+  } = useAuthCtx();
+
+  const canInviteOutsideTeam = useMemo(() => {
+    return !hasReadOnlyPageAccess('/teams/members', false);
+  }, [currentUserTeam, hasReadOnlyPageAccess]);
+
+  const canInviteOutsideOrg = useMemo(() => {
+    return !hasReadOnlyPageAccess('/teams/members', true);
+  }, [currentUserTeam, hasReadOnlyPageAccess]);
 
   useEffect(() => {
-    if (extraProps?.defaultCurrentTeamRole) {
+    if (
+      extraProps?.defaultCurrentTeamRole !== null &&
+      extraProps?.defaultCurrentTeamRole !== undefined
+    ) {
       setLastSelectedRoleId(extraProps.defaultCurrentTeamRole.toString());
+    } else if (extraProps?.currTeamRoles?.length > 0) {
+      // Use the first role from currTeamRoles as default (matching dropdown behavior)
+      setLastSelectedRoleId(extraProps.currTeamRoles[0].id?.toString() || '');
     }
-  }, [extraProps?.defaultCurrentTeamRole]);
+  }, [extraProps?.defaultCurrentTeamRole, extraProps?.currTeamRoles]);
+
+  // Update initial email fields that have empty roleId when the correct role becomes available
+  useEffect(() => {
+    if (lastSelectedRoleId && setEmailFields) {
+      setEmailFields((prevFields) => {
+        if (!prevFields) return prevFields;
+        let hasEmptyRoleId = false;
+        const updatedFields = prevFields.map((field) => {
+          if (!field.roleId || field.roleId === '') {
+            hasEmptyRoleId = true;
+            return { ...field, roleId: lastSelectedRoleId };
+          }
+          return field;
+        });
+        // Only update if there were fields with empty roleId
+        return hasEmptyRoleId ? updatedFields : prevFields;
+      });
+    }
+  }, [lastSelectedRoleId, setEmailFields]);
 
   const handleAddEmail = () => {
     if (!setEmailFields) return;
 
     if ((emailFields?.length || 0) < maxEmails) {
+      const defaultRoleId =
+        lastSelectedRoleId || extraProps?.currTeamRoles?.[0]?.id?.toString() || '';
       setEmailFields((prevFields) => {
         if (!prevFields) return prevFields;
         return [
@@ -135,7 +179,7 @@ const BodyComponent = ({
             id: prevFields.length + 1,
             email: '',
             isValid: null,
-            roleId: lastSelectedRoleId,
+            roleId: defaultRoleId,
             invitationStatus: null,
             isDisabled: false,
           },
@@ -148,34 +192,118 @@ const BodyComponent = ({
     }
   };
 
+  const checkAccessForEmail = (email: string) => {
+    const trimmedEmail = email.trim();
+    if (trimmedEmail == userInfo?.user?.email) {
+      return 'You cannot invite yourself';
+    }
+    if (!currentUserTeam?.parentId) {
+      const isUserAlreadyAMember = currentUserTeamMembers?.find(
+        (member) => member.email === trimmedEmail,
+      );
+      if (!isUserAlreadyAMember && !canInviteOutsideTeam) {
+        return 'You do not have permission to invite outside your team';
+      }
+      return null;
+    } else {
+      const isUserAlreadyAMember = currentUserTeamMembers?.find(
+        (member) => member.email === trimmedEmail,
+      );
+      const isUserAlreadyAMemberInOrg = parentTeamMembers?.find(
+        (member) => member.email === trimmedEmail,
+      );
+      if (isUserAlreadyAMember) {
+        return null;
+      } else if (isUserAlreadyAMemberInOrg && canInviteOutsideTeam) {
+        return null;
+      } else if (isUserAlreadyAMemberInOrg && !canInviteOutsideTeam) {
+        return 'You do not have permission to invite outside your team';
+      } else if (!isUserAlreadyAMemberInOrg && !isUserAlreadyAMember && canInviteOutsideOrg) {
+        return null;
+      }
+      return 'You do not have permission to invite outside your organization';
+    }
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!setEmailFields) return;
 
-    const index = e.target.name.split('-')[1];
+    const nameParts = e.target.name.split('-');
+    const indexStr = nameParts[1];
+
+    if (!indexStr || isNaN(Number(indexStr))) {
+      console.error('Invalid input name format:', e.target.name);
+      return;
+    }
+
+    const index = Number(indexStr);
     const email = e.target.value;
     const trimmedEmail = email.trim();
 
     setEmailFields((prevEmails) => {
       if (!prevEmails) return prevEmails;
       const newEmails = [...prevEmails];
-      // Don't allow changes if field is disabled
-      if (newEmails[index]?.isDisabled) {
+      // Don't allow changes if field is disabled or index is invalid
+      if (index >= newEmails.length || newEmails[index]?.isDisabled) {
         return prevEmails;
       }
+
+      // Update the email value first
       newEmails[index].email = email;
-      if (!trimmedEmail.length) {
-        newEmails[index].isValid = null;
-        newEmails[index].error = '';
-      } else if (!isEmailValid(trimmedEmail)) {
-        newEmails[index].isValid = false;
-        newEmails[index].error = 'Invalid email';
-      } else if (newEmails.filter((e) => e.email.trim() === trimmedEmail).length !== 1) {
-        newEmails[index].isValid = false;
-        newEmails[index].error = 'Email already added';
-      } else {
-        newEmails[index].isValid = true;
-        newEmails[index].error = '';
-      }
+
+      // Create a map to track the first occurrence of each email
+      const emailFirstOccurrence = new Map<string, number>();
+
+      // Find the first occurrence of each email
+      newEmails.forEach((field, fieldIndex) => {
+        const fieldTrimmedEmail = field.email.trim();
+        if (fieldTrimmedEmail !== '' && !emailFirstOccurrence.has(fieldTrimmedEmail)) {
+          emailFirstOccurrence.set(fieldTrimmedEmail, fieldIndex);
+        }
+      });
+
+      // Now validate all fields
+      newEmails.forEach((field, fieldIndex) => {
+        const fieldTrimmedEmail = field.email.trim();
+        const accessError = checkAccessForEmail(fieldTrimmedEmail);
+
+        if (!fieldTrimmedEmail.length) {
+          // Reset all error-related properties when field is cleared
+          field.isValid = null;
+          field.error = '';
+          field.invitationStatus = null;
+          field.invitationError = '';
+        } else if (accessError) {
+          field.isValid = false;
+          field.error = accessError;
+          // Reset invitation status when validation changes
+          field.invitationStatus = null;
+          field.invitationError = '';
+        } else if (!isEmailValid(fieldTrimmedEmail)) {
+          field.isValid = false;
+          field.error = 'Invalid email';
+          // Reset invitation status when validation changes
+          field.invitationStatus = null;
+          field.invitationError = '';
+        } else if (
+          fieldTrimmedEmail !== '' &&
+          emailFirstOccurrence.get(fieldTrimmedEmail) !== fieldIndex
+        ) {
+          // This is a duplicate email and NOT the first occurrence
+          field.isValid = false;
+          field.error = 'Email already added';
+          // Reset invitation status when validation changes
+          field.invitationStatus = null;
+          field.invitationError = '';
+        } else {
+          field.isValid = true;
+          field.error = '';
+          // Reset invitation status when validation changes
+          field.invitationStatus = null;
+          field.invitationError = '';
+        }
+      });
+
       return newEmails;
     });
   };
@@ -183,14 +311,22 @@ const BodyComponent = ({
   const handleRoleChange = (e: ChangeEvent<HTMLSelectElement>) => {
     if (!setEmailFields) return;
 
-    const index = e.target.name.split('-')[1];
+    const nameParts = e.target.name.split('-');
+    const indexStr = nameParts[1];
+
+    if (!indexStr || isNaN(Number(indexStr))) {
+      console.error('Invalid select name format:', e.target.name);
+      return;
+    }
+
+    const index = Number(indexStr);
     const roleId = e.target.value;
 
     setEmailFields((prevEmails) => {
       if (!prevEmails) return prevEmails;
       const newEmails = [...prevEmails];
-      // Don't allow changes if field is disabled
-      if (newEmails[index]?.isDisabled) {
+      // Don't allow changes if field is disabled or index is invalid
+      if (index >= newEmails.length || newEmails[index]?.isDisabled) {
         return prevEmails;
       }
       newEmails[index].roleId = roleId || '';
@@ -207,7 +343,15 @@ const BodyComponent = ({
     const areSomeEmailsValid = (emailFields || []).some(
       (field) => field.isValid === true && !field.isDisabled,
     );
-    setIsContinueDisabled(!areSomeEmailsValid);
+    // also disable the button if there are any errors in email fields
+    const hasErrors = (emailFields || []).some(
+      (field) => field.isValid === false && !field.isDisabled,
+    );
+    // disable the button if all fields are empty
+    const hasNonEmptyFields = (emailFields || []).some(
+      (field) => field.email.trim() !== '' && !field.isDisabled,
+    );
+    setIsContinueDisabled(!areSomeEmailsValid || hasErrors || !hasNonEmptyFields);
   }, [emailFields, setData, setIsContinueDisabled, setEmailFields]);
 
   return (
@@ -216,7 +360,7 @@ const BodyComponent = ({
         className={classNames(
           'w-full flex font-inter flex-col text-center rounded-lg md:rounded-xl',
           {
-            'max-h-[430px] h-auto pb-3 ': isShareAgent,
+            'max-h-[450px] h-auto pb-3 ': isShareAgent,
             'sm:w-[450px] bg-gray-100 my-1 p-3 md:my-3 md:p-4 ': !isShareAgent,
             'h-auto': !invitationSent && !isShareAgent,
             'h-[306px]': invitationSent && !isShareAgent,
@@ -247,8 +391,10 @@ const BodyComponent = ({
                 </h1>
               )}
               {isShareAgent && (
-                <p className={classNames('text-left font-inter mb-6')} style={{ fontWeight: 300 }}>
-                  {`Share this agent with your team members. They'll receive an email invitation to collaborate.`}
+                <p className={classNames('text-left font-inter mb-4 text-[#424242] font-light')}>
+                  {
+                    "Share this agent with your team members. They'll receive an email invitation to collaborate."
+                  }
                 </p>
               )}
               {!isShareAgent && (
@@ -257,45 +403,53 @@ const BodyComponent = ({
                     'text-md': isShareAgent,
                     'text-xs md:text-sm ': !isShareAgent,
                   })}
-                >{`Invite a team member to collaborate with you.`}</p>
+                >
+                  {'Invite a team member to collaborate with you.'}
+                </p>
               )}
               <InviteMemberWarning
                 newMemberCount={emailFields?.filter((e) => e.isValid === true).length || 1}
+                classes={isShareAgent ? 'my-4' : ''}
               />
               <div className="flex flex-row gap-6 mb-2">
-                <div className="text-left text-md font-medium text-gray-900 dark:text-white w-full">
-                  Invite colleagues <span className="text-red-500">*</span>
+                <div className="text-left text-base font-medium text-[#1E1E1E] dark:text-white w-full">
+                  Invite Colleagues <span className="text-red-500">*</span>
                 </div>
-
-                <div className="text-left text-md font-medium text-gray-900 dark:text-white w-full">
-                  Role{' '}
-                  <Tooltip
-                    content={
-                      <div className="text-sm">
-                        Different roles have different permissions.
-                        <br />
-                        See{' '}
-                        <a
-                          href="/teams/roles"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline text-smythos-blue-500 font-semibold hover:text-smythos-blue-700"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          manage roles
-                        </a>
-                      </div>
-                    }
-                    trigger="hover"
-                    placement="top"
-                    style="light"
-                    theme={{
-                      target: 'inline-flex items-center w-5 h-5 align-top',
-                    }}
-                  >
-                    <img src="/img/icons/Info.svg" className="w-5 h-5" alt="Info" />
-                  </Tooltip>
-                </div>
+                {extraProps?.currTeamRoles?.length > 0 && (
+                  <div className="text-left text-base font-medium text-[#1E1E1E] dark:text-white w-full">
+                    Role{' '}
+                    <Tooltip
+                      content={
+                        <div className="text-sm">
+                          Different roles have different permissions.
+                          {currentUserTeam?.parentId === null && (
+                            <>
+                              <br />
+                              See{' '}
+                              <a
+                                href="/teams/roles"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline text-white font-semibold hover:text-gray-200"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                manage roles
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      }
+                      trigger="hover"
+                      placement="top"
+                      style="dark"
+                      theme={{
+                        target: 'inline-flex items-center w-5 h-5 align-top',
+                      }}
+                    >
+                      <img src="/img/icons/Info.svg" className="w-5 h-5" alt="Info" />
+                    </Tooltip>
+                  </div>
+                )}
               </div>
 
               <div
@@ -313,7 +467,7 @@ const BodyComponent = ({
 
                   return (
                     <div key={field.id}>
-                      <div className="flex flex-row gap-6">
+                      <div className={classNames('flex flex-row gap-6')}>
                         <div
                           className="w-full"
                           ref={(emailFields?.length || 0) - 1 === index ? ref : null}
@@ -324,7 +478,9 @@ const BodyComponent = ({
                             name={`email-${index}`}
                             onChange={handleChange}
                             value={emailFields[index].email}
-                            disabled={field.isDisabled}
+                            disabled={
+                              field.isDisabled || (!extraProps?.isLoading && extraProps?.freePlan)
+                            }
                             icon={
                               field.invitationStatus === 'success' ? (
                                 <FaCheck className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
@@ -340,35 +496,44 @@ const BodyComponent = ({
                             }
                             fullWidth
                             className={classNames('pr-8', {
-                              'opacity-50': field.isDisabled,
+                              'opacity-50':
+                                field.isDisabled ||
+                                (!extraProps?.isLoading && extraProps?.freePlan),
                             })}
                           />
                         </div>
-                        <div className="w-full">
-                          <div className="w-full text-left">
-                            <select
-                              value={emailFields[index].roleId || ''}
-                              id={`role-select-${index}`}
-                              name={`role-${index}`}
-                              disabled={field.isDisabled}
-                              className={classNames(
-                                'py-2 px-3 mb-[1px] border text-gray-900 rounded block w-full outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 focus-visible:mb-0 focus:mb-0',
-                                {
-                                  'opacity-50 cursor-not-allowed': field.isDisabled,
-                                },
-                              )}
-                              onChange={(e) => {
-                                handleRoleChange(e);
-                              }}
-                            >
-                              {extraProps?.currTeamRoles?.map((role) => (
-                                <option key={role.id} value={role.id?.toString() || ''}>
-                                  {role.name}
-                                </option>
-                              ))}
-                            </select>
+                        {extraProps?.currTeamRoles?.length > 1 && (
+                          <div className="w-full">
+                            <div className="w-full text-left">
+                              <select
+                                value={emailFields[index].roleId || ''}
+                                id={`role-select-${index}`}
+                                name={`role-${index}`}
+                                disabled={
+                                  field.isDisabled ||
+                                  (!extraProps?.isLoading && extraProps?.freePlan)
+                                }
+                                className={classNames(
+                                  'py-2 px-3 mb-[1px] border text-gray-900 rounded block w-full outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 focus-visible:mb-0 focus:mb-0',
+                                  {
+                                    'opacity-50 cursor-not-allowed':
+                                      field.isDisabled ||
+                                      (!extraProps?.isLoading && extraProps?.freePlan),
+                                  },
+                                )}
+                                onChange={(e) => {
+                                  handleRoleChange(e);
+                                }}
+                              >
+                                {extraProps?.currTeamRoles?.map((role) => (
+                                  <option key={role.id} value={role.id?.toString() || ''}>
+                                    {role.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                       {errorMessage && (
                         <p className="w-[calc(100%_-_4px)] ml-[2px] text-left text-xs text-red-500 mt-1">
@@ -379,24 +544,37 @@ const BodyComponent = ({
                   );
                 })}
               </div>
-              {(emailFields?.length || 0) < maxEmails && (
+              {(emailFields?.length || 0) < maxEmails && !extraProps?.showingUpgradeCTA && (
                 <div
-                  className="items-center inline-flex gap-2 mt-5 w-auto float-left px-0.5 cursor-pointer"
+                  className={cn(
+                    'items-center inline-flex gap-2 mt-2 w-auto float-left p-3 cursor-pointer',
+                    'border border-[#D9D9D9] border-solid rounded-lg',
+                  )}
                   onClick={handleAddEmail}
                 >
-                  <FaRegSquarePlus />
-                  <p className="text-xs md:text-sm font-inter select-none text-black ">Add More</p>
+                  <FaPlus color="#242424" />
+                  <p className="text-xs md:text-md font-inter select-none text-[#242424] ">
+                    Add More
+                  </p>
                 </div>
               )}
             </>
           )}
         </div>
+
+        {isShareAgent && (
+          <div className={cn('text-[#616161] font-light text-left mb-2')}>
+            Please note that new members will be invited to join your team and agent space
+          </div>
+        )}
       </div>
-      {isShareAgent && !invitationSent && (
+      {isShareAgent && !invitationSent && !extraProps?.showingUpgradeCTA && (
         <div
           className={classNames(
-            `w-full md:px-3 ${
-              (emailFields?.filter((e) => e?.email?.trim?.() && !e.isDisabled)?.length || 0) === 0
+            `w-full ${
+              (emailFields?.filter((e) => e?.email?.trim?.() && !e.isDisabled)?.length || 0) ===
+                0 ||
+              (emailFields || []).some((field) => field.isValid === false && !field.isDisabled)
                 ? 'opacity-50 pointer-events-none'
                 : ''
             }`,
@@ -410,12 +588,12 @@ const BodyComponent = ({
             handleClick={handleContinueEvent}
             fullWidth={!isShareAgent}
             variant="primary"
-            className={isShareAgent ? 'm-auto mr-0 px-8' : ''}
+            className={isShareAgent ? 'm-auto mr-0 w-[100px] h-[48px] rounded-lg' : ''}
           >
             {extraProps?.invitationInProgress ? (
               <Spinner classes="w-5 h-5" />
             ) : isShareAgent ? (
-              'Invite'
+              'Send'
             ) : (
               'Send Invitations'
             )}
@@ -446,13 +624,11 @@ const WelcomeInvitePageComponent = ({
   const [showShareAgentConfirmation, setShowShareAgentConfirmation] = useState(false);
   const [emailsToBeSharedWith, setEmailsToBeSharedWith] = useState<any[]>([]);
   const [isShareAgentOnly, setIsShareAgentOnly] = useState(false);
-  const [currTeam, setCurrTeam] = useState<IMembershipTeam | null>(null);
-  const [organization, setOrganization] = useState<IMembershipTeam | null>(null);
   const [organizationRoles, setOrganizationRoles] = useState<any[]>([]);
-  const [currTeamRoles, setCurrTeamRoles] = useState<any[]>([]);
   const [organizationMembers, setOrganizationMembers] = useState<any[]>([]);
   const [currTeamMembers, setCurrTeamMembers] = useState<any[]>([]);
-  const { userTeams, userInfo } = useAuthCtx();
+  const { userTeams, userInfo, currentUserTeamRoles, parentTeamRoles, currentUserTeam } =
+    useAuthCtx();
   const [isLoading, setIsLoading] = useState(!!isShareAgent);
   const [allAllowedMembers, setAllAllowedMembers] = useState<any[]>([]);
   const [canFetchDataForShareAgent, setCanFetchDataForShareAgent] = useState(false);
@@ -462,37 +638,22 @@ const WelcomeInvitePageComponent = ({
     sessionStorage.getItem(FRONTEND_USER_SETTINGS.HIDE_BACK_BUTTON_WELCOME_PAGE) === 'true' ||
     window.location.pathname.includes('book-intro-call');
 
-  useEffect(() => {
-    async function getSettings() {
-      const userSettings = await fetch(`/api/app/user-settings/${userSettingKeys.USER_TEAM}`).then(
-        (res) => res.json(),
-      );
-      if (userTeams?.length && userSettings) {
-        const selectedTeam = userTeams.find(
-          (team: ITeam) => team.id === userSettings?.userSelectedTeam,
-        );
-        const org = userTeams.filter((t) => t.parentId === null)[0];
-
-        if (selectedTeam !== currTeam) {
-          setCurrTeam(selectedTeam);
-        }
-        if (org !== organization) {
-          setOrganization(org);
-        }
-      }
-    }
-    getSettings();
-  }, [userTeams]);
+  const organization = userTeams?.find((team) => team.parentId === null);
+  const currTeam = userTeams?.find((team) => team.id === currentUserTeam?.id);
 
   useEffect(() => {
     async function getSettings() {
       try {
-        const roleSettings = await fetch(
-          `/api/app/team-settings/${teamSettingKeys.DEFAULT_ROLE}`,
-        ).then((res) => res.json());
+        const response = await fetch(`/api/app/team-settings/${teamSettingKeys.DEFAULT_ROLE}`);
+
+        if (!response.ok) {
+          return;
+        }
+
+        const roleSettings = (await response?.json?.()) || {};
         setDefaultCurrentTeamRole(roleSettings?.data?.defaultRoles?.[currTeam?.id].id || null);
       } catch (error) {
-        console.log('Roles not found:', error);
+        console.log('Error fetching default role:', error);
       }
     }
     if (currTeam?.id) {
@@ -552,14 +713,14 @@ const WelcomeInvitePageComponent = ({
         currTeamMembersFetched?.members || organizationMembersFetched?.members
       )?.filter((member) => !member.userTeamRole.isTeamInitiator);
       // setAllAllowedMembers(teamMembers || []);
-      let organizationAccess = organizationMembersFetched?.members?.filter(
+      const organizationAccess = organizationMembersFetched?.members?.filter(
         (member) => userInfo?.user?.email == member.email,
       )?.[0];
-      let currTeamAccess = currTeamMembersFetched?.members?.filter(
+      const currTeamAccess = currTeamMembersFetched?.members?.filter(
         (member) => userInfo?.user?.email == member.email,
       )?.[0];
-      let organizationAccessRole = organizationAccess?.userTeamRole?.sharedTeamRole;
-      let currTeamAccessRole = currTeamAccess?.userTeamRole?.sharedTeamRole;
+      const organizationAccessRole = organizationAccess?.userTeamRole?.sharedTeamRole;
+      const currTeamAccessRole = currTeamAccess?.userTeamRole?.sharedTeamRole;
 
       let canCreateTeam =
         organizationAccessRole?.isOwnerRole || organizationAccessRole?.canManageTeam;
@@ -599,7 +760,6 @@ const WelcomeInvitePageComponent = ({
             getCurrTeamRoles(),
           ]);
           setOrganizationRoles(organizationRolesFetched?.roles || []);
-          setCurrTeamRoles(currTeamRolesFetched?.roles || []);
         }
       }
       setIsLoading(false);
@@ -607,7 +767,7 @@ const WelcomeInvitePageComponent = ({
     if (canFetchDataForShareAgent) {
       getData();
     }
-  }, [canFetchDataForShareAgent]);
+  }, [canFetchDataForShareAgent, isShareAgentOnly]);
 
   const goForward = useCallback(() => {
     const whatAreYouBuilding = sessionStorage.getItem(FRONTEND_USER_SETTINGS.WHAT_ARE_YOU_BUILDING);
@@ -616,7 +776,7 @@ const WelcomeInvitePageComponent = ({
       FRONTEND_USER_SETTINGS.REDIRECT_PATH_KEY_WELCOME_PAGE,
     );
     sessionStorage.removeItem(FRONTEND_USER_SETTINGS.REDIRECT_PATH_KEY_WELCOME_PAGE);
-    let whatAreYouBuildingEncoded = whatAreYouBuilding?.trim?.()
+    const whatAreYouBuildingEncoded = whatAreYouBuilding?.trim?.()
       ? encodeURIComponent(whatAreYouBuilding)
       : '';
     if (whatAreYouBuildingEncoded) {
@@ -695,7 +855,8 @@ const WelcomeInvitePageComponent = ({
         : extractError(error) || defaultMsg;
 
     if (error?.error?.errKey === errKeys.QUOTA_EXCEEDED) {
-      _errorMessage = `You have reached the maximum number of invitations allowed on your current plan. Upgrade to invite additional members and unlock more features.`;
+      _errorMessage =
+        'You have reached the maximum number of invitations allowed on your current plan. Upgrade to invite additional members and unlock more features.';
     }
 
     toast.error(_errorMessage);
@@ -721,6 +882,13 @@ const WelcomeInvitePageComponent = ({
     if (validEmails.length === 0) {
       return;
     }
+
+    // Add proper null checking for teamRolesQuery
+    if (!teamRolesQuery.data?.roles || teamRolesQuery.data.roles.length === 0) {
+      setErrorMessage('Unable to load team roles. Please try again.');
+      return;
+    }
+
     const roleId = teamRolesQuery.data.roles[0].id;
 
     setInvitationInProgress(true);
@@ -836,15 +1004,15 @@ const WelcomeInvitePageComponent = ({
       }
       let type = '_EMAIL';
       let organizationId = null;
-      let teamId = null;
+      const teamId = null;
       let spaceMemberId = null;
       let orgMemberId = null;
       let roleId = null;
       let spaceRoleId = null;
       if (currTeam?.id !== organization?.id) {
-        let currTeamMember = currTeamMembers.find((member) => member.email === email);
-        let organizationMember = organizationMembers.find((member) => member.email === email);
-        spaceRoleId = currSpaceRoleId || defaultCurrentTeamRole || currTeamRoles?.[0]?.id;
+        const currTeamMember = currTeamMembers.find((member) => member.email === email);
+        const organizationMember = organizationMembers.find((member) => member.email === email);
+        spaceRoleId = currSpaceRoleId || defaultCurrentTeamRole || currentUserTeamRoles?.[0]?.id;
         const isPartOfTeam = currTeamMember;
         type = !isPartOfTeam ? '_SUBSPACE' + type : type;
         // teamId = currTeam?.id;
@@ -853,7 +1021,7 @@ const WelcomeInvitePageComponent = ({
       }
       {
         const isPartOfTeam = organizationMembers.some((member) => member.email === email);
-        let organizationMember = organizationMembers.find((member) => member.email === email);
+        const organizationMember = organizationMembers.find((member) => member.email === email);
         type = !isPartOfTeam ? '_ORGANIZATION' + type : type;
         roleId = currTeam?.id !== organization?.id ? organizationRoles?.[0]?.id : currSpaceRoleId;
         organizationId = organization?.id;
@@ -980,6 +1148,14 @@ const WelcomeInvitePageComponent = ({
       setEmailFields(getInitialEmails(isShareAgent, defaultCurrentTeamRole?.toString() || null));
     }
   }, [isShareAgent, defaultCurrentTeamRole, setEmailFields]);
+  const freePlan = userInfo?.subs?.plan?.name?.toLowerCase().replace(/\s/g, '') === 'smythosfree';
+
+  const showingUpgradeCTA =
+    !isLoading &&
+    ((isShareAgent &&
+      inviteMembers.isError &&
+      inviteMembers.error?.error?.errKey === errKeys.QUOTA_EXCEEDED) ||
+      freePlan);
 
   return (
     <div
@@ -998,18 +1174,12 @@ const WelcomeInvitePageComponent = ({
         hasLogo={isShareAgent ? false : true}
         title={isShareAgent ? 'Share Agent' : ''}
         backEvent={handleBackEvent}
-        errorMessage={errorMessage}
-        ErrorCTA={
-          isShareAgent &&
-          inviteMembers.isError &&
-          inviteMembers.error?.error?.errKey === errKeys.QUOTA_EXCEEDED
-            ? ErrorCTA
-            : null
-        }
+        errorMessage={!showingUpgradeCTA ? errorMessage : ''}
+        ErrorCTA={showingUpgradeCTA ? () => ErrorCTA(freePlan) : null}
         pageCardMainBodyClasses={
-          isShareAgent && inviteMembers.isError ? 'mb-4' : isShareAgent ? 'mb-4' : ''
+          isShareAgent && inviteMembers.isError ? 'mb-4' : isShareAgent ? 'mb-0' : ''
         }
-        hideFooter={invitationSent || isShareAgent}
+        hideFooter={invitationSent || isShareAgent || showingUpgradeCTA}
         BodyComponent={isLoading ? SpinnerBodyComponent : BodyComponent}
         continueEvent={isShareAgent ? handleShareAgentEvent : handleContinueEvent}
         isShareAgent={isShareAgent}
@@ -1018,10 +1188,13 @@ const WelcomeInvitePageComponent = ({
           isShareAgentOnly,
           invitationInProgress,
           errorOccurred: inviteMembers.isError,
-          currTeamRoles: currTeam?.parentId ? currTeamRoles : organizationRoles,
+          showingUpgradeCTA,
+          currTeamRoles: currentUserTeamRoles,
           defaultCurrentTeamRole,
           emailFields,
           setEmailFields,
+          isLoading,
+          freePlan,
         }}
         continueText="Invite"
       />
@@ -1063,18 +1236,26 @@ export const WelcomeInvitePage = ({
   );
 };
 
-export const ErrorCTA = () => {
+export const ErrorCTA = (freePlan: boolean) => {
   const handleNavigation = (path: string) => {
     window.location.href = path;
   };
 
   return (
-    <Button
-      className="mt-3 mx-auto"
-      variant="primary"
-      handleClick={() => handleNavigation('/plans')}
-    >
-      Upgrade to Invite More
-    </Button>
+    <>
+      {freePlan && (
+        <p className="text-center text-xs text-red-500">
+          Your subscription of SmythOS Free does not allow members to be invited. Upgrade to invite
+          additional members and unlock more features.
+        </p>
+      )}
+      <Button
+        className="mt-3 mx-auto"
+        variant="primary"
+        handleClick={() => handleNavigation('/plans')}
+      >
+        Upgrade to Invite More
+      </Button>
+    </>
   );
 };

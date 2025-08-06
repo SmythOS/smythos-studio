@@ -1,4 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Fragment, Suspense, lazy, useEffect, useState } from 'react';
 
@@ -10,14 +11,12 @@ import {
   SETTINGS_KEYS,
   SYNTAX_HIGHLIGHT_THEMES,
 } from '@react/features/agent-settings/constants';
-import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { mapBotEmbodimentProperties } from '@react/features/agent-settings/utils';
 import {
   ChatIcon,
   CloseIcon,
   ColorPickerIcon,
   ExpandIcon,
-  InfoIcon,
   SendIcon,
 } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
@@ -26,20 +25,18 @@ import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { extractError } from '@react/shared/utils/errors';
 import { validateDomains, validateURL } from '@react/shared/utils/utils';
 import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types';
-import {
-  errorToast,
-  successToast,
-  warningToast,
-} from '@src/shared/components/toast';
+import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { Analytics } from '@src/shared/posthog/services/analytics';
-import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import classNames from 'classnames';
+import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
+import { IoClose } from 'react-icons/io5';
 
-const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
-  name: model.label,
-  value: model.entryId,
-  tags: model.tags,
-}));
+// const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
+//   name: model.label,
+//   value: model.entryId,
+//   tags: model.tags,
+// }));
 
 // #region Temporary Badges
 const TEMP_BADGES = {
@@ -77,7 +74,7 @@ const ChatBotDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [domainError, setDomainError] = useState(false);
   const [isChatBotFullScreen, setIsChatBotFullScreen] = useState(false);
-  const { agentQuery, settingsQuery: agentSettingsQuery, workspace } = useAgentSettingsCtx();
+  const queryClient = useQueryClient();
 
   // Default values to prevent uncontrolled to controlled input warning
   const defaultFormValues = {
@@ -174,6 +171,14 @@ const ChatBotDialog = ({
       fetch('/api/page/agents/embodiment', requestOptions)
         .then((response) => {
           response.json().then((data) => {
+            // Invalidate the agentEmbodiments query to ensure fresh data
+            queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
+            // Also invalidate the embodiments query used in deploy modal
+            queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
+            // Invalidate the agent_embodiments query used in OverviewWidgetsContainer
+            queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
+            // Invalidate the availableEmbodiments query
+            queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
             refreshEmbodiments(agentId, currentData?.id);
             successToast('Embodiment saved');
             closeModal();
@@ -218,19 +223,11 @@ const ChatBotDialog = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <div
-                style={{
-                  height: '87.5vh',
-                  width: '50vw',
-                  maxWidth: '900px',
-                }}
-              >
-                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-bold text-center leading-6 text-gray-900 "
-                  >
-                    Chatbot Configurations
+              <div className="w-[80vw] max-w-[1000px]">
+                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
+                    <span>Chatbot Configurations</span>
+                    <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
                   </Dialog.Title>
                   <Formik
                     initialValues={activeData || defaultFormValues}
@@ -244,17 +241,12 @@ const ChatBotDialog = ({
                       const colors = props.values?.colors;
                       return (
                         <Form>
-                          <div
-                            className="flex justify-between"
-                            style={{
-                              gap: '2rem',
-                            }}
-                          >
-                            <div className="w-1/2 mt-5">
+                          <div className="gap-4 grid grid-cols-1 md:grid-cols-2">
+                            <div className="mt-5">
                               <div>
                                 <label
                                   htmlFor="name"
-                                  className="block text-gray-700 mb-1 text-sm font-normal"
+                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 >
                                   Name
                                 </label>
@@ -294,7 +286,7 @@ const ChatBotDialog = ({
                               <div>
                                 <label
                                   htmlFor="introMessage"
-                                  className="block text-gray-700 mb-1 text-sm font-normal"
+                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 >
                                   Intro Message
                                 </label>
@@ -390,7 +382,7 @@ const ChatBotDialog = ({
                               <div>
                                 <label
                                   htmlFor="personality"
-                                  className="block text-gray-700 mb-1 text-sm font-normal"
+                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 >
                                   Personality
                                 </label>
@@ -412,7 +404,7 @@ const ChatBotDialog = ({
                                   font-normal
                                   placeholder:text-sm
                                   placeholder:font-normal
-                                  mb-4
+                                  mb-2
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                   name="personality"
                                   id="personality"
@@ -453,10 +445,22 @@ const ChatBotDialog = ({
                               <div>
                                 <label
                                   htmlFor="allowedDomains"
-                                  className="block text-gray-700 mb-1 text-sm font-normal"
+                                  className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
                                 >
                                   Allowed Domains{' '}
-                                  <InfoIcon data-tooltip-target="tooltip-no-arrow" />
+                                  <Tooltip
+                                    className="w-52 text-center"
+                                    content={
+                                      <div>
+                                        Restrict chatbot to specific domains.
+                                        <br /> Use commas to separate multiple domains (e.g.,
+                                        example.com, mysite.org).
+                                        <br /> Leave empty for no restrictions.
+                                      </div>
+                                    }
+                                  >
+                                    <Info className="w-5 h-5 ml-1" />
+                                  </Tooltip>
                                 </label>
 
                                 <Field
@@ -485,12 +489,18 @@ const ChatBotDialog = ({
                                 }`}
                                   name="allowedDomains"
                                   placeholder="Enter comma separated values for domains"
-                                  value={Array.isArray(props.values?.allowedDomains) ? props.values.allowedDomains.join(',') : (props.values?.allowedDomains || '')}
+                                  value={
+                                    Array.isArray(props.values?.allowedDomains)
+                                      ? props.values.allowedDomains.join(',')
+                                      : props.values?.allowedDomains || ''
+                                  }
                                   onChange={(e) => {
                                     if (domainError) {
                                       setDomainError(false);
                                     }
-                                    const newValue = e.target.value ? e.target.value.split(',') : [];
+                                    const newValue = e.target.value
+                                      ? e.target.value.split(',')
+                                      : [];
                                     props.setFieldValue('allowedDomains', newValue);
                                   }}
                                 />
@@ -515,7 +525,7 @@ const ChatBotDialog = ({
                               <div className="mb-4">
                                 <label
                                   htmlFor="icon"
-                                  className="block text-gray-700 mb-1 text-sm font-normal"
+                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 >
                                   Icon
                                 </label>
@@ -560,7 +570,7 @@ const ChatBotDialog = ({
                                 />
                               </div>
                               <div className="mb-4">
-                                <label className="block text-gray-700 mb-1 text-sm font-normal">
+                                <label className="block text-[#1E1E1E] mb-1 text-base font-normal">
                                   Code Syntax Highlight Theme
                                 </label>
                                 <Field
@@ -610,7 +620,7 @@ const ChatBotDialog = ({
                                       type="checkbox"
                                       id="fullScreenChatBot"
                                       name="fullScreenChatBot"
-                                      className="w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded peer appearance-none focus:outline-none box-shadow-none"
+                                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded peer appearance-none focus:outline-none box-shadow-none"
                                       checked={isChatBotFullScreen}
                                       onChange={(e) => {
                                         setIsChatBotFullScreen(e.target.checked);
@@ -623,7 +633,7 @@ const ChatBotDialog = ({
                                       }}
                                     />
                                     <svg
-                                      className="absolute w-4 h-4 pointer-events-none hidden peer-checked:block top-0 left-0 text-secondary"
+                                      className="absolute w-4 h-4 pointer-events-none hidden peer-checked:block top-0 left-0 text-v2-blue"
                                       xmlns="http://www.w3.org/2000/svg"
                                       viewBox="0 0 24 24"
                                       fill="none"
@@ -637,7 +647,7 @@ const ChatBotDialog = ({
                                   </div>
                                   <label
                                     htmlFor="fullScreenChatBot"
-                                    className="ml-2 text-sm font-medium text-gray-900"
+                                    className="ml-2 text-sm font-normal text-[#1E1E1E]"
                                   >
                                     Message View
                                   </label>
@@ -650,7 +660,7 @@ const ChatBotDialog = ({
                                       type="checkbox"
                                       id="allowFileAttachments"
                                       name="allowFileAttachments"
-                                      className="w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded peer appearance-none focus:outline-none box-shadow-none"
+                                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded peer appearance-none focus:outline-none box-shadow-none"
                                       checked={props.values?.allowFileAttachments || false}
                                       onChange={(e) => {
                                         props.setFieldValue(
@@ -660,7 +670,7 @@ const ChatBotDialog = ({
                                       }}
                                     />
                                     <svg
-                                      className="absolute w-4 h-4 pointer-events-none hidden peer-checked:block top-0 left-0 text-secondary"
+                                      className="absolute w-4 h-4 pointer-events-none hidden peer-checked:block top-0 left-0 text-v2-blue"
                                       xmlns="http://www.w3.org/2000/svg"
                                       viewBox="0 0 24 24"
                                       fill="none"
@@ -674,14 +684,14 @@ const ChatBotDialog = ({
                                   </div>
                                   <label
                                     htmlFor="allowFileAttachments"
-                                    className="ml-2 text-sm font-medium text-gray-900"
+                                    className="ml-2 text-sm font-normal text-[#1E1E1E]"
                                   >
                                     Allow file attachments
                                   </label>
                                 </div>
                               </div>
                             </div>
-                            <div className="w-1/2 mt-5">
+                            <div className="mt-5 bg-[#F2F5F7] px-4 py-2 rounded-lg">
                               <div
                                 style={{
                                   margin: 'auto',
@@ -691,13 +701,13 @@ const ChatBotDialog = ({
                                   className="flex items-center p-2 mb-2 text-sm text-gray-800 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
                                   role="alert"
                                 >
-                                  <InfoIcon />
+                                  <Info className="mr-1 w-5 h-5" />
                                   <span className="sr-only">Info</span>
                                   <div className="text-sm">
                                     Click on the color picker to change the style.
                                   </div>
                                 </div>
-                                <div className="shadow-md shadow-slate-400 rounded-md">
+                                <div className="rounded-lg overflow-hidden border border-solid border-[#D1D5DB]">
                                   {/* Chatbot Header */}
                                   <div
                                     id="chatbot-header"
@@ -705,7 +715,7 @@ const ChatBotDialog = ({
                                       'px-4 flex justify-between items-center transition-all duration-300 overflow-hidden',
                                       {
                                         'h-0 py-0 ': isChatBotFullScreen,
-                                        'h-10 py-2 border-solid border-b border-gray-300':
+                                        'py-2 border-solid border-b border-gray-300':
                                           !isChatBotFullScreen,
                                       },
                                     )}
@@ -753,7 +763,7 @@ const ChatBotDialog = ({
                                   </div>
                                   {/* Chatbot Body */}
                                   <div
-                                    className="chatbot-container relative group/bg cursor-pointer"
+                                    className="chatbot-container relative group/bg cursor-pointer p-2 pb-12"
                                     style={{
                                       backgroundColor: colors?.chatWindowColors?.backgroundColor,
                                     }}
@@ -1050,7 +1060,7 @@ const ChatBotDialog = ({
                                 {/* Chat Toggle Icon Start */}
                                 <div
                                   className={classNames(
-                                    'flex justify-end items-center gap-4 group transition-all duration-300 overflow-hidden',
+                                    'flex justify-end items-center gap-4 group transition-all duration-300 overflow-hidden mt-2',
                                     {
                                       'h-0 ': isChatBotFullScreen,
                                       'h-16': !isChatBotFullScreen,
@@ -1096,22 +1106,15 @@ const ChatBotDialog = ({
                               <div></div>
                             </div>
                           </div>
-                          <div className="flex gap-5">
+                          <div className="flex justify-end w-full mt-4">
                             <Button
-                              variant="primary"
                               handleClick={() => submitForm(props.values)}
-                              label="Save Configurations"
+                              label="Save"
                               addIcon={isSubmitting}
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                            />
-
-                            <Button
-                              variant="secondary"
-                              handleClick={() => closeModal()}
-                              label="Cancel"
-                              disabled={isSubmitting}
+                              className="px-8 h-[48px] rounded-lg"
                             />
                           </div>
                         </Form>

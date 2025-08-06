@@ -1,9 +1,4 @@
-import type {
-  ApiKey,
-  ApiKeysResponse,
-  EnterpriseModel,
-  UserModel,
-} from '@react/features/vault/types/types';
+import type { ApiKey, ApiKeysResponse, EnterpriseModel, UserModel } from '@react/features/vault/types/types';
 import {
   apiKeyService,
   enterpriseModelService,
@@ -11,7 +6,7 @@ import {
   userModelService,
   vaultService,
 } from '@react/features/vault/vault-business-logic';
-import { hasCustomLLMAccess } from '@src/builder-ui/helpers/customLLM.helper';
+import { hasCustomLLMAccess } from '@src/frontend/helpers/customLLM.helper';
 import { queryClient } from '@src/react/shared/query-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
@@ -143,7 +138,7 @@ export function useVault() {
     });
   };
 
-  const useUpdateKey = (onSuccess: () => void, onError: () => void) => {
+  const useUpdateKey = (onSuccess: () => void, onError: (error: Error) => void) => {
     return useMutation<
       { error?: string | null },
       Error,
@@ -163,8 +158,8 @@ export function useVault() {
         queryClient.invalidateQueries(['get_vault_api_keys']);
         onSuccess();
       },
-      onError: () => {
-        onError();
+      onError: (error: Error) => {
+        onError(error);
       },
     });
   };
@@ -215,6 +210,8 @@ export function useEnterpriseModels() {
     queryFn: () => enterpriseModelService.getEnterpriseModels(),
   });
 }
+
+
 
 export function useCanUseEnterpriseModels() {
   return useQuery({

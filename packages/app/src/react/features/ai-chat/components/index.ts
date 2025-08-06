@@ -1,7 +1,7 @@
 export * from './attachment-button';
-export * from './chat-header';
 export * from './chat-bubble';
 export * from './chat-container';
+export * from './chat-header';
 export * from './chat-history';
 export * from './code-block-with-copy-button';
 export * from './error-toast';
@@ -10,4 +10,5 @@ export * from './query-input';
 export * from './reply-loader';
 export * from './scroll-to-bottom-button';
 export * from './send-button';
+export * from './thinking-message';
 export * from './warning-info-chat';

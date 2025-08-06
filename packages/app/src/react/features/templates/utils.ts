@@ -1,4 +1,4 @@
-import { OUT_OF_BOX_TEMPLATES } from '@src/builder-ui/constants';
+import { OUT_OF_BOX_TEMPLATES } from '@src/frontend/constants';
 
 export const filterTemplates = (
   templatesArray,

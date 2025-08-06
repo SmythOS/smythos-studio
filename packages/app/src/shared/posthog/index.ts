@@ -1,4 +1,4 @@
-import config from '@src/builder-ui/config';
+import config from '@src/frontend/config';
 import posthog, { Properties } from 'posthog-js';
 
 const POSTHOG_CLIENT_KEY = 'phc_lxgXwZRs6ySZqrHI4niOdYJlVXJAgMjTOhDau7f7VC3';

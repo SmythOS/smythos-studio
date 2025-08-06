@@ -45,8 +45,9 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
         setPage((prevPage) => prevPage + 1);
       }
     }
-  }, [isFetching, hasMore, isLoadingMore, hasError]);
+  }, [isFetching, hasMore, isLoadingMore, hasError]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedLoadMoreMessages = useCallback(debounce(loadMoreMessages, 300), [
     loadMoreMessages,
   ]);
@@ -68,7 +69,7 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
         className="flex-1 h-screen overflow-y-auto scrollbar-hide pb-4 flex flex-col items-center w-full"
         ref={messagesContainer}
       >
-        <div className="flex flex-col gap-4 max-w-3xl w-full">
+        <div className="flex flex-col gap-6 max-w-4xl w-full">
           {hasError && <ErrorMessage avatar={avatar} />}
           {chatHistoryMessages.map((message, index) => (
             <div key={index}>

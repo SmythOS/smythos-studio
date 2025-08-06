@@ -1,5 +1,5 @@
-import { closeTwDialog, twEditValuesWithCallback } from '@src/builder-ui/ui/tw-dialogs';
-import { importSmythFile } from '@src/builder-ui/workspace/FileDrag';
+import { closeTwDialog, twEditValuesWithCallback } from '@src/frontend/ui/tw-dialogs';
+import { importSmythFile } from '@src/frontend/workspace/FileDrag';
 import { useDeploymentSidebarCtx } from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
@@ -17,7 +17,7 @@ const DeploymentsHistory = () => {
     try {
       const response = await fetch(`/api/page/builder/ai-agent/deployments/${deploymentId}`);
       const result = await response.json();
-      let restoreData = result.deployment.aiAgentData;
+      const restoreData = result.deployment.aiAgentData;
       await importSmythFile(workspace, restoreData, true);
     } catch (error) {
       console.error('Failed to restore version:', error);

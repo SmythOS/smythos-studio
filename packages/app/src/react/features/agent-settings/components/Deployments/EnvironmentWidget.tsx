@@ -4,6 +4,7 @@ import { CopyKeyIcon } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { Tooltip } from 'flowbite-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { FaUpRightFromSquare } from 'react-icons/fa6';
@@ -72,37 +73,47 @@ const DomainRow = ({
           <div className="flex items-center">
             {showAPI && (
               <>
-                <button
-                  onClick={() => {
-                    onCopyClick?.(selectedDomain);
-                    setIsCopied(true);
-                    setTimeout(() => {
-                      setIsCopied(false);
-                    }, 1000);
-                  }}
-                  className="relative flex items-center gap-2 mr-1 w-5 h-5"
+                <Tooltip content="Copy" placement="top" className="min-w-max">
+                  <button
+                    onClick={() => {
+                      onCopyClick?.(selectedDomain);
+                      setIsCopied(true);
+                      setTimeout(() => {
+                        setIsCopied(false);
+                      }, 1000);
+                    }}
+                    className="relative flex items-center gap-2 mr-1 w-5 h-5"
+                  >
+                    {!isCopied ? (
+                      <CopyKeyIcon color="#1d4ed8" width={20} height={20} />
+                    ) : (
+                      <FaCheck className="w-3 h-3 text-sm text-success-green ml-2" />
+                    )}
+                  </button>
+                </Tooltip>
+                <Tooltip
+                  content="API calls and endpoint testing"
+                  placement="top"
+                  className="min-w-max w-[223px]"
                 >
-                  {!isCopied ? (
-                    <CopyKeyIcon color="#1d4ed8" width={20} height={20} />
-                  ) : (
-                    <FaCheck className="w-3 h-3 text-sm text-success-green ml-2" />
-                  )}
-                </button>
-                <button
-                  onClick={() => onAPIClick?.(selectedDomain)}
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mr-2"
-                >
-                  {/* <VscGear className="w-4 h-4" /> */}
-                  <span className="text-sm">API</span>
-                </button>
+                  <button
+                    onClick={() => onAPIClick?.(selectedDomain)}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mr-2"
+                  >
+                    {/* <VscGear className="w-4 h-4" /> */}
+                    <span className="text-sm">API</span>
+                  </button>
+                </Tooltip>
               </>
             )}
-            <button
-              onClick={() => onExternalClick?.(selectedDomain)}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              <FaUpRightFromSquare className="w-4 h-4" />
-            </button>
+            <Tooltip content="Open in a new tab" placement="top" className="min-w-max w-[145px]">
+              <button
+                onClick={() => onExternalClick?.(selectedDomain)}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <FaUpRightFromSquare className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         )}
       </div>
@@ -308,7 +319,7 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
       <div className="flex flex-col space-y-6 p-4 bg-gray-50" data-qa="environment-container">
         {/* Header */}
         <div>
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-2 mb-2">
             <h3 className="text-sm font-semibold text-gray-700">Environment</h3>
           </div>
           <p className="text-sm text-gray-600">
@@ -323,7 +334,7 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
           options={availableDomains}
           showAPI={selectedDomain !== '[None]'}
           onCopyClick={(domain) => {
-            navigator.clipboard.writeText(`${ensureHttps(domain)}/swagger`);
+            navigator.clipboard.writeText(ensureHttps(domain));
           }}
           onAPIClick={(domain) => {
             if (domain === 'None') {
@@ -347,7 +358,7 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
           label={`Test Domain`}
           value={testDomainUrl}
           onCopyClick={(domain) => {
-            navigator.clipboard.writeText(`${ensureHttps(domain)}/swagger`);
+            navigator.clipboard.writeText(ensureHttps(domain));
           }}
           onExternalClick={(domain) => {
             window.open(ensureHttps(domain), '_blank');

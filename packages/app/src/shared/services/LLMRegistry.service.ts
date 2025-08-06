@@ -54,6 +54,21 @@ export class LLMRegistry {
   }
 
   /**
+   * Gets the provider for a given model name
+   * @param model - The model name
+   * @returns The provider name (e.g., 'openai', 'xai', 'anthropic')
+   */
+  public static getModelProvider(model: string): string {
+    // 'Echo' is not included in the models list
+    if (model === 'Echo') return 'Echo';
+
+    const models = this.getModels();
+    const modelInfo = models[model];
+
+    return modelInfo?.provider || '';
+  }
+
+  /**
    * Gets models that support specific feature(s) from specified providers or all providers if none specified.
    * This method is designed to be scalable and can easily accommodate new providers and features.
    *

@@ -10,8 +10,8 @@ import {
   FaRegFilePdf,
   FaRegFileVideo,
   FaRegFileWord,
-  FaXmark,
 } from 'react-icons/fa6';
+import { CloseIcon } from './icons';
 
 interface FileItemPreviewProps {
   file: FileWithMetadata;
@@ -50,7 +50,7 @@ const RemoveButton: FC<{ onRemove: () => void }> = ({ onRemove }) => (
     onClick={onRemove}
     className="absolute -top-2 -right-2 bg-white rounded-full p-1 text-gray-500 hover:text-gray-700 border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10"
   >
-    <FaXmark />
+    <CloseIcon />
   </button>
 );
 

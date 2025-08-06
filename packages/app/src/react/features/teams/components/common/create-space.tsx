@@ -179,7 +179,12 @@ export const CreateSpace: React.FC<Props> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={teamId ? 'Edit space' : 'Create a space'}>
+    <Modal
+      panelWidthClasses="min-w-[460px]"
+      isOpen={isOpen}
+      onClose={onClose}
+      title={teamId ? 'Space Name' : 'Create a space'}
+    >
       <div
         className={
           createTeamMutation.isLoading || updateTeamMutation.isLoading
@@ -188,17 +193,23 @@ export const CreateSpace: React.FC<Props> = ({
         }
       >
         <form onSubmit={handleSubmit}>
-          <p className="text-xs pb-6">
-            Organize your team effortlessly. Collaborate, share Agents, and invite members.
-          </p>
-          <div className="mb-4">
-            <label
-              htmlFor="space-name"
-              className="block mb-2 text-lg font-medium text-gray-900 dark:text-white "
-            >
-              Space Name <span className="text-red-500">*</span>
-              <p className="absolute right-0 top-4 mt-1 text-xs text-gray-500">{`${teamName.length}/50`}</p>
-            </label>
+          {!teamId && (
+            <p className="text-xs pb-6">
+              Organize your team effortlessly. Collaborate, share Agents, and invite members.
+            </p>
+          )}
+          <div className={`mb-12 ${teamId ? 'mt-6' : ''}`}>
+            {!teamId && (
+              <label
+                htmlFor="space-name"
+                className="block mb-2 text-base font-medium text-[#1E1E1E] dark:text-white "
+              >
+                <>
+                  <span>Space Name</span>
+                  <span className="text-red-500">*</span>
+                </>
+              </label>
+            )}
             <Input
               type="text"
               id="space-name"
@@ -214,6 +225,7 @@ export const CreateSpace: React.FC<Props> = ({
               fullWidth
               disabled={createTeamMutation.isLoading || updateTeamMutation.isLoading}
             />
+            <p className="absolute right-0 bottom-[-20px] text-xs text-gray-500">{`${teamName.length}/50`}</p>
           </div>
           {quotaExceeded && (
             <div className="text-red-600 text-sm mb-2">
@@ -226,11 +238,12 @@ export const CreateSpace: React.FC<Props> = ({
                 createTeamMutation.isLoading || updateTeamMutation.isLoading || !teamName.trim()
               }
               type="submit"
+              className={'w-[100px] h-[48px] rounded-lg'}
             >
               {(createTeamMutation.isLoading || updateTeamMutation.isLoading) && (
                 <div id="loader" className="circular-loader mr-1" />
               )}
-              {teamId ? 'Edit' : 'Create'}
+              {teamId ? 'Save' : 'Create'}
             </Button>
           </div>
         </form>

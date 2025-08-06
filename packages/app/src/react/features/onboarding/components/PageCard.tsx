@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { FaAngleLeft, FaXmark } from 'react-icons/fa6';
+import { FaAngleLeft } from 'react-icons/fa6';
 // we always use FontAwesome6 icons. https://react-icons.github.io/react-icons/icons/fa6/
 
 import HorizontalProgressBar from '@react/features/onboarding/components/horizontalProgressBar';
@@ -9,6 +9,7 @@ import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { PostHog } from '@src/shared/posthog';
+import { X } from 'lucide-react';
 
 interface PageCardProps<T = any> {
   size?: 'sm' | 'md' | 'lg';
@@ -133,7 +134,11 @@ export const PageCard: React.FC<PageCardProps> = ({
           </button>
         )}
 
-        {title && <h1 className="text-xl font-bold">{title}</h1>}
+        {title && (
+          <h1 className={`text-xl ${isShareAgent ? 'font-semibold text-[#1E1E1E]' : 'font-bold'}`}>
+            {title}
+          </h1>
+        )}
         {hasLogo && (
           <div className="flex items-center justify-center flex-grow transition duration-300">
             <img src="/img/smythos-logo.png" className="h-12" alt="SmythOS" />
@@ -146,7 +151,7 @@ export const PageCard: React.FC<PageCardProps> = ({
               hover:bg-gray-200 p-3 -mr-3 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white
                transition duration-300  rounded-md`}
           >
-            <FaXmark />
+            <X className="h-5 w-5 font-bold" color="#1E1E1E" strokeWidth={2} />
           </button>
         )}
       </header>
@@ -171,7 +176,7 @@ export const PageCard: React.FC<PageCardProps> = ({
         </div>
       )}
 
-      {ErrorCTA && errorMessage && <ErrorCTA />}
+      {ErrorCTA && <ErrorCTA />}
 
       {!hideFooter && isBuilding ? (
         <footer

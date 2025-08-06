@@ -9,6 +9,7 @@ import { extractError } from '@src/react/shared/utils/errors';
 import { convertToGB, formatNumber } from '@src/react/shared/utils/format';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 /**
@@ -54,6 +55,9 @@ const MyPlanPage = () => {
 
   const [loadingUpgrade, setLoadingUpgrade] = useState<boolean>(false);
   const [dataPoolProgress, setDataPoolProgress] = useState<number>(0);
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userSubs) {
@@ -101,6 +105,16 @@ const MyPlanPage = () => {
       fetchData();
     }
   }, [user?.id, userSubs]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('upgraded') === 'true') {
+      toast.success('Your subscription has been updated.');
+      // Remove the query parameter from the URL
+      params.delete('upgraded');
+      navigate({ search: params.toString() }, { replace: true });
+    }
+  }, [location, navigate]);
 
   const handleUnsubscribe = async (type: 'cancel' | 'restart') => {
     if (isReadOnlyAccess) return;

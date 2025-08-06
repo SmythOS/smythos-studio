@@ -40,7 +40,10 @@ export function useAgentOperations({
   onAgentDeleted,
   onAgentDuplicated,
 }: UseAgentOperationsProps): UseAgentOperationsResult {
-  const { data: fullAgentData, isLoading: isLoadingAgent } = useAgent(agent.id);
+  const { data: fullAgentData, isLoading: isLoadingAgent } = useAgent(agent.id, {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
   const { createAgent } = useAgentMutations();
 
   /**

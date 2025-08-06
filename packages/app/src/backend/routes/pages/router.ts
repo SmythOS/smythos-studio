@@ -151,7 +151,7 @@ export function createReactRoute(
 
   return (req: express.Request, res: express.Response) => {
     // if local mode flag is true and the server has localhost in the url, then redirect to the vite dev server
-    if (config.env.LOCAL_MODE && req.hostname.includes('localhost')) {
+    if (config.env.LOCAL_MODE === 'true' && req.hostname.includes('localhost')) {
       // redirect to the vite dev server
       const fullUrl = `${devServer.url}${req.originalUrl}`;
       return res.redirect(fullUrl);

@@ -69,7 +69,7 @@ function ResponseCellRenderer(params: Props) {
           {!params.isRunning && (
             <FaExpand
               onClick={() => setIsViewingResponse(true)}
-              color="#45c9a9"
+              color="#3B82F6"
               cursor={'pointer'}
               className="min-w-[17px] h-[17px]"
             />

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
-import config from '../../../builder-ui/config';
+import { Agent as AgentInstance } from '../../../frontend/Agent.class';
+import config from '../../../frontend/config';
 import { EVENTS } from '../../../shared/posthog/constants/events';
 import { PostHog } from '../../../shared/posthog/index';
 import { useAuthCtx } from '../../shared/contexts/auth.context';

@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
+import { cn } from '@src/react/shared/utils/general';
 import { useEffect, useState } from 'react';
 
 export const InviteMemberWarning = ({
@@ -17,7 +18,9 @@ export const InviteMemberWarning = ({
     remainingSeats: 0,
     isWarningShowable: false,
     pricePerSeat: 0,
+    isSmythosFree: false,
   });
+
   useEffect(() => {
     const teamSeats = userInfo?.subs?.properties?.['seatsIncluded'] || 1;
 
@@ -25,6 +28,7 @@ export const InviteMemberWarning = ({
     const teamMembers = (
       currentUserTeam?.parentId ? parentTeamMembers : currentUserTeamMembers
     )?.filter((member) => !member.email.toLowerCase().includes('@smythos.com'));
+
     const priceItem =
       userInfo?.subs?.object?.['items']?.data?.filter?.(
         (item) => item?.price?.metadata?.for === 'user seats',
@@ -39,7 +43,9 @@ export const InviteMemberWarning = ({
       totalMembers: teamMembers.length,
       remainingSeats: teamSeats - teamMembers.length,
       pricePerSeat: price / 100,
+      isSmythosFree: userInfo.subs.plan.name.toLowerCase() === 'smythos free',
       isWarningShowable:
+        // userInfo.subs.plan.name.toLowerCase() === 'smythos free' ||
         teamSeats - teamMembers.length - (newMemberCount || 0) < 1 &&
         price > 0 &&
         typeof userInfo?.subs?.properties?.['seatsIncluded'] === 'number' &&
@@ -53,10 +59,9 @@ export const InviteMemberWarning = ({
   {
     /* Warning block for and check for unlimited seats*/
   }
-
   return inviteInfo.isWarningShowable ? (
     <div
-      className={`bg-[#fffbeb] border border-solid border-[#fde68a] text-[#92400e] text-sm rounded-md px-4 py-3 my-6 ${classes}`}
+      className={cn(`bg-[#fffbeb] border border-solid border-[#fde68a] text-[#92400e] text-sm rounded-md px-4 py-3 my-6 ${classes}`)}
       role="alert"
       style={{ fontFamily: 'inherit' }}
     >
@@ -88,22 +93,37 @@ export const InviteMemberWarning = ({
           </clipPath>
         </defs>
       </svg>
-      <div className="inline-block align-top text-left" style={{ width: 'calc(100% - 24px)' }}>
-        {inviteInfo.remainingSeats > 0 ? (
-          <span>
-            You have {inviteInfo.remainingSeats} seat
-            {inviteInfo.remainingSeats === 1 ? '' : 's'} remaining. Once all seats are used, adding
-            members will incur an additional charge of ${inviteInfo.pricePerSeat}
-            /month per seat.
-          </span>
-        ) : (
-          <span>
-            Adding a new member while on the{' '}
-            <span className="font-semibold">{userInfo.subs.plan.name}</span> plan will incur an
-            additional charge of ${inviteInfo.pricePerSeat}/mo per seat.
-          </span>
-        )}
-      </div>
+      {inviteInfo.isSmythosFree ? (
+        <span>
+          Plan seat limit reached.{' '}
+          <span
+            className="font-semibold hover:underline cursor-pointer"
+            onClick={() => {
+              window.open('/plans', '_blank');
+            }}
+          >
+            Upgrade your plan
+          </span>{' '}
+          to add more seats.
+        </span>
+      ) : (
+        <div className="inline-block align-top text-left" style={{ width: 'calc(100% - 24px)' }}>
+          {inviteInfo.remainingSeats > 0 ? (
+            <span>
+              You have {inviteInfo.remainingSeats} seat
+              {inviteInfo.remainingSeats === 1 ? '' : 's'} remaining. Once all seats are used,
+              adding members will incur an additional charge of ${inviteInfo.pricePerSeat}
+              /month per seat.
+            </span>
+          ) : (
+            <span>
+              Adding a new member while on the{' '}
+              <span className="font-semibold">{userInfo.subs.plan.name}</span> plan will incur an
+              additional charge of ${inviteInfo.pricePerSeat}/mo per seat.
+            </span>
+          )}
+        </div>
+      )}
     </div>
   ) : (
     <div className="px-4 py-3" />

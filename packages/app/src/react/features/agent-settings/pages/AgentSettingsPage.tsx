@@ -15,7 +15,7 @@ import {
 import { Button as CustomButton } from '@react/shared/components/ui/newDesign/button';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
-import config from '@src/builder-ui/config';
+import config from '@src/frontend/config';
 import FullScreenError from '@src/react/features/error-pages/pages/FullScreenError';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { Breadcrumb } from 'flowbite-react';

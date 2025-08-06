@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import config from '../../config';
 import { CUSTOM_MODELS_CACHE_KEY, STANDARD_MODELS_CACHE_KEY } from '../../constants';
-import { redisClient } from '../../services/redis.service';
+import { cacheClient } from '../../services/cache.service';
 
 type ModelTemplate = {
   [key: string]: {
@@ -52,7 +52,7 @@ export class LLMService {
   }
 
   public async cacheModels(models: ModelTemplate, key: string) {
-    await redisClient.set(key, JSON.stringify(models), 'EX', 60 * 60 * 24 * 15); // 15 days in seconds
+    await cacheClient.set(key, JSON.stringify(models), 'EX', '1296000'); // 15 days in seconds
   }
 
   public async getFreshStandardModels(): Promise<ModelTemplate | {}> {
@@ -107,7 +107,7 @@ export class LLMService {
 
   private async getModelsFromCache(key: string) {
     try {
-      const cachedModels = await redisClient.get(key);
+      const cachedModels = await cacheClient.get(key);
       return cachedModels ? JSON.parse(cachedModels) : {};
     } catch (error) {
       return {};

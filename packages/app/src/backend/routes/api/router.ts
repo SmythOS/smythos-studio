@@ -1,20 +1,19 @@
+import axios from 'axios';
 import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import config from '../../config';
+import { WEAVER_FREE_LIMIT } from '../../constants';
+import { includeTeamDetails } from '../../middlewares/auth.mw';
+import { cacheClient } from '../../services/cache.service';
+import { isSmythAlpha, isSmythStaff } from '../../utils';
+import { isCustomLLMAllowed } from '../../utils/customLLM';
 import agentRouter from './agent/router';
 import componentRouters from './component/index';
-import config from '../../config';
-import axios from 'axios';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import pageRouters from './page/index';
-import uploadRouter from './upload/datasource.upload';
-import { errorHandler } from '../../middlewares/error.mw';
-import { isSmythAlpha, isSmythStaff } from '../../utils';
-import { userSettingsRouter } from './user-settings/router';
-import { isCustomLLMAllowed } from '../../utils/customLLM';
-import { includeTeamDetails } from '../../middlewares/auth.mw';
-import { teamSettingsRouter } from './team-settings/router';
 import { feedbackRouter } from './page/feedback';
-import { redisClient } from '../../services/redis.service';
-import { WEAVER_FREE_LIMIT } from '../../constants';
+import pageRouters from './page/index';
+import { teamSettingsRouter } from './team-settings/router';
+import uploadRouter from './upload/datasource.upload';
+import { userSettingsRouter } from './user-settings/router';
 
 const router = express.Router();
 
@@ -106,11 +105,11 @@ router.get('/status', includeTeamDetails, async (req, res) => {
   if (isFreeUser) {
     const userId = req._user.id;
     const redisKey = `${WEAVER_FREE_LIMIT.countKeyPrefix}${userId}`;
-    const weaverRequestsCount = (await redisClient.get(redisKey)) || '0';
+    const weaverRequestsCount = (await cacheClient.get(redisKey)) || '0';
     const remainingRequests = WEAVER_FREE_LIMIT.max - parseInt(weaverRequestsCount);
 
     const weaverRequestStartedAt =
-      (await redisClient.get(`${WEAVER_FREE_LIMIT.startedAtKeyPrefix}${userId}`)) || '';
+      (await cacheClient.get(`${WEAVER_FREE_LIMIT.startedAtKeyPrefix}${userId}`)) || '';
 
     user.weaver = {
       requests: {

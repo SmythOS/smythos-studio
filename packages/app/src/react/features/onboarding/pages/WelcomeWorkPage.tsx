@@ -1,4 +1,4 @@
-import { PostHog } from '@src/builder-ui/services/posthog';
+import { PostHog } from '@src/frontend/services/posthog';
 import { BuildingQuestion } from '@src/react/features/onboarding/components/BuildingQuestion';
 import { PageCard } from '@src/react/features/onboarding/components/PageCard';
 import { PAID_PLANS } from '@src/react/features/onboarding/constants';
@@ -55,10 +55,7 @@ export const WelcomeWorkPage = () => {
 
     if (isEnterprisePlan) {
       navigate('/welcome/book-intro-call');
-    } else if (
-      isBuilderPlan &&
-      PostHog.getFeatureFlag(FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN) == 'variant_1'
-    ) {
+    } else if (isBuilderPlan && PostHog.getFeatureFlag(FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN) == 'variant_1') {
       navigate('/welcome/book-intro-call');
     } else {
       // const teamSeats = getFeatPlanLimitByKey('teamMembers', userInfo.subs);

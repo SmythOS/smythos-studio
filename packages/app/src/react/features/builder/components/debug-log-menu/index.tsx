@@ -1,4 +1,4 @@
-import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
+import { Workspace } from '@src/frontend/workspace/Workspace.class';
 import { TabContent } from '@src/react/features/builder/components/debug-log-menu/TabContent';
 import { TabNavigation } from '@src/react/features/builder/components/debug-log-menu/TabNavigation';
 import { DebugLogMenuProvider } from '@src/react/features/builder/contexts/debug-log-menu.context';

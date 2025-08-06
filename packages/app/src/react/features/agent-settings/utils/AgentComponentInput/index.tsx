@@ -138,7 +138,7 @@ const AgentComponentInput = ({
   return (
     <div key={input.name}>
       <label className="text-gray-700 mb-1 text-sm flex items-center" htmlFor={input.name}>
-        <span className="text-gray-700 text-sm font-semibold">
+        <span className="text-[#1E1E1E] text-base font-medium">
           {input.name} {input.optional ? '' : <span className="text-red-500">*</span>}
         </span>
 

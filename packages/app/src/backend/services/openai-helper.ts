@@ -1,10 +1,4 @@
-import axios from 'axios';
-import {
-  Configuration,
-  CreateImageRequestResponseFormatEnum,
-  CreateImageRequestSizeEnum,
-  OpenAIApi,
-} from 'openai';
+import { Configuration, OpenAIApi } from 'openai';
 import config from '../config';
 
 const configuration = new Configuration({
@@ -28,32 +22,4 @@ export async function chatRequest(prompt, params: any = {}) {
   const data = response?.data?.choices?.[0]?.text || response?.data?.choices?.[0]?.message.content;
 
   return data;
-}
-
-export async function generateImage({
-  n = 1,
-  prompt,
-  size = '1024x1024', // Dall-E 3 model requires 1024x1024
-  model = 'dall-e-3',
-  response_format = 'b64_json',
-}: {
-  n?: number;
-  prompt: string;
-  model?: string;
-  size?: CreateImageRequestSizeEnum;
-  response_format?: CreateImageRequestResponseFormatEnum;
-}) {
-  const response = await openAiApi.createImage({
-    n,
-    size,
-    prompt,
-    // TODO: update OpenAI SDK with updated types
-    // @ts-ignore
-    model,
-    style: 'natural',
-    response_format,
-  });
-
-  const resultKey = response_format === 'url' ? 'url' : 'b64_json';
-  return response?.data?.data?.[0]?.[resultKey];
 }
