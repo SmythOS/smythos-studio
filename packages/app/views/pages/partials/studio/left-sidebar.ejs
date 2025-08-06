@@ -1,7 +1,7 @@
 <div
   x-data="sidebarState()"
   @toggle-sidebar-request.window="toggleSidebar()"
-  class="flex flex-shrink-0 transition-all duration-300 max-h-screen z-[11] absolute md:relative top-16 md:top-0 h-screen"
+  class="transition-all duration-300 max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
     'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab',
     'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab',
@@ -16,7 +16,7 @@
   <nav
     aria-label="Options"
     id="left-sidebar-nav"
-    class="hidden flex-col items-center flex-shrink-0 w-16 pt-2.5 pb-2 bg-[#F4F4F5] md:flex"
+    class="hidden flex-col items-center flex-shrink-0 w-16 pt-2.5 pb-2 bg-[#F4F4F5] md:flex h-full"
   >
     <!-- Logo -->
     <div class="flex flex-col items-center flex-1 p-0">
@@ -783,7 +783,8 @@
     x-transition:leave="transition-opacity duration-300"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="inset-y-0 -top-5 md:-top-0 left-0 p-3 pl-0 flex-shrink-0 rounded-lg w-[100vw] md:w-[calc(100%-4rem)]"
+    id="left-sidebar-container"
+    class="inset-y-0 -top-5 md:top-4 md:bottom-4 left-[6px] md:left-[80px] p-3 px-0 flex-shrink-0 rounded-lg w-[100vw] md:w-[calc(100%-4rem)] absolute"
   >
     <div
       aria-label="Main"
@@ -867,7 +868,7 @@
 
   <!-- Add new border div with tooltip -->
   <div
-    class="absolute top-0 -right-1 w-1 h-full cursor-pointer transition-colors duration-200 z-[11] hover:bg-gray-200 group"
+    class="absolute top-0 -right-5 w-1 h-full cursor-pointer transition-colors duration-200 z-[11] hover:bg-gray-200 group"
     @click="toggleSidebar"
     @mousemove="handleBorderMouseMove($event)"
   >
@@ -1020,7 +1021,7 @@
             new CustomEvent('sidebarStateChanged', {
               detail: {
                 isSidebarOpen: value,
-                currentSidebarTab: this.currentSidebarTab,
+                currentSidebarTab: this.currentSidebarTab || this.previousTab,
                 rightSidebarOpen: this.rightSidebarOpen,
               },
             }),
