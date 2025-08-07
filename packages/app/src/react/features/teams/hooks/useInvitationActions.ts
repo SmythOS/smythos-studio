@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { teamAPI } from '@react/features/teams/clients';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { errorToast, successToast } from '@shared/components/toast';
+import { _USE_PENDING_INVITES_AS_SEATS } from '@src/react/shared/constants';
 import { PendingInvite, useTeamInvitations } from './useTeamInvitations';
 import { useTeamMembers } from './useTeamMembers';
 
@@ -15,7 +16,6 @@ import { useTeamMembers } from './useTeamMembers';
  * @returns Object containing action handlers and loading states
  */
 export const useInvitationActions = (teamRoles: any[] = [], isReadOnlyAccess: boolean = false) => {
-  const _USE_PENDING_INVITES_AS_SEATS = false;
   // Local state for loading and deleting per invite
   const [rowLoading, setRowLoading] = useState<{ [id: string]: boolean }>({});
   const [rowDeleting, setRowDeleting] = useState<{ [id: string]: boolean }>({});

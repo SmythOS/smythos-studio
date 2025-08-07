@@ -4,3 +4,5 @@ export const errKeys = {
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   AGENT_LOCK_FAIL: 'AGENT_LOCK_FAIL',
 };
+
+export const _USE_PENDING_INVITES_AS_SEATS = false;
