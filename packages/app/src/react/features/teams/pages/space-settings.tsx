@@ -11,6 +11,7 @@ import { subTeamsAPI } from '@react/features/teams/clients';
 import { AssignMemberModal, CreateSpace } from '@react/features/teams/components/common';
 import { CompanyLogo, SettingsModal, TeamInfo } from '@react/features/teams/components/settings';
 import { useGetTeamSettings, useStoreTeamSettings } from '@react/features/teams/hooks';
+import Modal from '@react/shared/components/ui/modals/Modal';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
@@ -23,6 +24,7 @@ import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
+import { parseTeamError } from '@src/shared/constants/team-errors.constants';
 import { Members } from '../components/settings/members';
 
 export type SpaceMember = {
@@ -59,8 +61,54 @@ export const SpaceSettings: FC = () => {
   const [isDeletingMember, setIsDeletingMember] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [deletionError, setDeletionError] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // const [totalPages, setTotalPages] = useState(1);
+
+  const renderErrorContent = (errorMessage: string) => {
+    // Try to parse using the new team error function first
+    const keyValuePairs = parseTeamError(errorMessage, 'spaceSettings');
+
+    if (keyValuePairs) {
+      return (
+        <div className="text-red-800 space-y-3 text-left">
+          {keyValuePairs.length > 0 && (
+            <p className="">
+              Oops! Your space contains data that must be removed before deletion. Please resolve
+              the following:
+            </p>
+          )}
+          {keyValuePairs.map((pair, index) => (
+            <div key={index} className="">
+              <b>{pair.key}</b> --{' '}
+              <span
+                dangerouslySetInnerHTML={{ __html: pair.value }}
+                className="[&_a]:underline [&_a]:cursor-pointer"
+              />
+            </div>
+          ))}
+          {keyValuePairs.length > 0 && (
+            <>
+              <p className="">
+                Please delete the above items before attempting to delete this space.
+              </p>
+              <p>
+                Need help?{' '}
+                <a className="underline" href="mailto:support@smythos.com">
+                  Contact support
+                </a>{' '}
+                and we'll assist you with safely removing your data.
+              </p>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback to original error message format
+    return <p className="text-red-800">{errorMessage}</p>;
+  };
 
   const { userTeams, userInfo, getPageAccess, refreshUserData } = useAuthCtx();
   const { data: userSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
@@ -123,24 +171,37 @@ export const SpaceSettings: FC = () => {
   const deleteSubTeamMutation = useMutation({
     mutationFn: subTeamsAPI.deleteSubTeam,
     onError: (error: apiResultsTypes.SmythAPIError) => {
+      const errorMessage = extractError(error);
+
+      // Check if this is the new key-value error format using shared function
+      const keyValuePairs = parseTeamError(errorMessage, 'spaceSettings');
+      if (keyValuePairs) {
+        // Set the error for modal display and close delete modal
+        setDeletionError(errorMessage);
+        setIsDeleteSpaceOpen(false);
+        setIsErrorModalOpen(true);
+        return;
+      }
+
+      // Handle other error types with toast (legacy behavior)
       let _errorMessage = 'Something went wrong!';
       if (error.status === 403) {
-        if (extractError(error) === 'Forbidden') {
+        if (errorMessage === 'Forbidden') {
           _errorMessage = 'You are not authorized to delete this role.';
-        } else if (extractError(error) === 'You do not have permission to create a sub-team') {
+        } else if (errorMessage === 'You do not have permission to create a sub-team') {
           _errorMessage = 'You are not authorized to delete this role.';
         } else if (
-          extractError(error).indexOf(
+          errorMessage.indexOf(
             'You cannot join another team because you have existing data in your account',
           ) > -1
         ) {
-          const hasAiAgent = extractError(error).toLowerCase().indexOf('ai agent') > -1;
-          const hasNamespace = extractError(error).toLowerCase().indexOf('namespace') > -1;
+          const hasAiAgent = errorMessage.toLowerCase().indexOf('ai agent') > -1;
+          const hasNamespace = errorMessage.toLowerCase().indexOf('namespace') > -1;
           _errorMessage = `You need to remove your data from the current team before you can delete it. ${
             hasAiAgent ? '(AI Agents)' : ''
           } ${hasNamespace ? '(NameSpaces)' : ''}.`;
-        } else if (extractError(error)) {
-          _errorMessage = extractError(error);
+        } else if (errorMessage) {
+          _errorMessage = errorMessage;
         }
       }
       toast(_errorMessage);
@@ -259,7 +320,10 @@ export const SpaceSettings: FC = () => {
     }
   };
 
-  const handleDeleteSpace = () => setIsDeleteSpaceOpen(true);
+  const handleDeleteSpace = () => {
+    setDeletionError(''); // Clear any previous error
+    setIsDeleteSpaceOpen(true);
+  };
   const handleAddMember = () => {
     setInActionMember(null);
     setIsAssigningMember(true);
@@ -424,6 +488,29 @@ export const SpaceSettings: FC = () => {
           selectedMember?.name ?? selectedMember?.email
         } from ${currTeam.name}?`}
       />
+
+      {/* Error Modal for space deletion issues */}
+      {isErrorModalOpen && (
+        <Modal
+          onClose={() => {
+            setIsErrorModalOpen(false);
+            setDeletionError('');
+          }}
+          isOpen={isErrorModalOpen}
+          title="Cannot Delete Space"
+          panelClasses="min-w-[460px] md:min-w-[600px]"
+        >
+          <div className="text-base font-light pt-3 pb-5">{renderErrorContent(deletionError)}</div>
+          <Button
+            className="ml-auto h-[48px] rounded-lg"
+            handleClick={() => {
+              setIsErrorModalOpen(false);
+              setDeletionError('');
+            }}
+            label="Close"
+          />
+        </Modal>
+      )}
     </div>
   );
 };

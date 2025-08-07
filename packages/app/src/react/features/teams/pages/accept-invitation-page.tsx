@@ -6,6 +6,7 @@ import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FRONTEND_USER_SETTINGS } from '@src/react/shared/enums';
 import { saveUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import { SmythAPIError } from '@src/react/shared/types/api-results.types';
+import { parseTeamError } from '@src/shared/constants/team-errors.constants';
 import { userSettingKeys } from '@src/shared/userSettingKeys';
 import { useMutation } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,17 +19,54 @@ const AcceptInvitationPage = () => {
     userInfo: { user },
     userTeams,
     currentUserTeam,
+    parentTeamRoles,
+    currentUserTeamRoles,
+    parentTeamMembers,
+    currentUserTeamMembers,
   } = useAuthCtx();
   const [searchParams] = useSearchParams();
   const [hasAcceptedInvite, setHasAcceptedInvite] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showTeamSwitchWarning, setShowTeamSwitchWarning] = useState(false);
   const agentId = searchParams.get('agentId');
   const spaceId = searchParams.get('spaceId');
   const spaceRoleId = searchParams.get('spaceRoleId');
   const [teamHeaderId, setTeamHeaderId] = useState('');
 
-  const isAlreadyAMember = useMemo(() => !user?.userTeamRole?.isTeamInitiator, [user]);
+  const isAlreadyAMember = useMemo(() => {
+    const userEmail = user?.email;
+
+    // If user has parentTeamRoles and parentTeamMembers, check if user is owner in parentTeam
+    if (parentTeamRoles && parentTeamRoles.length > 0 && parentTeamMembers && userEmail) {
+      const userMember = parentTeamMembers.find((member) => member.email === userEmail);
+      if (userMember) {
+        const userRole = parentTeamRoles.find(
+          (role) => role.id === userMember.userTeamRole?.sharedTeamRole?.id,
+        );
+        return !!userRole; // If user has any role, they're already a member (owner or not)
+      }
+    }
+
+    // Otherwise check in currentUserTeamRoles and currentUserTeamMembers
+    if (
+      currentUserTeamRoles &&
+      currentUserTeamRoles.length > 0 &&
+      currentUserTeamMembers &&
+      userEmail
+    ) {
+      const userMember = currentUserTeamMembers.find((member) => member.email === userEmail);
+      if (userMember) {
+        const userRole = currentUserTeamRoles.find(
+          (role) => role.id === userMember.userTeamRole?.sharedTeamRole?.id,
+        );
+        return !!userRole; // If user has any role, they're already a member (owner or not)
+      }
+    }
+
+    // Fallback to original logic if neither are available
+    return !user?.userTeamRole?.isTeamInitiator;
+  }, [user, parentTeamRoles, currentUserTeamRoles, parentTeamMembers, currentUserTeamMembers]);
 
   const acceptInvitation = useMutation({
     mutationFn: ({
@@ -63,12 +101,12 @@ const AcceptInvitationPage = () => {
         }
 
         setIsAccepted(true);
+        setShowTeamSwitchWarning(false);
         toast('Invitation accepted');
       }, 1000);
     },
 
     onError: async (error: SmythAPIError) => {
-      console.log('error', error); // eslint-disable-line no-console
       let shouldSwitchTeam = false;
       let shouldNavigateToHome = false;
       if (
@@ -89,6 +127,7 @@ const AcceptInvitationPage = () => {
       }
       if (error?.error?.message.indexOf('ALREADY_PART_OF_TEAM') !== -1 && agentId) {
         const teamId = error?.error?.message.split(':')[1].trim();
+        setShowTeamSwitchWarning(false);
         await saveUserSettings(userSettingKeys.USER_TEAM, teamId);
         window.location.href = `/builder/${agentId}`;
       } else if (agentId && (shouldSwitchTeam || shouldNavigateToHome)) {
@@ -99,6 +138,7 @@ const AcceptInvitationPage = () => {
           window.location.href = `/builder/${agentId}`;
         }
       } else {
+        setShowTeamSwitchWarning(false);
         setErrorMsg(error?.error?.message ?? 'Something went wrong');
       }
     },
@@ -130,6 +170,13 @@ const AcceptInvitationPage = () => {
     }
   }, [user]);
 
+  // Show warning immediately for existing team members
+  useEffect(() => {
+    if (user && isAlreadyAMember && !isAccepted && !errorMsg) {
+      setShowTeamSwitchWarning(true);
+    }
+  }, [user, isAlreadyAMember, isAccepted, errorMsg]);
+
   const getErrorMsg = (msg: string) => {
     if (msg == 'Invitation expired' && spaceId) {
       return [
@@ -148,6 +195,81 @@ const AcceptInvitationPage = () => {
       return msg ? [msg] : ['Something went wrong'];
     }
   };
+
+  const renderErrorContent = (errorMessage: string) => {
+    // Try to parse using the new team error function first
+    const keyValuePairs = parseTeamError(errorMessage, 'invitationPage');
+
+    if (keyValuePairs) {
+      return (
+        <div className="text-red-800 space-y-3 text-left">
+          {keyValuePairs.length > 0 && (
+            <p className="">
+              Oops! You already have significant assets on your SmythOS account. To prevent
+              destructive actions, please resolve the following before switching teams:
+            </p>
+          )}
+          {keyValuePairs.map((pair, index) => (
+            <div key={index} className="">
+              <b>{pair.key}</b> --{' '}
+              <span
+                dangerouslySetInnerHTML={{ __html: pair.value }}
+                className="[&_a]:underline [&_a]:cursor-pointer"
+              />
+            </div>
+          ))}
+          {keyValuePairs.length > 0 && (
+            <>
+              <p className="">
+                Please ask the admin to invite you using a different email, or delete the current
+                data before attempting to join again.
+              </p>
+              <p>
+                Want to keep your current team and data? Ask your admin to invite you using a
+                different email address, or{' '}
+                <a className="underline" href="mailto:support@smythos.com">
+                  contact support
+                </a>{' '}
+                and we'll help you migrate your account safely.
+              </p>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback to original error message format
+    return (
+      <>
+        {getErrorMsg(errorMessage).map((msg, index) => (
+          <p key={index} className="text-red-800 text-center">
+            {index > 0 && <br />}
+            {msg}
+          </p>
+        ))}
+      </>
+    );
+  };
+
+  const renderTeamSwitchWarning = () => {
+    return (
+      <div className="text-red-800 space-y-3 text-left">
+        <p className="">
+          Oops! You already belong to another team. If you join this new team, you'll lose access to
+          your current team and its data.
+        </p>
+        <p>
+          Want to keep your current team and data? Ask your admin to invite you using a different
+          email address, or{' '}
+          <a className="underline" href="mailto:support@smythos.com">
+            contact support
+          </a>{' '}
+          and we'll help you migrate your account safely.
+        </p>
+      </div>
+    );
+  };
+
   const navigateToHome = async () => {
     if (agentId) {
       if (spaceId) {
@@ -171,15 +293,19 @@ const AcceptInvitationPage = () => {
     }
   };
 
+  const handleSwitchTeams = () => {
+    acceptInvite();
+  };
+
   return (
     <>
-      {!isAccepted && !isAlreadyAMember && !errorMsg ? (
+      {!isAccepted && !isAlreadyAMember && !errorMsg && !showTeamSwitchWarning ? (
         <section className="w-screen h-screen flex items-center justify-center">
           <Spinner />
         </section>
       ) : (
         <div className="font-sans text-white w-full h-[100vh] flex gap-10 flex-col md:flex-row items-center justify-center">
-          <div className="flex flex-col bg-white shadow-sm border border-solid border-gray-100 p-10 max-w-[455px] w-11/12 rounded-lg text-black">
+          <div className="flex flex-col bg-white shadow-sm border border-solid border-gray-100 p-10 max-w-[600px] w-11/12 rounded-lg text-black">
             <header className="flex items-center justify-between mb-8">
               <div className="flex items-center justify-center flex-grow transition duration-300">
                 <img
@@ -189,17 +315,21 @@ const AcceptInvitationPage = () => {
                 />
               </div>
             </header>
-            {errorMsg && !isAccepted ? (
+            {(errorMsg && !isAccepted) || showTeamSwitchWarning ? (
               <>
-                {getErrorMsg(acceptInvitation.error?.error?.message).map((msg, index) => (
-                  <p key={index} className="text-red-800 text-center">
-                    {index > 0 && <br />}
-                    {msg}
-                  </p>
-                ))}
+                {showTeamSwitchWarning ? renderTeamSwitchWarning() : renderErrorContent(errorMsg)}
                 <footer className="flex w-full mt-4 h-[52px] text-base">
-                  <Button handleClick={navigateToHome} fullWidth>
-                    Back to Home
+                  <Button
+                    handleClick={showTeamSwitchWarning ? handleSwitchTeams : navigateToHome}
+                    fullWidth
+                    disabled={showTeamSwitchWarning && acceptInvitation.isLoading}
+                  >
+                    {showTeamSwitchWarning
+                      ? acceptInvitation.isLoading
+                        ? 'Switching...'
+                        : 'Switch teams'
+                      : 'Back to Home'}
+                    {acceptInvitation.isLoading && <Spinner classes="w-8 h-8 ml-4" />}
                   </Button>
                 </footer>
               </>
