@@ -5,7 +5,7 @@ import { setReadonlyMode } from '../../ui/dom';
 import { readFormValues, syncCompositeValues } from '../../ui/form';
 import { debounce, delay, dispatchSubmitEvent } from '../../utils';
 
-function onComponentLoad(sidebar) {
+async function onComponentLoad(sidebar) {
   const component = this;
 
   const titleElement = sidebar.querySelector('.title');
@@ -18,7 +18,7 @@ function onComponentLoad(sidebar) {
   deleteButton.onclick = component.delete.bind(this, false);
 
   const tplDocPath = component.properties?.template?.templateInfo?.docPath || '/not-set';
-  
+
   const docUrl = component.properties?.template
     ? component.workspace.serverData.docUrl + tplDocPath
     : component.docUrl;
@@ -69,6 +69,10 @@ function onComponentLoad(sidebar) {
   });
 
   component.emit('settingsOpened', sidebar, this);
+  if (this.loadingIcon) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.loadingIcon?.classList?.add('hidden');
+  }
 }
 
 function onTemplateCreateLoad(sidebar) {
@@ -277,6 +281,11 @@ async function onSave(values) {
   //console.log('new settings', component.settings);
 
   component.emit('settingsSaved', settingsValues);
+
+  // Also dispatch a global event for tracking
+  document.dispatchEvent(new CustomEvent('componentSettingsSaved', {
+    detail: { componentId: component.uid, settings: settingsValues }
+  }));
 
   component.emit('settingsClosed');
   //component.redrawSettings();

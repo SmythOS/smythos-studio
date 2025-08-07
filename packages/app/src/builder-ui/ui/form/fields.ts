@@ -104,7 +104,7 @@ export const createCheckbox = (label: string, value: string): HTMLInputElement =
 
 export const createCheckboxGroup = (
   options: Array<{ value: string; text: string; checked: boolean; readonly: boolean }>,
-  value: string,
+  value: string[],
 ): HTMLDivElement => {
   const group = document.createElement('div');
   group.setAttribute('data-role', 'checkbox-group');
@@ -218,9 +218,7 @@ export function createInfoButton(
         }),
         placement: position as any,
         className:
-          clsHint +
-          ' whitespace-normal text-xs ' +
-          (tooltipClasses || `w-${estimatedWidth}`),
+          clsHint + ' whitespace-normal text-xs ' + (tooltipClasses || `w-${estimatedWidth}`),
         style: 'dark',
         arrow: true,
       },

@@ -573,11 +573,36 @@ function handleComponentSearch() {
   });
 }
 
+/**
+ * Checks if a drag and drop action occurred within the workspace canvas area
+ * @param event - Drag event or object with coordinates
+ * @returns True if dropped in canvas area, false otherwise
+ */
+function isDroppedInCanvasArea(
+  event: DragEvent | { dragEvent?: DragEvent; clientX?: number; clientY?: number },
+): boolean {
+  // Extract coordinates from either DragEvent or custom event object
+  const dropX = 'clientX' in event ? event.clientX : event.dragEvent?.clientX ?? 0;
+  const dropY = 'clientY' in event ? event.clientY : event.dragEvent?.clientY ?? 0;
+
+  // Return false if coordinates are unavailable
+  if (!dropX || !dropY) {
+    return false;
+  }
+
+  const droppedAtElement = document.elementFromPoint(dropX, dropY);
+
+  // check if droppedAtElement is a child of workspace-container or workspace-container itself
+  return !!(
+    droppedAtElement === document.getElementById('workspace-container') ||
+    droppedAtElement?.closest('#workspace-container')
+  );
+}
+
 function setupBuilderMenuDragDrop() {
   // Initialize the dummy dragging div
   let dummyDiv = null;
-
-  interact(
+    interact(
     '#left-menu a[smt-component], #left-sidebar-integrations-menu a[smt-component]',
   ).draggable({
     // Create the dummy div when starting the drag
@@ -603,8 +628,12 @@ function setupBuilderMenuDragDrop() {
     onend: function (event) {
       if (workspace?.locked) return false;
 
+      dummyDiv.style.pointerEvents = 'none';
+
+      const droppedInCanvasArea = isDroppedInCanvasArea(event);
+
       // Show tooltip if the component is dropped outside of the studio canvas
-      if (!event?.dropzone?.target) {
+      if (!event?.dropzone?.target || !droppedInCanvasArea) {
         const targetCoords = event?.target?.getBoundingClientRect();
 
         // Create tooltip element
@@ -614,7 +643,8 @@ function setupBuilderMenuDragDrop() {
           'tooltip fixed z-50 inline-block text-sm font-medium bg-white text-[#3E3E3E] py-2.5 px-5 rounded-xl shadow-lg max-w-[200px] animate-fade-in before:content-[""] before:absolute before:top-[50%] before:right-[100%] before:-translate-y-[50%] before:border-8 before:border-transparent before:border-r-white';
         tooltip.style.left = targetCoords.right + 10 + 'px';
         tooltip.style.top = targetCoords.top - 20 + 'px';
-        tooltip.textContent = 'Oops! You’re dropping this component off the Canvas—please drop it inside.';
+        tooltip.textContent =
+          'Oops! You’re dropping this component off the Canvas—please drop it inside.';
 
         event.target.appendChild(tooltip);
 
@@ -625,7 +655,7 @@ function setupBuilderMenuDragDrop() {
 
       if (dummyDiv) {
         // If the component is dropped outside of the studio canvas, animate it to the initial position
-        if (!event?.dropzone?.target) {
+        if (!event?.dropzone?.target || !droppedInCanvasArea) {
           const targetCoords = event?.target?.getBoundingClientRect();
           // Add transition CSS
           dummyDiv.style.transition = 'all 0.5s ease-in-out';
@@ -651,7 +681,9 @@ function setupBuilderMenuDragDrop() {
     accept: 'a[smt-component]',
     // Listen for drop related events
     ondrop: async function (event) {
-      if (workspace?.locked) return false;
+      dummyDiv.style.pointerEvents = 'none';
+      const droppedInCanvasArea = isDroppedInCanvasArea(event);
+      if (workspace?.locked || !droppedInCanvasArea) return false;
 
       // Add new restriction check for web tools
       const RESTRICTED_WEB_TOOLS = new Set(['WebSearch', 'WebScrape']);
@@ -763,24 +795,52 @@ function setupBuilderMenuDragDrop() {
       modifiers: [
         (<any>interact).modifiers!.restrictSize({
           min: { width: 280 },
-          max: { width: 1200 },
+          max: (x, y, element) => {
+            const workspaceRect = document
+              .querySelector('#workspace-container')
+              ?.getBoundingClientRect();
+            const leftSidebarRect = document
+              .querySelector('#left-sidebar-container')
+              ?.getBoundingClientRect();
+
+            if (!workspaceRect || !leftSidebarRect) {
+              return { width: 280 }; // Fallback to min-width
+            }
+
+            const minCanvasSpace = 420;
+            const responsiveBreakpoint = 768;
+            const maxRightSidebarWidth = 1000;
+
+            // Calculate max width ensuring minimum canvas space is preserved
+            const maxWidthForCanvas =
+              element.element.getBoundingClientRect().right -
+              (leftSidebarRect.right + minCanvasSpace);
+
+            // On large screens, sidebar shouldn't be more than half the workspace
+            if (workspaceRect.width >= responsiveBreakpoint) {
+              const halfWorkspace = workspaceRect.width / 2;
+              return { width: Math.min(maxWidthForCanvas, halfWorkspace, maxRightSidebarWidth) };
+            }
+
+            return { width: maxWidthForCanvas };
+          },
         }),
       ],
 
       inertia: true,
     })
     .on('resizestart', function (event) {
+      document.body.classList.add('select-none');
       event.target.classList.add('no-transition');
       event.target.classList.add('pointer-events-none');
-      event.target.classList.add('select-none');
     })
     .on('resizemove', function (event) {
       event.target.style.width = event.rect.width + 'px';
     })
     .on('resizeend', function (event) {
+      document.body.classList.remove('select-none');
       event.target.classList.remove('no-transition');
       event.target.classList.remove('pointer-events-none');
-      event.target.classList.remove('select-none');
       localStorage.setItem(`${event.target.id}-width`, event.target.style.width);
     });
 
@@ -801,6 +861,7 @@ function setupBuilderMenuDragDrop() {
       inertia: true,
     })
     .on('resizestart', function (event) {
+      document.body.classList.add('select-none');
       event.target.classList.add('no-transition');
       event.target.classList.add('pointer-events-none');
     })
@@ -808,6 +869,7 @@ function setupBuilderMenuDragDrop() {
       event.target.style.height = event.rect.height + 'px';
     })
     .on('resizeend', function (event) {
+      document.body.classList.remove('select-none');
       event.target.classList.remove('no-transition');
       event.target.classList.remove('pointer-events-none');
 

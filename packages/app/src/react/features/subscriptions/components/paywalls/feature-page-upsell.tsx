@@ -68,9 +68,9 @@ const FeaturePageUpsell = ({
           {title}
 
           {message}
-          <div className="flex justify-between items-center gap-4 mt-2 w-full">
+          <div className="flex justify-between items-center gap-4 mt-2 w-full flex-col md:flex-row">
             <Button
-              className="flex-1"
+              className="flex-1 w-[140px] md:w-auto"
               label="Learn More"
               variant="secondary"
               isLink
@@ -79,7 +79,7 @@ const FeaturePageUpsell = ({
             />
             {showCta && (
               <Button
-                className="flex-1"
+                className="flex-1 w-[140px] md:w-auto"
                 label={ctaLabel}
                 type="button"
                 variant="primary"
@@ -101,12 +101,14 @@ FeaturePageUpsell.Subdomains = () => {
     <FeaturePageUpsell
       title={
         <div className="flex items-center">
-          <FaLock className="text-red-500" size={'1.5rem'} />
-          <h4 className="text-2xl font-medium text-black text-center ml-2">Unlock Subdomains</h4>
+          <FaLock className="text-red-500 mt-[-3px]" size={'1.25rem'} />
+          <h4 className="text-xl md:text-2xl font-medium text-black text-center ml-2 leading-[1rem]">
+            Unlock Subdomains
+          </h4>
         </div>
       }
       message={
-        <p>
+        <p className="text-sm md:text-base">
           Access to subdomains are not available on your plan.{' '}
           <Link to="/plans" className="font-bold underline underline-offset-4">
             Upgrade
@@ -130,11 +132,13 @@ FeaturePageUpsell.Teams = () => {
       title={
         <div className="flex items-center">
           <FaLock className="text-red-500" size={'1.5rem'} />
-          <h4 className="text-2xl font-medium text-black text-center ml-2">Unlock Manage Team</h4>
+          <h4 className="text-xl md:text-2xl font-medium text-black text-center ml-2">
+            Unlock Manage Team
+          </h4>
         </div>
       }
       message={
-        <p>
+        <p className="text-sm md:text-base">
           Create roles for your team with shared permissions for viewing and editing. <br />
           Please{' '}
           <Link className="font-bold underline underline-offset-4" to="/plans">
@@ -158,11 +162,13 @@ FeaturePageUpsell.Roles = () => {
       title={
         <div className="flex items-center">
           <FaLock className="text-red-500" size={'1.5rem'} />
-          <h4 className="text-2xl font-medium text-black text-center ml-2">Unlock Manage Roles</h4>
+          <h4 className="text-xl md:text-2xl font-medium text-black text-center ml-2">
+            Unlock Manage Roles
+          </h4>
         </div>
       }
       message={
-        <p>
+        <p className="text-sm md:text-base">
           Create roles for your team with shared permissions for viewing and editing. <br />
           Please{' '}
           <Link className="font-bold underline underline-offset-4" to="/plans">

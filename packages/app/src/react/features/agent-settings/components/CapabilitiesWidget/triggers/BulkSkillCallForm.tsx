@@ -15,7 +15,9 @@ import { createLocalStorageArrayRetriever } from '@react/shared/utils/utils';
 import { useQuery } from '@tanstack/react-query';
 // import 'ag-grid-community/styles/ag-grid.css';
 // import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { AgGridReact as AgGridReactType } from 'ag-grid-react';
+import '@ag-grid-community/styles/ag-grid.css';
+import '@ag-grid-community/styles/ag-theme-quartz.css';
+// import { AgGridReact as AgGridReactType } from 'ag-grid-react/dist/types/src/agGridReact';
 import classNames from 'classnames';
 import { isNil } from 'lodash-es';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
@@ -24,6 +26,7 @@ import { IoMdAdd } from 'react-icons/io';
 import { MdDelete } from 'react-icons/md';
 import { VscRunAll } from 'react-icons/vsc';
 import { toast } from 'react-toastify';
+import './styles.css';
 
 type Props = {
   component: Component;
@@ -58,7 +61,7 @@ const BulkSkillCallForm = ({ component, agent, agentId, latestAgentDeploymentQue
   const [isCancelingJob, setIsCancelingJob] = useState(false);
   const [isJobRunning, setIsJobRunning] = useState(false);
 
-  const grid = useRef<AgGridReactType>(null);
+  const grid = useRef<any>(null);
   // const LS_KEY = `agent-${agentId}-component-${component.id}`;
   const {
     userInfo: { subs },

@@ -12,7 +12,12 @@ export const fetchLLMAndApiUsage = async (teamId: string, date: any) => {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch usage data: ${response?.status} ${response?.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    if (errorData.message) {
+      throw new Error(errorData.message);
+    } else {
+      throw new Error(`Failed to fetch usage data: ${response.statusText}`);
+    }
   }
 
   return response.json();
@@ -26,7 +31,12 @@ export const fetchCurrentCycleUsage = async () => {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch usage data: ${response?.status} ${response?.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    if (errorData.message) {
+      throw new Error(errorData.message);
+    } else {
+      throw new Error(`Failed to fetch usage data: ${response.statusText}`);
+    }
   }
 
   return response.json();

@@ -183,7 +183,7 @@ export async function twEditValues({
   for (let action of actions) {
     const button = document.createElement('button');
     dialogActions.appendChild(button);
-    button.className = `px-4 py-2 text-white transition-opacity rounded w-full sm:w-auto ${
+    button.className = `px-8 py-3 text-white transition-opacity rounded-lg w-full sm:w-auto ${
       action.cssClass || PRIMARY_BUTTON_STYLE
     }`;
     button.innerHTML = action.label;

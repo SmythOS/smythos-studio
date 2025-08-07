@@ -1,4 +1,4 @@
-import { Workspace } from 'src/builder-ui/workspace/Workspace.class';
+import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 
 import { autoResizeTextarea, runChatUI } from './ChatUI.helper';
 

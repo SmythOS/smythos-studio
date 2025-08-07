@@ -206,14 +206,14 @@ export class APICall extends Component {
         label: 'Consumer Key (OAuth1.0) *',
         section: 'OAuth',
         value: '',
-        attributes: { 'data-vault': `APICall, All` },
+        attributes: { 'data-vault': `${COMP_NAMES.apiCall},All` },
       },
       consumerSecret: {
         type: 'input',
         label: 'Consumer Secret (OAuth1.0) *',
         section: 'OAuth',
         value: '',
-        attributes: { 'data-vault': `APICall, All` },
+        attributes: { 'data-vault': `${COMP_NAMES.apiCall},All` },
       },
       oauth1CallbackURL: {
         // Renamed to avoid conflict with OAuth2.0 callback URL

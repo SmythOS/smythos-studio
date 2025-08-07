@@ -136,3 +136,6 @@ nav#top li a {
     }
   }
 }
+select:not([size]) {
+  background-position: right 8px center;
+}

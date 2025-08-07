@@ -19,9 +19,9 @@ export const TeamInfo: FC<TeamInfoProps> = ({ teamName, canDeleteSpace, setIsEdi
         {teamName?.slice(0, 2).toUpperCase()}
       </div>
       <div className="text-xl font-semibold mb-2 mt-8 break-all">
-        <h2>{teamName}</h2>
+        <h2 className="inline-block w-[calc(100%-24px)]">{teamName}</h2>
         {canDeleteSpace && (
-          <button className={classNames('align-middle')} onClick={() => setIsEditing(true)}>
+          <button className={classNames('align-middle')} data-qa="edit-space-name-button" onClick={() => setIsEditing(true)}>
             <AiOutlineEdit className="mr-1" />
           </button>
         )}

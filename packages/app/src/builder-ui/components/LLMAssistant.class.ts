@@ -129,7 +129,7 @@ export class LLMAssistant extends Component {
       behavior: {
         type: 'textarea',
         label: 'Behavior',
-        class: 'mb-6',
+        class: '',
         validate: `required maxlength=30000`,
         validateMessage: `The behavior prompt should be a non empty text of less than 30,000 characters`,
         value: 'You are a helpful assistant that helps people with their questions',
@@ -202,9 +202,9 @@ export class LLMAssistant extends Component {
       if (model) {
         html += `<ul>`;
 
-        html += `<li><b>Provider </b> ${model?.llm ? model.llm : 'Unknown'}</li>`;
+        html += `<li><b>Provider: </b> ${model?.llm ? model.llm : 'Unknown'}</li>`;
         html += `<li><b>Context Window Size: </b> ${model?.tokens ? model.tokens : 'Unknown'}</li>`;
-        html += `<li><b>Maximum Output Tokens </b> ${
+        html += `<li><b>Maximum Output Tokens: </b> ${
           model?.completionTokens ? model.completionTokens : 'Unknown'
         }</li>`;
         html += `</ul>`;

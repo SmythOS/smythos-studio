@@ -149,12 +149,15 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
     const canSubmit =
       !submitDisabled && (message.trim().length > 0 || isGenerating || files.length > 0);
 
+    const handleContainerClick = () => inputRef.current?.focus();
+
     return (
       <div
         className={classNames(
-          'bg-gray-50 border border-solid border-[#D1D1D1] rounded-[8px] min-h-[60px] py-1 text-sm flex flex-col items-center justify-center',
+          'bg-white border border-solid border-[#e5e5e5] rounded-lg min-h-[60px] py-1 text-sm flex flex-col items-center justify-center cursor-text',
           className,
         )}
+        onClick={handleContainerClick}
       >
         {files.length > 0 && (
           <div
@@ -175,9 +178,10 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
 
         <div
           className={classNames(
-            'rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px]',
+            'rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px] cursor-text',
             className,
           )}
+          onClick={handleContainerClick}
         >
           <input
             type="file"
@@ -187,6 +191,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
             onChange={handleFileChange}
             multiple
             aria-label="File attachment input"
+            onClick={(e) => e.stopPropagation()}
           />
           <textarea
             rows={1}
@@ -198,33 +203,39 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
             disabled={isQueryInputDisabled}
             placeholder={queryInputPlaceholder}
             maxLength={maxLength}
-            className="bg-gray-50 border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-600 placeholder:text-gray-600 placeholder:text-[16px] placeholder:font-[400]"
+            className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
             aria-label="Message input"
+            onClick={(e) => e.stopPropagation()}
           />
 
           <div
             className={classNames(
-              'text-xs mr-2',
+              'text-xs mr-2 w-[75px] text-right flex-shrink-0',
               isMaxLengthReached ? 'text-red-500' : 'text-gray-500',
             )}
             aria-live="polite"
+            onClick={(e) => e.stopPropagation()}
           >
             {message.length}/{maxLength}
           </div>
 
-          <AttachmentButton
-            onClick={handleAttachmentClick}
-            fileAttachmentDisabled={
-              isMaxFilesUploaded || isQueryInputDisabled || isQueryInputProcessing || isGenerating
-            }
-            isMaxFilesUploaded={isMaxFilesUploaded}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <AttachmentButton
+              onClick={handleAttachmentClick}
+              fileAttachmentDisabled={
+                isMaxFilesUploaded || isQueryInputDisabled || isQueryInputProcessing || isGenerating
+              }
+              isMaxFilesUploaded={isMaxFilesUploaded}
+            />
+          </div>
 
-          <SendButton
-            isProcessing={isQueryInputProcessing || isGenerating}
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <SendButton
+              isProcessing={isQueryInputProcessing || isGenerating}
+              disabled={!canSubmit}
+              onClick={handleSubmit}
+            />
+          </div>
         </div>
       </div>
     );

@@ -74,7 +74,7 @@ const ChatbotCodeSnippetModal = (props: Props) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
-        <div className="flex justify-between items-start p-4 border-b dark:border-gray-600">
+        <div className="flex justify-between items-start p-2 border-b dark:border-gray-600">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             Chatbot Integration Snippet
           </h3>
@@ -88,7 +88,7 @@ const ChatbotCodeSnippetModal = (props: Props) => {
         </div>
 
         {/* Code snippet textarea */}
-        <div className="px-6 pt-2 pb-4">
+        <div className="px-2 pt-2 pb-4">
           {!isFullScreen ? (
             <p className="mb-4 text-sm text-gray-900 flex gap-2 items-center">
               <FaCircleInfo className="min-w-4" /> Copy and paste this snippet into your website
@@ -115,9 +115,10 @@ const ChatbotCodeSnippetModal = (props: Props) => {
           <Button
             variant="primary"
             handleClick={handleCopyClick}
-            label="Copy Code"
+            label="Copy"
             addIcon={true}
             Icon={<FaCopy className="mr-2" />}
+            className="w-[100px] h-[48px] rounded-lg ml-auto"
           />
         </div>
       </div>

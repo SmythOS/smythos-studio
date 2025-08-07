@@ -30,7 +30,7 @@ export const BottomMenuItem: React.FC<IBottomMenuItemProps> = ({
         rel={isExternal ? 'noopener noreferrer' : undefined}
       >
         <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md">
-          <Icon className="w-5 h-5" />
+          <Icon width="20" height="20" viewBox="0 0 24 24" />
         </div>
         <span
           className={classNames(

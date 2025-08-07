@@ -22,6 +22,7 @@ import { PostHog } from '@shared/posthog';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
+import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 
 interface Props {
@@ -83,6 +84,8 @@ export const AssignMemberModal: FC<Props> = ({
   const { data: userTeamSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
   const { data: roleSettings } = useGetTeamSettings(teamSettingKeys.DEFAULT_ROLE);
   const currentTeamId = userTeamSettings?.userSelectedTeam;
+
+  const modalOriginFromSpaceSettings = !!editData && !newTeamData;
 
   const isUpdatingRole = memberData?.removeBeforeUpdate;
 
@@ -179,11 +182,11 @@ export const AssignMemberModal: FC<Props> = ({
       }
 
       // Show success message only on confirmed success
-      toast('Member added successfully');
+      toast(editData?.id ? 'Member updated successfully' : 'Member added successfully');
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      toast(error?.message || error?.error?.message || 'Failed to assign member');
+      toast(error?.message || error?.error?.message || 'Failed to add member');
       setIsAddBtnDisabled(false);
       setIsLoading(false);
     },
@@ -508,7 +511,7 @@ export const AssignMemberModal: FC<Props> = ({
       }
       applyMaxWidth={false}
       panelWrapperClasses={'w-[540px]'}
-      hideCloseIcon={true}
+      hideCloseIcon={!modalOriginFromSpaceSettings}
       showOverflow={true}
       // panelClasses={'h-[500px]'}
     >
@@ -560,12 +563,16 @@ export const AssignMemberModal: FC<Props> = ({
             </div>
           </>
         )}
-        {/* <p className={classNames('text-sm text-gray-500 pt-2', { hidden: isUpdatingRole })}>
+        <p
+          className={classNames('text-base text-[#1E1E1E] py-3 font-light', {
+            hidden: isUpdatingRole,
+          })}
+        >
           {finalMemberAccess
-            ? 'Invite team members to collaborate. If the email entered is not part of the organization, 
-            they will be added automatically.'
+            ? `Invite team members to collaborate. If the email entered is not part of the organization, 
+            they will be added automatically.`
             : ' Invite a new person to join your team or workspace.'}
-        </p> */}
+        </p>
         {!hasRoles && (
           <div className="w-full h-6 my-20">
             <Spinner classes="w-full h-6 mr-10" />
@@ -574,42 +581,11 @@ export const AssignMemberModal: FC<Props> = ({
         {hasRoles && isEmailNewMember && <InviteMemberWarning classes="mb-2" />}
         {hasRoles && (
           <>
-            <div className="flex flex-row gap-6 mb-2">
-              <div className="text-left text-md font-medium text-gray-900 dark:text-white w-full">
-                Invite colleagues <span className="text-red-500">*</span>
+            <div className="mb-2">
+              <div className="text-left text-base font-medium text-[#1E1E1E] w-full">
+                Email <span className="text-red-500">*</span>
               </div>
 
-              <div className="text-left text-md font-medium text-gray-900 dark:text-white w-full">
-                Role{' '}
-                <Tooltip
-                  content={
-                    <div className="text-sm">
-                      Different roles have different permissions.
-                      <br />
-                      See{' '}
-                      <a
-                        href="/teams/roles"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline text-smythos-blue-500 font-semibold hover:text-smythos-blue-700"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        manage roles
-                      </a>
-                    </div>
-                  }
-                  trigger="hover"
-                  placement="top"
-                  style="light"
-                  theme={{
-                    target: 'inline-flex items-center w-5 h-5 align-top',
-                  }}
-                >
-                  <img src="/img/icons/Info.svg" className="w-5 h-5" alt="Info" />
-                </Tooltip>
-              </div>
-            </div>
-            <div className="flex flex-row gap-6">
               <div className="w-full">
                 <AssignTeamDropdown
                   options={
@@ -640,6 +616,41 @@ export const AssignMemberModal: FC<Props> = ({
                   </p>
                 )}
               </div>
+            </div>
+            <div className="mb-2">
+              <div className="text-left text-base font-medium text-[#1E1E1E] w-full">
+                Role{' '}
+                <Tooltip
+                  content={
+                    <div className="text-sm">
+                      Different roles have different permissions.
+                      {currentUserTeam?.parentId === null && (
+                        <>
+                          <br />
+                          See{' '}
+                          <a
+                            href="/teams/roles"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-semibold hover:text-gray-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            manage roles
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  }
+                  trigger="hover"
+                  placement="top"
+                  style="dark"
+                  theme={{
+                    target: 'inline-flex items-center w-5 h-5 align-top',
+                  }}
+                >
+                  <img src="/img/icons/Info.svg" className="w-5 h-5" alt="Info" />
+                </Tooltip>
+              </div>
               <div className="w-full">
                 <AssignTeamDropdown
                   options={
@@ -654,7 +665,6 @@ export const AssignMemberModal: FC<Props> = ({
                   onChange={(value) => setSelectedRoleId(value)}
                   value={selectedRoleId}
                   placeholder={getPlaceholderText()}
-                  disabled={isUpdatingRole}
                 />
               </div>
             </div>
@@ -663,7 +673,7 @@ export const AssignMemberModal: FC<Props> = ({
                 handleClick={handleContinue}
                 disabled={isContinuing || isLoading}
                 variant="secondary"
-                className="mr-2"
+                className={`mr-2 ${modalOriginFromSpaceSettings ? 'hidden' : ''}`}
                 label={newTeamData?.name ? 'Go To Space' : 'Cancel'}
                 loading={isContinuing}
               />
@@ -673,6 +683,7 @@ export const AssignMemberModal: FC<Props> = ({
                 variant="primary"
                 label={isUpdatingRole ? 'Save' : 'Add Member'}
                 loading={isLoading}
+                className="px-8 h-[48px] rounded-lg"
               />
             </div>
           </>

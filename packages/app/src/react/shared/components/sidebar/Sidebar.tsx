@@ -5,7 +5,11 @@ import { userSettingKeys } from '@shared/userSettingKeys';
 import ErrorFallback from '@src/react/features/error-pages/components/ErrorFallback';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
 import { useGetTeamSettings } from '@src/react/features/teams/hooks/useTeamSettings';
-import { bottomLinks, sidebarMenuItems, sidebarMenuItemsWithTeams } from '@src/react/shared/constants/navigation';
+import {
+  bottomLinks,
+  sidebarMenuItems,
+  sidebarMenuItemsWithTeams,
+} from '@src/react/shared/constants/navigation';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { useScreenSize } from '@src/react/shared/hooks/useScreenSize';
 import { useGetUserSettings } from '@src/react/shared/hooks/useUserSettings';
@@ -113,6 +117,7 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="relative">
       <div
+        data-qa="navigation-sidebar"
         className={classNames(
           'z-50 left-0 min-w-[4rem] max-h-screen flex flex-col transition-all duration-300 sticky top-0 h-[100dvh] md:h-screen max-md:absolute',
           isCollapsed ? 'w-16' : 'w-64',
@@ -154,16 +159,26 @@ export const Sidebar: React.FC = () => {
                     })}
                     alt="SmythOS"
                   />
-                  {!isCollapsed && (
-                    <img src="/img/smythos-text.svg" alt="SmythOS" className="ml-3 h-6 w-auto" />
-                  )}
+                  <img
+                    src="/img/smythos-text.svg"
+                    alt="SmythOS"
+                    className={classNames(
+                      'ml-3 h-6 w-auto transition-all duration-300',
+                      isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto',
+                    )}
+                  />
                 </>
               )}
             </div>
           </Link>
         </div>
         <nav className="flex-grow relative overflow-y-auto">
-          <div className="h-full overflow-x-hidden">
+          <div
+            className={classNames('h-full', {
+              'overflow-x-hidden': !isCollapsed,
+              'flex flex-col items-center pt-0': isCollapsed,
+            })}
+          >
             {menuItems.map((page: any) => (
               <SidebarMenuItem
                 key={page.url}
@@ -175,7 +190,7 @@ export const Sidebar: React.FC = () => {
                 isActive={activePage === page.name}
               />
             ))}
-             <PluginComponents targetId={PluginTarget.TopMenuItem} />
+            <PluginComponents targetId={PluginTarget.TopMenuItem} />
           </div>
         </nav>
         <div className="mt-auto border-t border-gray-100 overflow-hidden">

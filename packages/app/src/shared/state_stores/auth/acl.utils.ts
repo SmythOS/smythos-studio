@@ -20,7 +20,13 @@ export class ACLUtils {
         !parentRole?.isOwnerRole
       );
     }
-    return this.pageAcl?.[baseRoute]?.access === 'r' || this.apiAcl?.[baseRoute]?.access === '';
+    const userTeamRole = this.userInfo?.teamMembers?.filter(
+      (member) => userEmail == member.email,
+    )?.[0]?.userTeamRole;
+    return (
+      (this.pageAcl?.[baseRoute]?.access === 'r' || this.apiAcl?.[baseRoute]?.access === '') &&
+      userTeamRole?.sharedTeamRole?.name !== 'Super Admin'
+    );
   }
 
   getPageAccess(

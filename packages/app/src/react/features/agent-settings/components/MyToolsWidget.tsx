@@ -29,7 +29,9 @@ const MyToolsWidget = (props: Props) => {
       <div className="bg-gray-50 p-4 " data-qa="my-tools-container">
         <div className="flex justify-between items-center flex-col ">
           <div className="w-full">
-            <h3 className="font-semibold mb-2 text-sm">My Tools</h3>
+            <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-2">
+              My Tools
+            </h3>
             <p className="text-sm text-gray-500">
               These are the tools your agent uses to complete their workflow.
             </p>

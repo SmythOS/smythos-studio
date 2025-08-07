@@ -139,7 +139,7 @@ function toggleSwitch(on: boolean) {
   const pulsingDotContainer: HTMLElement = debugSwitcher.querySelector('.pulsing-dot-container');
   const mifBug: HTMLElement = debugSwitcher.querySelector('.mif-bug');
   const inspectButton = document?.getElementById('cmp-inspect-btn');
-  const debugSwitcherMassage = document?.querySelector('.debug-switcher-massage');
+  const debugSwitcherMessage = document?.querySelector('.debug-switcher-message');
 
   if (on) {
     PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'debug' });
@@ -156,8 +156,8 @@ function toggleSwitch(on: boolean) {
   if (on) {
     // Use textContent instead of innerText for better cross-browser compatibility
     // debugMenu.classList.remove('hidden');
-    debugSwitcherMassage?.classList.remove('hidden');
-    debugSwitcherMassage?.classList.add('block');
+    debugSwitcherMessage?.classList.remove('hidden');
+    debugSwitcherMessage?.classList.add('block');
     pulsingDotContainer.classList.remove('hidden');
     switcherText.textContent = 'Debug On';
     mifBug.classList.add('hidden');
@@ -173,8 +173,8 @@ function toggleSwitch(on: boolean) {
     debugSwitcherContainer.classList.remove('active');
     mifBug.classList.remove('hidden');
     pulsingDotContainer.classList.add('hidden');
-    debugSwitcherMassage?.classList.remove('block');
-    debugSwitcherMassage?.classList.add('hidden');
+    debugSwitcherMessage?.classList.remove('block');
+    debugSwitcherMessage?.classList.add('hidden');
 
     updateInspectButtonIcon(inspectButton, false);
   }
@@ -469,6 +469,7 @@ export async function init() {
           'Debug session terminated unexpectedly. Check logs for details.',
           'Debug Interrupted',
         );
+        setDebugMessage();
       }
     } finally {
       enableAllDebugControls();
@@ -527,6 +528,7 @@ export async function init() {
     stopBtn.removeAttribute('disabled');
 
     warningToast('Debug session stopped. Review and re-initiate if needed.', 'Debug Stopped');
+    setDebugMessage();
   });
 
   updateServerStatus();
@@ -595,6 +597,7 @@ export async function runDebug() {
         'Debug Interrupted',
       );
       workflowStatus = 'failed';
+      setDebugMessage();
       break;
     }
 
@@ -1300,6 +1303,43 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
   // Handle file preview
   div.querySelector('.btn-file-preview')?.addEventListener('click', previewHandler);
 
+  // Add event listeners to clear text selection when hover window closes
+  const endpoint = div.closest('.endpoint');
+  const dbgTextarea = div.querySelector('.dbg-textarea');
+
+  if (endpoint && dbgTextarea && !endpoint.classList.contains('pinned')) {
+    // Clear selection when mouse leaves the endpoint (hover window closes)
+    const clearSelectionHandler = () => {
+      // Only clear if selection is within this debug textarea
+      const selection = window.getSelection();
+      if (
+        selection &&
+        selection.toString() &&
+        selection.anchorNode &&
+        (dbgTextarea.contains(selection.anchorNode) || dbgTextarea.contains(selection.focusNode))
+      ) {
+        selection.removeAllRanges();
+      }
+    };
+
+    endpoint.addEventListener('mouseleave', clearSelectionHandler);
+
+    // Also clear selection when clicking outside the debug element
+    document.addEventListener('click', (e) => {
+      if (!div.contains(e.target as Node) && !endpoint.classList.contains('pinned')) {
+        const selection = window.getSelection();
+        if (
+          selection &&
+          selection.toString() &&
+          selection.anchorNode &&
+          (dbgTextarea.contains(selection.anchorNode) || dbgTextarea.contains(selection.focusNode))
+        ) {
+          selection.removeAllRanges();
+        }
+      }
+    });
+  }
+
   outputEndpoint.querySelector('.name').classList.add('dbg-info');
   outputEndpoint.querySelector('.ep').classList.add('dbg-info');
 }
@@ -1332,6 +1372,43 @@ function showInputInfo(inputEndpoint, inputContent) {
   // Handle file preview
   div.querySelector('.btn-file-preview')?.addEventListener('click', previewHandler);
 
+  // Add event listeners to clear text selection when hover window closes
+  const endpoint = div.closest('.endpoint');
+  const dbgTextarea = div.querySelector('.dbg-textarea');
+
+  if (endpoint && dbgTextarea && !endpoint.classList.contains('pinned')) {
+    // Clear selection when mouse leaves the endpoint (hover window closes)
+    const clearSelectionHandler = () => {
+      // Only clear if selection is within this debug textarea
+      const selection = window.getSelection();
+      if (
+        selection &&
+        selection.toString() &&
+        selection.anchorNode &&
+        (dbgTextarea.contains(selection.anchorNode) || dbgTextarea.contains(selection.focusNode))
+      ) {
+        selection.removeAllRanges();
+      }
+    };
+
+    endpoint.addEventListener('mouseleave', clearSelectionHandler);
+
+    // Also clear selection when clicking outside the debug element
+    document.addEventListener('click', (e) => {
+      if (!div.contains(e.target as Node) && !endpoint.classList.contains('pinned')) {
+        const selection = window.getSelection();
+        if (
+          selection &&
+          selection.toString() &&
+          selection.anchorNode &&
+          (dbgTextarea.contains(selection.anchorNode) || dbgTextarea.contains(selection.focusNode))
+        ) {
+          selection.removeAllRanges();
+        }
+      }
+    });
+  }
+
   inputEndpoint?.querySelector('.name')?.classList?.add('dbg-info');
   inputEndpoint?.querySelector('.ep')?.classList?.add('dbg-info');
 }
@@ -1361,6 +1438,8 @@ export async function readDebugStep(agentID, sessionID?, IDFilter?: any[]) {
   // Reset the components state before reading the new step
   resetComponentsState({ resetPinned: true });
 
+  const activeComponentsInfo = [];
+
   let errorOccurred = false;
   for (let id in result.state) {
     if (IDFilter && !IDFilter.includes(id)) continue;
@@ -1371,7 +1450,11 @@ export async function readDebugStep(agentID, sessionID?, IDFilter?: any[]) {
 
       if (!attached) attached = true;
       const active = result.state[id].active;
-      if (active) componentElement.classList.add('dbg-active');
+      if (active) {
+        componentElement.classList.add('dbg-active');
+        activeComponentsInfo.push(componentElement);
+      }
+
       if (result.state[id].alwaysActive) componentElement.classList.add('dbg-always-active');
       const status = result.state[id].status;
       const sourceId = result.state[id].sourceId;
@@ -1882,6 +1965,13 @@ export async function readDebugStep(agentID, sessionID?, IDFilter?: any[]) {
     workspace.jsPlumbInstance.repaint(componentElement);
   }
 
+  if (activeComponentsInfo.length === 1) {
+    const title = activeComponentsInfo[0]?._control?.title || '';
+    setDebugMessage(title);
+  } else {
+    setDebugMessage();
+  }
+
   // const asyncRunning = [...document.querySelectorAll('.dbg-async')].map((c) => c.id);
   // if (asyncRunning.length > 0) {
   //     setTimeout(() => {
@@ -1941,6 +2031,21 @@ export async function readDebugStep(agentID, sessionID?, IDFilter?: any[]) {
   return { states: result, attached, errorOccurred };
 }
 
+function setDebugMessage(title?: string) {
+  const messageBlock = document.querySelector('.debug-switcher-message > p');
+  if (!messageBlock) return;
+
+  if (title) {
+    messageBlock.innerHTML = `<div class='flex'>
+    Next Component:&nbsp;<div class="text-ellipsis max-w-[120px] overflow-hidden whitespace-nowrap font-bold">${title}</div>
+    </div>
+    <div>Click step to continue debugging.</div>`;
+
+    return;
+  }
+  messageBlock.textContent = `Debug session active. Use the controls above to step through execution.`;
+}
+
 function escapeHTML(html) {
   const textArea: HTMLTextAreaElement = document.createElement('textarea');
   textArea.textContent = html;
@@ -1976,7 +2081,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
   // Commented out, as we need to keep the debug UI info even if the new workflow is started
   // clearDebugUIInfo();
 
-  // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
+  // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
   // const runBtn = document.getElementById('debug-menubtn-run');
   // const stepBtn = document.getElementById('debug-menubtn-step');
   // const attachBtn = document.getElementById('debug-menubtn-attach');
@@ -2052,7 +2157,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
   })
     .then((res) => res.json())
     .catch((error) => {
-      // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
+      // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
       // runBtn.removeAttribute('disabled');
       // stepBtn.removeAttribute('disabled');
       // attachBtn.removeAttribute('disabled');
@@ -2065,7 +2170,7 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
 
   debugSessions[agentID].sessionID = result.dbgSession;
 
-  // ! Deprecated: will be removed (we handle debug controls in the - src/builder-ui/components/Component.class/index.ts)
+  // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
   // runBtn.removeAttribute('disabled');
   // stepBtn.removeAttribute('disabled');
   // attachBtn.removeAttribute('disabled');

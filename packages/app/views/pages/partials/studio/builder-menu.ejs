@@ -32,14 +32,69 @@
     <%- include('agent-status'); -%>
   </div>
 
-  <!-- Right side: New Agent, Agent Chat, and User Menu -->
-
+  <!-- Right side: Search, New Agent, Agent Chat, and User Menu -->
   <div class="flex items-center gap-2 px-4 pointer-events-auto relative">
+    <!-- Canvas Search Container - positioned before debug/deploy/share buttons -->
+    <div id="canvas-search-container" class="hidden items-center space-x-4 h-10 z-50 mr-[70px]">
+      <div
+        class="px-2 py-1 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex flex-col justify-center items-start"
+      >
+        <!-- Search Bar -->
+        <div class="w-[320px] inline-flex justify-start items-center gap-1">
+          <div class="inline-flex flex-col justify-start items-start overflow-hidden">
+            <div class="w-4 h-4 flex flex-col justify-center items-center overflow-hidden">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+              >
+                <path
+                  d="M7.84393 13.8368C11.1534 13.8368 13.8363 11.1539 13.8363 7.84442C13.8363 4.53493 11.1534 1.85205 7.84393 1.85205C4.53444 1.85205 1.85156 4.53493 1.85156 7.84442C1.85156 11.1539 4.53444 13.8368 7.84393 13.8368Z"
+                  stroke="#525252"
+                  stroke-width="0.666667"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12.0117 12.3235L14.3611 14.6667"
+                  stroke="#525252"
+                  stroke-width="0.666667"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+          <input
+            id="canvas-search-input"
+            type="text"
+            class="flex-1 bg-transparent outline-none text-sm placeholder:text-zinc-600 text-neutral-800 font-normal font-['Inter'] border-none focus:border-none focus:outline-none min-w-0"
+            placeholder="Search Components and Integrations."
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <!-- Search Results -->
+        <div
+          id="canvas-search-results"
+          class="self-stretch flex flex-col justify-start items-start gap-1 max-h-80 overflow-y-auto w-[320px]"
+        >
+          <!-- Results will be populated here -->
+        </div>
+      </div>
+    </div>
+
     <div id="embodiments-toolbar" class="items-center space-x-4 h-10 z-[1]">
       <%- include('./embodiments-new'); -%>
     </div>
     <div class="nav-action-buttons hidden md:flex gap-2 h-10">
-      <div class="relative rounded-lg border border-solid border-gray-200 text-gray-900 bg-white">
+      <div
+        class="group relative rounded-lg border border-solid border-gray-200 text-gray-900 bg-white hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white"
+      >
         <div class="flex items-center rounded-lg h-full" id="btn-emb-chatbot-main-wrapper">
           <button
             id="btn-emb-chatbot-main"
@@ -156,7 +211,7 @@
           <div class="py-1" role="none">
             <button
               id="btn-emb-chatbot"
-              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left active"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-smythos-blue-500 hover:text-white w-full text-left active"
               role="menuitem"
             >
               <span class="w-4 h-4"><%- ChatEmbodimentIcon() -%></span>
@@ -165,7 +220,7 @@
 
             <button
               id="btn-emb-agentllm"
-              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-smythos-blue-500 hover:text-white w-full text-left"
               role="menuitem"
             >
               <span class="w-4 h-4"><%- LLMIcon() -%></span>
@@ -175,7 +230,7 @@
             <button
               id="btn-emb-api"
               data-dropdown-toggle="embodiments-dropdown"
-              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-smythos-blue-500 hover:text-white w-full text-left"
               role="menuitem"
             >
               <span class="w-4 h-4"><%- ApiEmbodimentIcon() -%></span>
@@ -185,7 +240,7 @@
             <button
               id="btn-emb-chatgpt"
               data-dropdown-toggle="embodiments-dropdown"
-              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-smythos-blue-500 hover:text-white w-full text-left"
               role="menuitem"
             >
               <span class="w-4 h-4"><%- ChatGPTIcon() -%></span>
@@ -205,7 +260,7 @@
             <button
               id="btn-emb-postman"
               data-dropdown-toggle="embodiments-dropdown"
-              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-smythos-blue-500 hover:text-white w-full text-left"
               role="menuitem"
             >
               <span class="w-4 h-4"><%- PostmanIcon() -%></span>
@@ -220,14 +275,14 @@
         href="/plans"
         target="_blank"
         data-plan="<%= plan?.name?.toLowerCase() %>"
-        class="upgrade-button text-white rounded-lg p-2 h-full bg-smythos-blue-500 flex items-center text-sm border border-solid border-gray-200"
+        class="upgrade-button text-white rounded-lg p-2 h-full bg-smythos-blue-500 flex items-center text-sm border border-solid border-gray-200 hover:bg-smyth-blue hover:border-smyth-blue"
       >
         Upgrade
       </a>
       <% } %>
       <button
         id="deploy-button-topbar"
-        class="user-select-none deploy-button border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
+        class="user-select-none deploy-button border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white"
         type="button"
         data-tooltip-target="tooltip-deploy"
         data-tooltip-placement="bottom"
@@ -256,7 +311,7 @@
       </div>
       <button
         id="share-agent-button-topbar"
-        class="text-gray-900 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm disabled:opacity-50 border border-solid border-gray-200"
+        class="text-gray-900 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm disabled:opacity-50 border border-solid border-gray-200 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:stroke-white disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-900 disabled:hover:[&_path]:stroke-black"
         type="button"
         disabled="true"
         data-tooltip-target="tooltip-share"
@@ -344,52 +399,6 @@
         </ul>
       </div>
     </div> -->
-  </div>
-</div>
-
-<div
-  id="bottom-toolbar"
-  class="h-16 items-center justify-between max-w-full px-4 z-10 absolute w-full pointer-events-none bottom-0 left-0"
->
-  <div class="flex items-end gap-2 pointer-events-auto -mt-8">
-    <div
-      class="border border-solid border-gray-200 rounded-lg p-3 h-full bg-white flex flex-col gap-3 items-center text-sm text-gray-900"
-    >
-      <button id="cmp-zoom-in-btn" type="button"><%- include('icons/zoom-in.ejs'); -%></button>
-      <button id="cmp-zoom-out-btn" type="button"><%- include('icons/zoom-out.ejs'); -%></button>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-2 pointer-events-auto">
-    <button
-      id="cmp-collapse-btn"
-      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
-      type="button"
-    >
-      <%- include('icons/collapse.ejs'); -%>
-      <span class="text text-xs">Expand</span>
-    </button>
-    <button
-      id="cmp-prettify-btn"
-      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900"
-      type="button"
-    >
-      <%- include('icons/prettify.ejs'); -%>
-      <span class="text-xs">Prettify</span>
-    </button>
-    <button
-      id="cmp-inspect-btn"
-      class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 stroke-[#111827] [&.active]:bg-smythos-blue-500 [&.active]:text-white [&.active]:stroke-white"
-      type="button"
-    >
-      <%- include('icons/inspect.ejs'); -%>
-      <span class="text-xs">Inspect</span>
-    </button>
-    <div id="view-only-mode" class="hidden opacity opacity-0">
-      <div class="text-xs flex gap-1 items-center ml-3 h-full" style="min-width: 64px">
-        <span class="text-grey-200 font-bold pr-1 pointer-events-none opacity-50">Viewer Mode</span>
-      </div>
-    </div>
   </div>
 </div>
 

@@ -148,11 +148,11 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
           <div className="text-center">
             <p className="text-xs text-gray-500 font-inter font-normal">
               Need help? Visit our{' '}
-              <a href={SMYTHOS_DOCS_URL} className="text-[#3C89F9] hover:underline">
+              <a href={SMYTHOS_DOCS_URL} className="text-[#3C89F9] hover:underline" target="_blank" rel="noopener noreferrer">
                 documentation
               </a>{' '}
               or{' '}
-              <a href="https://discord.gg/smythos" className="text-[#3C89F9] hover:underline">
+              <a href="https://discord.gg/smythos" className="text-[#3C89F9] hover:underline" target="_blank" rel="noopener noreferrer">
                 contact support
               </a>
             </p>

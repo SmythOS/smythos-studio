@@ -39,6 +39,7 @@ export const MembersTableRow = ({ teamMember, setError }: Props) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteMemberDialog, setShowDeleteMemberDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteMemberMutation = useMutation({
     mutationFn: teamAPI.deleteTeamMember,
@@ -57,6 +58,10 @@ export const MembersTableRow = ({ teamMember, setError }: Props) => {
   });
 
   const deleteMemberHandler = async () => {
+    // Prevent multiple calls
+    if (isDeleting) return;
+
+    setIsDeleting(true);
     try {
       if (currTeam.parentId) {
         await subTeamsAPI.unassignMemberFromTeam({
@@ -65,9 +70,15 @@ export const MembersTableRow = ({ teamMember, setError }: Props) => {
           roleId: teamMember.userTeamRole.sharedTeamRole.id,
         });
         toast.success('Member Unassigned from current space successfully');
-      } else await deleteMemberMutation.mutateAsync(teamMember.id);
+      } else {
+        await deleteMemberMutation.mutateAsync(teamMember.id);
+      }
+      // Close modal only after successful operation
+      setShowDeleteMemberDialog(false);
     } catch (error) {
       console.error(error); // eslint-disable-line no-console
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -127,10 +138,14 @@ export const MembersTableRow = ({ teamMember, setError }: Props) => {
               >
                 <Trash2
                   onClick={() => {
-                    if (!deleteMemberMutation.isLoading && pageAccess?.write)
+                    if (!deleteMemberMutation.isLoading && !isDeleting && pageAccess?.write)
                       setShowDeleteMemberDialog(true);
                   }}
-                  className="h-4 w-4 text-[#242424] cursor-pointer"
+                  className={`h-4 w-4 text-[#242424] ${
+                    isDeleting || deleteMemberMutation.isLoading
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'cursor-pointer'
+                  }`}
                 />
               </Tooltip>
             </span>
@@ -156,15 +171,17 @@ export const MembersTableRow = ({ teamMember, setError }: Props) => {
       {showDeleteMemberDialog &&
         createPortal(
           <ConfirmModal
-            onClose={() => setShowDeleteMemberDialog(false)}
-            handleCancel={() => setShowDeleteMemberDialog(false)}
-            handleConfirm={() => deleteMemberHandler()}
-            label="Confirm"
+            onClose={() => {
+              if (!isDeleting) setShowDeleteMemberDialog(false);
+            }}
+            handleConfirm={deleteMemberHandler}
+            label="Remove"
             message={
               currTeam.parentId
                 ? 'Are you sure you want to unassign this member from the current space?'
                 : 'Are you sure you want to remove this member from this Organization?'
             }
+            isLoading={isDeleting}
           />,
           document.body,
         )}

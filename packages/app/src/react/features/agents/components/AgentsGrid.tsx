@@ -34,6 +34,8 @@ export function AgentsGrid({
     return !agent.id?.startsWith('model-');
   };
 
+  const currentAgentCount = agents.length;
+
   const filteredAgents = agents.filter(excludeModelAgents);
 
   if (isInitialLoading || isLoadingAfterAction) {
@@ -57,19 +59,15 @@ export function AgentsGrid({
   }
 
   return (
-    <div className="py-5 mx-auto mb-6">
+    <div data-qa="agents-list-section" className="py-5 mx-auto mb-6">
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         {filteredAgents.map((agent) => (
-          <AgentCard
-            agent={agent}
-            key={agent.id}
-            loadAgents={onRefreshAgents}
-          />
+          <AgentCard agent={agent} key={agent.id} loadAgents={onRefreshAgents} />
         ))}
         {isLoadingMore && <SkeletonLoader />}
       </div>
-      
-      {filteredAgents.length < totalAgents && !isInitialLoading && (
+
+      {currentAgentCount < totalAgents && !isInitialLoading && (
         <button
           onClick={onLoadMore}
           type="button"
@@ -79,10 +77,9 @@ export function AgentsGrid({
         >
           {isLoadingMore && (
             <FaRotateRight
-              className={classNames(
-                'w-5 h-5 group-hover:text-white text-gray-600 dark:text-white mr-2',
-                { 'animate-spin': isLoadingMore },
-              )}
+              className={classNames('w-5 h-5 text-gray-600 dark:text-white mr-2', {
+                'animate-spin': isLoadingMore,
+              })}
             />
           )}
           <span>
@@ -94,4 +91,4 @@ export function AgentsGrid({
       <div ref={endOfPageRef} />
     </div>
   );
-} 
+}

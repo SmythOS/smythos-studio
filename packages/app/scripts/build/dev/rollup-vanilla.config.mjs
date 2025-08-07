@@ -14,10 +14,11 @@ import packageJson from '../../../package.json' with { type: 'json' };
 
 // Check if debug flag is passed in CLI arguments
 const args = process.argv.slice(2);
-const isDebugMode = args.includes('--debug');
+// const isDebugMode = args.includes('--debug');
+const isDebugMode = true;
 
 // Custom warnings handler that only shows warnings in debug mode
-const onwarn = function (warning, warn) {
+function onwarn(warning, warn) {
   // If not in debug mode, suppress all warnings
   if (!isDebugMode) {
     return;
@@ -30,7 +31,7 @@ const onwarn = function (warning, warn) {
   }
   // Otherwise, print the warning as usual
   warn(warning);
-};
+}
 
 // Get the directory name of the current module
 const currentDir = path.dirname(fileURLToPath(import.meta.url));

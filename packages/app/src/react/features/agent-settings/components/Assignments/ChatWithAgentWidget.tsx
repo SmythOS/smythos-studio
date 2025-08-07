@@ -1,12 +1,12 @@
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
-import IconToolTip from '@react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@react/shared/constants/style';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { PostHog } from '@src/shared/posthog/index';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 import { FC } from 'react';
 import { FaArrowRight } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
@@ -62,13 +62,21 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
 
   return (
     <WidgetCard title="" isWriteAccess={isWriteAccess} showOverflow={true} hasBorder={false}>
-      <div className="flex flex-col bg-gray-50 p-4 border border-solid border-gray-200 rounded-lg" data-qa="chat-with-agent-container">
+      <div
+        className="flex flex-col bg-gray-50 p-4 border border-solid border-gray-200 rounded-lg"
+        data-qa="chat-with-agent-container"
+      >
         <div className="flex justify-between items-center">
           <div>
             <div className="flex items-center">
-              <label className="text-sm font-bold text-gray-700">
-                Chat with Agent{' '}
-                <IconToolTip html="Interact directly with your agent through a conversational interface." />
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                Chat with Agent
+                <Tooltip
+                  className="w-52 text-center"
+                  content="Interact directly with your agent through a conversational interface."
+                >
+                  <Info className="w-4 h-4" />
+                </Tooltip>
               </label>
             </div>
             <p className="text-sm text-gray-500">Message your agent, assign a task via chat.</p>
@@ -114,7 +122,7 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
               }}
               target="_blank"
             >
-              <ChatIcon className="w-6 h-6 mr-2" />
+              <ChatIcon className="w-6 h-6 mr-1" />
               Chat <FaArrowRight className="ml-1" />
             </Link>
           </Tooltip>

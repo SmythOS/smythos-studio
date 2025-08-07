@@ -1,10 +1,10 @@
 import {
-  IconImage,
   IconAudio,
-  IconVideo,
   IconDocument,
-  IconSearch,
+  IconImage,
   IconReasoning,
+  IconSearch,
+  IconVideo,
 } from '../ui/icons';
 
 export function createBadge(label: string, classes: string = '', attrs = ''): string {
@@ -51,18 +51,76 @@ type BadgeConfig = {
 };
 
 const statusBadgeConfigs: Record<ModelStatus, BadgeConfig> = {
-  new: { label: 'New', icon: '', classes: 'text-smyth-emerald-400 border-smyth-emerald-400' },
-  legacy: { label: 'Legacy', icon: '', classes: 'text-smyth-amber-500 border-smyth-amber-500' },
-  limited: { label: 'Limited', icon: '', classes: 'text-smyth-amber-500 border-smyth-amber-500' },
-  deprecated: { label: 'Deprecated', icon: '', classes: 'text-smyth-red-500 border-smyth-red-500' },
-  removed: { label: 'Removed', icon: '', classes: 'text-smyth-red-500 border-smyth-red-500' },
-  groq: { label: 'Groq', icon: '', classes: 'text-gray-700 border-gray-700' },
-  togetherai: { label: 'TogetherAI', icon: '', classes: 'text-gray-700 border-gray-700' },
-  xai: { label: 'xAI', icon: '', classes: 'text-gray-700 border-gray-700' },
-  smythos: { label: 'SmythOS', icon: '', classes: 'text-gray-700 border-gray-700' },
-  stable: { label: 'Stable', icon: '', classes: 'text-indigo-400 border-indigo-400' },
-  personal: { label: 'Personal', icon: '', classes: 'bg-[#c0daff] text-[#235192] border-0' },
-  enterprise: { label: 'Enterprise', icon: '', classes: 'bg-[#F1C5FF] text-[#772590] border-0' },
+  new: {
+    label: 'New',
+    icon: '',
+    classes:
+      'text-smyth-emerald-400 border-smyth-emerald-400 [.drop-container_&]:bg-smyth-emerald-400 [.drop-container_&]:text-white',
+  },
+  legacy: {
+    label: 'Legacy',
+    icon: '',
+    classes:
+      'text-smyth-amber-500 border-smyth-amber-500 [.drop-container_&]:bg-smyth-amber-500 [.drop-container_&]:text-gray-100',
+  },
+  limited: {
+    label: 'Limited',
+    icon: '',
+    classes:
+      'text-smyth-amber-500 border-smyth-amber-500 [.drop-container_&]:bg-smyth-amber-500 [.drop-container_&]:text-gray-100',
+  },
+  deprecated: {
+    label: 'Deprecated',
+    icon: '',
+    classes:
+      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-white',
+  },
+  removed: {
+    label: 'Removed',
+    icon: '',
+    classes:
+      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-white',
+  },
+  groq: {
+    label: 'Groq',
+    icon: '',
+    classes:
+      'text-gray-700 border-gray-700 [.drop-container_&]:bg-gray-700 [.drop-container_&]:text-gray-100',
+  },
+  togetherai: {
+    label: 'TogetherAI',
+    icon: '',
+    classes:
+      'text-gray-700 border-gray-700 [.drop-container_&]:bg-gray-700 [.drop-container_&]:text-gray-100',
+  },
+  xai: {
+    label: 'xAI',
+    icon: '',
+    classes:
+      'text-gray-700 border-gray-700 [.drop-container_&]:bg-gray-700 [.drop-container_&]:text-gray-100',
+  },
+  smythos: {
+    label: 'SmythOS',
+    icon: '',
+    classes:
+      'text-gray-700 border-gray-700 [.drop-container_&]:bg-gray-700 [.drop-container_&]:text-gray-100',
+  },
+  stable: {
+    label: 'Stable',
+    icon: '',
+    classes:
+      'text-indigo-400 border-indigo-400 [.drop-container_&]:bg-indigo-400 [.drop-container_&]:text-white',
+  },
+  personal: {
+    label: 'Personal',
+    icon: '',
+    classes: 'bg-[#c0daff] text-[#235192] border-0',
+  },
+  enterprise: {
+    label: 'Enterprise',
+    icon: '',
+    classes: 'bg-[#F1C5FF] text-[#772590] border-0',
+  },
 } as const;
 
 const capabilityBadgeConfigs: Record<FeatureType, BadgeConfig> = {

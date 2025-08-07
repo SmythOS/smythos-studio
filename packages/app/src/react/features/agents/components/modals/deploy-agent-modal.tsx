@@ -18,18 +18,15 @@ import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
-import { PostHog } from '@src/builder-ui/services/posthog';
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useQuery } from '@tanstack/react-query';
 import { Tooltip } from 'flowbite-react';
 import { useFormik } from 'formik';
-import { X } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { MdOutlineInfo } from 'react-icons/md';
 import * as Yup from 'yup';
 import { CloseIcon } from '../../../../shared/components/svgs';
 import Modal from '../../../../shared/components/ui/modals/Modal';
@@ -45,15 +42,8 @@ import McpEmbodimentModal from '../../../embodiments/mcp-embodiment-modal';
 import PostDeploymentModal from '../../../embodiments/post-deployment-modal';
 declare global {
   interface Window {
-    Alpine: any;
+    Alpine: unknown;
   }
-}
-
-interface AlpineElement extends HTMLElement {
-  __x?: {
-    id: string;
-    $data: any;
-  };
 }
 
 const toolTipTheme = {
@@ -72,15 +62,7 @@ const toolTipWithDelay = {
 
 function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
   const { toggleDeployModal } = useAppState();
-  const {
-    workspace,
-    domains,
-    deployMutation,
-    lastVersion,
-    statusInfoQuery,
-    latestDeployment,
-    allDeployments,
-  } = deploymentSidebarCtx;
+  const { workspace, domains, deployMutation, lastVersion, statusInfoQuery } = deploymentSidebarCtx;
   const [isInProgress, setIsInProgress] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [llmModal, setLlmModal] = useState<{ open: boolean; defaultTab: 'code' | 'keys' }>({
@@ -96,8 +78,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       refetchOnReconnect: false,
     },
   });
-  const featureVariant = PostHog.getFeatureFlag(FEATURE_FLAGS.DEPLOY_MODAL);
-  const [showPostDeployment, setShowPostDeployment] = useState(false);
+
   const [hasDeployment, setHasDeployment] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp';
@@ -115,6 +96,8 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
     modalOpened: !!globalModalManager.activeModal,
     snippetOpened: globalModalManager.showCodeSnippet,
   });
+
+  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({});
 
   // Update modal states when they actually change
   useEffect(() => {
@@ -189,10 +172,37 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
     modalOpened ||
     snippetOpened;
 
+  // Simple position calculation
+  useEffect(() => {
+    const updatePosition = () => {
+      const button = document.getElementById('deploy-button-topbar');
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const overlayWidth = 520;
+      const gap = 8;
+
+      setOverlayStyle({
+        position: 'fixed',
+        top: rect.bottom - 20,
+        left: Math.max(
+          gap,
+          Math.min(rect.right - overlayWidth, window.innerWidth - overlayWidth - gap),
+        ),
+        zIndex: 50,
+      });
+    };
+
+    if (isVisible) {
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      return () => window.removeEventListener('resize', updatePosition);
+    }
+  }, [isVisible]);
+
   useEffect(() => {
     if (hasDeployment) {
       setIsCollapsed(true);
-      setShowPostDeployment(true);
     }
   }, [hasDeployment]);
 
@@ -343,7 +353,6 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       setIsInProgress(false);
       setHasDeployment(true);
       successToast('Agent Deployed Successfully.');
-      setShowPostDeployment(true);
     },
     enableReinitialize: true,
   });
@@ -499,352 +508,362 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
           />
         </div>
       )}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 p-4 flex items-center justify-center ${
-          isAnyOverlayOpen ? 'hidden' : ''
-        }`}
-      >
-        <div
-          className={`w-full h-full flex flex-col items-center justify-center overflow-y-auto`}
-          style={{ maxHeight: '100vh' }}
-        >
-          {/* Collapsed Modal */}
-          {isCollapsed && hasDeployment ? (
-            <div
-              className="relative bg-white rounded-2xl shadow-lg w-full max-w-[480px] p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={handleExpandModal}
-            >
-              <div className="flex items-center gap-3">
-                <div>
-                  <h3 className="text-sm font-medium text-[#111827]">Deploy Agent</h3>
-                  <p className="text-xs text-gray-500">Click to deploy a new version</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <ButtonOld
-                  variant="ghost"
-                  size="icon"
-                  className="h-[22px] w-[22px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleDeployModal();
-                  }}
+      {isVisible && (
+        <>
+          {/* Transparent Backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => {
+              // Only close if no other sub-modals are open
+              if (!isAnyOverlayOpen) {
+                toggleDeployModal();
+              }
+            }}
+          />
+
+          {/* Modal Content */}
+          <div className="fixed z-50 p-5" data-deploy-modal="true" style={overlayStyle}>
+            <div className="flex flex-col overflow-y-auto p-5" style={{ maxHeight: '90vh' }}>
+              {/* Collapsed/Expanded Views */}
+              {isCollapsed ? (
+                <div
+                  className="relative bg-white rounded-2xl shadow-lg w-[480px] p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={handleExpandModal}
                 >
-                  <X className="text-[#111827]" />
-                  <span className="sr-only">Close</span>
-                </ButtonOld>
-              </div>
-            </div>
-          ) : (
-            /* Expanded Modal */
-            <div className="relative bg-white rounded-2xl shadow-lg w-full max-w-[480px] p-6 flex flex-col flex-none gap-2 overflow-auto max-h-[90vh]">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  {hasDeployment && (
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-sm font-medium text-[#111827]">Deploy Agent</h3>
+                    <p className="text-xs text-gray-500">Click to deploy a new version</p>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <ButtonOld
                       variant="ghost"
                       size="icon"
-                      className="h-[22px] w-[22px] -ml-2"
-                      onClick={handleCollapseModal}
+                      className="h-[22px] w-[22px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDeployModal();
+                      }}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15 18L9 12L15 6"
-                          stroke="#111827"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="sr-only">Back</span>
+                      <X className="text-[#111827]" />
+                      <span className="sr-only">Close</span>
                     </ButtonOld>
-                  )}
-                  <h2 className="text-lg font-medium text-[#111827] flex items-center gap-1">
-                    Deploy Agent
-                    <Tooltip
-                      theme={toolTipTheme}
-                      content={
-                        <div style={{ whiteSpace: 'normal' }}>
-                          Deploy your agent to make it live and ready to integrate into your
-                          workflow. Use SmythOS's default subdomain or configure a custom one.{' '}
-                          <a
-                            href={`${SMYTHOS_DOCS_URL}/agent-deployments/overview/`}
-                            target="_blank"
-                            className="text-v2-blue hover:underline"
-                          >
-                            Learn more
-                          </a>
-                        </div>
-                      }
-                    >
-                      <span className="">
-                        <MdOutlineInfo className="text-gray-500 text-lg" />
-                      </span>
-                    </Tooltip>
-                  </h2>
+                  </div>
                 </div>
-                <ButtonOld
-                  variant="ghost"
-                  size="icon"
-                  className="h-[22px] w-[22px]"
-                  onClick={toggleDeployModal}
-                >
-                  <X className="text-[#111827]" />
-                  <span className="sr-only">Close</span>
-                </ButtonOld>
-              </div>
-              <Tabs defaultValue="agent-cloud" className="w-full relative">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                  <Tooltip
-                    content={
-                      <div style={{ whiteSpace: 'normal' }}>
-                        Convenient, easy, and instant. We handle all the hosting of your agent for
-                        you at $2 per 1,000 tasks, only pay for what you use. Unlock chat, bulk
-                        work, schedules, analytics, logs, APIs and more.
-                      </div>
-                    }
-                    placement="top"
-                    theme={toolTipWithDelay}
-                    trigger="hover"
-                  >
-                    <TabsTrigger value="agent-cloud" className="text-sm rounded-sm w-full">
-                      Agent Cloud
-                    </TabsTrigger>
-                  </Tooltip>
-                  <TabsTrigger value="enterprise" className="text-sm rounded-sm">
-                    Enterprise
-                  </TabsTrigger>
-                  <TabsTrigger value="deploy-locally" className="text-sm rounded-sm">
-                    Deploy Locally
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="agent-cloud">
-                  <form onSubmit={formik.handleSubmit}>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-[#111827]">Version</Label>
-                        <div className="flex space-x-[18px]">
-                          <div className="flex-1 space-y-2">
-                            <Label htmlFor="major" className="text-sm font-normal text-black">
-                              Major <span className="text-red-500 text-sm">*</span>
-                            </Label>
-                            <Input
-                              type="number"
-                              name="major"
-                              id="deploy-version-major-number"
-                              placeholder="1"
-                              min={lastVersion.major ?? 1}
-                              value={formik.values.major}
-                              onChange={(e) => {
-                                formik.handleChange(e);
-
-                                const newMajorVersion = parseInt(e.target.value);
-                                if (
-                                  newMajorVersion === lastVersion.major &&
-                                  lastVersion.major !== 0 &&
-                                  formik.values.minor < lastVersion.major + 1
-                                ) {
-                                  formik.setFieldValue('minor', lastVersion.major + 1);
-                                }
-                              }}
-                              className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
+              ) : (
+                /* Expanded Modal */
+                <div className="relative bg-white rounded-2xl shadow-lg w-[480px] p-6 flex flex-col flex-none gap-2 overflow-auto max-h-[90vh]">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2">
+                      {hasDeployment && (
+                        <ButtonOld
+                          variant="ghost"
+                          size="icon"
+                          className="h-[22px] w-[22px] -ml-2"
+                          onClick={handleCollapseModal}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M15 18L9 12L15 6"
+                              stroke="#111827"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <Label htmlFor="minor" className="text-sm font-normal text-black">
-                              Minor <span className="text-red-500 text-sm">*</span>
-                            </Label>
-                            <Input
-                              type="number"
-                              name="minor"
-                              id="deploy-version-minor-number"
-                              placeholder="0"
-                              min={
-                                formik.values.major === lastVersion.major
-                                  ? lastVersion.minor !== null && lastVersion.minor !== undefined
-                                    ? lastVersion.minor + 1
-                                    : 0
-                                  : 0
-                              }
-                              value={formik.values.minor}
-                              onChange={formik.handleChange}
-                              className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
-                            />
-                          </div>
-
-                          {formik.touched.major && formik.errors.major ? (
-                            <div className="text-red-500 text-sm mt-2">
-                              {typeof formik.errors.major === 'string' ? formik.errors.major : null}
+                          </svg>
+                          <span className="sr-only">Back</span>
+                        </ButtonOld>
+                      )}
+                      <h2 className="text-xl font-semibold text-[#1E1E1E] flex items-center gap-1">
+                        Deploy Agent
+                        <Tooltip
+                          className="w-60"
+                          theme={toolTipTheme}
+                          content={
+                            <div style={{ whiteSpace: 'normal' }}>
+                              Deploy your agent to make it live and ready to integrate into your
+                              workflow. Use SmythOS's default subdomain or configure a custom one.{' '}
+                              <a
+                                href={`${SMYTHOS_DOCS_URL}/agent-deployments/overview/`}
+                                target="_blank"
+                                className="text-v2-blue hover:underline"
+                              >
+                                Learn more
+                              </a>
                             </div>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="subdomain" className="text-sm font-medium text-[#111827]">
-                          Subdomain{' '}
-                          <span className="text-sm font-medium text-gray-500">
-                            (if you want to register a subdomain, click{' '}
-                            <a
-                              href="/domains"
-                              target="_blank"
-                              className="text-smyth-blue hover:underline"
-                            >
-                              here
-                            </a>
-                            )
+                          }
+                        >
+                          <span className="">
+                            <Info className="w-4 h-4 text-gray-500 text-lg" />
                           </span>
-                        </Label>
-                        <Select
-                          name="deploy-domain-select"
-                          value={formik.values.domain}
-                          onValueChange={(value: string) => {
-                            formik.setFieldValue('domain', value);
-                          }}
-                        >
-                          <SelectTrigger
-                            id="subdomain"
-                            className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
-                          >
-                            <SelectValue>
-                              {formik.values.domain === 'default'
-                                ? autoGeneratedProdDomain
-                                : formik.values.domain}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="default">{autoGeneratedProdDomain}</SelectItem>
-                            {uniqueDomains
-                              .filter((domain) => domain.value !== 'default')
-                              .map((domain) => (
-                                <SelectItem key={domain.value} value={domain.value}>
-                                  {domain.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        {formik.touched.domain && formik.errors.domain ? (
-                          <div className="text-red-500 text-sm mt-2">
-                            {typeof formik.errors.domain === 'string' ? formik.errors.domain : null}
+                        </Tooltip>
+                      </h2>
+                    </div>
+                    <ButtonOld
+                      variant="ghost"
+                      size="icon"
+                      className="h-[22px] w-[22px]"
+                      onClick={toggleDeployModal}
+                    >
+                      <X className="text-[#111827]" />
+                      <span className="sr-only">Close</span>
+                    </ButtonOld>
+                  </div>
+                  <Tabs defaultValue="agent-cloud" className="w-full relative">
+                    <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
+                      <Tooltip
+                        content={
+                          <div style={{ whiteSpace: 'normal' }}>
+                            Convenient, easy, and instant. We handle all the hosting of your agent
+                            for you at $2 per 1,000 tasks, only pay for what you use. Unlock chat,
+                            bulk work, schedules, analytics, logs, APIs and more.
                           </div>
-                        ) : null}
-                      </div>
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="deploy-modal-release-notes"
-                          className="text-sm font-medium text-[#111827]"
-                        >
-                          Release Notes
-                        </Label>
-                        <Textarea
-                          name="releaseNotes"
-                          className="min-h-[100px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
-                          placeholder="Enter the list of new features, bug fixes, and other changes here."
-                          value={formik.values.releaseNotes}
-                          onChange={formik.handleChange}
-                          fullWidth
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <Button
-                        type="submit"
-                        loading={isInProgress}
-                        fullWidth
-                        className="h-[40px] bg-[#45C9A9] hover:bg-[#3BB89A] text-white text-sm font-medium rounded-lg"
+                        }
+                        placement="top"
+                        theme={toolTipWithDelay}
+                        trigger="hover"
                       >
-                        Deploy
-                      </Button>
-                    </div>
-                  </form>
-                </TabsContent>
-                <TabsContent value="enterprise">
-                  <div className="space-y-4">
-                    <p className="text-xs text-gray-600">
-                      Deploy on-prem or to enterprise cloud with enterprise security and unlimited
-                      task options available. Great for enterprise.
-                    </p>
-                    <Button
-                      className="w-full h-[40px] bg-[#45C9A9] hover:bg-[#3BB89A] text-white text-sm font-medium rounded-lg"
-                      handleClick={handleContactSales}
-                    >
-                      Contact sales
-                    </Button>
-                  </div>
-                </TabsContent>
-                <TabsContent value="deploy-locally">
-                  <div className="space-y-4">
-                    <p className="text-xs text-gray-600">
-                      Export your AI agent with Control+ Shift+E, then run it locally with our local
-                      runtime for Mac, Windows, Linux.
-                    </p>
-                    <Button
-                      className="w-full h-[40px] bg-[#45C9A9] hover:bg-[#3BB89A] text-white text-sm font-medium rounded-lg"
-                      handleClick={() => handleDeploy('locally')}
-                    >
-                      Download SRE
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-          {hasDeployment &&
-            (isCollapsed ? (
-              <AgentSettingsProvider workspace={workspace} workspaceAgentId={workspace.agent.id}>
-                <div className="w-full max-w-[480px] mt-5">
-                  <PostDeploymentModal
-                    userInfo={userInfo}
-                    onClose={toggleDeployModal}
-                    onReopenDeployModal={() => setIsVisible(true)}
-                    onOpenLlmModal={handleOpenLlmModal}
-                    onOpenCustomGptModal={() => handleOpenPanel('gpt')}
-                    onOpenDialogModal={handleOpenDialogModal}
-                    onOpenCodeSnippetModal={handleOpenCodeSnippetModal}
-                    onOpenAlexaPanel={() => handleOpenPanel('alexa')}
-                    onOpenChatbotPanel={() => handleOpenPanel('chatbot')}
-                    onOpenApiPanel={() => handleOpenPanel('api')}
-                    onOpenMcpPanel={() => handleOpenPanel('mcp')}
-                    isVisible={hasDeployment && isCollapsed && !isAnyOverlayOpen}
-                  />
+                        <TabsTrigger
+                          value="agent-cloud"
+                          className="px-10 py-2.5 text-sm rounded-sm w-full"
+                        >
+                          Agent Cloud
+                        </TabsTrigger>
+                      </Tooltip>
+                      <TabsTrigger value="enterprise" className="px-10 py-2.5 text-sm rounded-sm">
+                        Enterprise
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="deploy-locally"
+                        className="px-10 py-2.5 text-sm rounded-sm"
+                      >
+                        Deploy Locally
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="agent-cloud">
+                      <form onSubmit={formik.handleSubmit}>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-base font-medium text-[#1E1E1E]">Version</Label>
+                            <div className="flex space-x-[18px]">
+                              <div className="flex-1 space-y-2">
+                                <Label
+                                  htmlFor="major"
+                                  className="text-sm font-normal text-[#1E1E1E]"
+                                >
+                                  Major <span className="text-red-500 text-sm">*</span>
+                                </Label>
+                                <Input
+                                  type="number"
+                                  name="major"
+                                  id="deploy-version-major-number"
+                                  placeholder="1"
+                                  min={lastVersion.major ?? 1}
+                                  value={formik.values.major}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const newMajorVersion = parseInt(e.target.value);
+                                    if (
+                                      newMajorVersion === lastVersion.major &&
+                                      lastVersion.major !== 0 &&
+                                      formik.values.minor < lastVersion.major + 1
+                                    ) {
+                                      formik.setFieldValue('minor', lastVersion.major + 1);
+                                    }
+                                  }}
+                                  className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
+                                />
+                              </div>
+                              <div className="flex-1 space-y-2">
+                                <Label
+                                  htmlFor="minor"
+                                  className="text-sm font-normal text-[#1E1E1E]"
+                                >
+                                  Minor <span className="text-red-500 text-sm">*</span>
+                                </Label>
+                                <Input
+                                  type="number"
+                                  name="minor"
+                                  id="deploy-version-minor-number"
+                                  placeholder="0"
+                                  min={
+                                    formik.values.major === lastVersion.major
+                                      ? lastVersion.minor !== null &&
+                                        lastVersion.minor !== undefined
+                                        ? lastVersion.minor + 1
+                                        : 0
+                                      : 0
+                                  }
+                                  value={formik.values.minor}
+                                  onChange={formik.handleChange}
+                                  className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
+                                />
+                              </div>
+
+                              {formik.touched.major && formik.errors.major ? (
+                                <div className="text-red-500 text-sm mt-2">
+                                  {typeof formik.errors.major === 'string'
+                                    ? formik.errors.major
+                                    : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="subdomain"
+                              className="text-base font-medium text-[#1E1E1E]"
+                            >
+                              Subdomain
+                            </Label>
+                            <Select
+                              name="deploy-domain-select"
+                              value={formik.values.domain}
+                              onValueChange={(value: string) => {
+                                formik.setFieldValue('domain', value);
+                              }}
+                            >
+                              <SelectTrigger
+                                id="subdomain"
+                                className="h-[42px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#111827]"
+                              >
+                                <SelectValue>
+                                  {formik.values.domain === 'default'
+                                    ? autoGeneratedProdDomain
+                                    : formik.values.domain}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="default">{autoGeneratedProdDomain}</SelectItem>
+                                {uniqueDomains
+                                  .filter((domain) => domain.value !== 'default')
+                                  .map((domain) => (
+                                    <SelectItem key={domain.value} value={domain.value}>
+                                      {domain.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                            {formik.touched.domain && formik.errors.domain ? (
+                              <div className="text-red-500 text-sm mt-2">
+                                {typeof formik.errors.domain === 'string'
+                                  ? formik.errors.domain
+                                  : null}
+                              </div>
+                            ) : null}
+                            <span className="text-sm font-light text-[#616161]">
+                              If you want to register a subdomain, click{' '}
+                              <a
+                                href="/domains"
+                                target="_blank"
+                                className="text-smyth-blue hover:underline"
+                              >
+                                here
+                              </a>
+                              )
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="deploy-modal-release-notes"
+                              className="text-base font-medium text-[#1E1E1E]"
+                            >
+                              Release Notes
+                            </Label>
+                            <Textarea
+                              name="releaseNotes"
+                              className="min-h-[100px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
+                              placeholder="Enter the list of new features, bug fixes, and other changes here."
+                              value={formik.values.releaseNotes}
+                              onChange={formik.handleChange}
+                              fullWidth
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-6">
+                          <Button
+                            type="submit"
+                            loading={isInProgress}
+                            className="h-[48px] px-8 rounded-lg ml-auto"
+                          >
+                            Deploy
+                          </Button>
+                        </div>
+                      </form>
+                    </TabsContent>
+                    <TabsContent value="enterprise">
+                      <div className="space-y-6">
+                        <p className="text-xs text-gray-600">
+                          Deploy on-prem or to enterprise cloud with enterprise security and
+                          unlimited task options available. Great for enterprise.
+                        </p>
+                        <Button
+                          className="h-[48px] px-8 rounded-lg ml-auto"
+                          handleClick={handleContactSales}
+                        >
+                          Contact sales
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="deploy-locally">
+                      <div className="space-y-6">
+                        <p className="text-xs text-gray-600">
+                          Export your AI agent with Control+ Shift+E, then run it locally with our
+                          local runtime for Mac, Windows, Linux.
+                        </p>
+                        <Button
+                          className="h-[48px] px-8 rounded-lg ml-auto"
+                          handleClick={() => handleDeploy('locally')}
+                        >
+                          Download SRE
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
-              </AgentSettingsProvider>
-            ) : (
-              <div
-                className="relative bg-white rounded-2xl shadow-lg w-full max-w-[480px] mt-5 p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={handleCollapseModal}
-              >
-                <div className="flex items-center gap-3">
-                  <div>
+              )}
+              {isCollapsed ? (
+                <AgentSettingsProvider workspace={workspace} workspaceAgentId={workspace.agent.id}>
+                  <div className="w-[480px] mt-5">
+                    <PostDeploymentModal
+                      userInfo={userInfo}
+                      onClose={toggleDeployModal}
+                      onReopenDeployModal={() => setIsVisible(true)}
+                      onOpenLlmModal={handleOpenLlmModal}
+                      onOpenCustomGptModal={() => handleOpenPanel('gpt')}
+                      onOpenDialogModal={handleOpenDialogModal}
+                      onOpenCodeSnippetModal={handleOpenCodeSnippetModal}
+                      onOpenAlexaPanel={() => handleOpenPanel('alexa')}
+                      onOpenChatbotPanel={() => handleOpenPanel('chatbot')}
+                      onOpenApiPanel={() => handleOpenPanel('api')}
+                      onOpenMcpPanel={() => handleOpenPanel('mcp')}
+                      isVisible={isCollapsed && !isAnyOverlayOpen}
+                    />
+                  </div>
+                </AgentSettingsProvider>
+              ) : (
+                <div
+                  className="relative bg-white rounded-2xl shadow-lg w-[480px] mt-5 p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={handleCollapseModal}
+                >
+                  <div className="flex flex-col items-start gap-1">
                     <h3 className="text-sm font-medium text-[#111827]">Embed Options</h3>
                     <p className="text-xs text-gray-500">
                       Click to see options for embedding agent across different channels
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ButtonOld
-                    variant="ghost"
-                    size="icon"
-                    className="h-[22px] w-[22px]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleDeployModal();
-                    }}
-                  >
-                    <X className="text-[#111827]" />
-                    <span className="sr-only">Close</span>
-                  </ButtonOld>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

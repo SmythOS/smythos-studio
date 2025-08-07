@@ -24,7 +24,7 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
     case EMBODIMENT_TYPE.FORM:
       return <FaIdCard className={classes} />;
     case EMBODIMENT_TYPE.LLM:
-      return <FaRobot className={classes} />;
+      return <FaRobot className={classes} style={{ marginTop: '-3px' }} />;
     case EMBODIMENT_TYPE.ALEXA:
       return <AlexaIcon className={classes} />;
     default:

@@ -406,6 +406,15 @@ button.inner-link:hover {
 .fields-group-wrapper[data-group-name='additionalOptions'] .stg-optional .form-label {
   display: none;
 }
+.fields-group-wrapper[data-group-name='Location'],
+.fields-group-wrapper[data-group-name='Search Control'],
+.fields-group-wrapper[data-group-name='Date Filtering'],
+.fields-group-wrapper[data-group-name='Search Results'],
+.fields-group-wrapper[data-group-name='Data Sources'],
+.fields-group-wrapper[data-group-name='Engagement Filtering'],
+.fields-group-wrapper[data-group-name='RSS Filtering'] {
+  flex-direction: column;
+}
 .fields-group-wrapper .form-box {
   background: #f8f8f8;
   margin-left: 10px;

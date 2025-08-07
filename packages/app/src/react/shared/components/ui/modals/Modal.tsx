@@ -75,7 +75,7 @@ const Modal = ({
                     !showOverflow ? 'overflow-hidden' : '',
                   )}
                 >
-                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                  <Dialog.Title as="h3" className="text-xl font-semibold leading-6 text-[#1E1E1E]">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="mb-1">{title}</span>

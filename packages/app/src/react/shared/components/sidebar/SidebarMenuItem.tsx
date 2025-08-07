@@ -24,12 +24,18 @@ export const SidebarMenuItem: React.FC<ISidebarMenuItemProps> = ({
   };
 
   return (
-    <div className="sidebar-menu-item" ref={itemRef} onMouseEnter={updateTooltipPosition}>
+    <div
+      className={classNames('sidebar-menu-item', {
+        'relative group': isCollapsed,
+      })}
+      ref={itemRef}
+      onMouseEnter={updateTooltipPosition}
+    >
       <Link
         to={path}
         reloadDocument={hardReload}
         className={classNames(
-          'group flex items-center h-10 px-4 text-base hover:text-gray-900 hover:font-medium',
+          'group flex items-center h-10 px-4 text-base hover:text-gray-900 hover:font-medium w-full relative',
           {
             'text-v2-blue font-medium': isActive,
             'text-gray-700': !isActive,
@@ -38,14 +44,17 @@ export const SidebarMenuItem: React.FC<ISidebarMenuItemProps> = ({
       >
         <div
           className={classNames(
-            'flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md',
+            'w-8 h-8 flex items-center justify-center transition-colors rounded-md',
             {
               'bg-[#E0E0E0]': isActive,
             },
           )}
         >
           <Icon
-            className={classNames('w-4 h-4', {
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            className={classNames({
               'text-[#374151]': isActive,
             })}
           />

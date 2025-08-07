@@ -3,7 +3,6 @@ import {
   RadioButton,
   UnitNumberInput,
   UnitSelector,
-  baseStyle,
 } from '@react/features/agent-settings/components/ScheduleWidget/meta/Mini-Components';
 import SectionHeader from '@react/features/agent-settings/components/ScheduleWidget/meta/SectionTitle';
 import {
@@ -11,7 +10,6 @@ import {
   StepChildMethods,
   StepProps,
 } from '@react/features/agent-settings/components/ScheduleWidget/modes/create/CreateSchedule';
-import { Datepicker } from 'flowbite-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BiSolidDownArrow, BiSolidUpArrow } from 'react-icons/bi';
 
@@ -19,7 +17,6 @@ const divStyle = {
   fontSize: '14px',
   borderRadius: '5px',
   maxHeight: '435px',
-  background: 'white',
 };
 
 const unitOptions = [
@@ -117,6 +114,10 @@ const EventOccurences = forwardRef<StepChildMethods, StepProps>(
         <div className="mb-4">
           <select
             value={optionsData.shouldRepeat ? 'repeat' : 'no-repeat'}
+            className={`py-2 px-3 border text-gray-900 rounded block w-full h-[36px] outline-none
+              focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+              text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+              border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500`}
             onChange={(e) => {
               const newRepeatOption = e.target.value as 'no-repeat' | 'repeat';
               setOptionsData((prev) => {
@@ -126,26 +127,10 @@ const EventOccurences = forwardRef<StepChildMethods, StepProps>(
                 };
               });
             }}
-            style={{ ...baseStyle, width: '150px', height: '36px' }}
-            className="w-full appearance-none block border-none rounded pr-8 leading-tight focus:outline-none focus:bg-gray focus:border-gray-500"
           >
             <option value="no-repeat">No Repeat</option>
             <option value="repeat">Repeat</option>
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 7 4"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3.48846 3.99268L0.467366 0.468627L6.50956 0.468628L3.48846 3.99268Z"
-                fill="#696969"
-              />
-            </svg>
-          </div>
         </div>
       );
     }
@@ -295,20 +280,32 @@ const EventOccurences = forwardRef<StepChildMethods, StepProps>(
                     label="On"
                     content={
                       <div className="max-w-[135px] ml-4">
-                        <Datepicker
+                        <input
+                          type="date"
                           name="date"
-                          value={Intl.DateTimeFormat().format(
-                            new Date(optionsData.endDate || defaultEndOnDate),
-                          )}
-                          onSelectedDateChanged={(date) => {
-                            // actions.handleFormDataChange({ endDate: date.toISOString() });
-                            setOptionsData((prev) => ({ ...prev, endDate: date.toISOString() }));
+                          value={
+                            optionsData.endDate
+                              ? new Date(optionsData.endDate).toISOString().split('T')[0]
+                              : defaultEndOnDate.toISOString().split('T')[0]
+                          }
+                          onChange={(e) => {
+                            const selectedDate = new Date(e.target.value);
+                            setOptionsData((prev) => ({
+                              ...prev,
+                              endDate: selectedDate.toISOString(),
+                            }));
                           }}
-                          showTodayButton
-                          minDate={defaultEndOnDate}
-                          placeholder="Select a date"
-                          className="w-full"
-                          disabled={optionsData.endOption !== 'on-date'} // Disable datepicker if not 'On' option
+                          min={defaultEndOnDate.toISOString().split('T')[0]}
+                          disabled={optionsData.endOption !== 'on-date'}
+                          className={`py-2 px-3 border text-gray-900 rounded block w-full outline-none
+                            focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+                            text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+                            border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500
+                            ${
+                              optionsData.endOption !== 'on-date'
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                            }`}
                         />
                       </div>
                     }
@@ -341,14 +338,17 @@ const EventOccurences = forwardRef<StepChildMethods, StepProps>(
                               : `${optionsData.repeatLimit} occurrences`
                           }
                           readOnly
-                          style={{
-                            ...baseStyle,
-                            textAlign: 'center',
-                            width: '150px',
-                            height: '36px',
-                          }}
-                          className="rounded leading-tight border-none focus:outline-none focus:border-gray-500"
                           disabled={optionsData.endOption !== 'on-after-occurrences'} // Disable input if not 'After' option
+                          className={`py-2 px-3 border text-gray-900 rounded block w-[150px] h-[36px] outline-none
+                            focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+                            text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+                            border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500
+                            text-center
+                            ${
+                              optionsData.endOption !== 'on-after-occurrences'
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                            }`}
                         />
                         <div className="ml-1 flex flex-col items-center">
                           <button

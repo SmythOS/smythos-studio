@@ -3,12 +3,12 @@ import WidgetSubscribeInfo from '@react/features/agent-settings/components/widge
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { WIDGETS_PRICING_ALERT_TEXT } from '@react/features/agent-settings/constants';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
-import IconToolTip from '@react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Component } from '@react/shared/types/agent-data.types';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { PostHog } from '@src/shared/posthog';
 
-import { Badge } from 'flowbite-react';
+import { Badge, Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 import { useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 
@@ -21,13 +21,18 @@ const CapabilitiesWidget = ({ isSubscribedToPlan, isWriteAccess }: Props) => {
   const { latestAgentDeploymentQuery } = useAgentSettingsCtx();
   return (
     <WidgetCard isWriteAccess={isWriteAccess} showOverflow={true}>
-      <div className={`bg-gray-50 p-4`} data-qa="agent-skills-container">
+      <div className={'bg-gray-50 p-4'} data-qa="agent-skills-container">
         <div className="flex justify-between items-center flex-col">
           <div className="w-full flex items-center justify-between">
             <div className="w-full">
-              <h3 className="font-semibold text-sm mb-1">
-                Agent Skills{' '}
-                <IconToolTip html="Agent Skills in SmythOS define the capabilities of an agent. Each skill is added through the Agent Skill component" />
+              <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-1">
+                Agent Skills
+                <Tooltip
+                  className="w-52 text-center"
+                  content="Agent Skills in SmythOS define the capabilities of an agent. Each skill is added through the Agent Skill component"
+                >
+                  <Info className="w-4 h-4" />
+                </Tooltip>
               </h3>
             </div>
 
@@ -131,7 +136,7 @@ function Endpoint({ component }: { component: Component }) {
             <div className="relative lg:w-[35vw] md:w-[40vw] bg-white rounded-lg shadow-xl">
               {/* Header */}
               <div className="p-4 border-b">
-                <h3 className="text-lg font-semibold">{component.title}</h3>
+                <h3 className="text-xl text-[#1E1E1E] font-semibold">{component.title}</h3>
                 {component.description && (
                   <p className="text-sm text-gray-500 mt-1">{component.description}</p>
                 )}
@@ -144,7 +149,7 @@ function Endpoint({ component }: { component: Component }) {
 
               {/* Close button */}
               <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+                className="absolute top-4 right-4 text-[#1E1E1E] hover:text-gray-500"
                 onClick={() => setIsTriggeringSkill(false)}
               >
                 ✕

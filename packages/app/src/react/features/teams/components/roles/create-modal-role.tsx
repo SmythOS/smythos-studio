@@ -154,12 +154,12 @@ export const CreateRoleModal = (props: Props) => {
       <div className="relative w-full max-w-xl max-h-full" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <div className="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-[#1E1E1E] dark:text-white">
               {props.editMode ? 'Edit Role' : 'Create Role'}
             </h3>
             <button
               type="button"
-              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+              className="text-[#1E1E1E] bg-transparent hover:bg-gray-200 hover:text-gray-900
                rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center 
                dark:hover:bg-gray-600 dark:hover:text-white"
               onClick={props.onClose}
@@ -189,6 +189,7 @@ export const CreateRoleModal = (props: Props) => {
                 type="text"
                 id="role-name-input"
                 label="Role Name"
+                labelClassName="mb-1 text-base font-medium text-[#1E1E1E]"
                 placeholder="e.g. Admin"
                 value={roleName}
                 onChange={(e) => {
@@ -211,7 +212,7 @@ export const CreateRoleModal = (props: Props) => {
                     }}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600" />
-                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="ml-3 text-base font-medium text-[#1E1E1E] dark:text-gray-300">
                     Manage Team
                   </span>
                 </label>
@@ -240,7 +241,7 @@ export const CreateRoleModal = (props: Props) => {
             tooltipWrapperClasses={'w-full'}
             showTooltip={roleName.length === 0 || !hasAnyAccess(currentAcls)}
           >
-            <div className="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+            <div className="w-full flex items-center justify-end p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
               <Button
                 label={props.editMode ? 'Update' : 'Create'}
                 variant="primary"
@@ -252,7 +253,7 @@ export const CreateRoleModal = (props: Props) => {
                   updateRole.isLoading
                 }
                 type="button"
-                fullWidth
+                className="h-[48px] px-8 rounded-lg"
               />
             </div>
           </ToolTip>

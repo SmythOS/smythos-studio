@@ -34,7 +34,7 @@ export const sidebarMenuItemsWithTeams = [
 ];
 
 export const bottomLinks = [
-  { title: 'Docs', path: SMYTHOS_DOCS_URL, icon: BookIcon },
+  { title: 'Docs', path: SMYTHOS_DOCS_URL, icon: BookIcon, isExternal: true },
   {
     title: 'Discord Support',
     path: 'https://discord.gg/smythos',
@@ -48,6 +48,6 @@ export const profileDropdownItems = [
   // { url: '/teams', name: 'Spaces' },
   { url: '/teams/members', name: 'User Management' },
   { url: '/teams/settings', name: 'User Management' },
-  { url: '/teams/roles', name: 'Manage Roles' },
+  // { url: '/teams/roles', name: 'Manage Roles' },
   { url: '/my-plan', name: 'My Plan' },
 ];

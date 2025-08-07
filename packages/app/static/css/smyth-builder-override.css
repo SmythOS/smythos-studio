@@ -389,6 +389,21 @@
   padding-left: 3px;
 }
 
+/* Apply flexbox layout only to specific functional components in error state*/
+.debug-enabled .component.state-error.FSleep .debug-bar,
+.debug-enabled .component.state-error.FHash .debug-bar,
+.debug-enabled .component.state-error.FEncDec .debug-bar,
+.debug-enabled .component.state-error.FSign .debug-bar,
+.debug-enabled .component.state-error.FTimestamp .debug-bar {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+  padding-right: 5px !important;
+  padding-left: 6px !important;
+}
+
 .debug-enabled .component .debug-bar.variant_2 {
   margin-bottom: 1rem;
 }
@@ -417,6 +432,37 @@
   border: 1px solid #900b09 !important;
   color: #900b09 !important;
   height: 100%;
+}
+
+/* Apply flex properties only to Fix with AI buttons in specific functional components in error state*/
+.debug-enabled .component.state-error.FSleep .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FHash .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FEncDec .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FSign .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FTimestamp .debug-bar .btn-fix-with-ai {
+  margin-left: 0px !important;
+  flex: 1 1 calc(50% + 16px) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: calc(50% + 16px) !important;
+  min-width: calc(50% - 2px) !important;
+}
+
+/* Responsive behavior for small component widths - only for functional components */
+.debug-enabled .component.state-error.FSleep .debug-bar .btn-debug-log,
+.debug-enabled .component.state-error.FHash .debug-bar .btn-debug-log,
+.debug-enabled .component.state-error.FEncDec .debug-bar .btn-debug-log,
+.debug-enabled .component.state-error.FSign .debug-bar .btn-debug-log,
+.debug-enabled .component.state-error.FTimestamp .debug-bar .btn-debug-log,
+.debug-enabled .component.state-error.FSleep .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FHash .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FEncDec .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FSign .debug-bar .btn-fix-with-ai,
+.debug-enabled .component.state-error.FTimestamp .debug-bar .btn-fix-with-ai {
+  font-size: 10px !important;
+  padding: 1px 4px !important;
+  min-width: 0 !important;
 }
 
 .debug-enabled .debug-bar .btn-debug-log.error {
@@ -457,12 +503,16 @@
   border-radius: 0px 9px !important;
 }
 
-.component.dbg-running:has(.btn-debug-log:not(.hidden)):not(.state-success):not(.state-error):not(.has-empty-inputs) {
+.component.dbg-running:has(.btn-debug-log:not(.hidden)):not(.state-success):not(.state-error):not(
+    .has-empty-inputs
+  ) {
   box-shadow: 0 0 3px #5eed3ac4;
   border-color: #6be74b !important;
 }
 
-.component.dbg-running.selected:has(.btn-debug-log:not(.hidden)):not(.state-success):not(.state-error):not(.has-empty-inputs),
+.component.dbg-running.selected:has(.btn-debug-log:not(.hidden)):not(.state-success):not(
+    .state-error
+  ):not(.has-empty-inputs),
 .component.selected.dbg-active {
   border-color: #1f2937 !important;
   box-shadow: 0 0 5px #6be74b !important;
@@ -490,8 +540,8 @@
   padding: 12px 8px 0px 6px !important;
 }
 
-.component .output-endpoint.pinned .dbg-output:has(.btn-file-preview)>.pin.button,
-.component .output-endpoint:hover .dbg-output:has(.btn-file-preview)>.pin.button {
+.component .output-endpoint.pinned .dbg-output:has(.btn-file-preview) > .pin.button,
+.component .output-endpoint:hover .dbg-output:has(.btn-file-preview) > .pin.button {
   right: -4px !important;
   top: 2px !important;
 }
@@ -642,7 +692,6 @@
   min-height: 48px;
   line-height: 10px;
   padding: 0.5rem 0.5rem;
-  padding-top: 12px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -678,8 +727,6 @@
       margin-inline-end: 0px !important;
       border: none !important;
       border-radius: 30px !important;
-      background-color: #f3f4f6 !important;
-      color: #4b5563 !important;
       padding: 2px 8px !important;
     }
   }
@@ -859,12 +906,12 @@ code.language-plan.done::before {
   overflow: hidden;
 }
 
-.user-message-weaver-fix>div {
+.user-message-weaver-fix > div {
   position: relative;
   color: #534646;
 }
 
-.user-message-weaver-fix>div::after {
+.user-message-weaver-fix > div::after {
   content: 'Weaver Fix Request';
   position: absolute;
   bottom: 0;
@@ -883,7 +930,7 @@ code.language-plan.done::before {
   margin-bottom: 20px;
 }
 
-.user-message-weaver-lint>div {
+.user-message-weaver-lint > div {
   position: relative;
   color: #534646;
   font-size: 13px !important;
@@ -892,7 +939,7 @@ code.language-plan.done::before {
   padding: 8px !important;
 }
 
-.user-message-weaver-lint>div::after {
+.user-message-weaver-lint > div::after {
   content: 'Linter Request';
   position: absolute;
   bottom: 0;
@@ -1172,7 +1219,7 @@ body.locked nav #builder-button svg {
   background-size: contain;
 }
 
-.form-box.without-search .drop-container>div:first-child>.input {
+.form-box.without-search .drop-container > div:first-child > .input {
   display: none;
 }
 
@@ -1181,4 +1228,37 @@ body.locked nav #builder-button svg {
   overflow-wrap: break-word;
   hyphens: auto;
   word-break: normal;
+}
+/* Test button icon hover state */
+#btn-emb-chatbot-main-wrapper:hover svg path {
+  stroke: white !important;
+}
+
+#btn-emb-chatbot-main-wrapper:hover svg rect {
+  fill: white !important;
+}
+
+/* Share button icon hover state */
+#share-agent-button-topbar:hover svg path {
+  stroke: white !important;
+}
+
+/* Prettify button icon hover state */
+#cmp-prettify-btn:hover svg path {
+  stroke: white !important;
+}
+
+/* Collapse button icon hover state */
+#cmp-collapse-btn:hover svg path {
+  fill: white !important;
+}
+
+/* Zoom buttons icon hover state - target SVG paths when parent div is hovered */
+.border.border-solid.border-gray-200.rounded-lg.p-3.h-full.bg-white:hover svg path {
+  stroke: white !important;
+}
+
+/* Inspect button icon hover state - ensure it works when debug is off */
+#cmp-inspect-btn:hover svg path {
+  stroke: white !important;
 }

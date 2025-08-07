@@ -1,6 +1,9 @@
+import { cn } from '@react/shared/utils/general';
+import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 import React from 'react';
-import { FaCircleExclamation } from 'react-icons/fa6';
 import { BiExpandAlt } from 'react-icons/bi';
+import { FaCircleExclamation } from 'react-icons/fa6';
 
 type CustomTextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   placeholder?: string;
@@ -13,12 +16,14 @@ type CustomTextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   disabled?: boolean;
   required?: boolean;
   label?: string;
+  labelClassName?: string;
   subLabel?: string;
   labelExample?: string;
   className?: string;
   error?: boolean;
   errorMessage?: string;
   rows?: number;
+  infoTooltip?: React.ReactNode;
 };
 
 export function TextArea({
@@ -33,19 +38,26 @@ export function TextArea({
   disabled,
   required,
   label,
+  labelClassName,
   subLabel,
   labelExample,
   error,
   errorMessage,
   rows = 3,
+  infoTooltip,
   ...props
 }: CustomTextAreaProps) {
   return (
     <div className={`${fullWidth ? 'w-full' : ''}`}>
       {label && (
-        <div className="text-gray-700 mb-1 text-sm font-normal">
+        <div className={cn(`text-gray-700 mb-1 text-sm font-normal flex items-center ${labelClassName}`)}>
           {label} {required && <span className="text-red-500 mr-1">*</span>}{' '}
           <span className="italic text-sm text-gray-500">{labelExample}</span>
+          {!!infoTooltip && (
+            <Tooltip className="w-52 text-center" content={infoTooltip}>
+              <Info className="w-4 h-4 ml-2" />
+            </Tooltip>
+          )}
         </div>
       )}
 

@@ -58,7 +58,7 @@ export const ImageSettingsConfig = {
       label: 'Prompt',
       validate: `required minlength=2 maxlength=2000`,
       validateMessage: `The length of the prompt must be between 2 and 2000 characters.`,
-      class: 'mt-1 mb-6',
+      class: 'mt-1',
       value: '{{InputText}}',
       attributes: { 'data-template-vars': 'true', 'data-supported-models': 'all' },
     };

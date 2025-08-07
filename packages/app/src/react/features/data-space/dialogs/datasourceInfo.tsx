@@ -15,7 +15,7 @@ type Props = {
     completed: number;
     pending: number;
     failed: number;
-    nextCrawlAt: string;
+    nextCrawlAt?: string;
   } | null;
 };
 
@@ -26,14 +26,14 @@ const DatasourceInfoModal = ({ onClose, item, sitemapStatus, status, lastCrawled
   const pending = sitemapStatus ? sitemapStatus.pending : 0;
   const completed = sitemapStatus ? sitemapStatus.completed : 0;
 
-  const formattedNextCrawlAt = sitemapStatus
+  const formattedNextCrawlAt = sitemapStatus?.nextCrawlAt
     ? new Date(sitemapStatus.nextCrawlAt).toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       })
-    : '';
+    : 'N/A';
   const formattedLastCrawlAt = lastCrawledAt
     ? new Date(lastCrawledAt).toLocaleDateString('en-US', {
         weekday: 'long',

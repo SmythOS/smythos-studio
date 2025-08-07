@@ -10,6 +10,7 @@ import { InviteMemberWarning } from '@react/features/teams/components/teams';
 import { useGetTeamSettings } from '@react/features/teams/hooks';
 import { Input } from '@react/shared/components/ui/input';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { useGetUserSettings } from '@react/shared/hooks/useUserSettings';
 import { queryClient } from '@react/shared/query-client';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
@@ -19,6 +20,7 @@ import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import { Tooltip } from 'flowbite-react';
+import { X } from 'lucide-react';
 
 type Props = {
   onClose: () => void;
@@ -39,6 +41,7 @@ const CreateMemberModal = (props: Props) => {
 
   const { data: userTeamSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
   const { data: roleSettings } = useGetTeamSettings(teamSettingKeys.DEFAULT_ROLE);
+  const { currentUserTeam } = useAuthCtx();
   const currentTeamId = userTeamSettings?.userSelectedTeam;
 
   const teamRolesQuery = useQuery({ queryKey: ['team_roles'], queryFn: teamAPI.getTeamRoles });
@@ -132,7 +135,7 @@ const CreateMemberModal = (props: Props) => {
   });
 
   const handleApiError = (error, defaultMsg, unauthorizedMsg) => {
-    let _errorMessage =
+    const _errorMessage =
       error.status === 403 && extractError(error).toLowerCase().indexOf('unauthorized') !== -1
         ? unauthorizedMsg
         : extractError(error) || defaultMsg;
@@ -182,7 +185,7 @@ const CreateMemberModal = (props: Props) => {
       <div className="relative w-full max-w-xl max-h-full" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <div className="flex items-start justify-between pt-4 px-6 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-[#1E1E1E] dark:text-white">
               {props.editMode ? 'Edit Member' : 'Invite Member'}
             </h3>
             <button
@@ -190,27 +193,13 @@ const CreateMemberModal = (props: Props) => {
               className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
               onClick={props.onClose}
             >
-              <svg
-                className="w-3 h-3"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 14 14"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                />
-              </svg>
+              <X className="w-5 h-5" color="#1E1E1E" />
               <span className="sr-only">Close modal</span>
             </button>
           </div>
           {!props.editMode && (
             <div className="px-6 pt-2">
-              <p className="text-sm text-gray-500 block w-full">
+              <p className="text-base text-[#1E1E1E] font-light block w-full">
                 Add a new team member to your workspace.
               </p>
             </div>
@@ -218,13 +207,13 @@ const CreateMemberModal = (props: Props) => {
 
           {/* Warning block for and check for unlimited seats*/}
           {!props.editMode && <InviteMemberWarning classes="mx-6" newMemberCount={1} />}
-          <div className="flex gap-6 px-6">
-            <div className="mb-6 flex-grow">
+          <div className="px-6">
+            <div className="mb-4 flex-grow">
               <label
                 htmlFor="member-email-input"
-                className="block mb-2 text-md font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-base font-medium text-[#1E1E1E] dark:text-white"
               >
-                Email Address
+                Email Address <span className="text-red-500">*</span>
               </label>
               <Input
                 id="member-email-input"
@@ -241,29 +230,33 @@ const CreateMemberModal = (props: Props) => {
             <div className="mb-6 flex-grow">
               <label
                 htmlFor="role-name-input"
-                className="block mb-2 text-md font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-base font-medium text-[#1E1E1E] dark:text-white"
               >
                 Role{' '}
                 <Tooltip
                   content={
                     <div className="text-sm">
                       Different roles have different permissions.
-                      <br />
-                      See{' '}
-                      <a
-                        href="/teams/roles"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline text-smythos-blue-500 font-semibold hover:text-smythos-blue-700"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        manage roles
-                      </a>
+                      {currentUserTeam?.parentId === null && (
+                        <>
+                          <br />
+                          See{' '}
+                          <a
+                            href="/teams/roles"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-semibold hover:text-gray-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            manage roles
+                          </a>
+                        </>
+                      )}
                     </div>
                   }
                   trigger="hover"
                   placement="top"
-                  style="light"
+                  style="dark"
                   theme={{
                     target: 'inline-flex items-center w-5 h-5 align-top',
                   }}
@@ -289,11 +282,21 @@ const CreateMemberModal = (props: Props) => {
                 {!teamRolesQuery.isLoading &&
                   teamRolesQuery.data?.roles?.map((option) => {
                     const defaultRoleId = getEffectiveRoleId();
+                    const isDefault = option.id === defaultRoleId;
+                    const isOwner = option.isOwnerRole;
+
+                    // Prioritize showing "Default" over "System Admin" when both apply
+                    let suffix = '';
+                    if (isDefault) {
+                      suffix = ' (Default)';
+                    } else if (isOwner) {
+                      suffix = ' (System Admin)';
+                    }
+
                     return (
                       <option key={option.id} value={option.id}>
                         {option.name}
-                        {option.id === defaultRoleId ? ' (Default)' : ''}
-                        {option.isOwnerRole ? ' (System Admin)' : ''}
+                        {suffix}
                       </option>
                     );
                   })}
@@ -306,11 +309,11 @@ const CreateMemberModal = (props: Props) => {
             ) : null}
             {validationError && <p className="text-red-500">{validationError}</p>}
           </div>
-          <div className="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600 mt-6">
+          <div className="flex items-center justify-end p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600 mt-6">
             <Button
-              className="w-full"
               handleClick={handleSubmit}
               disabled={inviteMember.isLoading || updateMemberRole.isLoading || !memberEmail}
+              className="px-8 h-[48px] rounded-lg"
             >
               {props.editMode ? 'Update' : 'Invite'}
             </Button>

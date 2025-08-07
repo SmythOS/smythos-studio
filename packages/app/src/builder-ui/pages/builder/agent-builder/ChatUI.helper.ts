@@ -1,4 +1,4 @@
-import { Workspace } from 'src/builder-ui/workspace/Workspace.class';
+import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 import ADLParser from './ADLParser.class';
 
 import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@src/react/shared/constants/style';

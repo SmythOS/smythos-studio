@@ -547,7 +547,7 @@ function initSmythBezierConnector(root) {
           mjAnchor = minorAnchor;
         }
       } catch (e) {
-        console.log('Error in _findControlPoint', e);
+        //console.log('Error in _findControlPoint', e);
       }
       // determine if the two anchors are perpendicular to each other in their orientation.  we swap the control
       // points around if so (code could be tightened up)

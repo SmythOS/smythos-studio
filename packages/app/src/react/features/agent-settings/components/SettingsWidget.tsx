@@ -1,9 +1,9 @@
-import { useWidgetsContext } from '@react/features/agent-settings/components/OverviewWidgetsContainer/index';
+import { useWidgetsContext } from '@react/features/agent-settings/components/OverviewWidgetsContainer';
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
-import IconToolTip from '@react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { TextArea as CustomTextarea } from '@react/shared/components/ui/newDesign/textarea';
-import { Modal } from 'flowbite-react';
+import { Modal, Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 
 // #region Temporary Badges
 const TEMP_BADGES = {
@@ -35,13 +35,25 @@ const SettingsWidget = () => {
       <div className="bg-gray-50 p-4" data-qa="default-llm-container">
         <div className="flex justify-between items-center flex-col ">
           <div className="w-full">
-            <label htmlFor="models" className="text-sm font-semibold mt-4">
-              Default LLM{' '}
-              <IconToolTip
-                classes="w-72 ml-10"
-                arrowClasses={'-ml-10'}
-                html="Primary language model<br />Used for chat and chatbot interactions<br />Affects response quality and capabilities"
-              />
+            <label
+              htmlFor="models"
+              className="flex items-center gap-2 text-gray-700 text-sm font-semibold mt-4"
+            >
+              Default LLM
+              <Tooltip
+                className="w-52 text-center"
+                content={
+                  <div>
+                    Primary language model
+                    <br />
+                    Used for chat and chatbot interactions
+                    <br />
+                    Affects response quality and capabilities
+                  </div>
+                }
+              >
+                <Info className="w-4 h-4 mt-[-2px]" />
+              </Tooltip>
             </label>
             <p className="text-sm text-gray-500 mb-2 mt-0.5">Select your preferred default LLM.</p>
             <select
@@ -94,6 +106,7 @@ const SettingsWidget = () => {
           <div className="mt-6 w-full">
             <CustomTextarea
               label="Behavior"
+              labelClassName="text-sm font-semibold"
               subLabel="Describe your agent's behavior."
               name="behavior"
               placeholder="Friendly, professional, etc."
@@ -104,12 +117,33 @@ const SettingsWidget = () => {
               errorMessage={formik.errors.behavior as string}
               onExpand={() => setIsModalOpen(true)}
               fullWidth
+              infoTooltip={
+                <div>
+                  Define how the agent should respond and behave during interactions.
+                  <br />
+                  Include personality traits, communication style, and any specific instructions for
+                  handling user requests.
+                </div>
+              }
             />
           </div>
 
-          <Modal show={isModalOpen} onClose={handleModalClose} size="xl">
+          <Modal
+            show={isModalOpen}
+            onClose={handleModalClose}
+            size="xl"
+            theme={{
+              header: {
+                close: {
+                  base: 'text-[#1E1E1E] hover:text-gray-700',
+                },
+              },
+            }}
+          >
             <Modal.Header>
-              <span className="text-xl font-semibold">Describe your agent's behavior</span>
+              <span className="text-[#1E1E1E] text-xl font-semibold">
+                Describe your agent's behavior
+              </span>
             </Modal.Header>
             <Modal.Body>
               <CustomTextarea
@@ -126,10 +160,11 @@ const SettingsWidget = () => {
               <div className="w-full flex justify-end">
                 <Button
                   handleClick={handleModalClose}
-                  variant="secondary"
                   type="button"
-                  label="Close"
-                />
+                  className="h-[48px] px-8 rounded-lg ml-auto"
+                >
+                  Done
+                </Button>
               </div>
             </Modal.Footer>
           </Modal>

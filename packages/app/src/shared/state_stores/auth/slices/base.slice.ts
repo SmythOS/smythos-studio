@@ -18,11 +18,17 @@ import { AuthInfo, AuthSlice } from '../types';
 
 const fetchTeamData = async (teamId: string): Promise<any> => {
   try {
-    const [roles, members] = await Promise.all([getTeamRoles(teamId), getTeamMembers(teamId)]);
+    const [rolesResult, membersResult] = await Promise.allSettled([
+      getTeamRoles(teamId),
+      getTeamMembers(teamId),
+    ]);
+
+    const roles = rolesResult.status === 'fulfilled' ? rolesResult.value?.roles || [] : [];
+    const members = membersResult.status === 'fulfilled' ? membersResult.value?.members || [] : [];
 
     return {
-      roles: roles?.roles || [],
-      members: members?.members || [],
+      roles,
+      members,
     };
   } catch (error) {
     console.error(`Error fetching team data for team ${teamId}:`, error);

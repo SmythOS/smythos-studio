@@ -72,7 +72,7 @@ const ActionCellRenderer = memo((params: Props) => {
             hasError ? (
               <MdOutlineErrorOutline size={20} className="text-red-500" />
             ) : (
-              <IoIosCheckmarkCircleOutline size={20} className="text-green-500" />
+              <IoIosCheckmarkCircleOutline size={20} className="text-smythos-blue-500" />
             )
           ) : (
             <p>Preparing...</p>

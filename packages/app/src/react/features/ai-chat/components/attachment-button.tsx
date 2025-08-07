@@ -18,7 +18,7 @@ export const AttachmentButton: FC<AttachmentButtonProps> = ({
     <button
       onClick={onClick}
       disabled={fileAttachmentDisabled}
-      className="-rotate-30 text-gray-500 hover:text-gray-700 mr-2"
+      className="text-gray-500 hover:text-gray-700 mr-2 transition-colors"
       title={!isMaxFilesUploaded ? 'Attach file' : undefined}
       aria-label="Attach file"
     >

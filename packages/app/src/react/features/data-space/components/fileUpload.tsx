@@ -85,9 +85,9 @@ export default function FileUpload({
       </div>
       <div className={fileName ? '' : 'hidden'}>
         <div className="flex justify-between bg-gray-50 text-black rounded-lg p-2 gap-2">
-          <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+          <div className="flex items-center gap-2 overflow-hidden text-ellipsis">
             <TbFile size={22} className="min-w-max" />
-            <span className="pl-2 overflow-hidden text-ellipsis whitespace-nowrap">
+            <span className="pl-2 overflow-hidden text-ellipsis max-w-[200px] sm:max-w-full">
               {fileName}{' '}
             </span>
           </div>
