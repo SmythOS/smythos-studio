@@ -1,4 +1,4 @@
-import { useWidgetsContext } from '@react/features/agent-settings/components/OverviewWidgetsContainer/index';
+import { useWidgetsContext } from '@react/features/agent-settings/components/OverviewWidgetsContainer';
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { TextArea as CustomTextarea } from '@react/shared/components/ui/newDesign/textarea';

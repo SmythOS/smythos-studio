@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Agent as AgentInstance } from '../../../frontend/Agent.class';
+import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import { Agent } from '../../shared/types/agent-data.types';
 import { Embodiment } from '../../shared/types/api-results.types';

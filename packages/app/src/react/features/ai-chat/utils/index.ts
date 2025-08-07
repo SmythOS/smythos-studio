@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any  */
-import config from '@src/frontend/config';
+import config from '@src/builder-ui/config';
 import { FileWithMetadata } from '@src/react/shared/types/chat.types';
 
 type GenerateResponseInput = {

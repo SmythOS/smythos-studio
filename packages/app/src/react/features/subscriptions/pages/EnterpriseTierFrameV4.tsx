@@ -1,4 +1,4 @@
-import config from '@src/frontend/config';
+import config from '@src/builder-ui/config';
 import plansDev from '@src/react/features/subscriptions/data/enterprise-tiers-dev-v4.json';
 import plansProd from '@src/react/features/subscriptions/data/enterprise-tiers-prod-v4.json';
 import { FeatureFlagged } from '@src/react/shared/components/featureFlags';
@@ -235,7 +235,6 @@ export const EnterpriseTierFrameV4: FC<Props> = ({ tierIndex }) => {
       await res.json();
       await refreshUserData();
 
-      
       window.location.href = '/my-plan?upgraded=true';
       setShowConfirmationDialog(false);
     } catch (error) {

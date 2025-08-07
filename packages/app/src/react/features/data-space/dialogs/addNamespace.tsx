@@ -1,7 +1,7 @@
 import { getVectorsCustomStorage } from '@react/features/data-space/client/dataspace.api-client.service';
 import { Input as CustomInput } from '@react/shared/components/ui/input';
 import Modal from '@react/shared/components/ui/modals/Modal';
-import config from '@src/frontend/config';
+import config from '@src/builder-ui/config';
 import plansDev from '@src/react/features/subscriptions/data/plans.v4.dev.json';
 import plansProd from '@src/react/features/subscriptions/data/plans.v4.prod.json';
 import { generatePricingUrl } from '@src/react/features/subscriptions/utils';
@@ -280,7 +280,7 @@ export default function AddNamespaceDialog({
                           'after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300',
                           'after:border after:rounded-full after:h-5 after:w-5 after:transition-all',
                           'dark:bg-gray-700 peer-checked:after:translate-x-full',
-                          'peer-checked:after:border-white after:content-[\'\'] ',
+                          "peer-checked:after:border-white after:content-[''] ",
                         )}
                       ></div>
                       <span className="flex flex-col items-start ml-3">

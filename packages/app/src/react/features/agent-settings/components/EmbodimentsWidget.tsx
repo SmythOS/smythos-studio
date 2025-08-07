@@ -2,8 +2,8 @@ import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { Agent } from '@react/shared/types/agent-data.types';
-import { Agent as AgentInstance } from '@src/frontend/Agent.class';
-import config from '@src/frontend/config';
+import { Agent as AgentInstance } from '@src/builder-ui/Agent.class';
+import config from '@src/builder-ui/config';
 import {
   getEmbodimentDataAttribute,
   getEmbodimentDescription,
