@@ -356,9 +356,8 @@ export class APIEndpoint extends Component {
       }
     });
 
-    this.addEventListener('endpointChanged', (prop, endPoint, oldName, newName) => {
+    this.addEventListener('endpointChanged', (prop, endPoint, oldValue, newValue) => {
       if (this.isOnAdvancedMode) return;
-      if (prop != 'name') return;
 
       const inputDiv: any = endPoint.classList.contains('input-endpoint')
         ? endPoint
@@ -367,25 +366,38 @@ export class APIEndpoint extends Component {
         ? endPoint
         : endPoint._outputDivElement;
 
-      const inputName = inputDiv.getAttribute('smt-name');
-      const outputName = outputDiv.getAttribute('smt-name');
+      if (prop === 'name') {
+        const oldName = oldValue;
+        const newName = newValue;
+        const inputName = inputDiv.getAttribute('smt-name');
+        const outputName = outputDiv.getAttribute('smt-name');
 
-      if (inputName != newName) {
-        inputDiv.setAttribute('smt-name', newName);
-        inputDiv.querySelector('.name').innerText = newName;
-      }
+        if (inputName != newName) {
+          inputDiv.setAttribute('smt-name', newName);
+          inputDiv.querySelector('.name').innerText = newName;
+        }
 
-      if (outputName != newName) {
-        outputDiv.setAttribute('smt-name', newName);
-        outputDiv.querySelector('.name').innerText = newName;
+        if (outputName != newName) {
+          outputDiv.setAttribute('smt-name', newName);
+          outputDiv.querySelector('.name').innerText = newName;
 
-        // Update the expression attribute to use the new name
-        if (outputDiv?.hasAttribute('smt-expression')) {
-          const oldExpression = outputDiv?.getAttribute('smt-expression');
-          // If the expression follows the pattern body.oldName, update it to body.newName
-          if (oldExpression === `body.${oldName}`) {
-            const newExpression = `body.${newName}`;
-            outputDiv.setAttribute('smt-expression', newExpression);
+          // Update the expression attribute to use the new name
+          if (outputDiv?.hasAttribute('smt-expression')) {
+            const oldExpression = outputDiv?.getAttribute('smt-expression');
+            // If the expression follows the pattern body.oldName, update it to body.newName
+            if (oldExpression === `body.${oldName}`) {
+              const newExpression = `body.${newName}`;
+              outputDiv.setAttribute('smt-expression', newExpression);
+            }
+          }
+        }
+      } else if (prop === 'optional') {
+        // Update visual state for optional inputs
+        if (outputDiv) {
+          if (newValue) {
+            outputDiv.classList.add('marked-optional');
+          } else {
+            outputDiv.classList.remove('marked-optional');
           }
         }
       }
