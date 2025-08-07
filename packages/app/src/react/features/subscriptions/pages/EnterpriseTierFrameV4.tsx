@@ -232,7 +232,21 @@ export const EnterpriseTierFrameV4: FC<Props> = ({ tierIndex }) => {
         }),
       });
 
-      await res.json();
+      const responseData = await res.json();
+
+      try {
+        let parsedMessage = JSON.parse(responseData?.message);
+
+        if (parsedMessage && parsedMessage.warnings && Array.isArray(parsedMessage.warnings)) {
+          localStorage.setItem(
+            'subscription_warnings',
+            JSON.stringify({ data: Date.now(), warnings: parsedMessage.warnings }),
+          );
+        }
+      } catch {
+        // do nothing
+      }
+
       await refreshUserData();
 
       window.location.href = '/my-plan?upgraded=true';
