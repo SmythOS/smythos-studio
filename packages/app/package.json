@@ -1,7 +1,7 @@
 {
   "name": "smyth-builder",
-  "version": "1.54.153",
-  "description": "Smytpn UI",
+  "version": "1.54.185",
+  "description": "SmytOS UI",
   "scripts": {
     "build:vanilla": "cross-env NODE_OPTIONS='--max-old-space-size=4096' rollup --config ./scripts/build/dev/rollup-vanilla.config.mjs",
     "build:frontend": "cross-env NODE_OPTIONS='--max-old-space-size=4096' rollup --config ./scripts/build/dev/rollup-fe.config.mjs",
