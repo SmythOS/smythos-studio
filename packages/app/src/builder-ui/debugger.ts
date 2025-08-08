@@ -2549,20 +2549,6 @@ export function createDebugInjectDialog(
     if (userEmail) {
       const debugSessionKey = `first-debug-session-${userEmail}`;
 
-      // Compatibility: migrate any existing team/agent-scoped keys to the new user-level key
-      // Old formats included team and/or agent: first-debug-session-${userEmail}-${teamId}[-${agentId}]
-      try {
-        const legacyPrefix = `first-debug-session-${userEmail}-`;
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith(legacyPrefix)) {
-            localStorage.setItem(debugSessionKey, 'false');
-            break;
-          }
-        }
-      } catch (_) {
-        // do nothing
-      }
 
       const isFirstDebugSession = localStorage.getItem(debugSessionKey) === null;
 
