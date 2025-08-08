@@ -7,7 +7,7 @@ export async function setVaultSecret({ token, teamId, key, value, metadata, secr
   }
   try {
     const createdSecretResponse = await smythVaultAPI.post(
-      `/api/secret`,
+      `/vault/secret`,
       {
         teamId,
         secretId,
@@ -30,7 +30,7 @@ export async function getVaultAllSecrets({ token, teamId, metadataFilter = '' })
   }
   try {
     const allSecretsResponse = await smythVaultAPI.get(
-      `/api/${teamId}/secrets${metadataFilter ? `?metadataFilter=${metadataFilter}` : ''}`,
+      `/vault/${teamId}/secrets${metadataFilter ? `?metadataFilter=${metadataFilter}` : ''}`,
       includeAxiosAuth(token),
     );
 
@@ -52,7 +52,7 @@ export async function getSpecificVaultSecret({
   try {
     if (secretId) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/${teamId}/secrets/${secretId}`,
+        `/vault/${teamId}/secrets/${secretId}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data?.secret
@@ -60,7 +60,7 @@ export async function getSpecificVaultSecret({
         : {};
     } else if (secretName) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/${teamId}/secrets/name/${secretName}`,
+        `/vault/${teamId}/secrets/name/${secretName}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data?.secret
@@ -78,7 +78,7 @@ export async function deleteSpecificVaultSecret({ token, teamId, secretId }) {
   }
   try {
     const deleteSecretResponse = await smythVaultAPI.delete(
-      `/api/${teamId}/secrets/${secretId}`,
+      `/vault/${teamId}/secrets/${secretId}`,
       includeAxiosAuth(token),
     );
     return deleteSecretResponse.data;
@@ -98,7 +98,7 @@ export async function markSecretAsInvalid({ token, teamId, secretId }) {
       isInvalid: true,
     };
     const secretResponse = await smythVaultAPI.put(
-      `/api/${teamId}/secrets/${secretId}/metadata`,
+      `/vault/${teamId}/secrets/${secretId}/metadata`,
       {
         metadata: updatedMetadata,
       },
@@ -116,7 +116,7 @@ export async function getVaultSecretsCount({ token, teamId }) {
   }
   try {
     const secretsCountResponse = await smythVaultAPI.get(
-      `/api/${teamId}/count/secrets`,
+      `/vault/${teamId}/count/secrets`,
       includeAxiosAuth(token),
     );
 
@@ -217,13 +217,13 @@ export async function checkIfVaultSecretExists({
   try {
     if (secretId) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/${teamId}/secrets/${secretId}/exists`,
+        `/vault/${teamId}/secrets/${secretId}/exists`,
         includeAxiosAuth(token),
       );
       return secretResponse.data;
     } else if (secretName) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/${teamId}/secrets/name/${secretName}/exists?excludeId=${excludeId}`,
+        `/vault/${teamId}/secrets/name/${secretName}/exists?excludeId=${excludeId}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data;

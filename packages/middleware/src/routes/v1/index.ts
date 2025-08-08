@@ -38,7 +38,7 @@ const defaultRoutes: Route[] = [
     route: subscriptionRouter,
   },
   {
-    rootPath: '/vault/v1/api/',
+    rootPath: '/vault',
     route: vaultRouter,
   },
 ];
