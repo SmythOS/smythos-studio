@@ -101,7 +101,7 @@ export const validateSingleFile = (file: File): string | null => {
   });
 
   if (!isValidType) {
-    return 'File type not supported.';
+    return 'File type not supported';
   }
 
   return null;
