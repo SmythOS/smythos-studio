@@ -19,7 +19,7 @@
     class="hidden flex-col items-center flex-shrink-0 w-16 pt-2.5 pb-2 bg-[#F4F4F5] md:flex h-full"
   >
     <!-- Logo -->
-    <div class="flex flex-col items-center flex-1 p-0">
+    <div class="flex flex-col items-center flex-1 p-0" id="left-sidebar-nav-items">
       <!-- Agent button -->
 
       <a
@@ -42,58 +42,7 @@
         Home
       </div>
 
-      <div class="relative group builder-btn">
-        <button
-          id="builder-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          @click="setSidebarTab('agentBuilderTab')"
-          data-tooltip-target="tooltip-builder"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': isSidebarOpen && currentSidebarTab === 'agentBuilderTab'}"
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>path]:!fill-white': isSidebarOpen && currentSidebarTab === 'agentBuilderTab'}"
-            >
-              <path
-                d="M21 6.35156C21 4.69469 19.657 3.35156 18 3.35156H6C4.34315 3.35156 3 4.69469 3 6.35156V15.1348C3 16.7917 4.34315 18.1348 6 18.1348H8.16198C8.5598 18.1348 8.94134 18.2928 9.22264 18.5742L10.9393 20.2909C11.5251 20.8767 12.4749 20.8767 13.0607 20.2909L14.7774 18.5742C15.0587 18.2928 15.4402 18.1348 15.838 18.1348H18C19.657 18.1348 21 16.7917 21 15.1348V6.35156Z"
-                stroke="black"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M15.75 11.25L14.25 15L12 9.69844L9.74996 15L7.5 9"
-                stroke="black"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M16.7649 9.53535C16.5075 8.68845 15.8457 8.02545 15 7.76775C15.8457 7.5099 16.5075 6.84705 16.7649 6C17.0223 6.84705 17.6843 7.5099 18.53 7.76775C17.6843 8.02545 17.0223 8.68845 16.7649 9.53535Z"
-                fill="black"
-              />
-            </svg>
-          </div>
-        </button>
-        <div
-          role="tooltip"
-          id="tooltip-builder"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Agent Weaver
-        </div>
-      </div>
+     
 
       <div class="relative group components-btn">
         <button
@@ -788,6 +737,7 @@
   >
     <div
       aria-label="Main"
+      id="left-sidebar-content-sections"
       class="flex flex-col items-start bg-white rounded-lg border border-solid border-gray-300 h-[calc(100dvh-4rem)] md:h-full w-full max-w-[100vw]"
     >
       <div class="w-full flex md:hidden justify-between items-center p-2">
@@ -850,12 +800,7 @@
         <%- include('left-sidebar-deploy'); -%>
       </section>
 
-      <section
-        x-show="(currentSidebarTab == 'agentBuilderTab')"
-        class="agentBuilderTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%]"
-      >
-        <%- include('left-sidebar-agent-builder'); -%>
-      </section>
+      
 
       <section
         x-show="(currentSidebarTab == 'integrationsTab')"
