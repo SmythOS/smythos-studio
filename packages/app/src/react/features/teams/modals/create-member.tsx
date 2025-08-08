@@ -111,6 +111,7 @@ const CreateMemberModal = (props: Props) => {
       toast('Invitation sent');
       props.onClose();
       queryClient.invalidateQueries({ queryKey: ['team_roles'] });
+      queryClient.invalidateQueries({ queryKey: ['team_invitations'] });
     },
   });
 

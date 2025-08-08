@@ -3,8 +3,10 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 
 import { teamAPI } from '@react/features/teams/clients';
+import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { errorToast, successToast } from '@shared/components/toast';
-import { PendingInvite } from './useTeamInvitations';
+import { PendingInvite, useTeamInvitations } from './useTeamInvitations';
+import { useTeamMembers } from './useTeamMembers';
 
 /**
  * Custom hook for managing invitation actions (resend, delete)
@@ -18,34 +20,84 @@ export const useInvitationActions = (teamRoles: any[] = [], isReadOnlyAccess: bo
   const [rowDeleting, setRowDeleting] = useState<{ [id: string]: boolean }>({});
   const [rowFadeOut, setRowFadeOut] = useState<{ [id: string]: boolean }>({});
 
+  // Modal state for seat limit warning
+  const [showSeatLimitModal, setShowSeatLimitModal] = useState(false);
+  const [pendingInvite, setPendingInvite] = useState<{
+    invite: PendingInvite;
+    onInviteUpdated: (updater: (prev: PendingInvite[]) => PendingInvite[]) => void;
+  } | null>(null);
+
+  // Get auth context and team data for seat limit validation
+  const { userInfo } = useAuthCtx();
+  const { teamMembers } = useTeamMembers();
+  const { getPendingInvites } = useTeamInvitations(teamRoles, teamMembers);
+
   /**
-   * Handles resending an invitation
-   * @param invite - The invitation to resend
-   * @param onInviteUpdated - Callback to update local invites state
+   * Calculates seat pricing information
    */
-  const handleResendInvite = async (
-    invite: PendingInvite,
-    onInviteUpdated: (updater: (prev: PendingInvite[]) => PendingInvite[]) => void,
+  const getSeatPricingInfo = () => {
+    const teamSeats = userInfo?.subs?.properties?.['seatsIncluded'] || 1;
+    const filteredTeamMembers =
+      teamMembers?.filter((member) => !member.email.toLowerCase().includes('@smythos.com')) || [];
+    const filteredPendingInvites =
+      getPendingInvites?.filter(
+        (pendingInvite) => !pendingInvite.email.toLowerCase().includes('@smythos.com'),
+      ) || [];
+    const totalOccupiedSeats = filteredTeamMembers.length + filteredPendingInvites.length;
+    const remainingSeats = teamSeats - totalOccupiedSeats;
+
+    const priceItem =
+      userInfo?.subs?.object?.['items']?.data?.filter?.(
+        (item) => item?.price?.metadata?.for === 'user seats',
+      ) || [];
+    let price = 0;
+    if (priceItem.length > 0) {
+      price = priceItem[0].price?.unit_amount;
+    }
+    const pricePerSeat = price / 100;
+
+    return {
+      teamSeats,
+      remainingSeats,
+      pricePerSeat,
+      isSmythosFree: userInfo?.subs?.plan?.name?.toLowerCase() === 'smythos free',
+    };
+  };
+
+  /**
+   * Proceeds with sending the invite after user confirmation
+   */
+  const proceedWithInvite = async (
+    invite?: PendingInvite,
+    onInviteUpdated?: (updater: (prev: PendingInvite[]) => PendingInvite[]) => void,
   ) => {
-    // Check permissions first
-    if (isReadOnlyAccess) {
-      errorToast('You do not have permission to resend invitations');
+    // Use parameters if provided, otherwise use state
+    const currentInvite = invite || pendingInvite?.invite;
+    const onInviteUpdatedToUse = onInviteUpdated || pendingInvite?.onInviteUpdated;
+
+    if (!currentInvite || !onInviteUpdatedToUse) {
       return;
     }
 
-    setRowLoading((prev) => ({ ...prev, [invite.id]: true }));
+    setShowSeatLimitModal(false);
+    setPendingInvite(null);
+
+    setRowLoading((prev) => ({ ...prev, [currentInvite.id]: true }));
     try {
-      if (invite.email && invite.roleId) {
-        const res = await teamAPI.inviteTeamMember({ email: invite.email, roleId: invite.roleId });
+      if (currentInvite.email && currentInvite.roleId) {
+        const res = await teamAPI.inviteTeamMember({
+          email: currentInvite.email,
+          roleId: currentInvite.roleId,
+        });
         const data = await res.json();
         if (data && data.invitation) {
           // Find the role name from teamRoles
           const roleName =
-            teamRoles?.find((r) => r.id === data.invitation.teamRoleId)?.name || invite.role;
+            teamRoles?.find((r) => r.id === data.invitation.teamRoleId)?.name || currentInvite.role;
 
-          onInviteUpdated((prev) => {
+          onInviteUpdatedToUse((prev) => {
             // Remove the specific expired invite being resent
-            const filtered = prev.filter((i) => i.id !== invite.id);
+            const filtered = prev.filter((i) => i.id !== currentInvite.id);
 
             // Create the new invite object in the expected format
             const newInvite: PendingInvite = {
@@ -91,8 +143,42 @@ export const useInvitationActions = (teamRoles: any[] = [], isReadOnlyAccess: bo
       }
       errorToast(msg);
     } finally {
-      setRowLoading((prev) => ({ ...prev, [invite.id]: false }));
+      setRowLoading((prev) => ({ ...prev, [currentInvite.id]: false }));
     }
+  };
+
+  /**
+   * Handles resending an invitation
+   * @param invite - The invitation to resend
+   * @param onInviteUpdated - Callback to update local invites state
+   */
+  const handleResendInvite = async (
+    invite: PendingInvite,
+    onInviteUpdated: (updater: (prev: PendingInvite[]) => PendingInvite[]) => void,
+  ) => {
+    // Check permissions first
+    if (isReadOnlyAccess) {
+      errorToast('You do not have permission to resend invitations');
+      return;
+    }
+
+    // Check seat limits
+    const { remainingSeats, isSmythosFree } = getSeatPricingInfo();
+
+    if (remainingSeats < 1) {
+      if (isSmythosFree) {
+        errorToast('Plan seat limit reached. Upgrade your plan to add more seats.');
+        return;
+      }
+
+      // Show confirmation modal for paid plans
+      setPendingInvite({ invite, onInviteUpdated });
+      setShowSeatLimitModal(true);
+      return;
+    }
+
+    // Proceed directly if seats are available
+    proceedWithInvite(invite, onInviteUpdated);
   };
 
   /**
@@ -138,5 +224,42 @@ export const useInvitationActions = (teamRoles: any[] = [], isReadOnlyAccess: bo
     }
   };
 
-  return { rowLoading, rowDeleting, rowFadeOut, handleResendInvite, handleDeleteInvite };
+  /**
+   * Closes the seat limit modal
+   */
+  const closeSeatLimitModal = () => {
+    setShowSeatLimitModal(false);
+    setPendingInvite(null);
+  };
+
+  /**
+   * Gets the modal props for rendering
+   */
+  const getSeatLimitModalProps = () => {
+    if (!showSeatLimitModal) return null;
+
+    const { pricePerSeat } = getSeatPricingInfo();
+
+    return {
+      onClose: closeSeatLimitModal,
+      message: 'Seat Limit Reached',
+      lowMsg: `Adding a new member while on the ${userInfo?.subs?.plan?.name} plan will incur an additional charge of $${pricePerSeat}/mo per seat.`,
+      label: 'Continue',
+      handleConfirm: () => proceedWithInvite(),
+      handleCancel: closeSeatLimitModal,
+      cancelLabel: 'Cancel',
+      isLoading: pendingInvite ? rowLoading[pendingInvite.invite.id] : false,
+    };
+  };
+
+  return {
+    rowLoading,
+    rowDeleting,
+    rowFadeOut,
+    handleResendInvite,
+    handleDeleteInvite,
+    showSeatLimitModal,
+    getSeatLimitModalProps,
+    closeSeatLimitModal,
+  };
 };

@@ -14,6 +14,7 @@ import {
 } from '@react/features/teams/hooks';
 import { PendingInvite } from '@react/features/teams/hooks/useTeamInvitations';
 import CreateMemberModal from '@react/features/teams/modals/create-member';
+import ConfirmModal from '@react/shared/components/ui/modals/ConfirmModal';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { useGetUserSettings } from '@react/shared/hooks/useUserSettings';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
@@ -27,7 +28,7 @@ const TeamMembersPage = () => {
   const [invitesSearchTerm, setInvitesSearchTerm] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [localPendingInvites, setLocalPendingInvites] = useState<PendingInvite[]>([]);
-  const hasInitialized = useRef(false);
+  const prevPendingInvitesRef = useRef<PendingInvite[]>([]);
 
   const { userInfo, userTeams, hasReadOnlyPageAccess } = useAuthCtx();
   const { data: userTeamSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
@@ -39,9 +40,9 @@ const TeamMembersPage = () => {
     queryKey: ['team_roles'],
     queryFn: teamAPI.getTeamRoles,
     refetchOnWindowFocus: true,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
-    staleTime: Infinity,
+    staleTime: 0,
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,15 +54,22 @@ const TeamMembersPage = () => {
     teamRoles,
     teamMembers,
   );
-  const { rowLoading, rowDeleting, rowFadeOut, handleResendInvite, handleDeleteInvite } =
-    useInvitationActions(teamRoles, hasReadOnlyPageAccess('/teams/members'));
+  const {
+    rowLoading,
+    rowDeleting,
+    rowFadeOut,
+    handleResendInvite,
+    handleDeleteInvite,
+    showSeatLimitModal,
+    getSeatLimitModalProps,
+  } = useInvitationActions(teamRoles, hasReadOnlyPageAccess('/teams/members'));
 
-  // Initialize localPendingInvites when API data becomes available (only once)
+  // Always sync localPendingInvites with fresh getPendingInvites data
   useEffect(() => {
-    const pendingInvites = getPendingInvites;
-    if (pendingInvites.length > 0 && !hasInitialized.current) {
-      setLocalPendingInvites(pendingInvites);
-      hasInitialized.current = true;
+    // Only update if the data actually changed (deep comparison)
+    if (JSON.stringify(prevPendingInvitesRef.current) !== JSON.stringify(getPendingInvites)) {
+      setLocalPendingInvites(getPendingInvites);
+      prevPendingInvitesRef.current = getPendingInvites;
     }
   }, [getPendingInvites]);
 
@@ -145,6 +153,9 @@ const TeamMembersPage = () => {
     [localPendingInvites, hasPendingInviteForEmail],
   );
 
+  // Get modal props for seat limit confirmation
+  const modalProps = getSeatLimitModalProps();
+
   return (
     <div className="w-full pl-12 md:pl-0">
       <TeamMembersContainer
@@ -188,6 +199,11 @@ const TeamMembersPage = () => {
         >
           Upgrade your plan to add more members.
         </UpSellModal>
+      )}
+
+      {/* Seat limit confirmation modal */}
+      {showSeatLimitModal && modalProps && (
+        <ConfirmModal width="w-[500px]" hideCancel={true} {...modalProps} />
       )}
     </div>
   );
