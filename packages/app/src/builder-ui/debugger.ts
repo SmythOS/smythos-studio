@@ -2540,14 +2540,30 @@ export function createDebugInjectDialog(
 
   /**
    * Handles the first-time debug session logic for showing the inspector bar
+  * Scope: global per user. If dismissed once for any agent (in any team),
+  * it won't auto-pop for other agents or teams for that user.
    */
   function handleFirstDebugSession() {
     const userEmail = workspace?.userData?.email;
-    const teamId = workspace?.teamData?.id;
-    const agentId = workspace?.agent?.id;
+    // Global per user (across teams and agents)
+    if (userEmail) {
+      const debugSessionKey = `first-debug-session-${userEmail}`;
 
-    if (userEmail && teamId && agentId) {
-      const debugSessionKey = `first-debug-session-${userEmail}-${teamId}-${agentId}`;
+      // Compatibility: migrate any existing team/agent-scoped keys to the new user-level key
+      // Old formats included team and/or agent: first-debug-session-${userEmail}-${teamId}[-${agentId}]
+      try {
+        const legacyPrefix = `first-debug-session-${userEmail}-`;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(legacyPrefix)) {
+            localStorage.setItem(debugSessionKey, 'false');
+            break;
+          }
+        }
+      } catch (_) {
+        // do nothing
+      }
+
       const isFirstDebugSession = localStorage.getItem(debugSessionKey) === null;
 
       // Only show bottom bar if it's the first debug session
