@@ -1,7 +1,11 @@
 /* eslint-disable max-len */
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { cn } from '@src/react/shared/utils/general';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { teamAPI } from '../../clients';
+import { useTeamInvitations } from '../../hooks/useTeamInvitations';
+import { useTeamMembers } from '../../hooks/useTeamMembers';
 
 export const InviteMemberWarning = ({
   classes,
@@ -11,6 +15,29 @@ export const InviteMemberWarning = ({
   newMemberCount?: number;
 }) => {
   const { userInfo, parentTeamMembers, currentUserTeamMembers, currentUserTeam } = useAuthCtx();
+  const queryClient = useQueryClient();
+
+  // Force refetch team invitations when component mounts
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['team_invitations'] });
+  }, [queryClient]);
+
+  // Get team roles data
+  const { data: teamRolesData } = useQuery({
+    queryKey: ['team_roles'],
+    queryFn: teamAPI.getTeamRoles,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true, // Enable refetch on mount for fresh data
+    refetchOnReconnect: false,
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
+  });
+
+  const teamRoles = (teamRolesData as any)?.roles || [];
+
+  // Use the same team members source as team-members page
+  const { teamMembers } = useTeamMembers();
+
+  const { getPendingInvites } = useTeamInvitations(teamRoles, teamMembers);
 
   const [inviteInfo, setInviteInfo] = useState({
     totalSeats: 0,
@@ -24,10 +51,17 @@ export const InviteMemberWarning = ({
   useEffect(() => {
     const teamSeats = userInfo?.subs?.properties?.['seatsIncluded'] || 1;
 
-    //check if user.email includes any of the staff emails
-    const teamMembers = (
-      currentUserTeam?.parentId ? parentTeamMembers : currentUserTeamMembers
-    )?.filter((member) => !member.email.toLowerCase().includes('@smythos.com'));
+    // Filter out staff emails from team members (same logic as before but using consistent data source)
+    const filteredTeamMembers =
+      teamMembers?.filter((member) => !member.email.toLowerCase().includes('@smythos.com')) || [];
+
+    // Filter out staff emails from pending invites
+    const filteredPendingInvites =
+      getPendingInvites?.filter((invite) => !invite.email.toLowerCase().includes('@smythos.com')) ||
+      [];
+
+    // Calculate total occupied seats (current members + pending invites)
+    const totalOccupiedSeats = filteredTeamMembers.length + filteredPendingInvites.length;
 
     const priceItem =
       userInfo?.subs?.object?.['items']?.data?.filter?.(
@@ -40,13 +74,13 @@ export const InviteMemberWarning = ({
 
     setInviteInfo({
       totalSeats: teamSeats,
-      totalMembers: teamMembers.length,
-      remainingSeats: teamSeats - teamMembers.length,
+      totalMembers: filteredTeamMembers.length,
+      remainingSeats: teamSeats - totalOccupiedSeats,
       pricePerSeat: price / 100,
       isSmythosFree: userInfo.subs.plan.name.toLowerCase() === 'smythos free',
       isWarningShowable:
         // userInfo.subs.plan.name.toLowerCase() === 'smythos free' ||
-        teamSeats - teamMembers.length - (newMemberCount || 0) < 1 &&
+        teamSeats - totalOccupiedSeats - (newMemberCount || 0) < 1 &&
         price > 0 &&
         typeof userInfo?.subs?.properties?.['seatsIncluded'] === 'number' &&
         !isNaN(userInfo.subs.properties['seatsIncluded']) &&
@@ -55,13 +89,15 @@ export const InviteMemberWarning = ({
         // T4 enterprise plan has 200 seats included so the check is 201
         userInfo.subs.properties['seatsIncluded'] < 201,
     });
-  }, [userInfo, parentTeamMembers, currentUserTeamMembers, currentUserTeam, newMemberCount]);
+  }, [userInfo, teamMembers, newMemberCount]);
   {
     /* Warning block for and check for unlimited seats*/
   }
   return inviteInfo.isWarningShowable ? (
     <div
-      className={cn(`bg-[#fffbeb] border border-solid border-[#fde68a] text-[#92400e] text-sm rounded-md px-4 py-3 my-6 ${classes}`)}
+      className={cn(
+        `bg-[#fffbeb] border border-solid border-[#fde68a] text-[#92400e] text-sm rounded-md px-4 py-3 my-6 ${classes}`,
+      )}
       role="alert"
       style={{ fontFamily: 'inherit' }}
     >
