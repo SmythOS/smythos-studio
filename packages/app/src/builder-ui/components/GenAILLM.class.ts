@@ -30,6 +30,7 @@ export class GenAILLM extends Component {
   private openaiReasoningModels: string[];
   private groqReasoningModels: string[];
   private searchModels: string[];
+  private verbositySupportedModels: string[];
 
   protected async prepare() {
     const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
@@ -56,6 +57,9 @@ export class GenAILLM extends Component {
       (m) => m.entryId,
     );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+
+    // Initialize verbosity supported models by checking for GPT-5/o3 models
+    this.verbositySupportedModels = LLMRegistry.getVerbositySupportedModels();
 
     modelOptions.unshift('Echo');
     const model = this.data.model || this.defaultModel;
@@ -126,6 +130,7 @@ export class GenAILLM extends Component {
       'useReasoning',
       'maxThinkingTokens',
       'reasoningEffort',
+      'verbosity',
     ];
     for (let item of dataEntries) {
       // Check if the field needs default value initialization
@@ -391,6 +396,10 @@ export class GenAILLM extends Component {
               this.updateReasoningEffortOptions(currentElement.value);
             }
             // #endregion
+
+            // #region Update verbosity field visibility based on model
+            this.updateVerbosityFieldVisibility(currentElement.value, form);
+            // #endregion
           },
         },
 
@@ -653,6 +662,23 @@ export class GenAILLM extends Component {
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
+      verbosity: {
+        type: 'select',
+        label: 'Verbosity',
+        value: 'medium',
+        options: [
+          { text: 'Low', value: 'low' },
+          { text: 'Medium', value: 'medium' },
+          { text: 'High', value: 'high' },
+        ],
+        attributes: {
+          'data-supported-models': this.verbositySupportedModels.join(','),
+        },
+        help: "Controls the verbosity of the model's response. Lower values result in more concise responses, while higher values result in more verbose responses. Currently supported by GPT-5 models.",
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
+      },
       passthrough: {
         type: 'checkbox',
         label: 'Passthrough',
@@ -782,6 +808,22 @@ export class GenAILLM extends Component {
 
       ...(await this.getWebSearchFields()),
     };
+  }
+
+  /**
+   * Update verbosity field visibility based on the selected model
+   */
+  private updateVerbosityFieldVisibility(modelId: string, form: HTMLFormElement) {
+    if (!form) return;
+
+    const verbosityField = form.querySelector('[data-field-name="verbosity"]') as HTMLElement;
+    if (!verbosityField) return;
+
+    if (LLMRegistry.isVerbositySupportedModel(modelId)) {
+      verbosityField.classList.remove('hidden');
+    } else {
+      verbosityField.classList.add('hidden');
+    }
   }
 
   private async getWebSearchFields() {

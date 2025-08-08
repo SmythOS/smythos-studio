@@ -24,6 +24,9 @@ export class LLMRegistry {
     'others',
   ];
 
+  // Single source of truth for determining verbosity support
+  private static readonly VERBOSITY_SUPPORTED_MODEL_PATTERN = /gpt-5/i;
+
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
     return models;
@@ -214,5 +217,26 @@ export class LLMRegistry {
       // If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
+  }
+
+  /**
+   * Get all models that support verbosity parameter
+   *
+   * @returns Array of model IDs that support verbosity
+   */
+  public static getVerbositySupportedModels(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isVerbositySupportedModel(modelId));
+  }
+
+  /**
+   * Check if a model supports verbosity parameter.
+   * Delegates to getVerbositySupportedModels for a single source of truth.
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model supports verbosity parameter
+   */
+  public static isVerbositySupportedModel(modelId: string): boolean {
+    return Boolean(modelId && this.VERBOSITY_SUPPORTED_MODEL_PATTERN.test(modelId));
   }
 }
