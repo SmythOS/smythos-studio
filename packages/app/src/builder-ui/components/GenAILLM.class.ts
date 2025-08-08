@@ -28,6 +28,7 @@ export class GenAILLM extends Component {
   private defaultModel: string;
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
+  private groqReasoningModels: string[];
   private searchModels: string[];
 
   protected async prepare() {
@@ -49,6 +50,9 @@ export class GenAILLM extends Component {
       'anthropic',
     ).map((m) => m.entryId);
     this.openaiReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'openai').map(
+      (m) => m.entryId,
+    );
+    this.groqReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'groq').map(
       (m) => m.entryId,
     );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
@@ -121,6 +125,7 @@ export class GenAILLM extends Component {
 
       'useReasoning',
       'maxThinkingTokens',
+      'reasoningEffort',
     ];
     for (let item of dataEntries) {
       // Check if the field needs default value initialization
@@ -380,6 +385,11 @@ export class GenAILLM extends Component {
             if (useReasoningElm) {
               this.toggleReasoningNestedFields(useReasoningElm, form);
             }
+
+            // Update reasoning effort options for Groq models
+            if (this.groqReasoningModels.includes(currentElement.value)) {
+              this.updateReasoningEffortOptions(currentElement.value);
+            }
             // #endregion
           },
         },
@@ -587,6 +597,7 @@ export class GenAILLM extends Component {
           'data-excluded-models': [
             ...this.anthropicThinkingModels,
             ...this.openaiReasoningModels,
+            ...this.groqReasoningModels,
           ].join(','),
         },
         section: 'Advanced',
@@ -717,7 +728,10 @@ export class GenAILLM extends Component {
         label: 'Use Reasoning',
         value: false,
         attributes: {
-          'data-supported-models': this.anthropicThinkingModels.join(','),
+          'data-supported-models': [
+            ...this.anthropicThinkingModels,
+            ...this.groqReasoningModels,
+          ].join(','),
         },
         help: 'Enable thinking capabilities to allow the model to break down complex problems into steps and think through solutions methodically',
         tooltipClasses: 'w-56 ',
@@ -741,14 +755,29 @@ export class GenAILLM extends Component {
         max: allowedReasoningTokens,
         value: defaultThinkingTokens,
         step: 4,
-        // attributes: {
-        //   'data-supported-models': this.anthropicThinkingModels.join(','),
-        // },
+        attributes: {
+          'data-supported-models': this.anthropicThinkingModels.join(','),
+        },
         help: hint.maxThinkingTokens,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         section: 'Advanced',
         fieldsGroup: 'Max Thinking Tokens',
+      },
+
+      reasoningEffort: {
+        type: 'select',
+        label: 'Reasoning Effort',
+        value: 'default',
+        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        attributes: {
+          'data-supported-models': this.groqReasoningModels.join(','),
+        },
+        help: 'Controls the level of effort the model will put into reasoning. GPT-OSS models support low/medium/high levels, while Qwen models support none/default.',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
+        fieldsGroup: 'Reasoning Effort',
       },
 
       ...(await this.getWebSearchFields()),
@@ -1270,11 +1299,92 @@ export class GenAILLM extends Component {
   }
 
   private toggleReasoningNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
-    const fieldsToShow = ['maxThinkingTokens'];
+    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
+    const currentModel = modelSelect?.value || this.data.model;
+
+    const fieldsToShow: string[] = [];
+
+    // Only show maxThinkingTokens for Anthropic models
+    if (this.anthropicThinkingModels.includes(currentModel)) {
+      fieldsToShow.push('maxThinkingTokens');
+    }
+
+    // Only show Groq reasoning fields for Groq models
+    if (this.groqReasoningModels.includes(currentModel)) {
+      fieldsToShow.push('reasoningEffort');
+
+      // Update reasoning effort options when fields are shown for Groq models
+      if (parentField.checked) {
+        this.updateReasoningEffortOptions(currentModel);
+      }
+    }
 
     this.toggleNestedFields(parentField, form, fieldsToShow);
   }
 
+  /**
+   * Get reasoning effort options based on the current model
+   * GPT-OSS models: low, medium, high
+   * Qwen models: none, default
+   */
+  private getReasoningEffortOptions(model: string): { text: string; value: string }[] {
+    // GPT-OSS models support low, medium, high
+    if (model.includes('gpt-oss')) {
+      return [
+        { text: 'Low', value: 'low' },
+        { text: 'Medium', value: 'medium' },
+        { text: 'High', value: 'high' },
+      ];
+    }
+
+    // Qwen models support none, default
+    if (model.includes('qwen')) {
+      return [
+        { text: 'None (disabled)', value: 'none' },
+        { text: 'Default', value: 'default' },
+      ];
+    }
+
+    // Fallback for other Groq models - show all options
+    return [
+      { text: 'None (disabled)', value: 'none' },
+      { text: 'Default', value: 'default' },
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+    ];
+  }
+
+  /**
+   * Update reasoning effort field options based on the selected model
+   */
+  private updateReasoningEffortOptions(model: string): void {
+    const field = document.getElementById('reasoningEffort') as HTMLSelectElement;
+    if (!field) return;
+
+    const selectElem = Metro.getPlugin(field, 'select');
+    if (!selectElem) return;
+
+    const options = this.getReasoningEffortOptions(model);
+    const currentValue = field.value || 'default';
+
+    // Remove all existing options
+    if (selectElem.elem?.options) {
+      selectElem.removeOptions([...selectElem.elem.options].map((o: HTMLOptionElement) => o.value));
+    }
+
+    // Add new options
+    options.forEach((option) => {
+      const isSelected = currentValue === option.value;
+      selectElem.addOption(option.value, option.text, isSelected);
+    });
+
+    // If current value is not available in new options, set to first option
+    const availableValues = options.map((opt) => opt.value);
+    if (!availableValues.includes(currentValue)) {
+      selectElem.val(options[0].value);
+    }
+  }
   private toggleCountryFieldBasedOnDataSources(form: HTMLFormElement) {
     const dataSourcesCheckboxes = form?.querySelectorAll(
       '[data-field-name="searchDataSources"] input[type="checkbox"]',
