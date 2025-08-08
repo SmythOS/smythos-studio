@@ -1,4 +1,5 @@
 import {
+  AgentsBanner,
   AgentsGrid,
   AgentsHeader,
   GenerateAgentForm,
@@ -41,6 +42,7 @@ function AgentsPage() {
   const saveUserSettingsMutation = useMutateOnboardingData();
   const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   // Authentication and permissions
   const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
@@ -193,8 +195,15 @@ function AgentsPage() {
       <main className="pl-12 md:pl-0">
         {/* Generate Agent Form Section */}
         <FeatureFlagged featureFlag={FEATURE_FLAGS.INITIATE_WEAVER_MESSAGE}>
-          <GenerateAgentForm onSubmit={handleGenerateAgentSubmit} canEditAgents={canEditAgents} />
+          <GenerateAgentForm
+            onSubmit={handleGenerateAgentSubmit}
+            canEditAgents={canEditAgents}
+            isBannerVisible={isBannerVisible}
+          />
         </FeatureFlagged>
+
+        {/* GPT-5 Promo Banner */}
+        {isBannerVisible && <AgentsBanner onClose={() => setIsBannerVisible(false)} />}
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
