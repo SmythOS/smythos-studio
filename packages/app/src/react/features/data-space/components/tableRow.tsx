@@ -146,15 +146,18 @@ export default function TableRow({
   };
 
   const renderSkeletonLoading = () => {
-    return (
-      <>
-        <div
-          role="status"
-          className={`w-full p-2 border border-gray-200 shadow animate-pulse dark:border-gray-700 h-2 bg-gray-200 rounded-full dark:bg-gray-700`}
-        ></div>
-        <span className="sr-only">Loading...</span>
-      </>
-    );
+    return <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>;
+  };
+
+  // Helper function to format file preview content
+  const formatFilePreview = () => {
+    if (!vectorRowData?.dataSourceName) {
+      return 'No data source';
+    }
+
+    const sourceName = vectorRowData?.dataSourceName;
+    const sourceCount = vectorRowData?._count?.dataSources;
+    return `${sourceName} (${sourceCount} sources)`;
   };
 
   return (
@@ -162,41 +165,61 @@ export default function TableRow({
       key={`${vectorRowData.name}_${index}`}
       className="hover:bg-gray-50 border-b border-solid border-gray-100 h-12"
     >
-      {/* Name Column */}
-      <td className="px-6 py-4 whitespace-nowrap">
+      {/* Data Space Name Column */}
+      <td className="px-4 py-4 whitespace-nowrap">
         <Link to={`/data/${vectorRowData.name}`}>
-          <p className="text-gray-900">{vectorRowData.name}</p>
-        </Link>
-      </td>
-
-      {/* Datasource Column */}
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Link to={`/data/${vectorRowData.name}`}>
-          {datasourceLoading ? (
-            <div className="flex items-center w-full h-full">{renderSkeletonLoading()}</div>
-          ) : !vectorRowData?.dataSourceName ? (
-            <div className="text-gray-500">
-              <span>No data source</span>
+          <Tooltip
+            content={vectorRowData.name}
+            trigger="hover"
+            placement="top"
+            className="min-w-max max-w-xs break-words"
+            style="dark"
+            arrow={false}
+          >
+            <div className="text-sm font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600 inline-block">
+              {vectorRowData.name}
             </div>
-          ) : (
-            vectorRowData?.dataSourceName && (
-              <div className="text-gray-500" key={index}>
-                <span className="mr-2 truncate">{vectorRowData?.dataSourceName}</span>
-                <span className="mr-2 truncate">{`(${vectorRowData?._count?.dataSources} sources)`}</span>
-                <i className="text-blue-500 fas fa-edit cursor-pointer"></i>
-              </div>
-            )
-          )}
+          </Tooltip>
         </Link>
       </td>
 
-      {/* Index Status Column */}
-      <td className="px-6 py-4 whitespace-nowrap">
+      {/* File Preview Column */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        {datasourceLoading ? (
+          <div className="flex items-center">{renderSkeletonLoading()}</div>
+        ) : !vectorRowData?.dataSourceName ? (
+          <Link to={`/data/${vectorRowData.name}`}>
+            <div className="text-sm text-gray-500">No data source</div>
+          </Link>
+        ) : (
+          <Link to={`/data/${vectorRowData.name}`}>
+            <div className="text-sm text-gray-500 flex items-center cursor-pointer hover:text-blue-600">
+              <Tooltip
+                content={formatFilePreview()}
+                trigger="hover"
+                placement="top"
+                className="min-w-max max-w-md break-words"
+                style="dark"
+                arrow={false}
+              >
+                <div className="flex items-center">
+                  <span className="truncate max-w-[200px]">{vectorRowData?.dataSourceName}</span>
+                  <span className="ml-2 whitespace-nowrap">{`(${vectorRowData?._count?.dataSources} sources)`}</span>
+                </div>
+              </Tooltip>
+              <i className="ml-2 text-blue-500 fas fa-edit cursor-pointer flex-shrink-0"></i>
+            </div>
+          </Link>
+        )}
+      </td>
+
+      {/* Index Status Column - No tooltip needed for status */}
+      <td className="px-4 py-4 whitespace-nowrap">
         <Link to={`/data/${vectorRowData.name}`}>
           {statusLoading ? (
-            <div className="flex items-center w-full h-full">{renderSkeletonLoading()}</div>
+            <div className="flex items-center">{renderSkeletonLoading()}</div>
           ) : (
-            <>
+            <div className="text-sm">
               {vectorRowData?.statusData && vectorRowData?.statusData.res?.res?.status ? (
                 vectorRowData?.type === 'SITEMAP' ? (
                   <div className="flex items-center">
@@ -241,25 +264,36 @@ export default function TableRow({
                   <span className="capitalize">Not Indexed</span>
                 </div>
               )}
-            </>
+            </div>
           )}
         </Link>
       </td>
 
       {/* Actions Column */}
-      <td className="px-6 py-4 text-center">
-        <div className="flex items-center h-full justify-end gap-4 ">
-          <Tooltip content="Delete Data Space" placement="top" className="min-w-max">
-            <Trash2
-              data-tooltip-target="deleteDataspace"
-              onClick={() => openNamespaceDeleteDialog(vectorRowData?.name)}
-              className="h-4 w-4 text-[#242424] cursor-pointer"
+      <td className="px-4 py-4 whitespace-nowrap text-right">
+        <div className="flex items-center justify-end space-x-2">
+          <Tooltip
+            content="Add Data Source"
+            trigger="hover"
+            placement="top"
+            style="dark"
+            arrow={false}
+          >
+            <FilePlus
+              className="h-4 w-4 text-[#242424] cursor-pointer hover:text-blue-600"
+              onClick={handleOpenAddDataDialog}
             />
           </Tooltip>
-          <Tooltip content="Add Data Source" placement="top" className="min-w-max">
-            <FilePlus
-              onClick={() => handleOpenAddDataDialog(vectorRowData?.name)}
-              className="h-4 w-4 text-[#242424] cursor-pointer"
+          <Tooltip
+            content="Delete Data Space"
+            trigger="hover"
+            placement="top"
+            style="dark"
+            arrow={false}
+          >
+            <Trash2
+              className="h-4 w-4 text-[#242424] cursor-pointer hover:text-red-600"
+              onClick={() => openNamespaceDeleteDialog(vectorRowData.name)}
             />
           </Tooltip>
         </div>

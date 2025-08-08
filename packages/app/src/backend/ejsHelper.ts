@@ -13,7 +13,6 @@ const ejsHelper = {
   },
   isSmythStaff: (user) => {
     //FIXME : needs a better way to check if user is smyth staff
-    // config.env.SMYTH_STAFF_EMAILS
     const allowedEmails = config.env.SMYTH_STAFF_EMAILS;
     const staffEmails = allowedEmails
       .split(',')

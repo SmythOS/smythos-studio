@@ -9,7 +9,7 @@ export type HandleAclChange = { key: string; checked: boolean; ruleSymbol: AclAc
 type Props = { handleAclChange: (props: HandleAclChange) => void; currentAcls: object };
 export const AclSelectForm: FC<Props> = ({ handleAclChange, currentAcls }) => {
   return (
-    <div className="p-6 space-y-6 max-h-[400px] overflow-y-auto">
+    <div className="p-6 space-y-6 max-h-[400px] overflow-y-auto text-[#1E1E1E]">
       <div className="flex justify-between">
         <p className="font-semibold w-32">Access</p>
         <p className="font-semibold w-11">View</p>

@@ -5,6 +5,8 @@ import { successToast } from '@src/shared/components/toast';
 import { useMutation } from '@tanstack/react-query';
 import React, { Fragment, useState } from 'react';
 import { FaCalendarAlt, FaDownload, FaFilter } from 'react-icons/fa';
+import { IoIosInformationCircle } from 'react-icons/io';
+import { IoClose } from 'react-icons/io5';
 
 interface IFormValues {
   startDate: string;
@@ -202,7 +204,7 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                 <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="h3"
-                    className="text-xl font-semibold text-center leading-6 text-gray-900 mb-6"
+                    className="text-xl font-semibold text-center leading-6 text-[#1E1E1E] mb-6 flex justify-between items-center"
                   >
                     <div className="flex items-center justify-center gap-3">
                       <div className="p-2 bg-blue-100 rounded-full">
@@ -210,6 +212,8 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                       </div>
                       <span>Export Chat Logs</span>
                     </div>
+
+                    <IoClose className="cursor-pointer" size={24} onClick={onClose} />
                   </Dialog.Title>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -217,7 +221,7 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                     <div>
                       <label
                         htmlFor="environment"
-                        className="block text-sm font-medium text-gray-700 mb-2"
+                        className="block text-[#1E1E1E] mb-1 text-base font-normal"
                       >
                         Environment
                       </label>
@@ -235,11 +239,11 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                     </div>
 
                     {/* Date Filter Toggle */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="border border-gray-200 rounded-lg py-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <FaFilter className="text-gray-500 w-4 h-4" />
-                          <span className="text-sm font-medium text-gray-700">
+                          <FaFilter className="text-[#1E1E1E] w-4 h-4" />
+                          <span className="text-[#1E1E1E] text-base font-normal">
                             Date Range Filter
                           </span>
                         </div>
@@ -256,8 +260,8 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
 
                       {formValues.useDateFilter ? (
                         <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                            <FaCalendarAlt className="w-4 h-4" />
+                          <div className="flex items-center gap-2 text-sm text-[#616161] mb-3">
+                            <FaCalendarAlt className="text-[#616161] w-4 h-4" />
                             <span>Select the date range for your export</span>
                           </div>
 
@@ -265,7 +269,7 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                             <div>
                               <label
                                 htmlFor="startDate"
-                                className="block text-sm font-medium text-gray-700 mb-1"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Start Date
                               </label>
@@ -286,7 +290,7 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                             <div>
                               <label
                                 htmlFor="endDate"
-                                className="block text-sm font-medium text-gray-700 mb-1"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 End Date
                               </label>
@@ -307,7 +311,7 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                         </div>
                       ) : (
                         <div className="text-center py-4">
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-[#616161]">
                             All conversations will be exported
                           </p>
                         </div>
@@ -317,12 +321,9 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                     {/* Info Message */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">i</span>
-                          </div>
-                        </div>
-                        <div className="text-sm text-blue-700">
+                        <IoIosInformationCircle className="text-blue-500 w-6 h-6" />
+
+                        <div className="text-sm text-blue-700 flex-1">
                           <p className="font-medium mb-1">Export Details</p>
                           <p>
                             {formValues.useDateFilter
@@ -335,19 +336,11 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex justify-end w-full">
                       <Button
-                        variant="secondary"
-                        handleClick={onClose}
-                        label="Cancel"
-                        disabled={exportLogsMutation.isLoading}
-                        fullWidth
-                      />
-
-                      <Button
-                        variant="primary"
+                        className="px-8 h-[48px] rounded-lg"
                         type="submit"
-                        label={exportLogsMutation.isLoading ? 'Exporting...' : 'Export Logs'}
+                        label={exportLogsMutation.isLoading ? 'Exporting...' : 'Export'}
                         addIcon={exportLogsMutation.isLoading}
                         Icon={
                           exportLogsMutation.isLoading ? (
@@ -357,7 +350,6 @@ const ExportChatLogsModal = ({ onClose, agentId }: IExportLogsModalProps) => {
                           )
                         }
                         disabled={exportLogsMutation.isLoading}
-                        fullWidth
                       />
                     </div>
                     {exportLogsMutation.isError && (

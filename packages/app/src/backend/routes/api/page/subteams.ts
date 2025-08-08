@@ -1,8 +1,6 @@
-import express from 'express';
-import { authHeaders, smythAPI } from '../../../utils';
 import axios from 'axios';
+import express from 'express';
 import config from '../../../../backend/config';
-import { getM2MToken } from 'src/backend/services/logto-helper';
 const router = express.Router();
 
 const subTeamAPIReq = axios.create({

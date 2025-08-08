@@ -31,6 +31,7 @@ import {
 } from './misc';
 
 declare var workspace;
+declare var Metro;
 
 // TODO: We have several props used for assigning classes, such as `class`, `cls`, and `fieldClasses`. We need to establish a clear and consistent naming convention for them.
 
@@ -61,6 +62,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
   let subFields = [];
   let isDropdown = false;
+  let isTagInput = false;
 
   switch (entry.type) {
     case 'select':
@@ -216,6 +218,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     case 'tag':
     case 'TAG':
       formElement = createTagInput({ maxTags: entry.maxTags, value });
+      isTagInput = true;
 
       break;
 
@@ -268,6 +271,31 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
       break;
 
+    case 'date':
+    case 'DATE':
+      formElement = createInput(value);
+      formElement.setAttribute('type', 'date');
+
+      formElement.classList.add('form-control');
+
+      break;
+
+    case 'number':
+    case 'NUMBER':
+      formElement = createInput(value || 0);
+      formElement.setAttribute('type', 'number');
+
+      // Set number-specific attributes if provided
+      if (entry.min !== undefined) formElement.setAttribute('min', entry.min);
+      if (entry.max !== undefined) formElement.setAttribute('max', entry.max);
+      if (entry.step !== undefined) formElement.setAttribute('step', entry.step);
+      if (entry.placeholder !== undefined)
+        formElement.setAttribute('placeholder', entry.placeholder);
+
+      formElement.classList.add('form-control');
+
+      break;
+
     default:
       formElement = createInput(value);
 
@@ -314,7 +342,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     formElement.setAttribute('id', entry.name);
     if (entry.name) formElement.setAttribute('name', entry.name);
 
-    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/builder-ui/ui/form/keyValueField.ts'.
+    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
     for (let attr in attributes) {
       if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
         formElement.setAttribute('disabled', 'disabled');
@@ -343,12 +371,18 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
   /*
     * "entry.smythValidate" allows custom validation using asynchronous functions. (Metro UI does not support asynchronous function.)
-    ? Logic is here - src/builder-ui/ui/form/smyth-validator.ts
+    ? Logic is here - src/frontend/ui/form/smyth-validator.ts
     */
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 
-  //add events
-  for (let event in events) formElement.addEventListener(event, events[event]);
+  // Handle events for tag inputs differently
+  if (isTagInput && Object.keys(events).length > 0) {
+    // Store events to be attached after MetroUI initialization
+    formElement.setAttribute('data-deferred-events', JSON.stringify(events));
+  } else {
+    // Add events for non-tag inputs
+    for (let event in events) formElement.addEventListener(event, events[event]);
+  }
 
   // add template variables
   if (entry?.variables) {
@@ -374,7 +408,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let labelElement = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
-    labelElement.className = `form-label text-gray-600 text-sm font-medium ${
+    labelElement.className = `form-label text-[#1E1E1E] text-base font-medium ${
       attributes.labelCase ? attributes.labelCase : 'capitalize'
     } mb-2`;
 
@@ -544,6 +578,13 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
   formElement.dispatchEvent(new Event('created'));
 
+  // Handle tag input events after MetroUI initialization
+  if (isTagInput && Object.keys(events).length > 0) {
+    delay(100).then(() => {
+      setupTagInputEvents(formElement, events);
+    });
+  }
+
   if (typeof entry?.onLoad === 'function') {
     entry.onLoad(div);
   }
@@ -552,6 +593,108 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
 
   return div;
+}
+
+/**
+ * Setup events for tag inputs using MetroUI's event system
+ */
+function setupTagInputEvents(formElement: HTMLElement, events: Record<string, Function>) {
+  try {
+    // Wait for MetroUI to be fully initialized
+    setTimeout(() => {
+      const tagInputContainer = formElement.closest('.tag-input');
+
+      if (!tagInputContainer) {
+        return;
+      }
+
+      if (events.change) {
+        // Listen for tag removal clicks
+        tagInputContainer.addEventListener('click', (e) => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains('remover')) {
+            // Tag is being removed, trigger change after a small delay
+            setTimeout(() => {
+              const syntheticEvent = new CustomEvent('change', { bubbles: true });
+              Object.defineProperty(syntheticEvent, 'target', { value: formElement });
+              events.change(syntheticEvent);
+            }, 50);
+          }
+        });
+
+        // Listen for tag creation via keyboard
+        const inputWrapper = tagInputContainer.querySelector('.input-wrapper');
+        if (inputWrapper) {
+          inputWrapper.addEventListener('keydown', (e: KeyboardEvent) => {
+            // Check if this is a tag creation key
+            if (e.key === 'Enter' || e.key === ' ' || e.key === ',') {
+              const input = e.target as HTMLInputElement;
+              if (input.value.trim()) {
+                // Tag will be created, trigger change after a small delay
+                setTimeout(() => {
+                  const syntheticEvent = new CustomEvent('change', { bubbles: true });
+                  Object.defineProperty(syntheticEvent, 'target', { value: formElement });
+                  events.change(syntheticEvent);
+                }, 50);
+              }
+            }
+          });
+        }
+
+        // Also use MutationObserver as fallback
+        setupTagInputDOMEvents(formElement, events);
+      }
+    }, 200);
+  } catch (error) {
+    console.warn('Error setting up tag input events:', error);
+    // Fallback to DOM events
+    setupTagInputDOMEvents(formElement, events);
+  }
+}
+
+/**
+ * Fallback DOM event setup for tag inputs
+ */
+function setupTagInputDOMEvents(formElement: HTMLElement, events: Record<string, Function>) {
+  const tagInputContainer = formElement.closest('.tag-input');
+
+  if (!tagInputContainer) {
+    console.warn('Tag input container not found for DOM events fallback');
+    return;
+  }
+
+  // Setup MutationObserver to watch for tag changes
+  const observer = new MutationObserver((mutations) => {
+    let tagChanged = false;
+
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'childList') {
+        // Check if tags were added or removed
+        const addedTags = Array.from(mutation.addedNodes).some(
+          (node) => node instanceof HTMLElement && node.classList.contains('tag'),
+        );
+        const removedTags = Array.from(mutation.removedNodes).some(
+          (node) => node instanceof HTMLElement && node.classList.contains('tag'),
+        );
+
+        if (addedTags || removedTags) {
+          tagChanged = true;
+        }
+      }
+    });
+
+    if (tagChanged) {
+      // Trigger change event
+      if (events.change) {
+        const syntheticEvent = new CustomEvent('change', { bubbles: true });
+        Object.defineProperty(syntheticEvent, 'target', { value: formElement });
+        events.change(syntheticEvent);
+      }
+    }
+  });
+
+  // Start observing
+  observer.observe(tagInputContainer, { childList: true, subtree: true });
 }
 
 function bracketSelectionEvent(e: any) {

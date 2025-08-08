@@ -34,7 +34,7 @@ export const SendButton: FC<SendButtonProps> = ({ isProcessing, disabled, onClic
         </svg>
       )
     }
-    className="h-[40px] w-[40px] rounded-[8px] !px-0 !py-0"
+    className="h-[40px] w-[40px] rounded-lg px-0 py-0"
     disabled={disabled}
   />
 );

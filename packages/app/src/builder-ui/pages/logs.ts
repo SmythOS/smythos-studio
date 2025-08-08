@@ -604,15 +604,7 @@ function createModalForLogs(treeHTML) {
   twModalDialog({
     title: 'Logs Call Tree (Alpha)',
     content: `<div class="h-[40vh] p-4" id="treemain"> ${treeHTML} </div>`,
-    actions: [
-      {
-        label: 'Cancel',
-        cssClass:
-          'bg-white text-smyth-dark border-gray-300 hover:border-smyth-light hover:bg-[#F5F5F5]',
-        callback: function (dialog) {
-          // Do nothing, just close the dialog
-        },
-      },
-    ],
+    actions: [],
+    onCloseClick(_, dialog) {},
   });
 }

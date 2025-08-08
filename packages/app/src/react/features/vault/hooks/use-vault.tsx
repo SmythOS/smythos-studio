@@ -143,7 +143,7 @@ export function useVault() {
     });
   };
 
-  const useUpdateKey = (onSuccess: () => void, onError: () => void) => {
+  const useUpdateKey = (onSuccess: () => void, onError: (error: Error) => void) => {
     return useMutation<
       { error?: string | null },
       Error,
@@ -163,8 +163,8 @@ export function useVault() {
         queryClient.invalidateQueries(['get_vault_api_keys']);
         onSuccess();
       },
-      onError: () => {
-        onError();
+      onError: (error: Error) => {
+        onError(error);
       },
     });
   };

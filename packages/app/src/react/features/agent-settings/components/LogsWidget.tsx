@@ -53,10 +53,10 @@ const LogsWidget = ({ isSubscribedToPlan, isWriteAccess, userInfo }: Props) => {
 
   return (
     <WidgetCard title="" isWriteAccess={isWriteAccess}>
-      <div className={`bg-gray-50 p-4 space-y-6`} data-qa="agent-history-container">
+      <div className={'bg-gray-50 p-4 space-y-6'} data-qa="agent-history-container">
         {/* Agent History Section */}
         <div>
-          <h3 className="text-sm font-semibold mb-2">Agent History</h3>
+          <h3 className="text-gray-700 text-sm font-semibold mb-2">Agent History</h3>
 
           <p className="text-sm text-gray-500 mb-4">
             {hasMaxRetention
@@ -83,7 +83,7 @@ const LogsWidget = ({ isSubscribedToPlan, isWriteAccess, userInfo }: Props) => {
         {/* Export Logs Section */}
         {canExportLogs && (
           <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold mb-2">Export Chat Conversations</h3>
+            <h3 className="text-gray-700 text-sm font-semibold mb-2">Export Chat Conversations</h3>
             <p className="text-sm text-gray-500 mb-4">
               Download your chat conversation history as a JSON file for analysis or backup
               purposes.

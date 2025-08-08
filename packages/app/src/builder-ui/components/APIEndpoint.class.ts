@@ -191,6 +191,8 @@ export class APIEndpoint extends Component {
               {
                 btnNoLabel: 'Cancel',
                 btnYesLabel: 'Enable',
+                btnNoClass: 'hidden',
+                btnYesClass: 'h-[48px] rounded-lg px-8',
               },
             );
             if (saveBeforeClose) {
@@ -442,6 +444,11 @@ export class APIEndpoint extends Component {
 
     this.repaint();
     this.updateFormPreviewButton();
+
+    // Update visual state based on current mode after adding input/output
+    await delay(10);
+    this.advancedModeActions(this.isOnAdvancedMode);
+
     return inputDiv;
   }
 
@@ -485,12 +492,34 @@ export class APIEndpoint extends Component {
     if (isOnAdvanceMode) {
       // make sure the inputs holder is visible
       advancedItems.forEach((item) => item.classList.remove('hidden'));
+      // In advanced mode, all outputs should show as full circles (remove optional visual state)
+      const optionalOutputs = document.querySelectorAll(
+        `#${this.uid} .output-container .output-endpoint.marked-optional`,
+      );
+      optionalOutputs.forEach((output) => output.classList.remove('marked-optional'));
       // this.settings.method.readonly = false;
     } else {
       advancedItems.forEach((item) => item.classList.add('hidden'));
+      // In simple mode, restore optional visual state for outputs from optional inputs
+      const outputContainer = document.querySelector(`#${this.uid} .output-container`);
+      if (outputContainer) {
+        const outputEndpoints = outputContainer.querySelectorAll('.output-endpoint');
+        outputEndpoints.forEach((outputDiv: HTMLElement) => {
+          const linkedInputDiv = outputDiv['_inputDivElement'];
+          if (linkedInputDiv) {
+            const inputProps = this.properties.inputProps?.find(
+              (prop) => prop.name === linkedInputDiv.getAttribute('smt-name'),
+            );
+            if (inputProps?.optional) {
+              outputDiv.classList.add('marked-optional');
+            }
+          }
+        });
+      }
       // this.settings.method.readonly = true;
     }
 
+    // Handle method setting visibility for both initial setup and toggle changes
     if (changeEvent) {
       const form = changeEvent.target.closest('form');
       if (!form) return;
@@ -506,6 +535,16 @@ export class APIEndpoint extends Component {
           item.classList.add('hidden');
         }
       });
+    } else {
+      // Handle initial setup - look for method setting in the current settings form
+      const methodSelect = document.querySelector('.form-box[data-field-name="method"]');
+      if (methodSelect) {
+        if (isOnAdvanceMode) {
+          methodSelect.classList.remove('hidden');
+        } else {
+          methodSelect.classList.add('hidden');
+        }
+      }
     }
   }
 

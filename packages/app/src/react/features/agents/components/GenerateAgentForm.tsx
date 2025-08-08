@@ -74,7 +74,7 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!canEditAgents) {
-        toast.error('Your current access level doesn\'t include this feature.');
+        toast.error("Your current access level doesn't include this feature.");
         return;
       }
       handleSubmit();
@@ -93,15 +93,15 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
         label="Screenshot"
         addIcon
         Icon={<TiCameraOutline className="mr-2" size={15} />}
-        className="text-[#424242] border-[#D1D1D1] hover:border-[#C7C7C7] hover:bg-[#F5F5F5] rounded-full"
+        className="text-[#424242] border-[#D1D1D1] hover:border-[#C7C7C7] hover:bg-[#F5F5F5] rounded-full text-sm md:text-base"
       />
       <CustomButton
         handleClick={handleSubmit}
         label="Build"
         addIcon
-        Icon={<FaPaperPlane className="mr-2" size={15} />}
+        Icon={<FaPaperPlane className="mr-2 hidden md:block" size={15} />}
         dataAttributes={{ 'data-test': 'edit-agent-button' }}
-        className="rounded-lg"
+        className="rounded-lg text-sm md:text-base"
       />
     </div>
   );
@@ -115,6 +115,7 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
       </div>
 
       <div
+        data-qa="agent-weaver-section"
         className={classNames(
           'mt-5 border border-solid border-[#3B82F6] bg-[#F9FAFB] rounded-lg p-3 flex flex-col justify-between gap-2 transition-all duration-300',
           { 'border-2 border-dashed border-[#288a68]': isDragging },
@@ -177,4 +178,4 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
       </div>
     </div>
   );
-} 
+}

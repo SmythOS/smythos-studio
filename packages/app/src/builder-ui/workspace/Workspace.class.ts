@@ -126,7 +126,7 @@ export class Workspace extends EventEmitter {
     this.jsPlumbInstance.setContainer(this.domElement);
 
     this.jsPlumbInstance.importDefaults({
-      Connector: ['Bezier', { curviness: 200 }],
+      Connector: ['SmythBezier', { curviness: 160 }],
       //we create connections with flowchart connector then we update them to custom Smyth Connectors
       //because smyth connectors require the endpoints to be set first
       // Connector: ['Flowchart', { stub: 15, gap: 4, cornerRadius: 30, alwaysRespectStubs: true }],
@@ -363,7 +363,10 @@ export class Workspace extends EventEmitter {
     this.domainData = await domainDataResponse.json();
     return result;
   }
+
+  private _suspendConnectionRestyle = false;
   public updateConnectionStyle(_connection) {
+    if (this._suspendConnectionRestyle) return;
     const _source = _connection.source;
     const _target = _connection.target;
     if (!_source || !_target) return;
@@ -372,6 +375,8 @@ export class Workspace extends EventEmitter {
 
     if (!_sourceComponent || !_targetComponent) return;
 
+    _connection.removeAllOverlays();
+    
     const sourceBR = _source.getBoundingClientRect();
     const targetBR = _target.getBoundingClientRect();
     const sourceComponentBR = _sourceComponent.getBoundingClientRect();
@@ -417,12 +422,16 @@ export class Workspace extends EventEmitter {
     } else {
       const hdiff = targetBR.left - sourceBR.right;
       if (hdiff < 200) {
-        _connection.setConnector(['SmythBezier', { curviness: 160 }]);
+        if (_connection.connector.type !== 'SmythBezier') {
+          _connection.setConnector(['SmythBezier', { curviness: 160 }]);
+        }
       } else {
-        _connection.setConnector([
-          'SmythFlowchart',
-          { stub: 15, gap: 4, cornerRadius: 30, alwaysRespectStubs: true },
-        ]);
+        if (_connection.connector.type !== 'SmythFlowchart') {
+          _connection.setConnector([
+            'SmythFlowchart',
+            { stub: 15, gap: 4, cornerRadius: 30, alwaysRespectStubs: true },
+          ]);
+        }
       }
       _connection.removeOverlay('Custom');
 
@@ -1222,6 +1231,7 @@ export class Workspace extends EventEmitter {
     targetComponentId: string | HTMLElement,
     sourceEndpointID: string | number,
     targetEndpointID: string | number,
+    repaint = true
   ) {
     const sourceComponent =
       typeof sourceComponentId === 'string'
@@ -1280,11 +1290,14 @@ export class Workspace extends EventEmitter {
     });
     this.updateConnectionStyle(con);
 
-    // Repaint the source and target components after a delay to ensure the connection is properly rendered
+    //Repaint the source and target components after a delay to ensure the connection is properly rendered
+    if (repaint) {
     setTimeout(() => {
       this.jsPlumbInstance.repaint(sourceComponent);
-      this.jsPlumbInstance.repaint(targetComponent);
-    }, 300);
+        this.jsPlumbInstance.repaint(targetComponent);
+      }, 300);
+    }
+  
     return con;
   }
 
@@ -1592,30 +1605,56 @@ export class Workspace extends EventEmitter {
 
       showOverlay('Connecting Components ...');
 
+
       // Load the connections after a delay to ensure endpoints are registered properly
       await delay(300);
 
-      const connections = [];
+      const connections = {};
 
-      configuration.connections.forEach((connection) => {
+      
+
+      const sTime = Date.now();
+      //(jsPlumb as any).batch(() =>{
+      this._suspendConnectionRestyle = true;
+      configuration.connections.forEach(async (connection) => {
+
         const conId = `${connection.sourceId}.${connection.sourceIndex}:${connection.targetId}.${connection.targetIndex}`;
-        if (connections.includes(conId)) return; //skip existing connections ==> avoid duplicate connections
+        if (connections[conId]) return; //skip existing connections ==> avoid duplicate connections
 
         const con = this.addConnection(
           connection.sourceId,
           connection.targetId,
           connection.sourceIndex,
           connection.targetIndex,
+          false
         );
-        connections.push(conId);
-      });
+        connections[conId] = con;
+        
+        
+        });
+      
+    //});
+    this._suspendConnectionRestyle = false;
+
+
+   
+      for (const con of Object.values(connections)) {
+        setImmediate(() => {
+          this.updateConnectionStyle(con);
+        });
+      }
+
+      
+
+    console.log('time taken', Date.now() - sTime);
 
       this.renderAgentCard(configuration);
 
       await this.setComponentsTags();
 
       showOverlay('Almost Ready ...');
-      await delay(300);
+      await delay(200);
+      
       this.redraw();
       //await delay(500);
 

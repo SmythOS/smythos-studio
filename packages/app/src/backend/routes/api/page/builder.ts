@@ -32,10 +32,10 @@ import {
   SAMPLE_BINARY_SOURCES,
   WEAVER_FREE_LIMIT,
 } from '../../../constants';
+import { cacheClient } from '../../../services/cache.service';
 import LLMHelper from '../../../services/LLMHelper';
 import { LLMService } from '../../../services/LLMHelper/LLMService.class';
 import * as openai from '../../../services/openai-helper';
-import { redisClient } from '../../../services/redis.service';
 import SmythFS from '../../../services/SmythFS.class';
 import { vault } from '../../../services/SmythVault.class';
 import { getAgent } from '../../../services/user-data.service';
@@ -763,7 +763,7 @@ router.put('/custom-llm', includeTeamDetails, customLLMAccessMw, async (req, res
     });
 
     // delete the custom LLM model cache
-    await redisClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -844,7 +844,7 @@ router.delete(
       const deleteModel = await teamData.deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
       // delete the custom LLM model cache
-      await redisClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+      await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
         console.warn('Error deleting custom LLM model cache:', error);
       });
 
@@ -1094,6 +1094,16 @@ function getRateLimiterKey(req) {
   return req._user?.id;
 }
 
+const rateLimitStore = config.flags.useRedis
+  ? new RedisStore({
+      // The call function is present in the Redis client but not in types
+      sendCommand: (...args: string[]) => cacheClient.call(...args),
+      prefix: WEAVER_FREE_LIMIT.countKeyPrefix,
+      //@ts-ignore
+      windowMs: WEAVER_FREE_LIMIT.windowMs,
+    })
+  : undefined;
+
 const weaverRateLimiter = rateLimit({
   windowMs: WEAVER_FREE_LIMIT.windowMs,
   max: WEAVER_FREE_LIMIT.max,
@@ -1103,16 +1113,11 @@ const weaverRateLimiter = rateLimit({
   //   const hasSubscription = req._team?.subscription?.plan?.name !== 'SmythOS Free';
   //   return hasSubscription ? Infinity : rateLimit;
   // },
-  store: new RedisStore({
-    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: WEAVER_FREE_LIMIT.countKeyPrefix,
-    windowMs: WEAVER_FREE_LIMIT.windowMs,
-  }),
+  store: rateLimitStore,
   skip: async (req, res) => {
     const key = getRateLimiterKey(req);
     const redisKey = `${WEAVER_FREE_LIMIT.countKeyPrefix}${key}`;
-    const currentLimitStr = await redisClient.get(redisKey);
+    const currentLimitStr = await cacheClient.get(redisKey);
     const currentLimit = currentLimitStr ? parseInt(currentLimitStr) : 0;
 
     // #region If the current limit is 0, set the startedAtKey
@@ -1120,11 +1125,11 @@ const weaverRateLimiter = rateLimit({
       const startedAtKey = `${WEAVER_FREE_LIMIT.startedAtKeyPrefix}${key}`;
 
       // Intentionally omit await to avoid blocking the request
-      redisClient.set(
+      cacheClient.set(
         startedAtKey,
         new Date().toISOString(),
-        'PX', // Set the expiration time in milliseconds
-        WEAVER_FREE_LIMIT.windowMs,
+        'EX', // in seconds
+        (WEAVER_FREE_LIMIT.windowMs / 1000).toString(),
       );
     }
     // #endregion
@@ -1369,7 +1374,7 @@ router.post('/check-limit-reached', async (req, res) => {
     }
 
     const key = `limit_reached:${teamId}:${nextReqTime}`;
-    const exists = await redisClient.exists(key);
+    const exists = await cacheClient.exists(key);
 
     return res.status(200).json({ success: true, exists: exists === 1 });
   } catch (error) {
@@ -1397,7 +1402,7 @@ router.post('/store-limit-reached', async (req, res) => {
     const value = JSON.stringify({ teamId, nextReqTime, timestamp: Date.now() });
 
     // Store with 1-day expiration (86400 seconds)
-    const success = await redisClient.setex(key, 86400, value);
+    const success = await cacheClient.setex(key, 86400, value);
 
     if (success === 'OK') {
       return res.status(200).json({

@@ -791,6 +791,7 @@ input:disabled {
 
 .notify-container {
   margin-top: 100px !important;
+  margin-right: 20px !important;
 }
 
 .notify-container > div.success-toast,
@@ -799,7 +800,7 @@ input:disabled {
   border-bottom: none !important;
   border-radius: 4px !important;
   padding: 12px !important;
-  border: none !important;
+  border: 1px solid #e5e7eb !important;
 }
 
 .one-line-text {
@@ -1386,4 +1387,34 @@ html {
 }
 .group:hover .debug-play-icon {
   background-image: url('../img/debug-bar/play-white.svg') !important;
+}
+
+/* AG Grid Theme Overrides - Fix green color inconsistency */
+/* Override the default green alternating row colors with blue to match app theme */
+.ag-theme-quartz .ag-row-even {
+  background-color: #EBF3FE !important;
+  /* smythos-blue-50 */
+}
+
+.ag-theme-quartz .ag-row-odd {
+  background-color: #ffffff !important;
+  /* white */
+}
+
+/* Hover states using blue colors */
+.ag-theme-quartz .ag-row-hover {
+  background-color: #C2D8FC !important;
+  /* smythos-blue-100 */
+}
+
+/* Selected row states using blue colors */
+.ag-theme-quartz .ag-row-selected {
+  background-color: #A5C6FB !important;
+  /* smythos-blue-200 */
+}
+
+/* Ensure consistent styling for focus states */
+.ag-theme-quartz .ag-row-focus {
+  background-color: #C2D8FC !important;
+  /* smythos-blue-100 */
 }

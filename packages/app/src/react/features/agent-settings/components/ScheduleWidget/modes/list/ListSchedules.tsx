@@ -1,9 +1,10 @@
 import { schedulerCacheKeys } from '@react/features/agent-settings/components/ScheduleWidget/meta/cache-keys';
 import ListScheduleItem from '@react/features/agent-settings/components/ScheduleWidget/modes/list/ListScheduleItem';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
-import IconToolTip from '@react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { AgentScheduledJob } from '@react/shared/types/api-results.types';
 import { useQuery } from '@tanstack/react-query';
+import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 
 type Props = {
   changeView: (id: 'LIST' | 'EDIT' | 'CREATE', data: { job?: AgentScheduledJob }) => void;
@@ -30,13 +31,14 @@ const ListSchedules = ({ changeView }: Props) => {
   return (
     <div className="flex justify-between items-center flex-col ">
       <div className="w-full">
-        <h3 className="font-semibold mb-2 text-sm">
-          Schedule{' '}
-          <IconToolTip
-            classes="w-56 ml-10"
-            arrowClasses={'-ml-10'}
-            html="Plan and automate task execution with agent work scheduler."
-          />
+        <h3 className="flex items-center gap-2 font-semibold mb-2 text-sm">
+          Schedule
+          <Tooltip
+            className="w-52 text-center"
+            content="Plan and automate task execution with agent work scheduler."
+          >
+            <Info className="w-4 h-4" />
+          </Tooltip>
         </h3>
       </div>
 

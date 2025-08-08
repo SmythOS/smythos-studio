@@ -1,14 +1,12 @@
 import SectionHeader from '@react/features/agent-settings/components/ScheduleWidget/meta/SectionTitle';
 import timezoneDisplayMap from '@react/features/agent-settings/components/ScheduleWidget/meta/timezone.json';
 import { StepChildMethods, StepProps } from '@react/features/agent-settings/components/ScheduleWidget/modes/create/CreateSchedule';
-import { Datepicker } from 'flowbite-react';
 import { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 const divStyle = {
   fontSize: '14px',
   borderRadius: '5px',
   maxHeight: '435px',
-  background: 'white',
 };
 
 const EventKickOff = forwardRef<StepChildMethods, StepProps>(({ actions, formData }, ref) => {
@@ -83,25 +81,27 @@ const EventKickOff = forwardRef<StepChildMethods, StepProps>(({ actions, formDat
           <span className="text-gray-700">Run first on this day:</span>
 
           <div className="max-w-[135px]">
-            <Datepicker
+            <input
+              type="date"
               name="date"
-              value={Intl.DateTimeFormat().format(new Date(startDateString))}
-              onSelectedDateChanged={(date) => {
+              value={new Date(startDateString).toISOString().split('T')[0]}
+              onChange={(e) => {
                 setStartDateError(null);
-                console.log('e.target.value', date);
+                console.log('e.target.value', e.target.value);
 
-                const _date = date;
-                _date.setHours(new Date(startDateString).getHours());
-                _date.setMinutes(new Date(startDateString).getMinutes());
+                const selectedDate = new Date(e.target.value);
+                selectedDate.setHours(new Date(startDateString).getHours());
+                selectedDate.setMinutes(new Date(startDateString).getMinutes());
                 // actions.handleFormDataChange({
-                //     startDate: _date.toISOString(),
+                //     startDate: selectedDate.toISOString(),
                 // });
-                setStartDateString(_date.toISOString());
+                setStartDateString(selectedDate.toISOString());
               }}
-              showTodayButton
-              minDate={new Date()}
-              placeholder="Select a date"
-              className="w-full custom-datepicker"
+              min={new Date().toISOString().split('T')[0]}
+              className="py-2 px-3 border text-gray-900 rounded block w-full outline-none
+                focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+                text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+                border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
             />
           </div>
         </div>
@@ -128,7 +128,10 @@ const EventKickOff = forwardRef<StepChildMethods, StepProps>(({ actions, formDat
                 <input
                   type="time"
                   id="time"
-                  className="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  className="py-2 px-3 border text-gray-900 rounded block w-full outline-none
+                    focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+                    text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+                    border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                   value={startTime}
                   onChange={handleTimeChange}
                   required

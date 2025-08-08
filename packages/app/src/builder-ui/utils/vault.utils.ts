@@ -1,12 +1,10 @@
-import config from '../config';
-import { editValues } from '../ui/dialogs';
-import { ERR_MSG_VAULT_KEY_NAME } from '../../shared/constants/general';
-import { EXTENSION_COMP_NAMES, COMP_NAMES } from '../config';
 import { lsCache } from '../../shared/Cache.class';
-import { VAULT_DATA_CACHE_KEY } from '../../shared/constants/general';
-import { createSpinner, getSelectedText, isTemplateVariable, delay } from './general.utils';
-import { dispatchInputEvent } from './form.utils';
+import { ERR_MSG_VAULT_KEY_NAME, VAULT_DATA_CACHE_KEY } from '../../shared/constants/general';
 import { generateKeyTemplateVar } from '../../shared/utils';
+import config, { COMP_NAMES, EXTENSION_COMP_NAMES } from '../config';
+import { editValues } from '../ui/dialogs';
+import { dispatchInputEvent } from './form.utils';
+import { createSpinner, getSelectedText, isTemplateVariable } from './general.utils';
 
 const uiServer = config.env.UI_SERVER;
 
@@ -69,6 +67,7 @@ export const addVaultKey = async (
         fields['fields'] = {
           type: 'div',
           html: `If you don't have the API key, get it from <a href="${credentialsUrl}" target="_blank" class="inner-link">here</a>`,
+          cls: 'bg-transparent border-0 p-0 m-0',
         };
         label = 'Zapier AI Actions API Key';
         _keyName = `ZAPIER_AI_ACTIONS_API_KEY`;

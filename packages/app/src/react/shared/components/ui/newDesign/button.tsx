@@ -7,6 +7,7 @@ import {
   SECONDARY_BUTTON_STYLE,
   TERTIARY_BUTTON_STYLE,
 } from '@src/react/shared/constants/style';
+import { cn } from '@src/react/shared/utils/general';
 import React, { MouseEvent } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
@@ -27,6 +28,7 @@ interface CustomButtonProps {
   type?: 'button' | 'submit' | 'reset' | undefined;
   reloadDocument?: boolean;
   handleClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  onMouseDown?: (event: MouseEvent<HTMLButtonElement>) => void;
   onMouseEnter?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   onMouseLeave?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   btnRef?: React.Ref<HTMLButtonElement>;
@@ -42,6 +44,7 @@ export function Button({
   linkTo = '',
   label,
   handleClick,
+  onMouseDown,
   className,
   addIcon,
   disabled,
@@ -128,7 +131,7 @@ export function Button({
     <>
       {isLink ? (
         <Link
-          className={`${baseStyles} ${getButtonStyles()}`}
+          className={cn(baseStyles, getButtonStyles())}
           {...dataAttributes}
           onClick={(e) => {
             if (disabled) e.preventDefault();
@@ -146,8 +149,9 @@ export function Button({
       ) : (
         <button
           disabled={disabled}
-          onClick={handleClick}
-          className={`${baseStyles} ${getButtonStyles()}`}
+          onClick={!loading ? handleClick : undefined}
+          onMouseDown={onMouseDown}
+          className={cn(baseStyles, getButtonStyles())}
           ref={btnRef}
           type={type}
           {...dataAttributes}

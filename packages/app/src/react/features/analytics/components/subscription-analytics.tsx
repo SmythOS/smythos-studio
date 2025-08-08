@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@src/react/shared/components/ui/card';
@@ -429,7 +430,10 @@ export default function SubscriptionAnalytics({
 
     if (isV4Plan && !isFreePlan) {
       setSubscriptionPeriod(
-        subPeriodDate(subs.object.current_period_start, subs.object.current_period_end),
+        subPeriodDate(
+          new Date(subs.object.current_period_start * 1000),
+          new Date(subs.object.current_period_end * 1000),
+        ),
       );
     } else {
       // Get first and last day of current month
@@ -640,6 +644,27 @@ export default function SubscriptionAnalytics({
         </CustomButton>
       );
     }
+
+    function RenderButton({ className }: { className: string }) {
+      return (
+        <div className={className}>
+          {isReadOnlyAccess ? (
+            <Tooltip content="You do not have permission to change the subscription plan.">
+              <div>{GetCustomButton()}</div>
+            </Tooltip>
+          ) : subs?.object?.cancel_at_period_end && hasWriteAccess ? (
+            <Tooltip
+              content="You have requested to cancel the subscription. Please re-subscribe to change the plan."
+              className="w-[200px]"
+            >
+              <div className="opacity-50 pointer-events-none">{GetCustomButton()}</div>
+            </Tooltip>
+          ) : (
+            GetCustomButton()
+          )}
+        </div>
+      );
+    }
     return (
       <Card className="">
         <CardHeader className="border-b bg-v2-blue/5 p-6">
@@ -649,20 +674,7 @@ export default function SubscriptionAnalytics({
               <CardDescription className="text-base mt-1" data-qa="current-plan-text">{`${subs?.plan
                 ?.name} ${userDisplayName ? '- ' + userDisplayName : ''}`}</CardDescription>
             </div>
-            {isReadOnlyAccess ? (
-              <Tooltip content="You do not have permission to change the subscription plan.">
-                <div>{GetCustomButton()}</div>
-              </Tooltip>
-            ) : subs?.object?.cancel_at_period_end && hasWriteAccess ? (
-              <Tooltip
-                content="You have requested to cancel the subscription. Please re-subscribe to change the plan."
-                className="w-[200px]"
-              >
-                <div className="opacity-50 pointer-events-none">{GetCustomButton()}</div>
-              </Tooltip>
-            ) : (
-              GetCustomButton()
-            )}
+            {RenderButton({ className: 'hidden md:block' })}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -718,6 +730,7 @@ export default function SubscriptionAnalytics({
             )}
           </p>
         </CardContent>
+        <CardFooter>{RenderButton({ className: 'block md:hidden' })}</CardFooter>
       </Card>
     );
   }
@@ -864,7 +877,7 @@ export default function SubscriptionAnalytics({
   }, []);
 
   return (
-    <div className="w-full mx-auto pb-4 md:pb-6 space-y-8 font-sans">
+    <div className="w-full pb-4 md:pb-6 space-y-8 font-sans ml-8 md:mx-auto px-2 md:px-0">
       {/* Header - Always visible */}
       <div className="flex justify-between items-start gap-4 flex-wrap">
         <div className="space-y-1">

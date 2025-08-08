@@ -20,6 +20,7 @@ const AgentInfoWidget = () => {
         <div className="mb-4 mt-4">
           <Input
             label="Agent Name"
+            labelClassName="text-sm font-semibold mb-2"
             type="text"
             name="name"
             value={formik.values.name || ''}
@@ -28,12 +29,14 @@ const AgentInfoWidget = () => {
             error={!!formik.errors.name}
             errorMessage={formik.errors.name as string}
             fullWidth
+            infoTooltip={<div>Enter a unique, descriptive name for your agent.</div>}
           />
         </div>
 
         <div className="mb-2">
           <TextArea
             label="Description"
+            labelClassName="text-sm font-semibold mb-2"
             name="shortDescription"
             value={formik.values.shortDescription || ''}
             onChange={(e) => formik.handleChange(e)}
@@ -41,6 +44,9 @@ const AgentInfoWidget = () => {
             error={!!formik.errors.shortDescription}
             errorMessage={formik.errors.shortDescription as string}
             fullWidth
+            infoTooltip={
+              <div>Provide a brief overview of what this agent does and its primary purpose.</div>
+            }
           />
         </div>
       </div>

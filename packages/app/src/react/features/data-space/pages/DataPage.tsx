@@ -164,9 +164,7 @@ const DataPage: FC = () => {
               <CustomInput
                 isSearch={true}
                 placeholder="Search Data Space"
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  handleSearchChange(e.target.value)
-                }
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
                 value={searchQuery}
               />
               <i className="absolute left-3 top-3 text-gray-400"></i>
@@ -174,12 +172,14 @@ const DataPage: FC = () => {
             {!isReadOnlyAccess && (
               <>
                 <ConfigureCustomStorageTrigger />
-                <CustomButton
-                  handleClick={() => setOpenNamespaceDialog(true)}
-                  addIcon={true}
-                  label="Add Data Space"
-                  dataAttributes={{ 'data-test': 'add-data-space-button' }}
-                />
+                {namespaceData.length > 0 && (
+                  <CustomButton
+                    handleClick={() => setOpenNamespaceDialog(true)}
+                    addIcon={true}
+                    label="Add Data Space"
+                    dataAttributes={{ 'data-test': 'add-data-space-button' }}
+                  />
+                )}
               </>
             )}
           </div>
@@ -195,28 +195,34 @@ const DataPage: FC = () => {
         )}
         {/* Display message when no namespaces are found after search */}
         {!loading && filteredNamespaceData.length === 0 && (
-          <div className="flex justify-center items-start py-16 pl-12 md:pl-0">
+          <div className="flex justify-center items-start py-16 md:pl-0">
             <div className="max-w-md w-full mx-auto flex flex-col items-center p-4 text-center">
               {namespaceData.length === 0 ? (
                 <>
-                  <h4 className="text-2xl font-medium text-black text-center ml-2 mb-2">
+                  <h4 className="text-xl md:text-2xl font-medium text-black text-center mb-2">
                     Create your first data space
                   </h4>
-                  <p className="mb-8">Use data space to import your external data into SmythOS.</p>
-                  <div className="flex justify-between items-center gap-4 mt-2 w-full">
+                  <p className="mb-8 text-sm md:text-base">
+                    Use data space to import your external data into SmythOS.
+                  </p>
+                  <div className="flex justify-between items-center gap-4 mt-2 w-full flex-col md:flex-row">
                     <CustomButton
                       handleClick={() => {
-                        window.open(`${SMYTHOS_DOCS_URL}/agent-collaboration/data-pool/data-spaces`, '_blank', 'noopener,noreferrer');
+                        window.open(
+                          `${SMYTHOS_DOCS_URL}/agent-collaboration/data-pool/data-spaces`,
+                          '_blank',
+                          'noopener,noreferrer',
+                        );
                       }}
-                      className="flex-1"
+                      className="flex-1 w-[190px] md:w-auto"
                       label={'Learn more'}
                       variant="secondary"
                     />
                     <CustomButton
                       handleClick={() => setOpenNamespaceDialog(true)}
                       addIcon={true}
-                      label={'Add Data'}
-                      className="flex-1"
+                      label={'Add Data Space'}
+                      className="flex-1 w-[190px] md:w-auto"
                     />
                   </div>
                 </>
@@ -254,9 +260,7 @@ const DataPage: FC = () => {
         disableBtn={inputValue.trim() === '' || addNamespaceLoading}
         open={openNamespaceDialog}
         loading={addNamespaceLoading}
-        handleChange={(event: ChangeEvent<HTMLInputElement>) =>
-          handleChange(event.target.value)
-        }
+        handleChange={(event: ChangeEvent<HTMLInputElement>) => handleChange(event.target.value)}
         inputValue={inputValue}
         namespaceError={namespaceError}
       />

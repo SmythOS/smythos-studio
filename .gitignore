@@ -14,7 +14,6 @@ static/js/build/
 static/js/webappv2/
 
 # SQLite database files
-data/
 *.db
 *.sqlite
 *.sqlite3

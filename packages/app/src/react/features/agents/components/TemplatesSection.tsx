@@ -19,7 +19,7 @@ export function TemplatesSection({ templates, userJobRole }: TemplatesSectionPro
   }
 
   return (
-    <div className="pb-4">
+    <div data-qa="templates-section" className="pb-4">
       <div className="flex justify-between align-middle mb-4 text-lg">
         <p>
           {userJobRole ? (

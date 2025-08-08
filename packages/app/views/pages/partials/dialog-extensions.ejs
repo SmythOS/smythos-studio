@@ -1,44 +1,59 @@
-<div data-role="dialog" class="dialog shadow-on rounded-xl" style="max-width: 95%; margin: 0 auto"
-    id="smyth-dialog-extensions" data-close-button="true" data-default-action="false" data-overlay="false"
-    data-width="1400" data-height="90vh"
+<div
+  data-role="dialog"
+  class="dialog shadow-on rounded-xl"
+  style="max-width: 95%; margin: 0 auto"
+  id="smyth-dialog-extensions"
+  data-close-button="true"
+  data-default-action="false"
+  data-overlay="false"
+  data-width="1400"
+>
+  <div class="text-gray-900 pt-4 px-4 flex justify-between">
+    <h2 class="__title text-lg font-semibold">
+      <span class="dialog-title text-xl">Dialog Title</span>
+    </h2>
+  </div>
+  <div class="dialog-content __content p-2 min-h-[200px]">
+    <div class="extensions__search-field">
+      <input
+        type="text"
+        data-role="input"
+        data-search-button="true"
+        data-search-button-click="button"
+        class="bg-white border text-gray-900 rounded shadow-none block w-full flex outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-within:border-b-2 focus-within:border-b-blue-500"
+      />
+    </div>
+
+    <div class="extensions__container">
+      <div class="grid"></div>
+      <div class="extensions_pagination">
+        <button type="button" class="button primary btn-load-more">Load More</button>
+      </div>
+    </div>
+
+    <div
+      class="extensions__manual-field-area form-box p-2 form-group-text stg-input stg-name mb-0 pb-0"
     >
-    <div class="text-gray-900 pt-4 px-4 flex justify-between">
-        <h2 class="__title text-lg font-semibold">
-            <span class="dialog-title text-xl">Dialog Title</span>
-        </h2>
+      <div class="emf-separator">OR</div>
+      <div class="emf-title form-label text-gray-600 text-base capitalize mb-2">
+        Add extension manually
+      </div>
+      <div class="text-right flex">
+        <input
+          type="text"
+          data-role="input"
+          class="extensions__resource-key bg-white border text-gray-900 rounded shadow-none block w-full flex outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-within:border-b-2 focus-within:border-b-blue-500"
+        />
+
+        <button
+          type="button"
+          class="button primary btn-add-extension-manually px-4 py-1.5 text-white transition-opacity rounded-md w-full sm:w-auto hover:bg-smythos-blue-500 bg-smyth-blue ml-2"
+        >
+          <!-- <span class="mif-plus light" data-role="btn-icon"></span> -->
+          <span class="label">Add</span>
+        </button>
+      </div>
     </div>
-    <div class="dialog-content __content p-2 min-h-[200px]">
-        <div class="extensions__search-field">
-            <input type="text" 
-                   data-role="input" 
-                   data-search-button="true" 
-                   data-search-button-click="button"
-                   class="bg-white border text-gray-900 rounded shadow-none block w-full flex outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-within:border-b-2 focus-within:border-b-blue-500" />
-        </div>
-
-        <div class="extensions__container">
-            <div class="grid"></div>
-            <div class="extensions_pagination"><button type="button" class="button primary btn-load-more">Load
-                    More</button></div>
-        </div>
-
-        <div class="extensions__manual-field-area form-box p-2 form-group-text stg-input stg-name mb-0 pb-0">
-            <div class="emf-separator">OR</div>
-            <div class="emf-title form-label text-gray-600 text-base capitalize mb-2">Add extension manually</div>
-            <div class="text-right flex">
-                <input type="text" 
-                       data-role="input"
-                       class="extensions__resource-key bg-white border text-gray-900 rounded shadow-none block w-full flex outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal box-border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-within:border-b-2 focus-within:border-b-blue-500" />
-
-                <button type="button"
-                class="button primary btn-add-extension-manually px-4 py-1.5 text-white transition-opacity rounded-md w-full sm:w-auto hover:bg-smythos-blue-500 bg-smyth-blue ml-2">
-                    <!-- <span class="mif-plus light" data-role="btn-icon"></span> -->
-                    <span class="label">Add</span>
-                </button>
-            </div>
-        </div>
-        <div class="extensions__manual-field-hint p-2">
-            Manual field description
-        </div>
-    </div>
+    <div class="extensions__manual-field-hint p-2">Manual field description</div>
+  </div>
 </div>

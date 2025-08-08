@@ -803,6 +803,13 @@ export class Component extends EventEmitter {
     }
     endpointElement.remove();
 
+    // Emit endpoint change event
+    document.dispatchEvent(
+      new CustomEvent('componentEndpointChanged', {
+        detail: { componentId: this.uid },
+      }),
+    );
+
     this.workspace.redraw();
     this.workspace.saveAgent();
   }
@@ -1013,6 +1020,13 @@ export class Component extends EventEmitter {
         outputDiv.setAttribute('smt-name', newValues.name);
         outputDiv.querySelector('.name').innerHTML = newValues.name;
         this.emit('endpointChanged', 'name', outputDiv, name, newValues.name);
+
+        // Emit endpoint change event for search tracking
+        document.dispatchEvent(
+          new CustomEvent('componentEndpointChanged', {
+            detail: { componentId: this.uid },
+          }),
+        );
       }
       if (outputDiv && newValues.color != color) {
         outputDiv.setAttribute('smt-color', newValues.color);
@@ -1058,9 +1072,10 @@ export class Component extends EventEmitter {
       event.stopPropagation();
       event.stopImmediatePropagation();
       return (await confirm('Deleting Output. Are you sure ?', '', {
-        btnYesLabel: 'Yes, Delete',
-        btnNoLabel: 'No, Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
+        btnYesLabel: 'Delete',
+        btnNoLabel: 'Cancel',
+        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
+        btnNoClass: 'hidden',
       }))
         ? this.deleteEndpoint(outputDiv)
         : false;
@@ -1122,6 +1137,14 @@ export class Component extends EventEmitter {
     }
 
     this.emit('endpointAdded', name, outputDiv);
+
+    // Emit endpoint change event for search tracking
+    document.dispatchEvent(
+      new CustomEvent('componentEndpointChanged', {
+        detail: { componentId: this.uid },
+      }),
+    );
+
     this.workspace.saveAgent();
     return outputDiv;
   }
@@ -1414,6 +1437,13 @@ export class Component extends EventEmitter {
         inputDiv.querySelector('.name').innerHTML = newValues.name;
 
         this.emit('endpointChanged', 'name', inputDiv, name, newValues.name);
+
+        // Emit endpoint change event for search tracking
+        document.dispatchEvent(
+          new CustomEvent('componentEndpointChanged', {
+            detail: { componentId: this.uid },
+          }),
+        );
       }
       if (newValues.optional !== optional) {
         inputDiv.setAttribute('smt-optional', newValues.optional);
@@ -1486,9 +1516,10 @@ export class Component extends EventEmitter {
       event.stopPropagation();
       event.stopImmediatePropagation();
       const _confirm = await confirm('Deleting Input. Are you sure ?', '', {
-        btnYesLabel: 'Yes, Delete',
-        btnNoLabel: 'No, Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
+        btnYesLabel: 'Delete',
+        btnNoLabel: 'Cancel',
+        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
+        btnNoClass: 'hidden',
       });
 
       if (_confirm) {
@@ -1552,6 +1583,13 @@ export class Component extends EventEmitter {
       this.properties.inputProps.push(inputProperties);
     }
     this.emit('endpointAdded', name, inputDiv);
+
+    // Emit endpoint change event for search tracking
+    document.dispatchEvent(
+      new CustomEvent('componentEndpointChanged', {
+        detail: { componentId: this.uid },
+      }),
+    );
 
     this.workspace.saveAgent();
     return inputDiv;
@@ -1969,6 +2007,13 @@ export class Component extends EventEmitter {
           this.title = value;
           this.aiTitle = ''; // Need to reset AI title on manual update
 
+          // Dispatch title change event for search tracking
+          document.dispatchEvent(
+            new CustomEvent('componentTitleChanged', {
+              detail: { componentId: this.uid },
+            }),
+          );
+
           this.workspace.saveAgent();
         },
         editOnClick: false,
@@ -1979,6 +2024,14 @@ export class Component extends EventEmitter {
           if (!value) value = '';
           description.querySelector('.text').textContent = value;
           this.description = value;
+
+          // Dispatch description change event for search tracking
+          document.dispatchEvent(
+            new CustomEvent('componentDescriptionChanged', {
+              detail: { componentId: this.uid },
+            }),
+          );
+
           this.workspace.saveAgent();
         },
         editOnClick: false,
@@ -2334,6 +2387,8 @@ export class Component extends EventEmitter {
       ); // checkVisibility is not available in safari <= 17.3
       if (dbgElements.length > 0) return;
 
+      if (!this.settingsOpen && this.loadingIcon) this.loadingIcon?.classList?.remove('hidden');
+
       if (Component.curComponentSettings && Component.curComponentSettings !== this) {
         await Component.curComponentSettings.confirmSaveSettings();
       }
@@ -2546,9 +2601,10 @@ export class Component extends EventEmitter {
         'Are you sure you want to delete this component?',
         'This action cannot be undone. Deleting will remove the component permanently.',
         {
-          btnYesLabel: 'Yes, Delete',
-          btnNoLabel: 'No, Cancel',
-          btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
+          btnYesLabel: 'Delete',
+          btnNoLabel: 'Cancel',
+          btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
+          btnNoClass: 'hidden',
         },
       ));
     if (shouldDelete) {

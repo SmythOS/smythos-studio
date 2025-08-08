@@ -1,5 +1,4 @@
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
-import IconToolTip from '@react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { Agent } from '@react/shared/types/agent-data.types';
@@ -13,6 +12,7 @@ import {
 } from '@src/react/features/embodiments/embodiment-configs';
 import { useAgentEmbodimentSettings } from '@src/react/features/embodiments/embodiment-settings';
 import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { FaCode, FaLock, FaSliders } from 'react-icons/fa6';
 
@@ -188,9 +188,14 @@ const EmbodimentsWidget = ({ agent, agentId, isWriteAccess }: IProps) => {
     <WidgetCard title="" showOverflow isWriteAccess={isWriteAccess}>
       <div className="p-4 bg-gray-50" data-qa="deploy-to-your-workflow-container">
         <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-1">
-            Deploy to Your Workflow{' '}
-            <IconToolTip html="Choose how you want to deploy and integrate your agent." />
+          <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-1">
+            Deploy to Your Workflow
+            <Tooltip
+              className="w-52 text-center"
+              content="Choose how you want to deploy and integrate your agent."
+            >
+              <Info className="w-4 h-4" />
+            </Tooltip>
           </h3>
         </div>
         <div className="grid gap-4">{renderEmbodiments}</div>

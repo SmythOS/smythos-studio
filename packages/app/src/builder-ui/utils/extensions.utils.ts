@@ -140,7 +140,7 @@ const _getExtensionInfo = async (compName: string, extension): Promise<Extension
   return info;
 };
 
-export function renderExtensionsSkeleton(elm: HTMLElement) {     
+export function renderExtensionsSkeleton(elm: HTMLElement) {
   let content = '<div class="row">';
 
   let item = `
@@ -192,13 +192,18 @@ export async function renderExtensions({
   compName: string;
   append?: boolean;
 }): Promise<void> {
+  // Set inline styles on the extension container to remove height restrictions and scrollbars
+  elm.style.maxHeight = 'none';
+  elm.style.overflow = 'visible';
+  elm.style.height = 'auto';
+
   let content = `<div class="row row-${compName}">`;
 
   // show nothing found message if there are no extensions
   if (
     extensions?.length === 0 &&
-    !document.querySelector(`.extensions__container .row-${compName}`)?.hasChildNodes()
-    && compName !== EXTENSION_COMP_NAMES.gptPlugin // to hide nothing found message for gpt plugin
+    !document.querySelector(`.extensions__container .row-${compName}`)?.hasChildNodes() &&
+    compName !== EXTENSION_COMP_NAMES.gptPlugin // to hide nothing found message for gpt plugin
   ) {
     content += `<div class="flex-1 text-center">Nothing Found!</div>`;
   }
@@ -231,8 +236,9 @@ export async function renderExtensions({
     }
 
     content += `
-            <div class="cell-3">
+            <div class="cell-6 responsive-cell-3-lg" style="height: auto;">
                 <div class="card"
+                style="height: auto; overflow: visible; min-height: auto; height: 100%;"
                 data-id="${data?.id ? data.id : ''}"
                 data-desc="${desc?.replace(/"/g, '&quot;')}"
                 data-desc-for-model="${descForModel?.replace(/"/g, '&quot;')}"
@@ -252,10 +258,12 @@ export async function renderExtensions({
                                 ${modelTaskLabel}
                             </div>
 
-                            <button class="button primary btn-add-extension hover:bg-smythos-blue-500 bg-smyth-blue text-white" data-status="${isAdded ? 'added' : 'add'
-      }" data-role="add-extension" ${isAdded ? 'disabled' : ''}>
-                                <span class="${isAdded ? 'mif-checkmark' : 'mif-plus'
-      } light" data-role="btn-icon"></span>
+                            <button class="button primary btn-add-extension hover:bg-smythos-blue-500 bg-smyth-blue text-white" data-status="${
+                              isAdded ? 'added' : 'add'
+                            }" data-role="add-extension" ${isAdded ? 'disabled' : ''}>
+                                <span class="${
+                                  isAdded ? 'mif-checkmark' : 'mif-plus'
+                                } light" data-role="btn-icon"></span>
                                 <span class="label">${isAdded ? 'Added' : 'Add'}</span>
                             </button>
                         </div>

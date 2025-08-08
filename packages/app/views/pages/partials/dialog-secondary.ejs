@@ -1,23 +1,46 @@
 <div
-    data-role="dialog"
-    class="dialog shadow-on bg-white rounded-md shadow dark:bg-gray-700 z-[1060]"
-    data-width="600"
-    id="smyth-dialog-secondary"
-    data-overlay="false"
+  data-role="dialog"
+  class="dialog shadow-on bg-white rounded-md shadow dark:bg-gray-700 z-[1060] p-4"
+  data-width="600"
+  id="smyth-dialog-secondary"
+  data-overlay="false"
 >
-    <div class="dialog-title flex items-start justify-between px-2 py-0 border-b rounded-t dark:border-gray-600">Dialog Title</div>
-    <div class="dialog-content px-2 py-3">Dialog Content</div>
-    <div class="dialog-actions flex space-x-4 justify-center items-center py-4">
-        <button
-            class="text-gray-700 text-center text-sm font-medium py-2 px-3 w-40 rounded-lg border border-gray-700 hover:opacity-75 focus:ring-4 focus:outline-none js-dialog-close btn-cancel"
-        >
-            Cancel
-        </button>
+  <div
+    class="dialog-title text-xl font-semibold text-[#1E1E1E] flex items-start justify-between px-2 py-0 border-b rounded-t dark:border-gray-600"
+  >
+    <div class="dialog-title-text">Dialog Title</div>
+    <button
+      type="button"
+      class="js-dialog-close btn-close text-[#1E1E1E] bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <div class="dialog-content px-2 py-3">Dialog Content</div>
+  <div class="dialog-actions flex space-x-4 justify-end items-center p-4">
+    <button
+      class="text-gray-700 text-center text-sm font-medium py-2 px-3 w-40 rounded-lg border border-gray-700 hover:opacity-75 focus:ring-4 focus:outline-none js-dialog-close btn-cancel hidden"
+    >
+      Cancel
+    </button>
 
-        <button
-            class="text-white text-center text-sm font-medium py-2 px-3 w-40 bg-smyth-emerald-400 rounded-lg border border-smyth-emerald-400 hover:opacity-75 focus:ring-4 focus:outline-none btn-submit"
-        >
-            Save
-        </button>
-    </div>
+    <button
+      class="text-white text-center text-sm font-medium py-2 px-8 h-[48px] bg-smythos-blue-500 border-transparent hover:bg-smyth-blue rounded-lg border border-smyth-emerald-400 hover:opacity-75 focus:ring-4 focus:outline-none btn-submit"
+    >
+      Save
+    </button>
+  </div>
 </div>

@@ -52,7 +52,7 @@ const GptEmbodimentModal: React.FC<GptEmbodimentModalProps> = ({ onClose }) => {
           <li>
             Click{' '}
             <a
-              href="https://chat.openai.com/gpts/editor"
+              href="https://chatgpt.com/gpts"
               target="_blank"
               rel="noopener noreferrer"
               className="text-v2-blue font-semibold underline"

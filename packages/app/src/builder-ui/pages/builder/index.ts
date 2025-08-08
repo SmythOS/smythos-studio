@@ -3,6 +3,7 @@ import * as dbg from '../../debugger';
 import { closeRightSidebar, createRightSidebar, showOverlay } from '../../ui/dialogs';
 import { Workspace } from '../../workspace/Workspace.class';
 
+import { plugins, PluginTarget, PluginType } from '@react/shared/plugins/Plugins';
 import {
   renderAgentDeploymentSidebar,
   renderMobileHandler,
@@ -11,7 +12,6 @@ import { llmModelsStore } from '@src/shared/state_stores/llm-models';
 import { popupValuesDialog } from '../../ui/tw-dialogs';
 import { delay } from '../../utils';
 import { setupAgentAuthScripts } from './agent-auth';
-import { setupAgentBuilderScripts } from './agent-builder';
 import { setupAgentScripts } from './agent-settings';
 import { setupAgentTemplateScripts } from './agent-template';
 import { setupComponentsScripts } from './components-menu';
@@ -221,8 +221,17 @@ export default async function scripts() {
     setupAgentAuthScripts(workspace);
     setupAgentTemplateScripts(workspace);
 
+    const matchedPlugins = plugins.getPluginsByTarget(
+      PluginTarget.BuilderLoadScript,
+      PluginType.Function,
+    );
+
+    console.log('matchedPlugins:  d', matchedPlugins);
+    matchedPlugins.forEach((plugin) => {
+      (plugin as any).function(workspace);
+    });
+
     //load Chat Agent Builder
-    setupAgentBuilderScripts(workspace);
     setupModals(workspace);
   });
 

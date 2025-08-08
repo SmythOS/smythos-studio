@@ -37,10 +37,77 @@
   background-color: #33ce40 !important;
 }
 
-.form-group + .form-group {
+.form-group + .form-group,
+.fields-group-wrapper + .form-group {
   margin-top: 0 !important;
 }
 
 .textarea textarea {
   border-radius: 8px;
+}
+.form-box .drop-container .input .button-group {
+  width: 22px !important;
+}
+.form-box .drop-container .input .button-group .button {
+  padding: 0 !important;
+}
+
+/* Remove checkerboard pattern from external Coloris library */
+/* High specificity overrides for CDN Coloris CSS */
+
+/* Target the Coloris button with maximum specificity */
+.coloris .clr-field button[aria-labelledby],
+.coloris .clr-field button,
+div.coloris .clr-field button,
+.clr-field button {
+  background-image: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override any pseudo-elements that might have patterns */
+.coloris .clr-field button::before,
+.coloris .clr-field button::after,
+.clr-field button::before,
+.clr-field button::after {
+  background-image: none !important;
+  background: none !important;
+  content: none !important;
+}
+
+/* Ensure no background patterns on the wrapper */
+.coloris .clr-field,
+div.coloris .clr-field {
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* MetroUI fallback overrides */
+.color-picker .color-example-box {
+  background: none !important;
+  background-image: none !important;
+  border: 1px solid #dfdfdf !important;
+}
+
+/* NUCLEAR OPTION: Remove ALL background patterns from any Coloris element */
+/* This should override the external CDN CSS */
+*[class*='clr-'] button,
+*[class*='coloris'] button,
+.clr-field > button,
+.coloris > .clr-field > button {
+  background-image: none !important;
+  background: var(--clr-color, #000) !important;
+}
+
+/* Remove any data-URI background patterns specifically */
+*[style*='data:image'] {
+  background-image: none !important;
+}
+
+/* Responsive grid classes for extensions */
+@media screen and (min-width: 980px) {
+  .responsive-cell-3-lg {
+    flex: 0 0 25.000005% !important;
+    max-width: 25.000005% !important;
+  }
 }

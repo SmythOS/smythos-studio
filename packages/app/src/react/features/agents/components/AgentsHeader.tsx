@@ -81,7 +81,15 @@ export function AgentsHeader({
         </div>
         <HeaderSearch
           BtnComponent={
-            <CustomButton handleClick={onCreateAgentClick} label="Create Agent" addIcon />
+            <CustomButton
+              handleClick={onCreateAgentClick}
+              label="Create Agent"
+              addIcon
+              dataAttributes={{
+                'data-test': 'create-agent-button',
+                'data-qa': 'create-agent-button',
+              }}
+            />
           }
           handleChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearch(e.target.value)}
           handleClick={onCreateAgentClick}
@@ -90,7 +98,6 @@ export function AgentsHeader({
           search
           placeholder="Search Agents"
           isReadOnlyAccess={isReadOnlyAccess}
-          btnAttributes={{ 'data-test': 'create-agent-button' }}
         />
       </div>
     </div>

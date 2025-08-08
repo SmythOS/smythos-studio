@@ -1,4 +1,3 @@
-
 export const VAULT_DATA_CACHE_KEY = 'preloaded-vault-data';
 export const AGENT_VERSIONS_CACHE_KEY = 'preloaded-agent-versions';
 export const MOCK_DATA_CACHE_KEY = 'component:mock_data';

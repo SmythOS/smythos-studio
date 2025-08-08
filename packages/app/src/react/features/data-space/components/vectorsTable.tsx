@@ -4,6 +4,7 @@ import DeleteNamespace from '@react/features/data-space/dialogs/deleteNamespace'
 import { extractError } from '@react/shared/utils/errors';
 import { Dispatch, FC, SetStateAction, useState } from 'react';
 import { toast } from 'react-toastify';
+
 interface DataItem {
   name: string;
   id: string;
@@ -43,7 +44,7 @@ const VectorsTable: FC<VectorsTableProps> = ({
     setDataSourceArray: false,
   });
 
-  const openNamespaceDeleteDialog = (value) => {
+  const openNamespaceDeleteDialog = (value: string) => {
     setNamespaceState({
       ...namespaceState,
       deleteNamespaceDialog: true,
@@ -52,75 +53,79 @@ const VectorsTable: FC<VectorsTableProps> = ({
       deleteNamespaceError: '',
     });
   };
-  const handleChange = (value) => {
+
+  const handleChange = (value: string) => {
     setNamespaceState({ ...namespaceState, deleteNamespaceInput: value, deleteNamespaceError: '' });
   };
-  const handleNamespaceDelete = async (value) => {
+
+  const handleNamespaceDelete = async (value: string) => {
     setNamespaceState({ ...namespaceState, deleteNamespaceLoading: true });
     try {
       await fetch(`/api/page/vectors/namespaces/${value}`, {
         method: 'DELETE',
       });
       toast.success('Data Space Deleted Successfully');
-      setNamespaceData(dataArray.filter((item) => item.name !== value));
-      handleNamespacesAfterDelete();
+      setNamespaceData?.(dataArray.filter((item) => item.name !== value));
+      handleNamespacesAfterDelete?.();
       setNamespaceState({
         ...namespaceState,
         deleteNamespaceLoading: false,
         deleteNamespaceDialog: false,
       });
-    } catch (error) {
-      let _errorMessage =
+    } catch (error: any) {
+      const errorMessage =
         error.status === 403 && extractError(error) === 'Forbidden'
           ? 'You are not authorized to delete this data space'
           : extractError(error) || 'An error occurred while deleting the data space';
       setNamespaceState({
         ...namespaceState,
         deleteNamespaceLoading: false,
-        deleteNamespaceError: _errorMessage,
+        deleteNamespaceError: errorMessage,
       });
     }
   };
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border border-solid border-gray-100">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-[#242424] uppercase tracking-wider whitespace-nowrap">
-                Data Spaces
-              </th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-[#242424] uppercase tracking-wider whitespace-nowrap">
-                File Preview
-              </th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-[#242424] uppercase tracking-wider whitespace-nowrap">
-                Indexing Status
-              </th>
-              <th className="px-4 sm:px-6 py-3 min-w-[100px]"></th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {dataArray &&
-              dataArray?.map((item, index) => {
-                return (
-                  <TableRow
-                    item={item}
-                    index={index}
-                    openNamespaceDeleteDialog={openNamespaceDeleteDialog}
-                    handleOpenAddDataDialog={() =>
-                      setAddDataSourceState({
-                        ...addDataSourceState,
-                        dataSourceDialog: true,
-                        selectedItem: item.name,
-                      })
-                    }
-                    key={`${item.name}_${index}`}
-                  />
-                );
-              })}
-          </tbody>
-        </table>
+    <div className="relative w-full">
+      <div className="bg-white rounded-lg w-full">
+        <div className="overflow-x-auto">
+          <table className="w-full table-fixed border border-solid border-gray-100">
+            <thead className="bg-gray-50 rounded-lg overflow-hidden">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[#242424] uppercase tracking-wider w-1/4">
+                  Data Spaces
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[#242424] uppercase tracking-wider w-2/5">
+                  File Preview
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[#242424] uppercase tracking-wider w-1/4">
+                  Indexing Status
+                </th>
+                <th className="px-4 py-3 w-[100px]"></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {dataArray &&
+                dataArray?.map((item, index) => {
+                  return (
+                    <TableRow
+                      item={item}
+                      index={index}
+                      openNamespaceDeleteDialog={openNamespaceDeleteDialog}
+                      handleOpenAddDataDialog={() =>
+                        setAddDataSourceState({
+                          ...addDataSourceState,
+                          dataSourceDialog: true,
+                          selectedItem: item.name,
+                        })
+                      }
+                      key={`${item.name}_${index}`}
+                    />
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
       </div>
       <DeleteNamespace
         namespaceState={namespaceState}

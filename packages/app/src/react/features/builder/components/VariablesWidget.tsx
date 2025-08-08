@@ -273,8 +273,8 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
       });
     }
   };
-
-  const handleSave = async () => {
+  const handleSave = async (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
     let hasError = false;
     const validatedPairs = pairs.map((currentPair, currentIndex) => {
       // Skip empty pairs
@@ -588,7 +588,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
             <Button
               label={'Save'}
               variant="primary"
-              handleClick={handleSave}
+              onMouseDown={handleSave}
               disabled={savingAgentVars}
               addIcon={savingAgentVars}
               Icon={<Spinner classes="w-4 h-4 mr-2" />}

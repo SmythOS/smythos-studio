@@ -38,7 +38,9 @@ const ScheduleWidget = ({ isSubscribedToPlan, isWriteAccess }: Props) => {
     return (
       <WidgetCard title="" showOverflow>
         <div className="bg-gray-50 p-4" data-qa="schedule-container">
-          <h3 className="font-semibold mb-2 text-sm">Schedule</h3>
+          <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-2">
+            Schedule
+          </h3>
           <p className="text-sm text-gray-500">
             Plan and automate task execution with agent work scheduler.
           </p>

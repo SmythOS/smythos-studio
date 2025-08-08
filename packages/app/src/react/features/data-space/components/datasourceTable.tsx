@@ -61,7 +61,7 @@ export default function DatasourceTable({ namespaceName, searchQuery }: Props) {
   return (
     <div className="relative w-full">
       <div className="bg-white rounded-lg w-full">
-        <div className="overflow-x-auto min-w-full">
+        <div className="overflow-x-auto">
           <table className="w-full table-auto border border-solid border-gray-100">
             <thead className="bg-gray-50 rounded-lg overflow-hidden">
               <tr>

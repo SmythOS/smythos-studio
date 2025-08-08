@@ -33,7 +33,7 @@ const ConfirmModal = (props: Props) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
-        <div className="flex flex-wrap justify-between items-start p-4 border-b dark:border-gray-600">
+        <div className="flex flex-wrap justify-between items-start p-2 border-b dark:border-gray-600">
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">{props.message}</h3>
           {props?.lowMsg && (
             <p className={classNames('text-sm text-gray-900', { 'pt-4': props.message })}>
@@ -52,7 +52,7 @@ const ConfirmModal = (props: Props) => {
         {props.children && props.children}
 
         {/* Code snippet textarea */}
-        <div className="px-6 pt-2 pb-4">
+        <div className="px-4 pt-2 pb-2">
           {/* <p className="mb-4 text-sm text-gray-900">{props.message}</p> */}
           <div className="flex justify-end items-center flex-row gap-2">
             {props.handleCancel && (
@@ -66,7 +66,11 @@ const ConfirmModal = (props: Props) => {
                 {props.cancelLabel || 'Cancel'}
               </Button>
             )}
-            <Button handleClick={props.handleConfirm} loading={props.isLoading}>
+            <Button
+              handleClick={props.handleConfirm}
+              loading={props.isLoading}
+              className="h-[48px] px-8 rounded-lg"
+            >
               {props.label || 'Confirm'}
             </Button>
           </div>

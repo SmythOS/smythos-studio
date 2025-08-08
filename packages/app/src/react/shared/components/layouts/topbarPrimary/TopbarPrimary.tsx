@@ -7,8 +7,9 @@ import { userSettingKeys } from '@shared/userSettingKeys';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FeatureFlagged } from '../../featureFlags';
 import { TeamSwitch } from './TeamSwitch';
 import { UserAvatar } from './UserAvatar';
@@ -23,9 +24,7 @@ export const TopbarPrimary = () => {
       );
     }),
   );
-  const { data: userSettings, isLoading: isUserSettingsLoading } = useGetUserSettings(
-    userSettingKeys.USER_TEAM,
-  );
+  const { data: userSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
   const currTeam = useMemo(() => {
     return userSettings
       ? userTeams?.find?.((team: IMembershipTeam) => team.id === userSettings.userSelectedTeam)
@@ -33,9 +32,10 @@ export const TopbarPrimary = () => {
   }, [userSettings, userTeams]);
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Function to get title based on current path
-  const getPageTitle = (): string => {
+  const getPageTitle = () => {
     if (isLoading) return '';
 
     // Find the matching path prefix
@@ -48,6 +48,17 @@ export const TopbarPrimary = () => {
     // Special case for agents path - customize with team name
     if (matchingPath === '/agents') {
       return `${currTeam?.name ? `${currTeam?.name}'s` : 'Your'} ${PAGE_TITLE_MAP[matchingPath]}`;
+    }
+
+    if (matchingPath === '/teams/roles') {
+      return (
+        <div className="flex items-center gap-2 justify-center">
+          <button onClick={() => navigate('/teams/members')} className="cursor-pointer">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          Team Roles
+        </div>
+      );
     }
 
     return PAGE_TITLE_MAP[matchingPath];
@@ -76,14 +87,11 @@ export const TopbarPrimary = () => {
         );
       }
     }
-  }, [userSettings, userTeams]);
+  }, [userSettings, userTeams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (userInfo?.user) {
-      setIsLoading(false);
-    }
+    if (userInfo?.user) setIsLoading(false);
   }, [userInfo?.user]);
-
 
   return (
     <nav
@@ -95,7 +103,7 @@ export const TopbarPrimary = () => {
       </div>
 
       <div className="flex items-center gap-4 pb-1 md:pb-0">
-         <FeatureFlagged
+        <FeatureFlagged
           featureFlag={FEATURE_FLAGS.TEAMS_UI}
           alternateContent={
             <UserAvatar
@@ -108,7 +116,6 @@ export const TopbarPrimary = () => {
           <UserAvatar user={userInfo?.user} profilePages={profilePages} />
         </FeatureFlagged>
         <PluginComponents targetId={PluginTarget.TopMenuItem} />
-        {/* <UserAvatar user={userInfo?.user} profilePages={profilePages} /> */}
       </div>
     </nav>
   );

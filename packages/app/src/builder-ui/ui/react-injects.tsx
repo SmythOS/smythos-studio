@@ -21,7 +21,6 @@ import {
 import ComponentInputEditor from '@src/react/features/builder/modals/ComponentInputEditor';
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
 import { WelcomeInvitePage } from '@src/react/features/onboarding/pages/WelcomeInvitePage';
-import { ArcadeTutorial } from '@src/react/features/tutorials/components/ArcadeTutorialModal';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
@@ -350,42 +349,6 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
   // Create root and render
   const root = createRoot(rootElement);
   root.render(<ModalsContainer />);
-}
-
-let tutorialRoot: Root | null = null;
-
-export function renderArcadeTutorial(iframeUrl: string, iframeTitle: string) {
-  // If modal-root doesn't exist, add it to body
-  if (!document.getElementById('modal-root')) {
-    const modalRoot = document.createElement('div');
-    modalRoot.id = 'modal-root';
-    document.body.appendChild(modalRoot);
-  }
-
-  // Use existing root or create new one
-  if (!tutorialRoot) {
-    tutorialRoot = createRoot(
-      document.getElementById('modal-root') || document.createElement('div'),
-    );
-  }
-
-  tutorialRoot.render(
-    <ArcadeTutorial
-      iframeUrl={iframeUrl}
-      iframeTitle={iframeTitle}
-      renderTrigger={(onClick) => <div style={{ display: 'none' }} onClick={onClick} />}
-    />,
-  );
-
-  // Trigger the click event after a short delay to ensure the component is mounted
-  setTimeout(() => {
-    const trigger = document.querySelector('#modal-root div[style*="display: none"]');
-    if (trigger) {
-      (trigger as HTMLElement).click();
-    }
-  }, 100);
-
-  return tutorialRoot;
 }
 
 export function renderMobileHandler({ rootID }: { rootID: string }) {

@@ -201,7 +201,7 @@ export type DatasourceSitemapStatus = {
     completed: number;
     pending: number;
     failed: number;
-    nextCrawlAt: string;
+    nextCrawlAt?: string;
   };
 };
 

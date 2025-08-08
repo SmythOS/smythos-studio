@@ -61,12 +61,12 @@ export const Members: FC<MembersProps> = (props) => {
           <input
             type="text"
             placeholder="Member, role access"
-            className="mr-2 p-2 pl-10 border rounded-md"
+            className="mr-2 p-2 pl-10 border rounded-md placeholder:text-base placeholder:text-gray-500"
             onChange={handleSearch}
             value={searchTerm}
           />
           <select
-            className="mr-2 p-2 border rounded-md pr-10"
+            className="mr-2 p-2 px-3 border rounded-md pr-10"
             onChange={handleSortChange}
             value={sortBy}
           >

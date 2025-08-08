@@ -126,7 +126,7 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
 
       if (groupsIndexMap?.[groupName] === undefined) {
         const fieldsGroupElm = document.createElement('div') as HTMLElement;
-        fieldsGroupElm.className = 'fields-group-wrapper p-2';
+        fieldsGroupElm.className = 'fields-group-wrapper hidden has-[:not(.hidden)]:flex';
         fieldsGroupElm.setAttribute('data-group-name', entry?.fieldsGroup);
         fieldsGroupElm.appendChild(field);
 
@@ -157,7 +157,7 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
         const collapseToggle = document.createElement('button');
         collapseToggle.setAttribute(
           'class',
-          'section w-full form-section-toggle pl-2 text-sm mt-5 flex items-center',
+          'section w-full form-section-toggle pl-2 text-sm mt-2 flex items-center',
         );
         collapseToggle.setAttribute('id', `collapse_toggle_${sectionName}`);
         //collapseToggle.setAttribute('data-target', sectionName);
@@ -305,6 +305,11 @@ export function readFormValues(form, entriesObject) {
           }
 
           break;
+        case 'number':
+          // Convert string value to number for number fields
+          const numberValue = inputField.value;
+          result[key] = numberValue === '' ? 0 : Number(numberValue);
+          break;
         case 'div':
         case 'span':
         case 'p':
@@ -350,6 +355,11 @@ export function readFormValidation(form, entriesObject) {
         case 'checkbox':
         case 'toggle':
           result[key] = { value: inputField.checked };
+          break;
+        case 'number':
+          // Convert string value to number for number fields
+          const numberValue = inputField.value;
+          result[key] = { value: numberValue === '' ? 0 : Number(numberValue) };
           break;
         case 'div':
         case 'span':

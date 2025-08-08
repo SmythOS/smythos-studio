@@ -69,6 +69,12 @@ export class ImageGenerator extends Component {
       //#region GPT
       'size',
       //#endregion
+
+      //#region Google AI
+      // 'numberOfImages', // More adjustments are needed because Imagen 4 Ultra supports only 1, while Imagen 4 can support up to 4.
+      'aspectRatio',
+      'personGeneration',
+      //#endregion
     ];
 
     for (let item of dataEntries) {
@@ -221,6 +227,7 @@ export class ImageGenerator extends Component {
       ...getDallESettings(this.data),
       ...getRunwareSettings(this.data),
       ...getGPTSettings(this.data),
+      ...getGoogleAISettings(this.data),
     };
   }
 
@@ -355,6 +362,45 @@ function getDallESettings(savedData: Record<string, string>) {
     },
   };
 }
+
+function getGoogleAISettings(savedData: Record<string, any>) {
+  return {
+    aspectRatio: {
+      type: 'select',
+      withoutSearch: true,
+      label: 'Aspect Ratio',
+      help: 'Choose the aspect ratio for the generated images.',
+      tooltipClasses: 'w-56',
+      arrowClasses: '-ml-11',
+      value: savedData.aspectRatio || '1:1',
+      options: [
+        { text: 'Square (1:1)', value: '1:1' },
+        { text: 'Portrait (9:16)', value: '9:16' },
+        { text: 'Landscape (16:9)', value: '16:9' },
+        { text: 'Wide (3:4)', value: '3:4' },
+        { text: 'Tall (4:3)', value: '4:3' },
+      ],
+      section: 'Advanced',
+      attributes: { 'data-supported-models': LLM_PROVIDERS.GOOGLEAI },
+    },
+    personGeneration: {
+      type: 'select',
+      withoutSearch: true,
+      label: 'Person Generation',
+      help: "Allow the model to generate images of people. &quot;Don't Allow&quot; blocks generation of images of people. &quot;Allow Adult&quot; generates images of adults, but not children (default). &quot;Allow All&quot; generates images that include adults and children.",
+      tooltipClasses: 'w-56',
+      arrowClasses: '-ml-11',
+      value: savedData.personGeneration || 'dont_allow',
+      options: [
+        { text: "Don't Allow", value: 'dont_allow' },
+        { text: 'Allow Adult', value: 'allow_adult' },
+        { text: 'Allow All', value: 'allow_all' },
+      ],
+      section: 'Advanced',
+      attributes: { 'data-supported-models': LLM_PROVIDERS.GOOGLEAI },
+    },
+  };
+}
 // #endregion
 
 // #region redraw logic of select boxes based on the model
@@ -362,6 +408,7 @@ enum MODEL_FAMILY {
   GPT = 'gpt',
   RUNWARE = 'runware',
   DALL_E = 'dall-e',
+  GOOGLE_AI = 'googleai',
 }
 
 const models = window['__LLM_MODELS__'] || {};
@@ -467,6 +514,9 @@ const MODEL_SELECT_BOX_CONFIGS: Record<string, ModelSelectBoxConfig> = {
       defaultValue: 'standard',
     },
   },
+  [MODEL_FAMILY.GOOGLE_AI]: {
+    // Google AI doesn't have dynamic select boxes for now
+  },
 };
 
 /**
@@ -478,6 +528,7 @@ function getModelFamily(model: string): string | null {
   if (isGPTModel(model)) return MODEL_FAMILY.GPT;
   if (isRunwareModel(model)) return MODEL_FAMILY.RUNWARE;
   if (isDallEModel(model)) return MODEL_FAMILY.DALL_E;
+  if (isGoogleAIModel(model)) return MODEL_FAMILY.GOOGLE_AI;
 
   return null;
 }
@@ -495,6 +546,15 @@ function isRunwareModel(model: string): boolean {
 
 function isDallEModel(model: string) {
   return model?.replace('smythos/', '')?.startsWith(MODEL_FAMILY.DALL_E);
+}
+
+function isGoogleAIModel(model: string): boolean {
+  return Object.entries(models).some(
+    ([key, value]) =>
+      key === model &&
+      ((value as { provider: string }).provider === LLM_PROVIDERS.GOOGLEAI ||
+        (value as { llm: string }).llm === LLM_PROVIDERS.GOOGLEAI),
+  );
 }
 
 // #endregion

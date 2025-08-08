@@ -146,7 +146,11 @@ const AddDatasourceDialog = ({ namespaceName, onClose }: Props) => {
 
   return (
     <>
-      <Modal onClose={onClose} title="Add Data Source">
+      <Modal
+        onClose={onClose}
+        title="Add Data Source"
+        panelWidthClasses="mx-auto w-[290px] sm:w-[400px]"
+      >
         <div className="modal-body">
           <div className="flex flex-col gap-4">
             <div className="w-full pb-4">

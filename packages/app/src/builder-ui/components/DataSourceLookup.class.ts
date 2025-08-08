@@ -41,9 +41,24 @@ export class DataSourceLookup extends Component {
         label: 'Include metadata',
         value: false,
       },
+      scoreThreshold: {
+        type: 'range',
+        label: 'Score threshold',
+        hint: 'Score threshold',
+        value: 0.5,
+        min: 0,
+        max: 1,
+        step: 0.01,
+        help: 'Score threshold for filtering results — the higher the threshold, the more restrictive the filtering.',
+      },
+      includeScore: {
+        type: 'checkbox',
+        label: 'Include score',
+        value: false,
+      },
     };
 
-    const dataEntries = ['namespace', 'topK'];
+    const dataEntries = ['namespace', 'topK', 'scoreThreshold', 'includeScore'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }

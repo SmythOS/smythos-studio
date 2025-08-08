@@ -9,6 +9,7 @@ import { EVENTS } from '@src/shared/posthog/constants/events';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
+import { X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FaFileAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -94,8 +95,8 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ data, type, suggestedTampla
       });
     }
 
-    // Navigate directly to builder with template and behavior
-    navigateTo(`/builder?templateId=${data?.file}`);
+    // Navigate directly to builder with template and behavior in new tab
+    navigateTo(`/builder?templateId=${data?.file}`, false, '_blank');
   };
 
   const renderIcon = (template) => {
@@ -254,13 +255,15 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ data, type, suggestedTampla
               e.stopPropagation();
               setShowModal(false);
             }}
-            className="absolute top-4 right-4 text-gray-500 text-xl hover:text-gray-700"
+            className={`absolute top-5 right-5 z-50 flex items-center justify-center 
+              hover:bg-gray-200 p-2 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white
+               transition duration-300  rounded-md`}
           >
-            ×
+            <X className="w-5 h-5" color="#1E1E1E" />
           </button>
 
           <div className="flex items-center gap-4 mb-6">
-            <div className="flex-shrink-0 w-6 h-6">
+            <div className="flex-shrink-0 w-8 h-8 mr-[-8px]">
               {data?.icon ? (
                 renderIcon(data)
               ) : (
@@ -272,7 +275,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ data, type, suggestedTampla
             </h1>
           </div>
 
-          <p className="text-[#1E1E1E] text-base mb-6 font-inter font-normal text-base leading-[22.4px]">
+          <p className="text-[#1E1E1E] mb-6 font-inter font-normal text-base leading-[22.4px]">
             {data?.description}
           </p>
 
@@ -292,35 +295,39 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ data, type, suggestedTampla
           <div className="flex justify-end space-x-3">
             {/* Learn More button - show for all templates with docLink */}
             {templateData.docLink && (
-              <a
-                href={templateData.docLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-lg border border-solid border-[#D1D1D1] text-base font-normal text-gray-500 hover:bg-gray-50 transition-colors"
+              <CustomButton
+                isLink
+                reloadDocument
+                linkTo={templateData.docLink}
+                external
+                className="h-[48px] px-8 rounded-lg"
+                variant="secondary"
               >
                 Learn More
-              </a>
+              </CustomButton>
             )}
 
             {/* Video Tutorial button - show if video exists but not embedded */}
             {templateData.videoLink && !videoId && (
-              <a
-                href={templateData.videoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-2 rounded-lg border border-solid border-[#D1D1D1] text-base font-normal text-gray-700 hover:bg-gray-50 transition-colors"
+              <CustomButton
+                isLink
+                reloadDocument
+                linkTo={templateData.videoLink}
+                external
+                className="h-[48px] px-8 rounded-lg"
+                variant="secondary"
               >
                 Watch Tutorial
-              </a>
+              </CustomButton>
             )}
 
             <CustomButton
               isLink
-              reloadDocument
+              external
               linkTo={`/builder?templateId=${data?.file}`}
-              variant="tertiary" // Blue text style
               disabled={isEnterpriseCollection && isUpgradePlan}
               label="Remix"
+              className="h-[48px] px-8 rounded-lg"
             />
           </div>
         </div>
