@@ -2604,3 +2604,26 @@ body.locked #tooltip-deploy-locked {
 #canvas-search-container .underline {
   text-decoration: underline;
 }
+
+/* Debug Switcher Message Positioning - Pure CSS Solution */
+/* Modern browsers: When embodiment sidebar is open (using :has() to detect from body level) */
+body:has(#right-container.open #embodiment-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+  transform: translateX(-180px);
+  /* Standard translation (-translate-x-45 = -180px) */
+}
+
+/* Pure CSS: When embodiment sidebar is open AND no upgrade button exists */
+body:not(:has(#upgrade-button-topbar)):has(#right-container.open #embodiment-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+  transform: translateX(-268px);
+  /* Additional 88px translation = total -268px */
+}
+
+/* Pure CSS: Reset when regular right-sidebar (not embodiment) is open */
+body:has(#right-container.open #right-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+  transform: translateX(0);
+}
+
+/* Pure CSS: Reset when regular right-sidebar (not embodiment) is open AND no upgrade button */
+body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+  transform: translateX(0);
+}
