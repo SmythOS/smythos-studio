@@ -24,6 +24,7 @@ export enum EMBODIMENT_TYPE {
   FORM = 'form',
   LLM = 'llm', // Add this line
   ALEXA = 'alexa',
+  LOVABLE = 'lovable',
 }
 
 export enum DEFAULT_CHAT_COLORS {
