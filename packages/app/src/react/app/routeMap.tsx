@@ -267,8 +267,8 @@ export const routeMap: IPageRoute[] = [
     },
   },
 
-  { path: '/', component: AgentsPage, title: 'Agents' },
-  { path: '/agents', component: AgentsPage, title: 'Agents' },
+  { path: '/', component: AgentsPage, title: 'Agents', layoutOptions: { background: 'agentsGradient' } },
+  { path: '/agents', component: AgentsPage, title: 'Agents', layoutOptions: { background: 'agentsGradient' } },
 
   {
     title: 'My Plan',
