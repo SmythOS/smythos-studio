@@ -207,7 +207,6 @@ export function renderConfirmDialogModals({ rootID }: { rootID: string }) {
             message="Restore this version?"
             onClose={cancelRestore}
             handleConfirm={confirmRestore}
-            handleCancel={cancelRestore}
             lowMsg="Are you sure you want to restore this to a previous version? Any unsaved changes will be lost."
           />
         )}
