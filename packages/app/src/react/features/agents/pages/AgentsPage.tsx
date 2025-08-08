@@ -7,6 +7,7 @@ import {
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
 import { useAgentsData } from '@react/features/agents/hooks/useAgentsData';
+import { useAgentsPageTutorial } from '@react/features/agents/hooks/useAgentsPageTutorial';
 import {
   Learn,
   OnboardingTasks,
@@ -79,6 +80,9 @@ function AgentsPage() {
       refetchOnReconnect: false,
     },
   });
+
+  // Trigger first-visit tutorial
+  useAgentsPageTutorial();
 
   // Templates processing
   useEffect(() => {
