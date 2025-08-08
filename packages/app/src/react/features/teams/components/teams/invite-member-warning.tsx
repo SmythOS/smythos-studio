@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
-import { _USE_PENDING_INVITES_AS_SEATS } from '@src/react/shared/constants';
 import { cn } from '@src/react/shared/utils/general';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -62,9 +61,7 @@ export const InviteMemberWarning = ({
       [];
 
     // Calculate total occupied seats (current members + pending invites)
-    const totalOccupiedSeats =
-      filteredTeamMembers.length +
-      (_USE_PENDING_INVITES_AS_SEATS ? filteredPendingInvites.length : 0);
+    const totalOccupiedSeats = filteredTeamMembers.length + filteredPendingInvites.length;
 
     const priceItem =
       userInfo?.subs?.object?.['items']?.data?.filter?.(

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { teamAPI } from '@react/features/teams/clients';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { errorToast, successToast } from '@shared/components/toast';
-import { _USE_PENDING_INVITES_AS_SEATS } from '@src/react/shared/constants';
 import { PendingInvite, useTeamInvitations } from './useTeamInvitations';
 import { useTeamMembers } from './useTeamMembers';
 
@@ -44,9 +43,7 @@ export const useInvitationActions = (teamRoles: any[] = [], isReadOnlyAccess: bo
       getPendingInvites?.filter(
         (pendingInvite) => !pendingInvite.email.toLowerCase().includes('@smythos.com'),
       ) || [];
-    const totalOccupiedSeats =
-      filteredTeamMembers.length +
-      (_USE_PENDING_INVITES_AS_SEATS ? filteredPendingInvites.length : 0);
+    const totalOccupiedSeats = filteredTeamMembers.length + filteredPendingInvites.length;
     const remainingSeats = teamSeats - totalOccupiedSeats;
 
     const priceItem =
