@@ -16,6 +16,11 @@ export const FILE_LIMITS = {
 export const FILE_TYPES = {
   PDF: 'application/pdf',
   IMAGE: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] as const,
+  CSV: ['text/csv', 'application/csv'] as const,
+  EXCEL: [
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ] as const,
 } as const;
 
 type ImageMimeType = (typeof FILE_TYPES.IMAGE)[number];
@@ -96,7 +101,7 @@ export const validateSingleFile = (file: File): string | null => {
   });
 
   if (!isValidType) {
-    return 'File type not supported';
+    return 'File type not supported.';
   }
 
   return null;
