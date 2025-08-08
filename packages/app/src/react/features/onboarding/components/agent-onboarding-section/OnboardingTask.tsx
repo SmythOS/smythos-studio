@@ -1,6 +1,7 @@
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import { useOnboarding } from '@src/react/features/agents/contexts/OnboardingContext';
 import useMutateOnboardingData from '@src/react/features/onboarding/hooks/useMutateOnboardingData';
+import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { OnboardingTaskProps, OnboardingTaskType } from '@src/react/shared/types/onboard.types';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import classNames from 'classnames';
@@ -63,7 +64,8 @@ const OnboardingTask = ({
   icon,
 }: OnboardingTaskProps) => {
   const saveUserSettingsMutation = useMutateOnboardingData();
-  const { setTaskCompleted, setInviteMemberModalOpen } = useOnboarding();
+  const { setTaskCompleted, setInviteMemberModalOpen, setAssignMemberModalOpen } = useOnboarding();
+  const { currentUserTeam } = useAuthCtx();
 
   const completeTask = (button) => {
     const effectiveType = button.type || type;
@@ -84,7 +86,15 @@ const OnboardingTask = ({
 
   const handleInviteTeamMembers = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setInviteMemberModalOpen(true);
+
+    // Check if current team is organization (parentId === null) or space (parentId !== null)
+    const isOrganization = currentUserTeam?.parentId === null;
+
+    if (isOrganization) {
+      setInviteMemberModalOpen(true);
+    } else {
+      setAssignMemberModalOpen(true);
+    }
   };
 
   if (type === OnboardingTaskType.INVITE_TEAM_MEMBERS) {

@@ -1,9 +1,15 @@
 import { useOnboarding } from '@src/react/features/agents/contexts/OnboardingContext';
 import OnboardingTask from '@src/react/features/onboarding/components/agent-onboarding-section/OnboardingTask';
+import { subTeamsAPI } from '@src/react/features/teams/clients';
+import { AssignMemberModal } from '@src/react/features/teams/components/common/assign-member-modal';
 import CreateMemberModal from '@src/react/features/teams/modals/create-member';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
+import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
+import { useGetUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import { OnboardingTaskType } from '@src/react/shared/types/onboard.types';
-import { Suspense, useMemo, useState } from 'react';
+import { userSettingKeys } from '@src/shared/userSettingKeys';
+import { useMutation } from '@tanstack/react-query';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GoChevronDown } from 'react-icons/go';
 
@@ -41,12 +47,48 @@ const ChecklistHeader = ({ progress, isChecklistVisible, onToggleChecklist, onDi
 
 export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
   // Always call all hooks first, regardless of any conditional logic
-  const { tasks, isOnboardLoading, isInviteMemberModalOpen, setInviteMemberModalOpen } =
-    useOnboarding();
+  const {
+    tasks,
+    isOnboardLoading,
+    isInviteMemberModalOpen,
+    setInviteMemberModalOpen,
+    isAssignMemberModalOpen,
+    setAssignMemberModalOpen,
+  } = useOnboarding();
+
+  const { userTeams, currentUserTeam } = useAuthCtx();
+  const { data: userSettings } = useGetUserSettings(userSettingKeys.USER_TEAM);
+  const [organizationMembers, setOrganizationMembers] = useState([]);
 
   const [isChecklistVisible, setIsChecklistVisible] = useState(
     (window?.localStorage?.getItem('showOnboardingChecklist') ?? 'true') === 'true',
   );
+
+  // Get organization team (parentId === null)
+  const organization = useMemo(() => {
+    return userTeams?.find((team) => team.parentId === null);
+  }, [userTeams]);
+
+  // Check if current team is organization or space
+  const isOrganization = currentUserTeam?.parentId === null;
+
+  // Mutation to get organization members for AssignMemberModal
+  const teamMembersQuery = useMutation({
+    mutationFn: subTeamsAPI.getTeamMembers,
+    onSuccess: (response) => {
+      setOrganizationMembers(response.members || []);
+    },
+    onError: (error) => {
+      console.error('Failed to fetch organization members:', error);
+    },
+  });
+
+  // Fetch organization members when AssignMemberModal opens
+  useEffect(() => {
+    if (isAssignMemberModalOpen && organization?.id && !organizationMembers.length) {
+      teamMembersQuery.mutate(organization.id);
+    }
+  }, [isAssignMemberModalOpen, organization?.id, organizationMembers.length]);
 
   // Memoize progress calculation
   const progress = useMemo(() => {
@@ -114,6 +156,28 @@ export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
         createPortal(
           <Suspense fallback={<Spinner />}>
             <CreateMemberModal onClose={() => setInviteMemberModalOpen(false)} />
+          </Suspense>,
+          document.body,
+        )}
+
+      {isAssignMemberModalOpen &&
+        createPortal(
+          <Suspense fallback={<Spinner />}>
+            <AssignMemberModal
+              isOpen={isAssignMemberModalOpen}
+              onClose={() => setAssignMemberModalOpen(false)}
+              onSubmit={() => setAssignMemberModalOpen(false)}
+              editData={{
+                id: currentUserTeam?.id || '',
+                name: currentUserTeam?.name || '',
+                organizationId: organization?.id,
+              }}
+              options={organizationMembers || []}
+              excludedOptions={{
+                key: 'email',
+                options: [], // No exclusions for onboarding flow
+              }}
+            />
           </Suspense>,
           document.body,
         )}
