@@ -35,6 +35,7 @@ interface CustomButtonProps {
   variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary';
   isDelete?: boolean;
   iconPosition?: 'left' | 'right';
+  loaderColor?: 'blue' | 'gray';
 }
 
 export function Button({
@@ -60,6 +61,7 @@ export function Button({
   btnRef,
   variant = 'primary',
   iconPosition = 'left',
+  loaderColor,
 }: CustomButtonProps) {
   const baseStyles =
     'flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded-md transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none';
@@ -114,9 +116,12 @@ export function Button({
           {loading && (
             <div
               id="loader"
-              className={`mr-2 ${
-                variant === 'secondary' ? 'circular-loader-blue' : 'circular-loader'
-              }`}
+              className={`mr-2 ${(() => {
+                if (loaderColor)
+                  return loaderColor === 'blue' ? 'circular-loader-blue' : 'circular-loader';
+                // Fallback to previous behavior when not explicitly specified
+                return variant === 'secondary' ? 'circular-loader-blue' : 'circular-loader';
+              })()}`}
             ></div>
           )}
           {iconPosition === 'left' && iconElement}

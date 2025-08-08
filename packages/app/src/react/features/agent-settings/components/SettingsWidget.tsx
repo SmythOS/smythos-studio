@@ -26,6 +26,7 @@ const SettingsWidget = () => {
     models: MODELS_V2,
     modal: { isOpen: isModalOpen, setIsOpen: setIsModalOpen, handleClose: handleModalClose },
     postHogEvent: { setPostHogEvent },
+    isSaving,
   } = useWidgetsContext();
 
   if (isLoading.embodiments || isLoading.llmModels) return <ComponentSkeleton />;
@@ -159,11 +160,17 @@ const SettingsWidget = () => {
             <Modal.Footer className="pt-0">
               <div className="w-full flex justify-end">
                 <Button
-                  handleClick={handleModalClose}
+                  handleClick={async () => {
+                    await formik.submitForm();
+                    handleModalClose();
+                  }}
                   type="button"
                   className="h-[48px] px-8 rounded-lg ml-auto"
+                  loading={isSaving}
+                  loaderColor="blue"
+                  disabled={isSaving}
                 >
-                  Done
+                  {isSaving ? 'Saving' : 'Done'}
                 </Button>
               </div>
             </Modal.Footer>
