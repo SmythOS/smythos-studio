@@ -283,9 +283,11 @@ async function onSave(values) {
   component.emit('settingsSaved', settingsValues);
 
   // Also dispatch a global event for tracking
-  document.dispatchEvent(new CustomEvent('componentSettingsSaved', {
-    detail: { componentId: component.uid, settings: settingsValues }
-  }));
+  document.dispatchEvent(
+    new CustomEvent('componentSettingsSaved', {
+      detail: { componentId: component.uid, settings: settingsValues },
+    }),
+  );
 
   component.emit('settingsClosed');
   //component.redrawSettings();
@@ -436,8 +438,8 @@ export async function editSettings(component: Component) {
   const templateName = component.properties?.template?.templateInfo?.name || component.title || '';
 
   const onBeforeCancel = async () => {
-    const saved = await component.confirmSaveSettings();
-    return true;
+    const canClose = await component.confirmSaveSettings();
+    return !!canClose;
   };
 
   const onCancel = () => {
@@ -853,9 +855,8 @@ export async function editSettings(component: Component) {
                     component.title = templateData.templateInfo.name;
                     component.description = templateData.templateInfo.description;
 
-                    component.domElement.querySelector(
-                      '.internal-name',
-                    ).textContent = `T: ${templateData.templateInfo.name}`;
+                    component.domElement.querySelector('.internal-name').textContent =
+                      `T: ${templateData.templateInfo.name}`;
                     const titleBar = component.domElement.querySelector('.title-bar');
                     if (titleBar) {
                       titleBar.querySelector('.title .text').textContent =
