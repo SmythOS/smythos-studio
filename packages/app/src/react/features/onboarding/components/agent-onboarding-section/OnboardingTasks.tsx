@@ -1,11 +1,11 @@
 import { useOnboarding } from '@src/react/features/agents/contexts/OnboardingContext';
 import OnboardingTask from '@src/react/features/onboarding/components/agent-onboarding-section/OnboardingTask';
-import CreateMemberModal from '@src/react/features/teams/modals/create-member';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { OnboardingTaskType } from '@src/react/shared/types/onboard.types';
 import { Suspense, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GoChevronDown } from 'react-icons/go';
+import CreateMemberModal from 'src/react/features/teams/modals/create-member';
 
 const ProgressBar = ({ progress }): JSX.Element => {
   return (

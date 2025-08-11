@@ -15,6 +15,10 @@ import {
   fetchCurrentCycleUsage,
   fetchLLMAndApiUsage,
 } from '@react/features/analytics/client/usageAnalytics';
+import {
+  useGetTeamSettings,
+  useStoreTeamSettings,
+} from '@react/features/teams/hooks/useTeamSettings';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { formatDate } from '@src/react/shared/utils/format';
 import { teamSettingKeys } from '@src/shared/teamSettingKeys';
@@ -22,7 +26,6 @@ import classNames from 'classnames';
 import { Loader2 } from 'lucide-react';
 import { HiOutlineArrowRight } from 'react-icons/hi';
 import { useAuthCtx } from '../../../shared/contexts/auth.context';
-import { useGetTeamSettings, useStoreTeamSettings } from '../../teams/hooks/useTeamSettings';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ENTERPRISE_PLAN_NAMES = [
@@ -399,8 +402,8 @@ export default function SubscriptionAnalytics({
   const freeCredits = subs?.properties?.freeCredits
     ? subs?.properties?.freeCredits
     : subs?.plan?.isDefaultPlan
-    ? 5
-    : 0;
+      ? 5
+      : 0;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -630,8 +633,8 @@ export default function SubscriptionAnalytics({
                 {subs?.plan?.name === 'SmythOS Free'
                   ? 'Upgrading...'
                   : subs?.plan?.isCustomPlan || ENTERPRISE_PLAN_NAMES.includes(subs?.plan?.name)
-                  ? 'Managing...'
-                  : 'Changing...'}
+                    ? 'Managing...'
+                    : 'Changing...'}
               </span>
             </>
           ) : subs?.plan?.name === 'SmythOS Free' ? (
@@ -671,8 +674,9 @@ export default function SubscriptionAnalytics({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl font-bold">Plan Summary</CardTitle>
-              <CardDescription className="text-base mt-1" data-qa="current-plan-text">{`${subs?.plan
-                ?.name} ${userDisplayName ? '- ' + userDisplayName : ''}`}</CardDescription>
+              <CardDescription className="text-base mt-1" data-qa="current-plan-text">{`${
+                subs?.plan?.name
+              } ${userDisplayName ? '- ' + userDisplayName : ''}`}</CardDescription>
             </div>
             {RenderButton({ className: 'hidden md:block' })}
           </div>
