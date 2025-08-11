@@ -1,4 +1,5 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
+import { Analytics } from '@src/shared/posthog/services/analytics';
 import { useEffect } from 'react';
 
 type UseAgentsPageTutorialOptions = {
@@ -52,6 +53,13 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
             setTimeout(() => {
               popoverElements.popoverTitle.innerText = `${popoverElements.popoverTitle.innerText} (${home_page_onboarding.currentStep + 1}/${home_page_onboarding.getSteps().length})`;
             }, 0);
+          },
+          onReset: () => {
+            // Called when overlay is about to be cleared
+            Analytics.track('home_page_tutorial_completed', {
+              page_url: '/agents',
+              source: 'Tutorial completed on home page onboarding'
+            });
           },
           animate: true,
           showButtons: true,
