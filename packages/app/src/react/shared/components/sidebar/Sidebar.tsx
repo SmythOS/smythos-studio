@@ -1,22 +1,16 @@
 // src/components/sidebar/Sidebar.tsx
 import { useGetTeamSettings } from '@react/features/teams/hooks/useTeamSettings';
-import { FEATURE_FLAGS } from '@shared/constants/featureflags';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import ErrorFallback from '@src/react/features/error-pages/components/ErrorFallback';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
-import {
-  bottomLinks,
-  sidebarMenuItems,
-  sidebarMenuItemsWithTeams,
-} from '@src/react/shared/constants/navigation';
+import { bottomLinks, getSidebarMenuItems } from '@src/react/shared/constants/navigation';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { useScreenSize } from '@src/react/shared/hooks/useScreenSize';
 import { useGetUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useFeatureVisibility } from '../featureFlags';
 import { CollapseIcon } from '../svgs';
 import { BottomMenuItem } from './BottomMenuItem';
 import { SidebarMenuItem } from './SidebarMenuItem';
@@ -34,8 +28,8 @@ export const Sidebar: React.FC = () => {
   });
 
   const { isCollapsed, toggleSidebar } = useScreenSize();
-  const { isStaffUser, userTeams, getPageAccess } = useAuthCtx();
-  const isTeamsUIEnabled = useFeatureVisibility(FEATURE_FLAGS.TEAMS_UI);
+  const { userTeams, getPageAccess } = useAuthCtx();
+  // const isTeamsUIEnabled = useFeatureVisibility(FEATURE_FLAGS.TEAMS_UI);
   const { data: userSettings, isLoading: isUserSettingsLoading } = useGetUserSettings(
     userSettingKeys.USER_TEAM,
   );
@@ -46,38 +40,43 @@ export const Sidebar: React.FC = () => {
   access['/domains'] = getPageAccess('/domains')?.read;
   access['/data/'] = getPageAccess('/data')?.read;
   access['/analytics'] = getPageAccess('/analytics')?.read;
-  access['/teams/settings'] = isTeamsUIEnabled && getPageAccess('/teams/members')?.read;
+  access['/teams/settings'] = getPageAccess('/teams/members')?.read;
 
   const currentTeam = userTeams?.find((team) => team.id === userSettings?.userSelectedTeam);
   const { data: companyLogo } = useGetTeamSettings(teamSettingKeys.COMPANY_LOGO);
   const showCustomLogo =
     currentTeam?.parentId && companyLogo?.url && getPageAccess('/teams/members')?.read;
 
-  // const isTeamsUIEnabled = false;
-  // featureFlagPayload === FEATURE_FLAG_PAYLOAD_RELEASE_TYPE.PUBLIC || isStaffUser;
-  let menuItems = sidebarMenuItemsWithTeams.filter((item) => access[item.url]);
-  // let menuItems = isTeamsUIEnabled ? sidebarMenuItemsWithTeams : sidebarMenuItems;
-  if (isTeamsUIEnabled && currentTeam) {
-    if (!currentTeam.parentId) {
-      // Create a new array based on sidebarMenuItems priority
-      menuItems = sidebarMenuItems.reduce(
-        (acc, item) => {
-          // Skip '/teams/settings'
-          if (item.url === '/teams/settings') {
-            return acc;
-          }
+  let menuItems = getSidebarMenuItems().filter((item) => {
+    const isVisible =
+      typeof item.visible === 'boolean'
+        ? item.visible
+        : typeof item.visible === 'function'
+          ? item.visible(currentTeam)
+          : true;
+    return access[item.url] && isVisible;
+  });
+  // if (currentTeam && currentTeam.parentId) {
+  //   // if it is SUBTEAM team, add subTeamsMenuItems to menuItems
+  //   // Create a new array based on sidebarMenuItems priority
+  //   // menuItems = sidebarMenuItems.reduce(
+  //   //   (acc, item) => {
+  //   //     // Skip '/teams/settings'
+  //   //     if (item.url === '/teams/settings') {
+  //   //       return acc;
+  //   //     }
 
-          // Include all other items
-          if (menuItems.some((menuItem) => menuItem.url === item.url)) {
-            acc.push(item);
-          }
+  //   //     // Include all other items
+  //   //     if (menuItems.some((menuItem) => menuItem.url === item.url)) {
+  //   //       acc.push(item);
+  //   //     }
 
-          return acc;
-        },
-        [] as typeof sidebarMenuItems,
-      );
-    }
-  }
+  //   //     return acc;
+  //   //   },
+  //   //   [] as typeof sidebarMenuItems,
+  //   // );
+  //   menuItems = [...menuItems, ...subTeamsMenuItems];
+  // }
 
   useEffect(() => {
     const currentPage = menuItems.find((page) => page.url === location.pathname);
