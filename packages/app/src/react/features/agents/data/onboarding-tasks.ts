@@ -1,5 +1,12 @@
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { OnboardingTaskProps, OnboardingTaskType } from '@src/react/shared/types/onboard.types';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
+
+const onboardingPlugins = (
+  plugins.getPluginsByTarget(PluginTarget.Onboarding, PluginType.Config) as {
+    config: any;
+  }[]
+).map((plugin) => plugin.config);
 
 export const onboardingTasks: OnboardingTaskProps[] = [
   {
@@ -18,21 +25,23 @@ export const onboardingTasks: OnboardingTaskProps[] = [
     ],
     completeDescription: "You've successfully completed the interactive quickstart guide",
   },
-  {
-    type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
-    title: 'Invite Team Members',
-    icon: '/img/onboard/invite.svg',
-    description: 'Collaborate seamlessly to build and chat with agents.',
-    completed: false,
-    buttons: [
-      {
-        label: 'Invite Team Members',
-        link: '/teams/members',
-        type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
-      },
-    ],
-    completeDescription: "You've successfully invited your team members to the platform",
-  },
+  // {
+  //   type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
+  //   title: 'Invite Team Members',
+  //   icon: '/img/onboard/invite.svg',
+  //   description: 'Collaborate seamlessly to build and chat with agents.',
+  //   completed: false,
+  //   buttons: [
+  //     {
+  //       label: 'Invite Team Members',
+  //       link: '/teams/members',
+  //       type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
+  //     },
+  //   ],
+  //   completeDescription: "You've successfully invited your team members to the platform",
+  // },
+  ...onboardingPlugins,
+
   {
     type: OnboardingTaskType.TRY_AGENT_TEMPLATE,
     title: 'Start with Template',

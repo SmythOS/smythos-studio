@@ -88,12 +88,19 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
   const [workSpaceObj, setWorkSpaceObj] = useState<Workspace | null>(workspace || null);
   const [agentAuthData, setAgentAuthData] = useState<any>(null);
 
-  let agentId = workspaceAgentId;
-  if (!agentId) {
-    // so useParams are not used unless needed
-    const params = useParams<{ agentId: string }>();
-    agentId = params.agentId;
+  // Always call useParams to avoid violating Rules of Hooks
+  const params = useParams<{ agentId: string }>();
+
+  // Fallback: extract agentId from URL if useParams fails
+  let extractedAgentId = params.agentId;
+  if (!extractedAgentId) {
+    const pathname = window.location.pathname;
+    const match = pathname.match(/\/agent-settings\/([^\/]+)/);
+    extractedAgentId = match ? match[1] : undefined;
   }
+
+  // Use workspaceAgentId if provided, otherwise use extracted agentId
+  const agentId = workspaceAgentId || extractedAgentId;
 
   function updateWorkSpaceObj() {
     setWorkSpaceObj(window['workspace']);

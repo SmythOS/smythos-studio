@@ -9,6 +9,7 @@ export const createTeamRole = (data: apiPayloadTypes.CreateRoleRequest) =>
     body: JSON.stringify(data),
   });
 
+// USED
 export const getTeamRoles = async (): Promise<{ roles: apiResultsTypes.TeamRoleWithMembers[] }> => {
   const result = await fetch('/app/page/teams/roles');
   const response = await result.json();
@@ -26,6 +27,7 @@ export const updateTeamRole = (data: apiPayloadTypes.UpdateRoleRequest) =>
   });
 
 type GetTeamMembersResponse = { members: apiResultsTypes.TeamMemberWithRole[] };
+// USED
 export const getTeamMembers = async (): Promise<GetTeamMembersResponse> => {
   const result = await fetch('/app/page/teams/members?includeRoles=true');
   return result.json();

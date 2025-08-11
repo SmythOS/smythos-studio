@@ -162,31 +162,7 @@ export class Note extends Component {
     const markdownElement = this.domElement?.querySelector('.note-markdown');
     if (markdownElement) {
       markdownElement.remove();
-      this.autoResizeNote();
     }
-  }
-
-  private autoResizeNote(): void {
-    const contentWrapper = this.domElement?.querySelector('.note-content-wrapper');
-    if (!contentWrapper) return;
-
-    setTimeout(() => {
-      // Get the natural height of the content
-      const scrollHeight = contentWrapper.scrollHeight;
-      const titleBarHeight = 40;
-      const padding = 20;
-      const minHeight = 80;
-
-      // Calculate new height based on content
-      const calculatedHeight = scrollHeight + titleBarHeight + padding;
-      const newHeight = Math.max(calculatedHeight, minHeight);
-
-      // Resize to fit content (both shrink and grow)
-      const heightPx = newHeight + 'px';
-      this.domElement.style.height = heightPx;
-      this.properties.height = heightPx;
-      this.data._noteHeight = heightPx;
-    }, 10); // Small delay to ensure DOM is updated
   }
 
   private renderMarkdownContent(): void {
@@ -214,7 +190,6 @@ export class Note extends Component {
   private updateNoteContent(): void {
     this.domElement.querySelector('.note-text').innerHTML = this.data.description || '';
     this.renderMarkdownContent();
-    this.autoResizeNote();
   }
 
   private updateNoteStyles(): void {

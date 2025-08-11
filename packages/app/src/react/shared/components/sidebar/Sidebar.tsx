@@ -1,10 +1,10 @@
 // src/components/sidebar/Sidebar.tsx
+import { useGetTeamSettings } from '@react/features/teams/hooks/useTeamSettings';
 import { FEATURE_FLAGS } from '@shared/constants/featureflags';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import ErrorFallback from '@src/react/features/error-pages/components/ErrorFallback';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
-import { useGetTeamSettings } from '@src/react/features/teams/hooks/useTeamSettings';
 import {
   bottomLinks,
   sidebarMenuItems,
@@ -16,8 +16,6 @@ import { useGetUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { PluginComponents } from '../../plugins/PluginComponents';
-import { PluginTarget } from '../../plugins/Plugins';
 import { useFeatureVisibility } from '../featureFlags';
 import { CollapseIcon } from '../svgs';
 import { BottomMenuItem } from './BottomMenuItem';
@@ -190,7 +188,7 @@ export const Sidebar: React.FC = () => {
                 isActive={activePage === page.name}
               />
             ))}
-            <PluginComponents targetId={PluginTarget.TopMenuItem} />
+            {/* <PluginComponents targetId={PluginTarget.TopMenuItem} /> */}
           </div>
         </nav>
         <div className="mt-auto border-t border-gray-100 overflow-hidden">
