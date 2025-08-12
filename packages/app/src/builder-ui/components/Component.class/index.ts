@@ -1733,7 +1733,7 @@ export class Component extends EventEmitter {
         const saved = await this.save(values);
         if (!saved) {
           errorToast('Error saving settings');
-          return false;
+          return;
         }
 
         if (this.properties.template) {
