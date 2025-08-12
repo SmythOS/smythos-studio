@@ -24,8 +24,8 @@ export class LLMRegistry {
     'others',
   ];
 
-  // Single source of truth for determining verbosity support
-  private static readonly VERBOSITY_SUPPORTED_MODEL_PATTERN = /gpt-5/i;
+  // Single source of truth for determining GPT5 models (verbosity + reasoning effort support)
+  private static readonly GPT5_MODEL_PATTERN = /gpt-5/i;
 
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
@@ -220,23 +220,27 @@ export class LLMRegistry {
   }
 
   /**
-   * Get all models that support verbosity parameter
+   * Get all GPT5 models that support both verbosity and reasoning effort parameters
    *
-   * @returns Array of model IDs that support verbosity
+   * @returns Array of model IDs that are GPT5 models
    */
-  public static getVerbositySupportedModels(): string[] {
+  public static getGpt5ReasoningModels(): string[] {
     const models = this.getModels();
-    return Object.keys(models).filter((modelId) => this.isVerbositySupportedModel(modelId));
+    return Object.keys(models).filter((modelId) => this.isGpt5ReasoningModels(modelId));
   }
 
   /**
-   * Check if a model supports verbosity parameter.
-   * Delegates to getVerbositySupportedModels for a single source of truth.
+   * Check if a model is a GPT5 model (supports both verbosity and reasoning effort).
    *
    * @param modelId - The model ID to check
-   * @returns True if the model supports verbosity parameter
+   * @returns True if the model is a GPT5 model
    */
-  public static isVerbositySupportedModel(modelId: string): boolean {
-    return Boolean(modelId && this.VERBOSITY_SUPPORTED_MODEL_PATTERN.test(modelId));
+  public static isGpt5ReasoningModels(modelId: string): boolean {
+    const models = this.getModels();
+    return Boolean(
+      modelId &&
+        this.GPT5_MODEL_PATTERN.test(modelId) &&
+        models?.[modelId]?.features?.includes('reasoning'),
+    );
   }
 }

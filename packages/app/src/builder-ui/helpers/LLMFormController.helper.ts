@@ -50,6 +50,109 @@ export class LLMFormController {
         }
       }
     }
+
+    // Handle conditional requirements after basic model support check
+    this.handleConditionalRequirements(modelField);
+  }
+
+  /**
+   * Handles data-show-when attribute to show/hide fields based on conditional logic.
+   * Supports model-based conditions and field value-based conditions.
+   *
+   * @param modelField - The model select element
+   */
+  public static handleConditionalRequirements(modelField: HTMLSelectElement) {
+    const formGroupElms = modelField
+      .closest('.form')
+      .querySelectorAll('.form-group, .form-group-div');
+    const selectedModel = modelField.value;
+    const formElm = modelField.closest('.form');
+
+    if (!formGroupElms || formGroupElms.length === 0 || !formElm) return;
+
+    for (const formGroupElm of formGroupElms) {
+      const fieldElm = formGroupElm.querySelector('[data-show-when]');
+
+      if (!fieldElm) continue;
+
+      const conditionAttr = fieldElm.getAttribute('data-show-when');
+      if (!conditionAttr) continue;
+
+      let shouldShow = true;
+
+      try {
+        // Parse the condition - format: "model:gpt-4,claude-3" or "field:fieldId:true" or combined "model:gpt-4;field:enableFeature:true"
+        const conditions = conditionAttr.split(';').map((cond) => cond.trim());
+
+        for (const condition of conditions) {
+          const [type, ...params] = condition.split(':');
+
+          if (type === 'model') {
+            // Model-based condition: check if current model is in the list
+            const requiredModels =
+              params[0]?.split(',').map((model) => model.trim().toLowerCase()) || [];
+            if (
+              requiredModels.length > 0 &&
+              !requiredModels.includes(selectedModel?.toLowerCase())
+            ) {
+              shouldShow = false;
+              break;
+            }
+          } else if (type === 'field') {
+            // Field-based condition: check field value
+            const [fieldId, expectedValue] = params;
+            if (fieldId && expectedValue !== undefined) {
+              const targetFieldElm = formElm.querySelector(`#${fieldId}`) as HTMLInputElement;
+
+              if (targetFieldElm) {
+                let actualValue: string | boolean;
+
+                // Handle different input types
+                if (targetFieldElm.type === 'checkbox') {
+                  actualValue = targetFieldElm.checked;
+                } else if (targetFieldElm.type === 'radio') {
+                  const radioGroup = formElm.querySelectorAll(
+                    `input[name="${targetFieldElm.name}"]:checked`,
+                  );
+                  actualValue =
+                    radioGroup.length > 0 ? (radioGroup[0] as HTMLInputElement).value : '';
+                } else {
+                  actualValue = targetFieldElm.value;
+                }
+
+                // Convert expected value to proper type for comparison
+                let convertedExpectedValue: string | boolean = expectedValue;
+                if (expectedValue.toLowerCase() === 'true') {
+                  convertedExpectedValue = true;
+                } else if (expectedValue.toLowerCase() === 'false') {
+                  convertedExpectedValue = false;
+                }
+
+                if (actualValue !== convertedExpectedValue) {
+                  shouldShow = false;
+                  break;
+                }
+              } else {
+                // If target field doesn't exist, hide the conditional field
+                shouldShow = false;
+                break;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Error parsing data-show-when:', conditionAttr, error);
+        // On error, default to showing the field to avoid breaking the form
+        shouldShow = true;
+      }
+
+      // Apply visibility
+      if (shouldShow) {
+        formGroupElm.classList.remove('hidden');
+      } else {
+        formGroupElm.classList.add('hidden');
+      }
+    }
   }
 
   public static updateFieldsInfo(modelField: HTMLSelectElement) {
