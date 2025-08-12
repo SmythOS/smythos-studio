@@ -28,7 +28,6 @@ import {
 } from '../../../../shared/constants/general';
 import {
   CUSTOM_LLM_SETTINGS_KEY,
-  CUSTOM_MODELS_CACHE_KEY,
   SAMPLE_BINARY_SOURCES,
   WEAVER_FREE_LIMIT,
 } from '../../../constants';
@@ -176,8 +175,8 @@ router.get('/keys/prefix/:keyName/exists', includeTeamDetails, async (req, res) 
   const team = req?._team?.id;
 
   const keys = await vault.get({ team }, req);
-  const keyNames = Object.values(keys).filter(
-    (keyEntry: { name: string }) => keyEntry.name?.startsWith(keyName),
+  const keyNames = Object.values(keys).filter((keyEntry: { name: string }) =>
+    keyEntry.name?.startsWith(keyName),
   );
 
   /*
@@ -763,7 +762,7 @@ router.put('/custom-llm', includeTeamDetails, customLLMAccessMw, async (req, res
     });
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(`${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -844,7 +843,7 @@ router.delete(
       const deleteModel = await teamData.deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
       // delete the custom LLM model cache
-      await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+      await cacheClient.del(`${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
         console.warn('Error deleting custom LLM model cache:', error);
       });
 
@@ -1058,7 +1057,7 @@ async function checkUsageLimits(req) {
 
       const maxLimit = isPaidSubscriber
         ? limitData?.isLimitEnabled
-          ? limitData?.limitValue ?? Infinity
+          ? (limitData?.limitValue ?? Infinity)
           : Infinity
         : freeCredits;
 

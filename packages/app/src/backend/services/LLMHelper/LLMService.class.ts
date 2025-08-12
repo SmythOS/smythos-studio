@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 import config from '../../config';
-import { CUSTOM_MODELS_CACHE_KEY, STANDARD_MODELS_CACHE_KEY } from '../../constants';
 import { cacheClient } from '../../services/cache.service';
 
 type ModelTemplate = {
@@ -32,7 +31,9 @@ export class LLMService {
     const teamId = req?._team?.id;
 
     try {
-      const cachedModels = await this.getModelsFromCache(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`);
+      const cachedModels = await this.getModelsFromCache(
+        `${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`,
+      );
 
       if (Object.keys(cachedModels).length > 0) {
         return cachedModels;
@@ -40,9 +41,11 @@ export class LLMService {
 
       const latestModels = await this.getFreshCustomModels(req);
 
-      this.cacheModels(latestModels, `${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
-        console.error('Error caching models', error);
-      });
+      this.cacheModels(latestModels, `${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch(
+        (error) => {
+          console.error('Error caching models', error);
+        },
+      );
 
       return latestModels;
     } catch (error) {
@@ -84,7 +87,7 @@ export class LLMService {
 
   private async getStandardModels() {
     try {
-      const cachedModels = await this.getModelsFromCache(STANDARD_MODELS_CACHE_KEY);
+      const cachedModels = await this.getModelsFromCache(config.env.STANDARD_MODELS_CACHE_KEY);
 
       if (Object.keys(cachedModels).length > 0) {
         return cachedModels;
@@ -93,7 +96,7 @@ export class LLMService {
       const latestModels = await this.getFreshStandardModels();
 
       if (latestModels && Object.keys(latestModels).length > 0) {
-        this.cacheModels(latestModels, STANDARD_MODELS_CACHE_KEY).catch((error) => {
+        this.cacheModels(latestModels, config.env.STANDARD_MODELS_CACHE_KEY).catch((error) => {
           console.error('Error caching models', error);
         });
       }

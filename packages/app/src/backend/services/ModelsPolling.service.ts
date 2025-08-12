@@ -3,7 +3,6 @@ import axios from 'axios';
 import { LLMService } from './LLMHelper/LLMService.class';
 
 import config from '../config';
-import { STANDARD_MODELS_CACHE_KEY } from '../constants';
 
 const memCache = new Map<string, number>();
 const MODELS_HASH_CACHE_KEY = '__models_hash';
@@ -42,7 +41,7 @@ export class ModelsPollingService {
       const latestModels = await llmService.getFreshStandardModels();
 
       if (latestModels && Object.keys(latestModels).length > 0) {
-        await llmService.cacheModels(latestModels, STANDARD_MODELS_CACHE_KEY);
+        await llmService.cacheModels(latestModels, config.env.STANDARD_MODELS_CACHE_KEY);
 
         console.log('♻️  ModelsPollingService: refreshed');
       }

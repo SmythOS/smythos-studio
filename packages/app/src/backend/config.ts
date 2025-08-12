@@ -68,6 +68,10 @@ const config = {
     // NEEDS TO BE REMOVED SINCE IT IS USED BY A NON-USED COMPONENT
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+
+    // It's okay to not have these variables in the .env file in staging or production, we just have it to differentiate local and staging cache key to avoid unexpected value set from locally
+    STANDARD_MODELS_CACHE_KEY: process.env.STANDARD_MODELS_CACHE_KEY || '__llm_standard_models',
+    CUSTOM_MODELS_CACHE_KEY: process.env.CUSTOM_MODELS_CACHE_KEY || '__llm_custom_models',
   },
   api: {
     SMYTH_USER_API_URL: `${process.env.SMYTH_API_SERVER}/v1`,
