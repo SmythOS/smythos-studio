@@ -1,15 +1,13 @@
 import express from 'express';
-import config from '../../config';
-import ejsHelper from '../../ejsHelper';
-import builderSidebar from './builder-sidebar';
-import { getNavPages, profilePages } from './menus';
-
+import { llmModelsLoaderMiddleware } from '../../../backend/middlewares/llmModelsLoader.mw';
 import * as userData from '../../../backend/services/user-data.service';
 import { getUserSettingsByKey } from '../../../backend/utils/api.utils';
-import { UserSettingsKey } from '../../types/user-data';
-
-import { llmModelsLoaderMiddleware } from '../../../backend/middlewares/llmModelsLoader.mw';
 import { SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
+import config from '../../config';
+import ejsHelper from '../../ejsHelper';
+import { UserSettingsKey } from '../../types/user-data';
+import builderSidebar from './builder-sidebar';
+import { getNavPages, profilePages } from './menus';
 import { checkOnboarding as checkOnboardingMW } from './onboarding.mw';
 
 const router = express.Router();
@@ -97,16 +95,6 @@ router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, as
       agentData = { ...agent };
     } catch (error) {
       console.error('Error fetching agent:', error);
-
-      // if (
-      //   error?.code === 404 ||
-      //   error?.status === 404 ||
-      //   error?.includes?.('404') ||
-      //   error?.statusCode === 404 ||
-      //   error?.message?.includes?.('404')
-      // ) {
-      //   return res.redirect('/error/404');
-      // }
     }
 
     res.render('index', {
@@ -137,9 +125,9 @@ router.get('/logs/:agentId', async (req, res) => {
   });
 });
 
-router.get('/doc', (req, res) => {
-  res.render('index', { page: 'doc', showTopMenuBar: true });
-});
+// router.get('/doc', (req, res) => {
+//   res.render('index', { page: 'doc', showTopMenuBar: true });
+// });
 
 export function createReactRoute(
   args?: object | ((req: express.Request, res: express.Response) => object),
@@ -172,12 +160,7 @@ should be handled in a middleware instead of checking in each route!!
 
 //#region React Routes
 
-router.get('/data', createReactRoute());
-router.get('/data/:dataspace', createReactRoute());
-
-router.get('/domains', checkOnboardingMW, async (req, res) => {
-  createReactRoute()(req, res);
-});
+router.get('/domains', checkOnboardingMW, createReactRoute());
 router.get(
   '/agents',
   async (req, res, next) => {
@@ -221,33 +204,10 @@ router.get(
     }
   },
 );
-router.get('/templates', checkOnboardingMW, async (req, res) => {
-  createReactRoute()(req, res);
-});
-router.get('/teams', createReactRoute());
-router.get('/teams/settings', createReactRoute());
-router.get('/teams/roles', createReactRoute());
-router.get('/teams/members', createReactRoute());
+router.get('/templates', checkOnboardingMW, createReactRoute());
 router.get('/teams/accept-invitation/:invitationId', createReactRoute({ hideTopMenu: true }));
 
-router.get('/plans', checkOnboardingMW, async (req, res) => {
-  createReactRoute({
-    includeTracking: true,
-  })(req, res);
-});
-
-router.get('/enterprise', (req, res) => {
-  if (config.env.NODE_ENV !== 'DEV') {
-    res.status(404).render('index', {
-      page: 'error',
-      error: { code: '404', message: 'Page Not Found' },
-      showTopMenuBar: true,
-      user: req._user || null,
-    });
-  } else {
-    createReactRoute({ includeTracking: true })(req, res);
-  }
-});
+router.get('/plans', checkOnboardingMW, createReactRoute({ includeTracking: true }));
 
 // Routes for your enterprise tier v4 pages:
 router.get('/enterprise-t1', createReactRoute({ includeTracking: true }));
@@ -259,24 +219,6 @@ router.get('/partner', createReactRoute({ includeTracking: true }));
 router.get('/subscriptions/:priceId', createReactRoute());
 router.get('/subscriptions', createReactRoute());
 
-router.get('/account', createReactRoute());
-
-router.get('/partners', createReactRoute());
-
-router.get('/aiagents/:agentId', (req, res) => {
-  if (res.locals.isSmythStaff) {
-    createReactRoute({ hideTopMenu: true })(req, res);
-  } else {
-    res.redirect('/error/404');
-  }
-});
-router.get('/aiagents/:agentId/chat/:chatId', (req, res) => {
-  if (res.locals.isSmythStaff) {
-    createReactRoute({ hideTopMenu: true })(req, res);
-  } else {
-    res.redirect('/error/404');
-  }
-});
 router.get('/chat', createReactRoute({ hideTopMenu: true }));
 
 router.get('/chat/:agentId', createReactRoute({ hideTopMenu: true }));
@@ -286,8 +228,6 @@ router.get('/chat/:agentId/chat/:chatId', createReactRoute({ hideTopMenu: true }
 router.get('/agent-settings/:agentId', llmModelsLoaderMiddleware, createReactRoute());
 
 router.get('/agent-settings/:agentId/bulk/:componentId', createReactRoute());
-
-router.get('/onboard', createReactRoute({ hideTopMenu: true, includeTracking: true }));
 
 router.get(
   '/welcome',
@@ -301,15 +241,9 @@ router.get(
   createReactRoute({ hideTopMenu: true, includeTracking: true }),
 );
 
-router.get('/analytics', createReactRoute());
-
 router.use('/account-deleted', createReactRoute({ env: config.env.NODE_ENV, hideTopMenu: true }));
 
-router.get('/my-plan', createReactRoute());
-
 router.get('/vault', checkOnboardingMW, createReactRoute());
-
-router.get('/vaultv2', createReactRoute());
 
 //#endregion
 
@@ -359,7 +293,6 @@ router.get('/error/:code', (req, res) => {
 });
 
 //* All React Routes SHOULD NOW BE HANDLED BY WEBAPP V2 Route that matches non-existing routes
-
 //* NEW: catch all rest of new React routes and serve react app
 router.get(/^\/(?!.*\.\w+$).*$/, createReactRoute());
 

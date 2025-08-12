@@ -1,12 +1,13 @@
+import {
+  getProperTeamSubs,
+  getTeamMembers,
+  getTeamRoles,
+  getTeamSubs,
+  getUserTeamMembers,
+} from '@react/features/teams/clients/team-api';
 import { PostHog } from '@src/builder-ui/services/posthog';
 import { getUserInfo } from '@src/react/features/account/clients';
 import { getUserOnboardingInfo } from '@src/react/features/onboarding/clients';
-import { getTeamMembers, getTeamRoles } from '@src/react/features/teams/clients/subteam-api';
-import {
-  getProperTeamSubs,
-  getTeamSubs,
-  getUserTeamMembers,
-} from '@src/react/features/teams/clients/team-api';
 import { getUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import { IMembershipTeam } from '@src/react/shared/types/entities';
 import { StateCreator } from 'zustand';

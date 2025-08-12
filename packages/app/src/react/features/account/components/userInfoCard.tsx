@@ -1,7 +1,7 @@
+import { teamAPI } from '@react/features/teams/clients';
 import { DeleteAccountType } from '@src/react/features/account/enum';
 import BlockAccountDeleteModal from '@src/react/features/account/modal/block-account-delete';
 import DeleteAccountModal from '@src/react/features/account/modals/deleteAccountModal';
-import { teamAPI } from '@src/react/features/teams/clients';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { useQuery } from '@tanstack/react-query';
@@ -43,7 +43,7 @@ const UserInfoCard = () => {
 
   const teamMembersQuery = useQuery({
     queryKey: ['team_members_list'],
-    queryFn: teamAPI.getTeamMembers,
+    queryFn: () => teamAPI.getTeamMembers(),
     refetchInterval: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
