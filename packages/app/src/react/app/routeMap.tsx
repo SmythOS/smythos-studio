@@ -11,12 +11,6 @@ import AIChatPage from '../features/ai-chat/pages/ai-chat';
 import DataPage from '../features/data-space/pages/DataPage';
 import DatasourceLibrary from '../features/data-space/pages/DatasourceLibrary';
 import DomainsPage from '../features/domains-space/pages/DomainsPage';
-import { BookAnIntroCallPage } from '../features/onboarding/pages/BookAnIntroCallPage';
-import { OnboardPage } from '../features/onboarding/pages/OnboardPage';
-import { WelcomePage } from '../features/onboarding/pages/WelcomePage';
-import { WelcomePayment } from '../features/onboarding/pages/WelcomePayment';
-import { WelcomeTeamPage } from '../features/onboarding/pages/WelcomeTeamPage';
-import { WelcomeWorkPage } from '../features/onboarding/pages/WelcomeWorkPage';
 import PartnersPage from '../features/partners/pages/PartnersPage';
 import FeaturePageUpsell from '../features/subscriptions/components/paywalls/feature-page-upsell';
 import {
@@ -105,66 +99,6 @@ export const routeMap: IPageRoute[] = [
       UpsellContent: <FeaturePageUpsell.BulkCalls />,
     },
   },
-  {
-    path: '/onboard',
-    title: 'Almost there ...',
-    component: OnboardPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-    },
-  },
-  {
-    path: '/welcome',
-    title: 'Almost there ...',
-    component: WelcomePage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/jobtype',
-    title: 'What do you do?',
-    component: WelcomeTeamPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/work',
-    title: 'What do you want to build?',
-    component: WelcomeWorkPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/book-intro-call',
-    title: 'Schedule Your Onboarding Call',
-    component: BookAnIntroCallPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-
-  {
-    path: '/welcome/payment',
-    title: 'Welcome to SmythOS!',
-    component: WelcomePayment,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
 
   {
     path: '/enterprise-t1',
@@ -217,8 +151,18 @@ export const routeMap: IPageRoute[] = [
     },
   },
 
-  { path: '/', component: AgentsPage, title: 'Agents', layoutOptions: { background: 'agentsGradient' } },
-  { path: '/agents', component: AgentsPage, title: 'Agents', layoutOptions: { background: 'agentsGradient' } },
+  {
+    path: '/',
+    component: AgentsPage,
+    title: 'Agents',
+    layoutOptions: { background: 'agentsGradient' },
+  },
+  {
+    path: '/agents',
+    component: AgentsPage,
+    title: 'Agents',
+    layoutOptions: { background: 'agentsGradient' },
+  },
 
   {
     title: 'My Plan',

@@ -229,8 +229,6 @@ router.get('/agent-settings/:agentId', llmModelsLoaderMiddleware, createReactRou
 
 router.get('/agent-settings/:agentId/bulk/:componentId', createReactRoute());
 
-router.get('/onboard', createReactRoute({ hideTopMenu: true, includeTracking: true }));
-
 router.get(
   '/welcome',
   checkOnboardingMW,
