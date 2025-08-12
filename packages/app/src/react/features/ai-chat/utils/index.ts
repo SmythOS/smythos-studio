@@ -8,7 +8,7 @@ type GenerateResponseInput = {
   query: string;
   fileKeys?: string[];
   signal: AbortSignal;
-  onResponse: (value: string) => void;
+  onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => void;
   onStart: () => void;
   onEnd: () => void;
   onThinking?: (thinking: { message: string }) => void;
@@ -22,6 +22,8 @@ type ResponseFormat = {
   function?: string;
   function_call?: { name?: string; arguments?: any[] };
   error?: string;
+  isError?: boolean;
+  errorType?: string;
 };
 
 // Function-specific thinking messages that cycle every 5 seconds
@@ -392,8 +394,11 @@ export const chatUtils = {
             // Handle regular content - response shows immediately
             message += jsonObject.content;
 
-            // INSTANT DISPLAY: Show response immediately
-            input.onResponse(message);
+            // INSTANT DISPLAY: Show response immediately with error flags if present
+            input.onResponse(message, {
+              isError: jsonObject.isError || false,
+              errorType: jsonObject.errorType || undefined,
+            });
           }
         }
 
