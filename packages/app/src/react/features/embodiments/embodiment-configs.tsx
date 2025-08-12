@@ -11,7 +11,8 @@ export const AlwaysAvailableEmbodiments = [
   'API',
   EMBODIMENT_TYPE.MCP,
   EMBODIMENT_TYPE.ALEXA,
-  EMBODIMENT_TYPE.LOVABLE,
+  // TODO: Uncomment this when Ingrid provides the updated prompt for integration
+  // EMBODIMENT_TYPE.LOVABLE,
 ];
 
 export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Element => {
