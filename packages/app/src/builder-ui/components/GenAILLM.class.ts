@@ -393,36 +393,6 @@ export class GenAILLM extends Component {
             }
             // #endregion
 
-            // #region Update reasoningEffort visibility based on model type
-            const reasoningEffortField = form?.querySelector(
-              '[data-field-name="reasoningEffort"]',
-            ) as HTMLElement;
-
-            if (this.gpt5ReasoningModels.includes(currentElement.value)) {
-              // For GPT-5 models, always show reasoningEffort regardless of useReasoning state
-              if (reasoningEffortField) {
-                reasoningEffortField.classList.remove('hidden');
-                // Update reasoning effort options for the new model
-                this.updateReasoningEffortOptions(currentElement.value);
-              }
-            } else if (this.groqReasoningModels.includes(currentElement.value)) {
-              // For Groq reasoning models, only show when useReasoning is checked
-              if (reasoningEffortField) {
-                if (useReasoningElm && useReasoningElm.checked) {
-                  reasoningEffortField.classList.remove('hidden');
-                  this.updateReasoningEffortOptions(currentElement.value);
-                } else {
-                  reasoningEffortField.classList.add('hidden');
-                }
-              }
-            } else {
-              // For other models, hide reasoningEffort
-              if (reasoningEffortField) {
-                reasoningEffortField.classList.add('hidden');
-              }
-            }
-            // #endregion
-
             // #region Update verbosity field visibility based on model
             this.updateVerbosityFieldVisibility(currentElement.value, form);
             // #endregion
@@ -825,17 +795,6 @@ export class GenAILLM extends Component {
           this.getReasoningEffortOptions(this.data.model || this.defaultModel),
         ),
         options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
-        attributes: {
-          'data-show-when': [
-            {
-              models: this.groqReasoningModels,
-              field: { useReasoning: true },
-            },
-            {
-              models: this.gpt5ReasoningModels,
-            },
-          ],
-        },
         help: 'Controls the level of effort the model will put into reasoning. GPT-OSS models support low/medium/high levels, while Qwen models support none/default.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -1394,6 +1353,7 @@ export class GenAILLM extends Component {
     ) as HTMLElement;
     const reasoningOptions = this.getReasoningEffortOptions(currentModel);
 
+    // Handle reasoning effort field visibility for both GPT-5 and Groq models
     if (reasoningOptions.length > 0) {
       if (this.gpt5ReasoningModels.includes(currentModel)) {
         // For GPT-5 models: Always show reasoningEffort regardless of useReasoning state
@@ -1412,6 +1372,11 @@ export class GenAILLM extends Component {
           } else {
             reasoningEffortField.classList.add('hidden');
           }
+        }
+      } else {
+        // Hide for all other models (GPT-4, etc.)
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.add('hidden');
         }
       }
     } else {
