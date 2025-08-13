@@ -283,7 +283,7 @@ export function CreateEnterpriseModal({
                     error={!!step1Form.formState.errors.name}
                     className="w-full"
                     fullWidth
-                    placeholder="API Key Name"
+                    placeholder="e.g. Custom Bedrock Model"
                   />
                 </div>
                 {step1Form.formState.errors.name && (
@@ -421,8 +421,8 @@ export function CreateEnterpriseModal({
                       ? 'Updating...'
                       : 'Creating...'
                     : editModel
-                    ? 'Update Model'
-                    : 'Create Model'
+                      ? 'Update Model'
+                      : 'Create Model'
                 }
               />
             </div>
