@@ -232,10 +232,22 @@ export const EnterpriseTierFrameV4: FC<Props> = ({ tierIndex }) => {
         }),
       });
 
-      await res.json();
-      await refreshUserData();
+      const responseData = await res.json();
 
-      window.location.href = '/my-plan?upgraded=true';
+      try {
+        let parsedMessage = JSON.parse(responseData?.message);
+        if (parsedMessage && parsedMessage.warnings && Array.isArray(parsedMessage.warnings)) {
+          toast.warning(parsedMessage.warnings.join('\n'));
+        } else {
+          toast.success('Your subscription has been updated.');
+        }
+      } catch {
+        // do nothing
+        toast.success('Your subscription has been updated.');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await refreshUserData();
+      setTimeout(() => navigateTo('/my-plan', false), 500);
       setShowConfirmationDialog(false);
     } catch (error) {
       const errorMessage = extractError(error);

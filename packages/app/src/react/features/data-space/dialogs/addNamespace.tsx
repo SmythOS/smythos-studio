@@ -98,10 +98,22 @@ export default function AddNamespaceDialog({
           isUserAcknowledged: true,
         }),
       });
-      await res.json();
-      await refreshUserData();
 
-      toast.success('Your subscription has been updated.');
+      const responseData = await res.json();
+
+      try {
+        let parsedMessage = JSON.parse(responseData?.message);
+        if (parsedMessage && parsedMessage.warnings && Array.isArray(parsedMessage.warnings)) {
+          toast.warning(parsedMessage.warnings.join('\n'));
+        } else {
+          toast.success('Your subscription has been updated.');
+        }
+      } catch {
+        // do nothing
+        toast.success('Your subscription has been updated.');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await refreshUserData();
       setTimeout(() => navigateTo('/my-plan', false), 500);
     } catch (error) {
       const errorMessage = extractError(error);

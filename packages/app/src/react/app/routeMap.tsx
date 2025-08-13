@@ -11,13 +11,6 @@ import AIChatPage from '../features/ai-chat/pages/ai-chat';
 import DataPage from '../features/data-space/pages/DataPage';
 import DatasourceLibrary from '../features/data-space/pages/DatasourceLibrary';
 import DomainsPage from '../features/domains-space/pages/DomainsPage';
-import { BookAnIntroCallPage } from '../features/onboarding/pages/BookAnIntroCallPage';
-import { OnboardPage } from '../features/onboarding/pages/OnboardPage';
-import { WelcomeInvitePage } from '../features/onboarding/pages/WelcomeInvitePage';
-import { WelcomePage } from '../features/onboarding/pages/WelcomePage';
-import { WelcomePayment } from '../features/onboarding/pages/WelcomePayment';
-import { WelcomeTeamPage } from '../features/onboarding/pages/WelcomeTeamPage';
-import { WelcomeWorkPage } from '../features/onboarding/pages/WelcomeWorkPage';
 import PartnersPage from '../features/partners/pages/PartnersPage';
 import FeaturePageUpsell from '../features/subscriptions/components/paywalls/feature-page-upsell';
 import {
@@ -30,11 +23,7 @@ import {
 import MultiComponentSubscriptionPage from '../features/subscriptions/pages/MultiComponentSubscriptionPage';
 import { PlansPricingPage } from '../features/subscriptions/pages/PlansPricingPage';
 import SinglePriceSubscriptionPage from '../features/subscriptions/pages/SinglePriceSubscriptionPage';
-import AcceptInvitationPage from '../features/teams/pages/accept-invitation-page';
-import { SpaceSettings } from '../features/teams/pages/space-settings';
-import TeamMembersPage from '../features/teams/pages/team-members';
-import { TeamsPage } from '../features/teams/pages/teams';
-import RolesPage from '../features/teams/pages/teams-roles';
+
 import TemplatesPage from '../features/templates/pages/TemplatesPage';
 
 export const routeMap: IPageRoute[] = [
@@ -52,46 +41,6 @@ export const routeMap: IPageRoute[] = [
   },
 
   { path: '/templates', component: TemplatesPage, title: 'Templates' },
-  {
-    path: '/teams',
-    component: TeamsPage,
-    title: 'Teams',
-  },
-  {
-    path: '/teams/settings',
-    component: SpaceSettings,
-    title: 'Space Settings',
-  },
-  {
-    path: '/teams/roles',
-    component: RolesPage,
-    access: {
-      subscriptionBased: true,
-      checkAccess: (subs) => subs.plan.paid && subs.plan.properties?.limits?.teamMembers > 1,
-      UpsellContent: <FeaturePageUpsell.Roles />,
-    },
-    title: 'Roles',
-  },
-  {
-    path: '/teams/members',
-    component: TeamMembersPage,
-    access: {
-      subscriptionBased: true,
-      checkAccess: (subs) => subs.plan.paid && subs.plan.properties?.limits?.teamMembers > 1,
-      UpsellContent: <FeaturePageUpsell.Teams />,
-    },
-    title: 'User Management',
-  },
-  {
-    path: '/teams/accept-invitation/:invitationId',
-    component: AcceptInvitationPage,
-    title: 'Accept Invitation',
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
 
   {
     path: '/plans',
@@ -99,7 +48,11 @@ export const routeMap: IPageRoute[] = [
     title: 'Plans',
   },
   { path: '/partners', component: PartnersPage, title: 'Partners' },
-  { path: '/subscriptions/:priceId', component: SinglePriceSubscriptionPage, title: 'Subscription' },
+  {
+    path: '/subscriptions/:priceId',
+    component: SinglePriceSubscriptionPage,
+    title: 'Subscription',
+  },
   { path: '/subscriptions', component: MultiComponentSubscriptionPage, title: 'Subscription' },
   { path: '/account', component: AccountPage, title: 'Account' },
   {
@@ -144,75 +97,6 @@ export const routeMap: IPageRoute[] = [
       subscriptionBased: true,
       checkAccess: (subs) => subs.plan.paid,
       UpsellContent: <FeaturePageUpsell.BulkCalls />,
-    },
-  },
-  {
-    path: '/onboard',
-    title: 'Almost there ...',
-    component: OnboardPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-    },
-  },
-  {
-    path: '/welcome',
-    title: 'Almost there ...',
-    component: WelcomePage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/jobtype',
-    title: 'What do you do?',
-    component: WelcomeTeamPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/work',
-    title: 'What do you want to build?',
-    component: WelcomeWorkPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/book-intro-call',
-    title: 'Schedule Your Onboarding Call',
-    component: BookAnIntroCallPage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/invite',
-    title: 'Invite team mates',
-    component: WelcomeInvitePage,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
-    },
-  },
-  {
-    path: '/welcome/payment',
-    title: 'Welcome to SmythOS!',
-    component: WelcomePayment,
-    layoutOptions: {
-      sidebar: false,
-      topMenu: false,
-      container: false,
     },
   },
 
@@ -267,8 +151,18 @@ export const routeMap: IPageRoute[] = [
     },
   },
 
-  { path: '/', component: AgentsPage, title: 'Agents' },
-  { path: '/agents', component: AgentsPage, title: 'Agents' },
+  {
+    path: '/',
+    component: AgentsPage,
+    title: 'Agents',
+    layoutOptions: { background: 'agentsGradient' },
+  },
+  {
+    path: '/agents',
+    component: AgentsPage,
+    title: 'Agents',
+    layoutOptions: { background: 'agentsGradient' },
+  },
 
   {
     title: 'My Plan',

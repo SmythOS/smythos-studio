@@ -18,6 +18,7 @@ import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
+import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { Analytics } from '@src/shared/posthog/services/analytics';
@@ -81,7 +82,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   const [hasDeployment, setHasDeployment] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp';
+  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable';
   const [openPanel, setOpenPanel] = useState<PanelType>('none');
   const [dialogModal, setDialogModal] = useState<{
     open: boolean;
@@ -450,6 +451,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       )}
       {openPanel === 'api' && <ApiEmbodimentModal onClose={handleClosePanel} />}
       {openPanel === 'mcp' && <McpEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === 'lovable' && <LovableEmbodimentModal onClose={handleClosePanel} />}
       {dialogModal && dialogModal.open && (
         <Modal
           isOpen={dialogModal.open}
@@ -843,6 +845,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       onOpenChatbotPanel={() => handleOpenPanel('chatbot')}
                       onOpenApiPanel={() => handleOpenPanel('api')}
                       onOpenMcpPanel={() => handleOpenPanel('mcp')}
+                      onOpenLovablePanel={() => handleOpenPanel('lovable')}
                       isVisible={isCollapsed && !isAnyOverlayOpen}
                     />
                   </div>
