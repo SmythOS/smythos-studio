@@ -27,8 +27,8 @@ const GptEmbodimentModal: React.FC<GptEmbodimentModalProps> = ({ onClose }) => {
   const { dev: devDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
 
   // Calculate Dev and Prod URLs
-  const devUrl = devDomain && scheme ? `${scheme}://${devDomain}/api-docs/openapi-llm.json` : '';
-  const prodUrl = prodDomain && scheme ? `${scheme}://${prodDomain}/api-docs/openapi-llm.json` : '';
+  const devUrl = devDomain && scheme ? `${scheme}://${devDomain}/api-docs/openapi-gpt.json` : '';
+  const prodUrl = prodDomain && scheme ? `${scheme}://${prodDomain}/api-docs/openapi-gpt.json` : '';
 
   /**
    * Copies the given text to clipboard.
@@ -122,4 +122,4 @@ const GptEmbodimentModal: React.FC<GptEmbodimentModalProps> = ({ onClose }) => {
   );
 };
 
-export default GptEmbodimentModal; 
+export default GptEmbodimentModal;

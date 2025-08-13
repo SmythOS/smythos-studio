@@ -1,14 +1,19 @@
 import { createPortal } from 'react-dom';
 import { FaCommentDots, FaDiscord, FaGear, FaIdCard, FaRobot } from 'react-icons/fa6';
+import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
+import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
 import ChatbotCodeSnippetModal from '../agent-settings/modals/chatbotCode.modal';
 
-import { AlexaIcon, ChatGptIcon, MCPIcon } from '../../shared/components/svgs';
-import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
-
-export const AlwaysAvailableEmbodiments = ['API', EMBODIMENT_TYPE.MCP, EMBODIMENT_TYPE.ALEXA];
+export const AlwaysAvailableEmbodiments = [
+  'API',
+  EMBODIMENT_TYPE.MCP,
+  EMBODIMENT_TYPE.ALEXA,
+  // TODO: Uncomment this when Ingrid provides the updated prompt for integration
+  // EMBODIMENT_TYPE.LOVABLE,
+];
 
 export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Element => {
   switch (embodimentType.toLowerCase()) {
@@ -28,6 +33,8 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
       return <FaRobot className={classes} style={{ marginTop: '-3px' }} />;
     case EMBODIMENT_TYPE.ALEXA:
       return <AlexaIcon className={classes} />;
+    case EMBODIMENT_TYPE.LOVABLE:
+      return <LovableIcon className={classes} />;
     default:
       return <></>;
   }
@@ -62,6 +69,8 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
       return 'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.';
     case EMBODIMENT_TYPE.FORM:
       return 'Preview your agent as a form for seamless integration with existing workflows.';
+    case EMBODIMENT_TYPE.LOVABLE:
+      return 'Get step-by-step instructions to connect this agent or workflow to Lovable.';
     default:
       return '';
   }
@@ -83,6 +92,8 @@ export const getEmbodimentDataAttribute = (embodimentType: string): string => {
       return 'agentllm-embodiment-card';
     case EMBODIMENT_TYPE.FORM:
       return 'form-embodiment-card';
+    case EMBODIMENT_TYPE.LOVABLE:
+      return 'lovable-embodiment-card';
     default:
       return '';
   }

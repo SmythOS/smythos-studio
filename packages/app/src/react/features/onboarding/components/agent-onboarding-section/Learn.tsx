@@ -15,6 +15,14 @@ const learnCards: LearnCardProps[] = [
     title: 'Community Support',
     description: 'Join Discord for live support from our team and thousands of agent engineers.',
     link: 'https://discord.gg/smythos',
+    external: true,
+  },
+  {
+    image: '/img/onboard/academy.png',
+    title: 'Visit Academy',
+    description: 'Access free courses and certifications to master building AI agents and boost your skills.',
+    link: 'https://academy.smythos.com',
+    external: true,
   },
 ];
 
