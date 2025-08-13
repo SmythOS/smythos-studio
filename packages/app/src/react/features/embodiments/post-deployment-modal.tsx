@@ -78,6 +78,10 @@ interface Props {
    */
   onOpenMcpPanel: () => void;
   /**
+   * Called when the user requests to open the Lovable panel.
+   */
+  onOpenLovablePanel: () => void;
+  /**
    * If true, the card is visible; otherwise, hidden.
    */
   isVisible: boolean;
@@ -99,6 +103,7 @@ function PostDeploymentModal({
   onOpenChatbotPanel,
   onOpenApiPanel,
   onOpenMcpPanel,
+  onOpenLovablePanel,
   isVisible,
 }: Props) {
   const { workspace, allDeployments } = useDeploymentSidebarCtx();
@@ -394,6 +399,19 @@ function PostDeploymentModal({
         />,
       );
     }
+ else if (key === EMBODIMENT_TYPE.LOVABLE) {
+    buttons.push(
+      <Button
+        key={'get-endpoints-' + EMBODIMENT_TYPE.LOVABLE}
+        label="Get Code"
+        variant="tertiary"
+        className="px-3 py-1 h-8 text-xs"
+        handleClick={onOpenLovablePanel}
+        aria-label="Get Code"
+        type="button"
+      />,
+    );
+  }
     const embodimentName = capitalizeFirstLetter(
       key === EMBODIMENT_TYPE.CHAT_GPT ? 'Custom GPT' : setting.embTitle || 'Untitled Embodiment',
     );
