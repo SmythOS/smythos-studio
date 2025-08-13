@@ -82,6 +82,9 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
                     : undefined
                 }
                 isRetrying={contextIsRetrying && index === chatHistoryMessages.length - 1}
+                // Handle error messages as normal responses with error styling
+                isError={message.isError}
+                errorType={message.errorType}
               />
               {index === chatHistoryMessages.length - 1 && contextIsRetrying && (
                 <button onClick={retryLastMessage}>Retry</button>
