@@ -37,7 +37,7 @@ export async function createSecret({ teamId, secretId, key, value, metadata }) {
     let filePath = vaultConnector?._settings?.file;
 
     const currentData = fs.readFileSync(filePath, 'utf8');
-    const newData = JSON.parse(currentData);
+    const newData = JSON.parse(currentData || '{}');
     if (!newData[teamId]) {
       newData[teamId] = {};
     }
@@ -192,7 +192,7 @@ async function setSecretMetadata(teamId: string, secretId: string, metadataFileP
     };
 
     const metadataData = fs.readFileSync(metadataFilePath, 'utf8');
-    const metadataNewData = JSON.parse(metadataData);
+    const metadataNewData = JSON.parse(metadataData || '{}');
     if (!metadataNewData[teamId]) {
       metadataNewData[teamId] = {};
     }

@@ -4,19 +4,20 @@ import { VaultSecret } from '../routes/router.utils';
 import { type OperationResponse } from '../types';
 import { generateKey } from '../utils/general.utils';
 import Cache from './Cache.class';
+import * as teamData from './team-data.service';
+import { uid } from './utils.service';
 import {
   checkIfVaultSecretExists,
   deleteSpecificVaultSecret,
   getSpecificVaultSecret,
+  getUserToken,
   getVaultAllSecrets,
   getVaultSecretsCount,
   mapSecretsTeamSettingObj,
   markSecretAsInvalid,
   setMultipleSecrets,
   setVaultSecret,
-} from './json-vault.service';
-import * as teamData from './team-data.service';
-import { uid } from './utils.service';
+} from './vault.service';
 
 const cache = new Cache({ provider: 'memory' });
 
@@ -55,7 +56,7 @@ class SmythVault {
     req: Request,
   ): Promise<Record<string, any>> {
     if (keyId || keyName) {
-      const idToken = req?.user?.accessToken;
+      const idToken = getUserToken(req);
       let secret = await getSpecificVaultSecret({
         token: idToken,
         secretId: keyId,
@@ -117,7 +118,7 @@ class SmythVault {
     },
     req: Request,
   ): Promise<boolean> {
-    const idToken = req?.user?.accessToken;
+    const idToken = getUserToken(req);
     const isSecretExists = await checkIfVaultSecretExists({
       token: idToken,
       teamId: team,
@@ -201,7 +202,7 @@ class SmythVault {
     data.name = data?.name || this.generateKeyName(data?.owner, data?.name, data?.scope);
 
     try {
-      const idToken = req?.user?.accessToken;
+      const idToken = getUserToken(req);
       await setVaultSecret({
         token: idToken,
         key: data.name,
@@ -280,7 +281,7 @@ class SmythVault {
     }
 
     try {
-      const idToken = req?.user?.accessToken;
+      const idToken = getUserToken(req);
       await setMultipleSecrets({ token: idToken, teamId, secrets: vaultEntries });
     } catch (error) {
       console.log('Error saving multiple secrets in hashicorp');
@@ -302,7 +303,7 @@ class SmythVault {
   }
 
   public async delete(keyId: string, team: string, req: Request): Promise<OperationResponse> {
-    const idToken = req?.user?.accessToken;
+    const idToken = getUserToken(req);
     const deleteSetting = await teamData.deleteTeamSettingsObj(req, this.settingsKey, keyId);
 
     try {
@@ -353,7 +354,7 @@ class SmythVault {
 
     for (const id of entryIds) {
       try {
-        const idToken = req?.user?.accessToken;
+        const idToken = getUserToken(req);
         await deleteSpecificVaultSecret({ token: idToken, secretId: id, teamId: team });
       } catch (error) {
         console.log('Error deleting token from hashicorp vault'); // #TODO: Remove this log after QA
@@ -389,7 +390,7 @@ class SmythVault {
     }
 
     const keyObj = allKeys[keyId];
-    const idToken = req?.user?.accessToken;
+    const idToken = getUserToken(req);
     const saveKey = await teamData.saveTeamSettingsObj({
       req,
       settingKey: this.settingsKey,
@@ -423,7 +424,7 @@ class SmythVault {
   public async count(team: string, req: Request): Promise<number> {
     // const allKeys = await this.getKeys(req, team);
 
-    const idToken = req?.user?.accessToken;
+    const idToken = getUserToken(req);
     const allKeysCount = await getVaultSecretsCount({ token: idToken, teamId: team });
     return allKeysCount;
 
@@ -576,12 +577,11 @@ class SmythVault {
     metadataFilter?: string,
   ): Promise<Record<string, any>> {
     const cacheKey = generateKey(this.settingsKey + team, 'vault');
-    const idToken = req?.user?.accessToken;
+    const idToken = getUserToken(req);
     let cacheResult = await cache.get(cacheKey, 60 * 60); // extend ttl by 1 hour every time we get the keys
 
     let settings = cacheResult?.data || {}; // removed cache for now
     // let settings = {};
-
     if (settings && !Object.keys(settings)?.length) {
       const secretsResponse = await getVaultAllSecrets({
         token: idToken,
