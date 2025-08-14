@@ -1,21 +1,20 @@
-import domains from './domains';
-import vectors from './vectors';
-import agents from './agents';
+import account from './account';
 import agentSettings from './agent-settings';
-import templates from './templates';
-import teams from './teams';
-import user from './user';
+import agents from './agents';
+import aiagents from './aiagents';
 import builder from './builder';
-import vault from './vault';
+import { chatRouter } from './chat';
+import collection from './collection';
+import domains from './domains';
+import logs from './logs';
+import { onboardRouter } from './onboard';
 import plans from './plans';
 import quota from './quota';
-import account from './account';
-import aiagents from './aiagents';
-import logs from './logs';
-import { chatRouter } from './chat';
-import { onboardRouter } from './onboard';
-import collection from './collection';
-import subteams from './subteams';
+import teams from './teams';
+import templates from './templates';
+import user from './user';
+import vault from './vault';
+import vectors from './vectors';
 
 const routers = {
   domains,
@@ -35,7 +34,6 @@ const routers = {
   chat: chatRouter,
   onboard: onboardRouter,
   collection,
-  subteams,
 };
 
 export default routers;

@@ -3,12 +3,11 @@ import * as path from 'path';
 import 'source-map-support/register.js';
 //import oauth2Router from './routes/oauth2/router';
 import config from './config';
-import { apiACLCheck, appACLCheck, pageACLCheck } from './middlewares/acl.mw';
+import { apiACLCheck, pageACLCheck } from './middlewares/acl.mw';
 import { apiAuth, includeTeamDetails, pageAuth } from './middlewares/auth.mw';
 import { errorHandler } from './middlewares/error.mw';
 import { sessionCheck } from './middlewares/sessionCheck.mw';
 import apiRouter from './routes/api/router';
-import appRouter from './routes/app/router';
 import dbgRouter from './routes/dbg/router';
 import oauthRouter from './routes/oauth/router';
 import pagesRouter from './routes/pages/router';
@@ -112,7 +111,6 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 //app.use('/oauth2', apiAuth, oauth2Router);
 app.use('/api', [apiAuth, apiACLCheck], apiRouter);
-app.use('/app', [apiAuth, appACLCheck], appRouter);
 app.use('/dbg', [apiAuth], dbgRouter);
 app.use('/oauth', oauthRouter);
 

@@ -19,7 +19,7 @@
     "type-check": "tsc --noEmit --skipLibCheck",
     "type-check:all": "tsc --noEmit --skipLibCheck && tsc --noEmit --skipLibCheck ",
     "dev:react": "cd src/react && pnpm run dev",
-    "dev": "concurrently --raw --kill-others-on-fail -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
+    "dev": "concurrently --kill-others-on-fail -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
   },
   "type": "module",
   "author": "Alaa-eddine KADDOURI",
