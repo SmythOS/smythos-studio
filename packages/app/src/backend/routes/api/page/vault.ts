@@ -23,6 +23,83 @@ import { getVaultKeys, setVaultKey } from '../../router.utils';
 const router = express.Router();
 
 const vault = new Vault();
+const OAUTH_SETTING_KEY = 'oauth';
+
+// ------------------------------
+// Internal helpers (pure, no side-effects)
+// ------------------------------
+
+/**
+ * Flattens legacy auth_settings.oauth_info into auth_settings (new structure),
+ * removes disallowed fields, and guarantees the presence of a name key.
+ */
+function normalizeAuthSettingsObject(authSettings: any): any {
+  if (!authSettings || typeof authSettings !== 'object') return authSettings;
+
+  // Remove disallowed fields
+  if (authSettings.team) delete authSettings.team;
+
+  // Flatten oauth_info if present (legacy)
+  if (authSettings.oauth_info && typeof authSettings.oauth_info === 'object') {
+    const legacyInfo = authSettings.oauth_info;
+    const keysToFlatten = [
+      'oauth_keys_prefix',
+      'service',
+      'platform',
+      'scope',
+      'authorizationURL',
+      'tokenURL',
+      'clientID',
+      'clientSecret',
+      'requestTokenURL',
+      'accessTokenURL',
+      'userAuthorizationURL',
+      'consumerKey',
+      'consumerSecret',
+    ];
+    for (const k of keysToFlatten) {
+      // Always use value from oauth_info if it exists (overwrite existing)
+      if (legacyInfo[k] !== undefined) {
+        authSettings[k] = legacyInfo[k];
+      }
+    }
+    delete authSettings.oauth_info;
+  }
+
+  // Ensure a name key exists to classify as named connection (even if empty)
+  if (typeof authSettings.name === 'undefined') authSettings.name = '';
+
+  return authSettings;
+}
+
+/**
+ * Merges new settings into existing settings with legacy compatibility.
+ * - Existing auth_settings (if present) are the base; otherwise old flat entry is used (sans tokens)
+ * - Deep-merges oauth_info (legacy), then flattens and sanitizes to new shape
+ */
+function mergeAuthSettings(existingEntry: any, incomingNewSettings: any): any {
+  // Determine existing settings base
+  let existingAuthSettings = {} as any;
+  if (existingEntry?.auth_settings) {
+    existingAuthSettings = existingEntry.auth_settings;
+  } else if (existingEntry && Object.keys(existingEntry).length > 0 && !existingEntry.auth_data) {
+    // Old structure: remove likely token fields
+    const { primary: _p, secondary: _s, expires_in: _e, ...oldSettings } = existingEntry;
+    existingAuthSettings = oldSettings;
+  }
+
+  // Merge incoming
+  let merged = { ...existingAuthSettings, ...(incomingNewSettings || {}) } as any;
+
+  // Deep-merge oauth_info if present
+  if (existingAuthSettings?.oauth_info && incomingNewSettings?.oauth_info) {
+    merged.oauth_info = { ...existingAuthSettings.oauth_info, ...incomingNewSettings.oauth_info };
+  }
+
+  // Normalize to new shape (flatten & sanitize)
+  merged = normalizeAuthSettingsObject(merged);
+  return merged;
+}
 
 /*
   some endpoints are duplicated in /page/builder.ts, the concept is we require it to handle page specific ACLs
@@ -118,6 +195,99 @@ router.delete('/keys/:keyId', includeTeamDetails, async (req, res) => {
   }
 
   res.send({ success: true, data: { keyId } });
+});
+
+router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
+  try {
+    const settings = await getTeamSettingsObj(req, OAUTH_SETTING_KEY);
+    if (settings === null) {
+      console.error('Failed to get OAuth settings due to an internal error.');
+      return res.status(500).json({ success: false, error: 'Failed to retrieve OAuth connections.' });
+    }
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching OAuth connections:', error);
+    res.status(500).json({ success: false, error: 'An unexpected error occurred while fetching OAuth connections.' });
+  }
+});
+
+router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
+  const { entryId, data: newSettings } = req.body;
+
+  // Validate entryId format
+  if (!entryId || typeof entryId !== 'string' || !entryId.startsWith('OAUTH_') || !entryId.endsWith('_TOKENS')) {
+    return res.status(400).json({ success: false, error: 'Invalid or missing entryId.' });
+  }
+  // Validate incoming settings data (basic check)
+  if (!newSettings || typeof newSettings !== 'object' || Array.isArray(newSettings)) {
+    return res.status(400).json({ success: false, error: 'Invalid or missing connection settings data.' });
+  }
+
+  try {
+    // 1. Fetch all existing OAuth settings for the team
+    const existingSettingsMap = await getTeamSettingsObj(req, OAUTH_SETTING_KEY);
+    if (existingSettingsMap === null) {
+      // Handle case where fetching settings failed (getTeamSettingsObj handles internal errors)
+      return res.status(500).json({ success: false, error: 'Failed to retrieve existing OAuth settings.' });
+    }
+
+    // 2. Get the specific entry being updated, or default to an empty object
+    const existingEntry = existingSettingsMap[entryId] || {};
+    // 3. Preserve existing auth_data (if it exists)
+    const preservedAuthData = existingEntry.auth_data || {}; // Keep existing tokens
+
+    // 4-5. Merge and normalize the settings using helper
+    const mergedAuthSettings = mergeAuthSettings(existingEntry, newSettings);
+
+    // 6. Construct the final data object with the new structure
+    const finalDataToSave = {
+      auth_data: preservedAuthData, // Preserved tokens
+      auth_settings: mergedAuthSettings, // Merged configuration
+    };
+
+    // 7. Save the updated entry back using saveTeamSettingsObj
+    const result = await saveTeamSettingsObj({
+      req,
+      settingKey: OAUTH_SETTING_KEY,
+      entryId: entryId,
+      data: finalDataToSave,
+    });
+
+    // 8. Handle save result
+    if (!result.success) {
+      console.error(`[PUT /oauth-connections] Failed to save settings for ${entryId}:`, result.error);
+      return res.status(500).json({ success: false, error: result.error || 'Failed to save OAuth connection.' });
+    }
+
+    // Respond with success and potentially the saved data (or just success status)
+    // Returning the saved data might be useful for the client
+    res.json({ success: true, data: finalDataToSave }); // Respond with the data that was saved
+
+  } catch (error) {
+    console.error(`[PUT /oauth-connections] Error processing request for ${entryId}:`, error);
+    res.status(500).json({ success: false, error: 'An unexpected error occurred while saving the OAuth connection.' });
+  }
+});
+
+router.delete('/oauth-connections/:connectionId', includeTeamDetails, async (req, res) => {
+  const { connectionId } = req.params;
+
+  if (!connectionId || typeof connectionId !== 'string' || !connectionId.startsWith('OAUTH_') || !connectionId.endsWith('_TOKENS')) {
+    return res.status(400).json({ success: false, error: 'Invalid or missing connectionId parameter.' });
+  }
+
+  try {
+    const result = await deleteTeamSettingsObj(req, OAUTH_SETTING_KEY, connectionId);
+
+    if (!result.success) {
+      return res.status(500).json({ success: false, error: result.error || 'Failed to delete OAuth connection.' });
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(`Error deleting OAuth connection ${connectionId}:`, error);
+    res.status(500).json({ success: false, error: 'An unexpected error occurred while deleting the OAuth connection.' });
+  }
 });
 
 async function getRecommendedModels(req) {

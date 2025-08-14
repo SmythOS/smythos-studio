@@ -2138,3 +2138,39 @@ export async function closeAgentSettingsRightSidebar(): Promise<void> {
     contentContainer.innerHTML = '';
   }
 }
+
+export function toast(message, title = '', cls = 'smt-notification') {
+  const notify = Metro.notify;
+  notify.setup({
+    width: 300,
+    duration: 300,
+    timeout: 5000,
+    cls: `smt-notification ${cls}`,
+    animation: 'easeOutQuart',
+  });
+
+  // Add a close button with custom styling to the message
+  const closeButtonHtml =
+    '<div style="position: absolute; top: -5px; right: 0; cursor: pointer; font-size: 20px; color: #000;">&times;</div>';
+  const fullMessage = `<div style="position: relative; padding-right: 30px;">${closeButtonHtml}<div>${message}</div></div>`;
+
+  // Create the toast with the modified message
+  const toastElement = notify.create(fullMessage, title, { cls });
+
+  // Immediately find the newly created toast and its close button
+  const selector = cls ? `.${cls} .toast-close-btn` : '.toast-close-btn';
+  const closeBtn = document.querySelector(selector);
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      // Directly remove the toast element from the DOM
+      const notifyContainer = closeBtn.closest('.notify-container');
+      if (notifyContainer) {
+        notifyContainer.remove(); // Or use notifyContainer.style.display = 'none'; to hide
+      }
+    });
+  }
+
+  notify.reset();
+}
+
+window['toast'] = toast;

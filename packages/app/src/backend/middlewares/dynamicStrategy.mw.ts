@@ -43,6 +43,19 @@ export const dynamicStrategyInitialization = async (req, res, next) => {
       }
     });
 
+    // Derive callback URL when missing
+    if (!config['callbackURL']) {
+      try {
+        const origin = req.headers?.origin || `${req.protocol}://${req.get('host')}`;
+        const internalService = String(service).toLowerCase();
+        const isOAuth2 = ['google', 'linkedin', 'oauth2'].includes(internalService);
+        const provider = isOAuth2 ? (internalService === 'oauth2' ? 'oauth2' : internalService) : 'oauth1';
+        config['callbackURL'] = `${origin}/oauth/${provider}/callback`;
+      } catch (e) {
+        // leave as undefined if cannot derive
+      }
+    }
+
     // Setup the callback function for the strategy
     let strategyCallback = null;
     if (isOAuth2) {
