@@ -82,6 +82,10 @@ interface Props {
    */
   onOpenLovablePanel: () => void;
   /**
+   * Called when the user requests to open the Form panel.
+   */
+  onOpenFormPanel: () => void;
+  /**
    * If true, the card is visible; otherwise, hidden.
    */
   isVisible: boolean;
@@ -101,6 +105,7 @@ function PostDeploymentModal({
   onOpenCodeSnippetModal,
   onOpenAlexaPanel,
   onOpenChatbotPanel,
+  onOpenFormPanel,
   onOpenApiPanel,
   onOpenMcpPanel,
   onOpenLovablePanel,
@@ -354,7 +359,7 @@ function PostDeploymentModal({
             label="Get Code"
             variant="tertiary"
             className="px-3 py-1 h-8 text-xs"
-            handleClick={() => onOpenChatbotPanel()}
+            handleClick={() => onOpenFormPanel()}
             aria-label="Get Code"
             type="button"
           />,
@@ -427,20 +432,19 @@ function PostDeploymentModal({
           type="button"
         />,
       );
+    } else if (key === EMBODIMENT_TYPE.LOVABLE) {
+      buttons.push(
+        <Button
+          key={'get-endpoints-' + EMBODIMENT_TYPE.LOVABLE}
+          label="Get Code"
+          variant="tertiary"
+          className="px-3 py-1 h-8 text-xs"
+          handleClick={onOpenLovablePanel}
+          aria-label="Get Code"
+          type="button"
+        />,
+      );
     }
- else if (key === EMBODIMENT_TYPE.LOVABLE) {
-    buttons.push(
-      <Button
-        key={'get-endpoints-' + EMBODIMENT_TYPE.LOVABLE}
-        label="Get Code"
-        variant="tertiary"
-        className="px-3 py-1 h-8 text-xs"
-        handleClick={onOpenLovablePanel}
-        aria-label="Get Code"
-        type="button"
-      />,
-    );
-  }
     const embodimentName = capitalizeFirstLetter(
       key === EMBODIMENT_TYPE.CHAT_GPT ? 'Custom GPT' : setting.embTitle || 'Untitled Embodiment',
     );
