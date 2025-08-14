@@ -13,6 +13,7 @@ import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Info } from 'lucide-react';
 import { Fragment, useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
+import { saveEmbodiment } from '../clients';
 
 interface IFormPreviewDialogProps {
   isOpen: boolean;
@@ -81,41 +82,30 @@ const FormPreviewDialog = ({
         },
       };
 
-      const requestOptions = {
-        method: currentData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
+      try {
+        await saveEmbodiment(
+          currentData ? 'PUT' : 'POST',
           currentData
             ? { ...dataToSend, embodimentId: currentData?.id }
             : { ...dataToSend, aiAgentId: agentId },
-        ),
-      };
+        );
+        // Invalidate the agentEmbodiments query to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
+        // Also invalidate the embodiments query used in deploy modal
+        queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
+        // Invalidate the agent_embodiments query used in OverviewWidgetsContainer
+        queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
+        // Invalidate the availableEmbodiments query
+        queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
 
-      fetch('/api/page/agents/embodiment', requestOptions)
-        .then((response) => {
-          response.json().then((data) => {
-            // Invalidate the agentEmbodiments query to ensure fresh data
-            queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
-            // Also invalidate the embodiments query used in deploy modal
-            queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
-            // Invalidate the agent_embodiments query used in OverviewWidgetsContainer
-            queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
-            // Invalidate the availableEmbodiments query
-            queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
-            refreshEmbodiments(agentId, currentData?.id);
-            successToast('Embodiment saved');
-            closeModal();
-          });
-        })
-        .catch((error) => {
-          errorToast(extractError(error) || 'Embodiment not saved. Please try again.');
-          console.log(error);
-        })
-        .finally(() => {
-          setIsSubmitting(false); // Reset the flag after submission is complete
-        });
+        successToast('Embodiment saved');
+        closeModal();
+      } catch (error) {
+        errorToast(extractError(error) || 'Embodiment not saved. Please try again.');
+        console.log(error);
+      }
+
+      setIsSubmitting(false); // Reset the flag after submission is complete
     } catch (error) {
       console.error('Error:', error);
     }
