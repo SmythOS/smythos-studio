@@ -6,19 +6,16 @@ import { PAGE_TITLE_MAP } from '@shared/constants/general';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
-import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FeatureFlagged } from '../../featureFlags';
-import { TeamSwitch } from './TeamSwitch';
 import { UserAvatar } from './UserAvatar';
 
 export const TopbarPrimary = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { userInfo, userTeams, getPageAccess } = useAuthCtx();
   const [profilePages, setProfilePages] = useState(
-    profileDropdownItems.filter((p) => {
+    profileDropdownItems().filter((p) => {
       return (
         p.url !== '/teams/settings' && p.url !== '/teams/members' && getPageAccess(p.url)?.read
       );
@@ -69,13 +66,13 @@ export const TopbarPrimary = () => {
       const currTeam = userTeams?.filter?.((t) => t.id === userSettings?.userSelectedTeam)?.[0];
       if (!currTeam?.parentId) {
         setProfilePages(
-          profileDropdownItems.filter(
+          profileDropdownItems().filter(
             (p) => p.url !== '/teams/settings' && getPageAccess(p.url)?.read,
           ),
         );
       } else {
         setProfilePages(
-          profileDropdownItems.filter((p) => {
+          profileDropdownItems().filter((p) => {
             return (
               p.url !== '/teams/members' &&
               p.url !== '/teams/settings' &&
@@ -103,19 +100,9 @@ export const TopbarPrimary = () => {
       </div>
 
       <div className="flex items-center gap-4 pb-1 md:pb-0">
-        <FeatureFlagged
-          featureFlag={FEATURE_FLAGS.TEAMS_UI}
-          alternateContent={
-            <UserAvatar
-              user={userInfo?.user}
-              profilePages={profilePages.filter((itm) => itm.name !== 'Teams')}
-            />
-          }
-        >
-          <TeamSwitch />
-          <UserAvatar user={userInfo?.user} profilePages={profilePages} />
-        </FeatureFlagged>
+        {/* <TeamSwitch /> */}
         <PluginComponents targetId={PluginTarget.TopMenuItem} />
+        <UserAvatar user={userInfo?.user} profilePages={profilePages} />
       </div>
     </nav>
   );

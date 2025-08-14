@@ -25,7 +25,6 @@ export const onboardingTasks: OnboardingTaskProps[] = [
     ],
     completeDescription: "You've successfully completed the interactive quickstart guide",
   },
-  // COMMENTED TEMPORARILY WHILE MIGRATING FROM CE TO SAAS
   // {
   //   type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
   //   title: 'Invite Team Members',

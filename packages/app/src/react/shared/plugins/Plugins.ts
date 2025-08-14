@@ -2,6 +2,8 @@ export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
   TopMenuItem = 'topMenuItem',
   Onboarding = 'onboarding',
+  SidebarMenuItems = 'sidebarMenuItems',
+  TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
 }
 
 export enum PluginType {
