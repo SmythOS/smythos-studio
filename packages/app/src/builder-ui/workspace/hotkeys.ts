@@ -27,7 +27,7 @@ export function registerHotkeys(workspace: Workspace) {
   const hotkey: any = hotkeys.noConflict();
   const deleteHotkeys = 'del, backspace';
   let deleteConfirmationActive = false; // Flag to prevent multiple modals
-  
+
   // Initialize search functionality
   const searchHelper = CanvasSearchHelper.getInstance();
   try {
@@ -91,8 +91,8 @@ export function registerHotkeys(workspace: Workspace) {
       `Are you sure you want to delete selected ${confirmText}?`,
       {
         icon: '',
-        btnNoLabel: 'No, Cancel',
-        btnYesLabel: "Yes, I'm sure",
+        btnNoLabel: 'Cancel',
+        btnYesLabel: `Delete ${confirmText}`,
         btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
       },
     );

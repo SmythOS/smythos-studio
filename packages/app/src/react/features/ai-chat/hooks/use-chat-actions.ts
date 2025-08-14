@@ -115,7 +115,7 @@ export const useChatActions = ({
           fileKeys: attachedFiles?.map((f) => f.metadata.key).filter(Boolean) as string[],
           chatId,
           signal,
-          onResponse: (value: string) => {
+          onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
             setChatHistoryMessages((bubbles) => {
               // Only remove thinking messages if we have actual content
               if (value && value.trim() !== '') {
@@ -129,11 +129,11 @@ export const useChatActions = ({
                     .pop()?.index ?? -1;
 
                 if (lastSystemMessageIndex !== -1) {
-                  // Update the system message with final response
+                  // Update the system message with final response and error info
                   const updatedBubbles = [...filteredBubbles];
                   updatedBubbles[lastSystemMessageIndex].message = value;
                   updatedBubbles[lastSystemMessageIndex].isReplying = false;
-                  updatedBubbles[lastSystemMessageIndex].isError = false;
+                  updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
                   updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false; // Show the message bubble
                   return updatedBubbles;
                 }
@@ -292,7 +292,7 @@ export const useChatActions = ({
               .filter(Boolean) as string[],
             chatId,
             signal,
-            onResponse: (value: string) => {
+            onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
               setChatHistoryMessages((bubbles) => {
                 // Only remove thinking messages if we have actual content
                 if (value && value.trim() !== '') {
@@ -306,11 +306,11 @@ export const useChatActions = ({
                       .pop()?.index ?? -1;
 
                   if (lastSystemMessageIndex !== -1) {
-                    // Update the system message with final response
+                    // Update the system message with final response and error info
                     const updatedBubbles = [...filteredBubbles];
                     updatedBubbles[lastSystemMessageIndex].message = value;
                     updatedBubbles[lastSystemMessageIndex].isReplying = false;
-                    updatedBubbles[lastSystemMessageIndex].isError = false;
+                    updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
                     updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false;
                     return updatedBubbles;
                   }
