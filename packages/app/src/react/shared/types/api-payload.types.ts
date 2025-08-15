@@ -36,10 +36,6 @@ export interface UpdateTeamMemberRoleRequest {
   roleId: number;
 }
 
-export interface PostDomainRequest {
-  name: string;
-}
-
 export interface CreateAgentScheduledJobRequest {
   jobType: 'AGENT_SCHEDULE';
   name?: string;

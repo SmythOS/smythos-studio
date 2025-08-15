@@ -1,7 +1,6 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import {
-  BinaryTreeIcon,
   BookIcon,
   DiscordIcon,
   GridIcon,
@@ -31,7 +30,6 @@ export const getSidebarMenuItems = (): SidebarMenuItem[] => {
 
   return [
     { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
-    { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon, visible: true, order: 3 },
     { url: '/analytics', name: 'Analytics', icon: LineChartIcon, visible: true, order: 4 },
     { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
     { url: '/templates', name: 'Templates', icon: GridIcon, visible: true, order: 6 },

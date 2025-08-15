@@ -5,7 +5,6 @@ import aiagents from './aiagents';
 import builder from './builder';
 import { chatRouter } from './chat';
 import collection from './collection';
-import domains from './domains';
 import logs from './logs';
 import { onboardRouter } from './onboard';
 import plans from './plans';
@@ -16,8 +15,6 @@ import user from './user';
 import vault from './vault';
 
 const routers = {
-  domains,
-  // vectors,
   agents,
   templates,
   teams,

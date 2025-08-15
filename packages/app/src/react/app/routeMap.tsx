@@ -8,7 +8,6 @@ import AccountPage from '../features/account/pages/AccountPage';
 import AgentSettingsBulkCallPage from '../features/agent-settings/pages/AgentSettingsBulkCallPage';
 import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPage';
 import AIChatPage from '../features/ai-chat/pages/ai-chat';
-import DomainsPage from '../features/domains-space/pages/DomainsPage';
 import PartnersPage from '../features/partners/pages/PartnersPage';
 import FeaturePageUpsell from '../features/subscriptions/components/paywalls/feature-page-upsell';
 import {
@@ -25,16 +24,7 @@ import SinglePriceSubscriptionPage from '../features/subscriptions/pages/SingleP
 import TemplatesPage from '../features/templates/pages/TemplatesPage';
 
 export const routeMap: IPageRoute[] = [
-  {
-    path: '/domains',
-    component: DomainsPage,
-    access: {
-      subscriptionBased: true,
-      checkAccess: (subs) => subs.plan.properties?.flags?.domainRegistrationEnabled,
-      UpsellContent: <FeaturePageUpsell.Subdomains />,
-    },
-    title: 'Domains',
-  },
+ 
 
   { path: '/templates', component: TemplatesPage, title: 'Templates' },
 
