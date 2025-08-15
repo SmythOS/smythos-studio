@@ -1,13 +1,6 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import {
-  BookIcon,
-  DiscordIcon,
-  GridIcon,
-  HomeIcon,
-  KeyIcon,
-  LineChartIcon,
-} from '../components/svgs';
+import { BookIcon, DiscordIcon, GridIcon, HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
@@ -30,7 +23,6 @@ export const getSidebarMenuItems = (): SidebarMenuItem[] => {
 
   return [
     { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
-    { url: '/analytics', name: 'Analytics', icon: LineChartIcon, visible: true, order: 4 },
     { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
     { url: '/templates', name: 'Templates', icon: GridIcon, visible: true, order: 6 },
     ...pluginItems,
@@ -59,6 +51,5 @@ export const profileDropdownItems = () => {
     // { url: '/teams/members', name: 'User Management' },
     ...pluginItems,
     { url: '/teams/settings', name: 'User Management' },
-    { url: '/my-plan', name: 'My Plan' },
   ];
 };

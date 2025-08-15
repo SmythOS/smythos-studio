@@ -1,5 +1,3 @@
-import AnalyticsPage from '@react/features/analytics/pages/AnalyticsPage';
-import MyPlanPage from '@react/features/subscriptions/pages/MyPlanPage';
 import VaultPage from '@react/features/vault/pages/VaultPage';
 import AgentsPage from '@src/react/features/agents/pages/AgentsPage';
 import { IPageRoute } from '@src/react/shared/types/route';
@@ -150,18 +148,8 @@ export const routeMap: IPageRoute[] = [
     layoutOptions: { background: 'agentsGradient' },
   },
 
-  {
-    title: 'My Plan',
-    path: 'my-plan',
-    component: MyPlanPage,
-    layoutOptions: { sidebar: true, topMenu: true },
-  },
-  {
-    title: 'Analytics',
-    path: 'analytics',
-    component: AnalyticsPage,
-    layoutOptions: { sidebar: true, topMenu: true },
-  },
+
+
   {
     title: 'Vault',
     path: 'vault',
