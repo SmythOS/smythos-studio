@@ -3,7 +3,6 @@ import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import {
   BinaryTreeIcon,
   BookIcon,
-  DatabaseIcon,
   DiscordIcon,
   GridIcon,
   HomeIcon,
@@ -20,24 +19,24 @@ export type SidebarMenuItem = {
   name: string;
   icon: React.FC;
   visible: boolean | ((ctx: any) => boolean);
+  order?: number;
 };
 
 export const getSidebarMenuItems = (): SidebarMenuItem[] => {
   let pluginItems = (
     plugins.getPluginsByTarget(PluginTarget.SidebarMenuItems, PluginType.Config) as {
-      config: any;
+      config: SidebarMenuItem;
     }[]
   ).flatMap((item) => item.config);
 
   return [
-    { url: '/agents', name: 'Home', icon: HomeIcon, visible: true },
-    { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon, visible: true },
-    { url: '/data/', name: 'Data Pool', icon: DatabaseIcon, visible: true },
-    { url: '/analytics', name: 'Analytics', icon: LineChartIcon, visible: true },
-    { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true },
-    { url: '/templates', name: 'Templates', icon: GridIcon, visible: true },
+    { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
+    { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon, visible: true, order: 3 },
+    { url: '/analytics', name: 'Analytics', icon: LineChartIcon, visible: true, order: 4 },
+    { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
+    { url: '/templates', name: 'Templates', icon: GridIcon, visible: true, order: 6 },
     ...pluginItems,
-  ];
+  ].sort((a, b) => (a.order || 0) - (b.order || 0));
 };
 
 export const bottomLinks = [

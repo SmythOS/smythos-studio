@@ -39,46 +39,7 @@ export interface UpdateTeamMemberRoleRequest {
 export interface PostDomainRequest {
   name: string;
 }
-export interface SaveCustomVectorStorage {
-  projectUrl: string;
-  apiKey: string;
-  indexName: string;
-  environment: string;
-}
 
-/*
-{
-  "jobType": "AGENT_SCHEDULE",
-  "name": "Send Message",
-  "data": {
-    "componentId": "component_1",
-    "agentId": "clpc800ik9ti44wpjpitt",
-    "body": {
-      "foo": "bar"
-    }
-  },
-  "options": {
-    "repeat": {
-      "patternDetails": {
-        "daysOfWeek": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
-        ],
-        "repeatEveryUnit": "hour",
-        "repeatEvery": 1
-      },
-      "limit": 10,
-      "startDate": "2021-01-01T00:00:00.000Z",
-      "endDate": "2021-01-01T00:00:00.000Z"
-    }
-  }
-}
-*/
 export interface CreateAgentScheduledJobRequest {
   jobType: 'AGENT_SCHEDULE';
   name?: string;

@@ -23,8 +23,6 @@
     "src/**/*",
     "node_modules/@types",
     "eslint.config.js",
-    "../../../src/react/features/onboarding/constants",
-    "../../../src/react/features/onboarding/utils"
-  ],
+    ],
   "exclude": ["node_modules"]
 }

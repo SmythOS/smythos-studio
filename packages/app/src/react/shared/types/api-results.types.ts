@@ -35,17 +35,6 @@ export interface Invitation {
   teamRole: TeamRole;
 }
 
-export interface VectorsCustomStorage {
-  isConfigured: boolean;
-  storage?: {
-    projectId: string;
-    apiKey: string;
-    indexName: string;
-    environment: string;
-    projectUrl: string;
-  } | null;
-}
-
 // should not be here
 export interface SmythAPIError {
   error: { code: string; message: string; errKey?: string };
@@ -177,33 +166,6 @@ export type AgentScheduledJobLog = {
   logs: string[];
   sessionTag?: string;
 } | null;
-
-export interface Datasource {
-  updatedAt: string;
-  createdAt: string;
-  id: string;
-  name: string;
-  type: 'SITEMAP' | 'WEBPAGE' | 'WORD' | 'TRANSCRIPT' | 'PDF';
-  url: string;
-}
-
-export type DatasourceStatus = {
-  status: 'done' | 'pending' | 'indexing' | 'failed-retry' | 'failed' | 'done-duplicate';
-  statusData: {
-    status: 'done' | 'pending' | 'indexing' | 'failed-retry' | 'failed' | 'done-duplicate';
-    lastCrawledAt: string;
-  };
-};
-
-export type DatasourceSitemapStatus = {
-  status: {
-    total: number;
-    completed: number;
-    pending: number;
-    failed: number;
-    nextCrawlAt?: string;
-  };
-};
 
 export interface BulkAgentCallJob {
   data: string;

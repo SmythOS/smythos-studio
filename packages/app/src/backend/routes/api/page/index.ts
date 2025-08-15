@@ -14,11 +14,10 @@ import teams from './teams';
 import templates from './templates';
 import user from './user';
 import vault from './vault';
-import vectors from './vectors';
 
 const routers = {
   domains,
-  vectors,
+  // vectors,
   agents,
   templates,
   teams,
