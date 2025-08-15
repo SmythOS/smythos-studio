@@ -2289,6 +2289,7 @@ input[data-vault-exclusive='true']:disabled {
   margin: 0;
   color: #333;
   cursor: text;
+  word-break: break-all;
 }
 
 .menu-button {
