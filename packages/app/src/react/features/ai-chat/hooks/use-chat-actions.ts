@@ -117,7 +117,8 @@ export const useChatActions = ({
           signal,
           onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
             setChatHistoryMessages((bubbles) => {
-              // Only remove thinking messages if we have actual content
+              // Only remove thinking messages and clean message when we have actual content
+              // This ensures debug messages are preserved until content starts arriving
               if (value && value.trim() !== '') {
                 const filteredBubbles = bubbles.filter((msg) => msg.type !== 'thinking');
 
@@ -176,8 +177,12 @@ export const useChatActions = ({
                 if (lastSystemIndex !== -1) {
                   // Insert after the last system message
                   newBubbles.splice(lastSystemIndex + 1, 0, thinkingMessage);
+
                   // Hide the system message when thinking starts
-                  newBubbles[lastSystemIndex].hideMessageBubble = true;
+                  // newBubbles[lastSystemIndex].hideMessageBubble = true;
+
+                  // Don't hide the system message when thinking starts - keep it visible during debug
+                  // The message will only be hidden when actual content starts arriving
                   newBubbles[lastSystemIndex].isReplying = false;
                 } else {
                   // Add at the end if no system message
@@ -193,6 +198,8 @@ export const useChatActions = ({
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.type === 'system') {
+                // Show initial processing message and loading indicator
+                lastMessage.message = 'Processing your request...';
                 lastMessage.isReplying = true; // Show loading indicator for system message
               }
               return newMessages;
