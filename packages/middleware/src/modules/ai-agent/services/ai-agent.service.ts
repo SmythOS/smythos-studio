@@ -1,15 +1,15 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unsafe-optional-chaining */
-import httpStatus from 'http-status';
-import { prisma } from '../../../../prisma/prisma-client';
-import ApiError from '../../../utils/apiError';
-import { PrismaTransaction } from '../../../../types';
-import { AiAgentSettings, AiAgentState, Prisma } from '@prisma/client';
+import { AiAgentSettings, AiAgentState } from '@prisma/client';
 import crypto from 'crypto';
-import { PRISMA_ERROR_CODES, includePagination } from '../../../utils/general';
-import errKeys from '../../../utils/errorKeys';
+import httpStatus from 'http-status';
 import { createLogger } from '../../../../config/logging-v2';
+import { prisma } from '../../../../prisma/prisma-client';
+import { PrismaTransaction } from '../../../../types';
+import ApiError from '../../../utils/apiError';
+import errKeys from '../../../utils/errorKeys';
+import { PRISMA_ERROR_CODES, includePagination } from '../../../utils/general';
 
 const logger = createLogger('ai-agent-service');
 
@@ -194,16 +194,21 @@ export const saveAgent = async ({
   data: { name: string; json: { [key: string]: any }; description?: string; teamId?: string };
 }) => {
   if (data.json) {
-    data.json.teamId = teamId;
+    data.json.teamId = teamId; // sanity check to make sure teamId of the agent is the same as the teamId of the user
     data.json.parentTeamId = parentTeamId;
+    // data.json.id = aiAgentId;
   }
 
   if (!aiAgentId) {
+    // create new agent
+    // but before, delete any sensetive info from the data.json before creating to avoid an exploit where the
+    // user can create an agent using other's id
+    const { id, ...cleanJsonData } = data.json;
     const newAgent = await createNewAgent({
       userId,
       teamId,
       name: data.name,
-      data: data.json,
+      data: cleanJsonData,
       spaceId: spaceId ?? null,
       description: data.description,
     });
@@ -220,6 +225,7 @@ export const saveAgent = async ({
       select: {
         id: true,
         teamId: true,
+
         lockId: true,
       },
     });
@@ -232,6 +238,10 @@ export const saveAgent = async ({
       throw new ApiError(httpStatus.CONFLICT, 'Invalid lock id');
     }
 
+    // sanity check to make sure the data.json.id is the same as the aiAgentId
+    data.json.id = aiAgentId;
+
+    // update existing agent
     const updated = await tx.aiAgent.update({
       where: {
         id: aiAgentId,
@@ -239,13 +249,17 @@ export const saveAgent = async ({
       data: {
         name: data.name,
         description: data.description,
+
+        //* LOCKS updates
         lastLockSaveOperation: new Date(),
-        lastLockBeat: new Date(),
+        lastLockBeat: new Date(), // a save operation is considered a beat as well
+
         aiAgentData: {
           update: {
             data: data.json,
           },
         },
+
         contributors: {
           upsert: {
             where: {
@@ -265,6 +279,7 @@ export const saveAgent = async ({
           },
         },
       },
+
       select: {
         id: true,
         name: true,
@@ -274,7 +289,7 @@ export const saveAgent = async ({
     return updated;
   };
 
-  const updatedAgent = await prisma.$transaction(runOperations as unknown as Parameters<typeof prisma.$transaction>[0], {
+  const updatedAgent = await prisma.$transaction(runOperations, {
     timeout: 30_000,
   });
 

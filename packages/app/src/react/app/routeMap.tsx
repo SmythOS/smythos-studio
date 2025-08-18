@@ -1,5 +1,3 @@
-import AnalyticsPage from '@react/features/analytics/pages/AnalyticsPage';
-import MyPlanPage from '@react/features/subscriptions/pages/MyPlanPage';
 import VaultPage from '@react/features/vault/pages/VaultPage';
 import AgentsPage from '@src/react/features/agents/pages/AgentsPage';
 import { IPageRoute } from '@src/react/shared/types/route';
@@ -8,9 +6,6 @@ import AccountPage from '../features/account/pages/AccountPage';
 import AgentSettingsBulkCallPage from '../features/agent-settings/pages/AgentSettingsBulkCallPage';
 import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPage';
 import AIChatPage from '../features/ai-chat/pages/ai-chat';
-import DataPage from '../features/data-space/pages/DataPage';
-import DatasourceLibrary from '../features/data-space/pages/DatasourceLibrary';
-import DomainsPage from '../features/domains-space/pages/DomainsPage';
 import PartnersPage from '../features/partners/pages/PartnersPage';
 import FeaturePageUpsell from '../features/subscriptions/components/paywalls/feature-page-upsell';
 import {
@@ -27,18 +22,7 @@ import SinglePriceSubscriptionPage from '../features/subscriptions/pages/SingleP
 import TemplatesPage from '../features/templates/pages/TemplatesPage';
 
 export const routeMap: IPageRoute[] = [
-  { path: '/data', component: DataPage, title: 'Data Pool' },
-  { path: '/data/:dataspace', component: DatasourceLibrary, title: 'Datasources' },
-  {
-    path: '/domains',
-    component: DomainsPage,
-    access: {
-      subscriptionBased: true,
-      checkAccess: (subs) => subs.plan.properties?.flags?.domainRegistrationEnabled,
-      UpsellContent: <FeaturePageUpsell.Subdomains />,
-    },
-    title: 'Domains',
-  },
+ 
 
   { path: '/templates', component: TemplatesPage, title: 'Templates' },
 
@@ -164,18 +148,8 @@ export const routeMap: IPageRoute[] = [
     layoutOptions: { background: 'agentsGradient' },
   },
 
-  {
-    title: 'My Plan',
-    path: 'my-plan',
-    component: MyPlanPage,
-    layoutOptions: { sidebar: true, topMenu: true },
-  },
-  {
-    title: 'Analytics',
-    path: 'analytics',
-    component: AnalyticsPage,
-    layoutOptions: { sidebar: true, topMenu: true },
-  },
+
+
   {
     title: 'Vault',
     path: 'vault',
