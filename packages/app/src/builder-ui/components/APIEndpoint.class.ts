@@ -53,6 +53,7 @@ export class APIEndpoint extends Component {
       endpoint: {
         type: 'input',
         label: 'Skill Name',
+        doNotValidateOnLoad: true,
         value: '',
         validate: `required maxlength=50 custom=isValidEndpoint`,
         validateMessage: `Provide a valid endpoint that only contains 'a-z', 'A-Z', '0-9', '-', '_' , without leading or trailing spaces. Length should be less than 50 characters.`,
