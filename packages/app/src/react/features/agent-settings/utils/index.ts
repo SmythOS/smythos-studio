@@ -2,10 +2,11 @@ import { SYNTAX_HIGHLIGHT_THEMES } from '@react/features/agent-settings/constant
 import { DEFAULT_CHAT_COLORS } from '@react/shared/enums';
 import { Input } from '@react/shared/types/agent-data.types';
 import {
-  TGptEmbodimentProperties
+  TChatBotProperties,
+  TFormPreviewProperties,
+  TGptEmbodimentProperties,
 } from '@react/shared/types/embodiment.types';
 import * as Yup from 'yup';
-
 
 export const generateComponentInputsSchema = (inputs: Input[]) => {
   return Yup.object().shape(
@@ -119,6 +120,16 @@ export const mapBotEmbodimentProperties = (properties: TChatBotProperties, activ
     allowedDomains: properties?.allowedDomains || [],
     isFullScreen: properties?.isFullScreen || false,
     allowFileAttachments: properties?.allowFileAttachments || false,
+  };
+};
+
+export const mapFormPreviewEmbodimentProperties = (
+  properties: TFormPreviewProperties,
+  activeAgent,
+) => {
+  return {
+    name: properties?.name || activeAgent?.name || '',
+    allowedDomains: properties?.allowedDomains || [],
   };
 };
 

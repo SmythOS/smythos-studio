@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom';
 import { FaCommentDots, FaDiscord, FaGear, FaIdCard, FaRobot } from 'react-icons/fa6';
+import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
+import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
 import ChatbotCodeSnippetModal from '../agent-settings/modals/chatbotCode.modal';
-
-import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
 
 export const AlwaysAvailableEmbodiments = [
   'API',
@@ -46,6 +46,8 @@ export const getEmbodimentTitle = (embodimentType: string): string => {
       return 'LLM';
     case EMBODIMENT_TYPE.MCP:
       return 'MCP';
+    case EMBODIMENT_TYPE.FORM:
+      return 'Form Preview';
     default:
       return embodimentType;
   }
@@ -65,6 +67,8 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
       return 'Enable Alexa to communicate with your agent.';
     case EMBODIMENT_TYPE.LLM:
       return 'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.';
+    case EMBODIMENT_TYPE.FORM:
+      return 'Preview your agent as a form for seamless integration with existing workflows.';
     case EMBODIMENT_TYPE.LOVABLE:
       return 'Get step-by-step instructions to connect this agent or workflow to Lovable.';
     default:
@@ -86,6 +90,8 @@ export const getEmbodimentDataAttribute = (embodimentType: string): string => {
       return 'alexa-embodiment-card';
     case EMBODIMENT_TYPE.LLM:
       return 'agentllm-embodiment-card';
+    case EMBODIMENT_TYPE.FORM:
+      return 'form-embodiment-card';
     case EMBODIMENT_TYPE.LOVABLE:
       return 'lovable-embodiment-card';
     default:
@@ -130,6 +136,30 @@ export const getChatBotDialog = (
   // This ensures the component is initialized and ready when the user opens it
   return (
     <ChatBotDialog
+      isOpen={isOpen}
+      closeModal={closeModal}
+      activeAgent={agent}
+      agentId={agentId}
+      currentData={currentData}
+      refreshEmbodiments={() => refreshEmbodiments()}
+      style={{}}
+    />
+  );
+};
+
+export const getFormPreviewDialog = (
+  isOpen: boolean,
+  closeModal: () => void,
+  agent,
+  agentId,
+  currentData,
+  refreshEmbodiments,
+  activeModal,
+) => {
+  // Always render the component for preloading, HeadlessUI Transition handles visibility
+  // This ensures the component is initialized and ready when the user opens it
+  return (
+    <FormPreviewDialog
       isOpen={isOpen}
       closeModal={closeModal}
       activeAgent={agent}
