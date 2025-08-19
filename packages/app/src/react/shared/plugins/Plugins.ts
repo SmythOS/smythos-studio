@@ -6,6 +6,7 @@ export enum PluginTarget {
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
   AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
   AgentSettingsWidgets = 'agentSettings/widgets',
+  AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
 }
 
 export enum PluginType {
