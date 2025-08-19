@@ -1178,7 +1178,7 @@ export function sidebarEditValues({
             if (target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea')) {
               debouncedDraft();
             }
-          });
+          }, true);
 
           // Listen for committed changes (select, checkbox, radio)
           _form.addEventListener('change', (event: Event) => {
@@ -1186,7 +1186,7 @@ export function sidebarEditValues({
             if (target.matches('select, input[type="checkbox"], input[type="radio"]')) {
               debouncedDraft();
             }
-          });
+          }, true);
 
           _form._init();
           forms[tab] = { form: _form, fields: formFields };
