@@ -15,19 +15,21 @@ import '../styles/index.css';
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-export const ChatBubble: FC<IChatMessage> = ({
-  me,
-  files,
-  avatar,
-  message,
-  type,
-  isReplying,
-  isRetrying,
-  onRetryClick,
-  isError = false,
-  hideMessageBubble,
-  thinkingMessage,
-}) => {
+export const ChatBubble: FC<IChatMessage> = (props) => {
+  const {
+    me,
+    files,
+    avatar,
+    message,
+    type,
+    isReplying,
+    isRetrying,
+    onRetryClick,
+    isError,
+    hideMessageBubble,
+    thinkingMessage,
+  } = props;
+
   if (me) {
     return (
       <UserMessageBubble message={message} files={files} hideMessageBubble={hideMessageBubble} />
