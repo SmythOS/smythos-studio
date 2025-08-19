@@ -112,7 +112,7 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
   const titleRightActions = rightSidebar.querySelector('.title-right-buttons');
   const titleLeftActions = rightSidebar.querySelector('.title-left-buttons');
   const closeBtn: HTMLButtonElement = rightSidebar.querySelector('.close-btn');
-  const saveBtn: HTMLButtonElement = rightSidebar.querySelector('.save-btn');
+  const saveBtn: HTMLButtonElement = rightSidebar.querySelector('.action-save');
 
   if (title) sidebarTitle.innerHTML = title;
   if (content) sidebarContent.innerHTML = content;
@@ -597,7 +597,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
   sidebarActions = sidebarTitle?.querySelector?.('.actions .action-content');
 
   const closeBtn: HTMLButtonElement = sidebarTitle.querySelector('.close-btn');
-  const saveBtn: HTMLButtonElement = embodimentSidebar.querySelector('.save-btn');
+  const saveBtn: HTMLButtonElement = embodimentSidebar.querySelector('.action-save');
   if (content) sidebarContent.querySelector(`.${contentCls}`).innerHTML = content;
   if (closeBtn) {
     closeBtn.onclick = async () => {
@@ -1208,68 +1208,66 @@ export function sidebarEditValues({
       handleTemplateVars(sidebarContent);
     }
 
-    const saveBtn: HTMLButtonElement = sidebar.querySelector('.save-btn');
-    saveBtn.onclick = async (e) => {
-      const result = {};
-      let saveBeforeCloseState = 0;
+    const saveBtn: HTMLButtonElement = sidebar.querySelector('.action-save');
+    if (saveBtn) {
+      saveBtn.onclick = async (e) => {
+        const result = {};
+        let saveBeforeCloseState = 0;
+        let validationToastShown = false;
 
-      for (let tab in forms) {
-        const form = forms[tab].form;
-        const formFields = forms[tab].fields;
+        for (let tab in forms) {
+          const form = forms[tab].form;
+          const formFields = forms[tab].fields;
 
-        dispatchSubmitEvent(form); // to trigger validation
+          dispatchSubmitEvent(form); // to trigger validation
 
-        await delay(30);
-        const invalidElements = [...form.querySelectorAll('.invalid')] as HTMLElement[];
+          await delay(30);
+          const invalidElements = [...form.querySelectorAll('.invalid')] as HTMLElement[];
 
-        const invalid = invalidElements[0];
-        const closestScrollable = form.closest('.overflow-y-auto');
-        if (invalid && closestScrollable) {
-          closestScrollable.scrollTo({ top: invalid.offsetTop - 50, behavior: 'smooth' });
+          const invalid = invalidElements[0];
+          const closestScrollable = form.closest('.overflow-y-auto');
+          if (invalid && closestScrollable) {
+            closestScrollable.scrollTo({ top: invalid.offsetTop - 50, behavior: 'smooth' });
+          }
+          if (invalid) {
+            if (!validationToastShown) {
+              errorToast('Please fix the highlighted fields and try again.', 'Validation Error');
+              validationToastShown = true;
+            }
+            saveBeforeCloseState = 2;
+          }
+
+          const values = readFormValues(form, formFields);
+          result[tab] = values;
         }
-        if (invalid) {
-          const saveBeforeClose = await confirm(
-            // 'Configuration Error',
-            null,
-            'You have validation errors. Are you sure you want to discard these changes?',
-            {
-              btnNoLabel: 'Discard Changes',
-              btnYesLabel: 'Continue Editing',
-              btnNoClass: 'h-[48px] rounded-lg px-8',
-              btnYesClass: 'h-[48px] rounded-lg px-8',
-            },
-          );
-          saveBeforeCloseState = !saveBeforeClose ? 1 : 2;
+        if (saveBeforeCloseState == 1) {
+          closeRightSidebar();
+          resolve(null);
+          e.stopPropagation();
+          return;
+        } else if (saveBeforeCloseState == 2) {
+          return false;
         }
-
-        const values = readFormValues(form, formFields);
-        result[tab] = values;
-      }
-      if (saveBeforeCloseState == 1) {
+        if (typeof onSave === 'function') onSave.apply({ sidebar }, [result]);
         closeRightSidebar();
-        resolve(null);
-        e.stopPropagation();
-        return;
-      } else if (saveBeforeCloseState == 2) {
-        return false;
-      }
-      if (typeof onSave === 'function') onSave.apply({ sidebar }, [result]);
-      closeRightSidebar();
-      window['workspace']?.emit?.('componentUpdated', result);
-      resolve(result);
-    };
-    saveBtn.classList.remove('hidden');
+        window['workspace']?.emit?.('componentUpdated', result);
+        resolve(result);
+      };
+      saveBtn.classList.remove('hidden');
+    }
 
     const closeBtn: HTMLButtonElement = sidebar.querySelector('.close-btn');
-    closeBtn.onclick = async () => {
-      if (typeof onBeforeCancel === 'function') {
-        const canClose = await onBeforeCancel.apply({ sidebar }, [sidebar]);
-        if (!canClose) return;
-      }
-      closeRightSidebar();
-      if (typeof onCancel === 'function') onCancel.apply({ sidebar }, [sidebar]);
-      resolve(null);
-    };
+    if (closeBtn) {
+      closeBtn.onclick = async () => {
+        if (typeof onBeforeCancel === 'function') {
+          const canClose = await onBeforeCancel.apply({ sidebar }, [sidebar]);
+          if (!canClose) return;
+        }
+        closeRightSidebar();
+        if (typeof onCancel === 'function') onCancel.apply({ sidebar }, [sidebar]);
+        resolve(null);
+      };
+    }
     // closeBtn.classList.remove('hidden');
 
     //sidebarActions.appendChild(saveBtn);

@@ -1,9 +1,14 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { Component } from '.';
-import { closeRightSidebar, readRightSidebarValues, sidebarEditValues } from '../../ui/dialogs';
+import {
+  closeRightSidebar,
+  confirm,
+  readRightSidebarValues,
+  sidebarEditValues,
+} from '../../ui/dialogs';
 import { setReadonlyMode } from '../../ui/dom';
 import { readFormValues, syncCompositeValues } from '../../ui/form';
-import { debounce, delay, dispatchSubmitEvent } from '../../utils';
+import { delay, dispatchSubmitEvent } from '../../utils';
 
 async function onComponentLoad(sidebar) {
   const component = this;
@@ -31,42 +36,31 @@ async function onComponentLoad(sidebar) {
 
   if (component.workspace?.locked) {
     setReadonlyMode(sidebar, ['close-btn', 'action-help']);
-    sidebar.querySelector('.save-btn').classList.add('hidden');
+    sidebar.querySelector('.action-save').classList.add('hidden');
     sidebar.querySelector('.del-btn').classList.add('hidden');
   } else {
-    sidebar.querySelector('.save-btn').classList.remove('hidden');
+    // Always hide the top save button for manual save/cancel flow
+    sidebar.querySelector('.action-save').classList.add('hidden');
     sidebar.querySelector('.del-btn').classList.remove('hidden');
+    sidebar.querySelector('.close-btn').classList.remove('hidden');
   }
 
   const form = sidebar.querySelector('form');
 
-  function handleChange(event) {
-    //console.log('Value changed to:', event.target.value);
-    writeSettings(component);
-  }
+  // Helper: toggle bottom Save/Cancel visibility based on changes
+  const setBottomActionsVisibility = (visible: boolean) => {
+    const actionsRoot = sidebar.querySelector('.actions .action-content');
+    if (!actionsRoot) return;
+    const btnSave = actionsRoot.querySelector('.action-save') as HTMLElement;
+    const btnCancel = actionsRoot.querySelector('.action-cancel') as HTMLElement;
+    if (btnSave) btnSave.classList[visible ? 'remove' : 'add']('hidden');
+    if (btnCancel) btnCancel.classList[visible ? 'remove' : 'add']('hidden');
+  };
 
-  // Debounced version of handleChange
-  const debouncedHandleChange = debounce(handleChange, 500);
+  // Initialize bottom actions hidden until there is a change
+  setBottomActionsVisibility(false);
 
-  // Event listener for dynamically loaded inputs and textareas
-  form.addEventListener('input', function (event: any) {
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-      debouncedHandleChange(event);
-      //writeSettings(component);
-    }
-  });
-
-  // Event listener for dynamically loaded checkboxes, radio buttons, and selects
-  form.addEventListener('change', function (event: any) {
-    if (
-      event.target.tagName === 'SELECT' ||
-      (event.target.tagName === 'INPUT' &&
-        (event.target.type === 'checkbox' || event.target.type === 'radio'))
-    ) {
-      debouncedHandleChange(event);
-      //writeSettings(component);
-    }
-  });
+  // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
 
   component.emit('settingsOpened', sidebar, this);
   if (this.loadingIcon) {
@@ -93,7 +87,7 @@ function onTemplateCreateLoad(sidebar) {
   const closeButton: HTMLButtonElement = titleRightActions.querySelector('button.close-btn');
   closeButton.classList.remove('hidden');
 
-  const saveButton: HTMLButtonElement = titleRightActions.querySelector('button.save-btn');
+  const saveButton: HTMLButtonElement = titleRightActions.querySelector('button.action-save');
   saveButton.classList.add('hidden');
 
   const deleteButton: HTMLButtonElement = actionElement.querySelector('button.del-btn');
@@ -283,9 +277,11 @@ async function onSave(values) {
   component.emit('settingsSaved', settingsValues);
 
   // Also dispatch a global event for tracking
-  document.dispatchEvent(new CustomEvent('componentSettingsSaved', {
-    detail: { componentId: component.uid, settings: settingsValues }
-  }));
+  document.dispatchEvent(
+    new CustomEvent('componentSettingsSaved', {
+      detail: { componentId: component.uid, settings: settingsValues },
+    }),
+  );
 
   component.emit('settingsClosed');
   //component.redrawSettings();
@@ -375,15 +371,23 @@ export async function writeSettings(component: Component) {
 export async function closeSettings(component: Component, force = false) {
   const changed = component.settingsChanged();
   if (!force && changed) {
-    await component.confirmSaveSettings();
+    const discard = await confirm(
+      'You have unsaved changes',
+      'Are you sure you want to close this without saving?',
+      {
+        btnNoLabel: 'Cancel',
+        btnYesLabel: 'Discard Changes',
+        btnNoClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'h-[48px] rounded-lg px-8',
+      },
+    );
+    if (!discard) return;
     await delay(100);
   }
 
-  //if (force || !this.settingsChanged()) {
   await closeRightSidebar();
   Component.curComponentSettings = null;
   component.domElement.classList.remove('active');
-  //}
 }
 export async function editSettings(component: Component) {
   Component.curComponentSettings = component;
@@ -435,9 +439,48 @@ export async function editSettings(component: Component) {
   //const displayName = component.properties?.template?.name || component.drawSettings.displayName;
   const templateName = component.properties?.template?.templateInfo?.name || component.title || '';
 
-  const onBeforeCancel = async () => {
-    const saved = await component.confirmSaveSettings();
+  // Separate cancel handlers for template vs component settings flows
+  const onBeforeCancelTemplate = async (_sidebar?: any): Promise<boolean> => {
+    // Keep template flow as-is (legacy behavior)
+    const _ = await component.confirmSaveSettings();
     return true;
+  };
+
+  const onBeforeCancelSettings = async (_sidebar?: any): Promise<boolean> => {
+    // Prompt to discard if there are unsaved changes
+    const changed = component.settingsChanged();
+    if (!changed) return true;
+    // Hide buttons if we are prompting
+    const sb = document.querySelector('#right-sidebar');
+    if (sb) {
+      const actionsRoot = sb.querySelector('.actions .action-content');
+      actionsRoot &&
+        actionsRoot
+          .querySelectorAll('.action-save, .action-cancel')
+          .forEach((e) => e.classList.add('hidden'));
+    }
+    const discard = await confirm(
+      'You have unsaved changes',
+      'Are you sure you want to close this without saving?',
+      {
+        btnNoLabel: 'Cancel',
+        btnYesLabel: 'Discard Changes',
+        btnNoClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'h-[48px] rounded-lg px-8',
+      },
+    );
+    // Re-evaluate visibility after prompt
+    if (sb) {
+      const actionsRoot = sb.querySelector('.actions .action-content');
+      const hasChanges = component.settingsChanged();
+      if (actionsRoot) {
+        const saveBtn = actionsRoot.querySelector('.action-save') as HTMLElement;
+        const cancelBtn = actionsRoot.querySelector('.action-cancel') as HTMLElement;
+        saveBtn && saveBtn.classList[hasChanges ? 'remove' : 'add']('hidden');
+        cancelBtn && cancelBtn.classList[hasChanges ? 'remove' : 'add']('hidden');
+      }
+    }
+    return !!discard;
   };
 
   const onCancel = () => {
@@ -853,9 +896,8 @@ export async function editSettings(component: Component) {
                     component.title = templateData.templateInfo.name;
                     component.description = templateData.templateInfo.description;
 
-                    component.domElement.querySelector(
-                      '.internal-name',
-                    ).textContent = `T: ${templateData.templateInfo.name}`;
+                    component.domElement.querySelector('.internal-name').textContent =
+                      `T: ${templateData.templateInfo.name}`;
                     const titleBar = component.domElement.querySelector('.title-bar');
                     if (titleBar) {
                       titleBar.querySelector('.title .text').textContent =
@@ -931,7 +973,7 @@ export async function editSettings(component: Component) {
               features: { templateVars: true },
               actions: createTemplateActions,
               onSave: onSave.bind(component),
-              onBeforeCancel,
+              onBeforeCancel: onBeforeCancelTemplate,
               onCancel,
               onLoad: onTemplateCreateLoad.bind(component),
             });
@@ -956,14 +998,54 @@ export async function editSettings(component: Component) {
       helpTooltip = '';
   }
   //show settings
+  // Build bottom actions (Cancel/Save) for component settings
+  const bottomActions = {
+    cancel: {
+      type: 'button',
+      label: 'Cancel',
+      class:
+        'action-cancel items-center ml-2 py-2 text-sm font-medium text-gray-500 bg-transparent hover:text-gray-900 hidden',
+      click: () => {
+        const closeBtn: HTMLButtonElement = document.querySelector(
+          '#right-sidebar .close-btn',
+        ) as HTMLButtonElement;
+        closeBtn && closeBtn.click();
+      },
+    },
+    save: {
+      type: 'button',
+      label: 'Save',
+      class:
+        'action-save items-center py-2 text-sm font-medium bg-transparent text-blue-500 hover:text-blue-600 hidden',
+      click: () => {},
+    },
+  };
+
+  // Merge template action (if any) with bottom actions
+  const mergedActions = sidebarActions ? { ...sidebarActions, ...bottomActions } : bottomActions;
+
   sidebarEditValues({
     title: sidebarTitleHTML,
     entriesObject: { Settings: component.settingsEntries },
     features: { templateVars: true },
-    actions: sidebarActions,
+    actions: mergedActions,
     onSave: onSave.bind(component),
-    onDraft: onDraft.bind(component),
-    onBeforeCancel,
+    onDraft: async function (values) {
+      await onDraft.apply(component, [values]);
+      // Show/hide bottom Save/Cancel based on changes
+      const visible = component.settingsChanged();
+      const sb = document.querySelector('#right-sidebar');
+      if (sb) {
+        const actionsRoot = sb.querySelector('.actions .action-content');
+        if (actionsRoot) {
+          const saveBtn = actionsRoot.querySelector('.action-save') as HTMLElement;
+          const cancelBtn = actionsRoot.querySelector('.action-cancel') as HTMLElement;
+          saveBtn && saveBtn.classList[visible ? 'remove' : 'add']('hidden');
+          cancelBtn && cancelBtn.classList[visible ? 'remove' : 'add']('hidden');
+        }
+      }
+    },
+    onBeforeCancel: onBeforeCancelSettings,
     onCancel,
     onLoad: onComponentLoad.bind(component),
     helpTooltip: helpTooltip,

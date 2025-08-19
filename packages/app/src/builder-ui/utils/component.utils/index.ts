@@ -256,7 +256,7 @@ export async function promptVaultInfo(
         target.setAttribute('data-waiting', 'true');
 
         const sidebarContainer = target.closest('.sidebar-container');
-        const saveBtn = sidebarContainer.querySelector('.save-btn') as HTMLButtonElement;
+        const saveBtn = sidebarContainer.querySelector('.action-save') as HTMLButtonElement;
 
         const spinner = createSpinner('black', 'absolute top-[5px] right-[20px]');
         const fieldActions = formGroup.querySelector('.smyth-field-actions');
@@ -1111,3 +1111,4 @@ export function addTooltipToLockBadge(element, tooltipText) {
 
 export { default as PromptGeneratorUtils } from './PromptGenerator.utils';
 export { default as VisionLLMUtils } from './VisionLLM.utils';
+
