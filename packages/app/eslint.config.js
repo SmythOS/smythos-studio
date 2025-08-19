@@ -40,6 +40,8 @@ export default tseslint.config(
       'no-debugger': 'warn',
       'no-empty': 'warn',
 
+      'max-len': 'off',
+
       // TypeScript
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -58,7 +60,6 @@ export default tseslint.config(
       quotes: ['warn', 'single'],
       semi: ['warn', 'always'],
       'comma-dangle': ['warn', 'only-multiline'],
-      'max-len': ['warn', { code: 120 }],
       // '@typescript-eslint/no-unnecessary-condition': 'warn',
     },
   },

@@ -25,10 +25,10 @@ import { V4_ALL_PLANS } from '@shared/constants/general';
 import { Analytics } from '@shared/posthog/services/analytics';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import { GenerateAgentFormData, Template } from '@src/react/features/agents/types/agents.types';
-import UpSellModal from '@src/react/features/subscriptions/components/paywalls/up-sell';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFetchTemplates } from '../../templates/hooks/useFetchTemplates';
+import UpSellModal from '../components/meta/up-sell';
 
 /**
  * Main agents page component with agent generation, listing, and template sections
