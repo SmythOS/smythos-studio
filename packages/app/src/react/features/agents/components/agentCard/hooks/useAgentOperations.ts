@@ -1,5 +1,5 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
-import { accquireLock } from '@react/features/agents/utils';
+import { accquireLock, saveAgentDirectly } from '@react/features/agents/utils';
 import { useAgent, useAgentMutations } from '@react/shared/hooks/agent';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
@@ -8,11 +8,13 @@ interface UseAgentOperationsProps {
   agent: IAgent;
   onAgentDeleted?: () => void;
   onAgentDuplicated?: () => void;
+  onAgentPinned?: (updatedAgent: IAgent) => void;
 }
 
 interface UseAgentOperationsResult {
   duplicateAgent: () => Promise<void>;
   deleteAgent: () => Promise<void>;
+  pinAgent: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -39,12 +41,13 @@ export function useAgentOperations({
   agent,
   onAgentDeleted,
   onAgentDuplicated,
+  onAgentPinned,
 }: UseAgentOperationsProps): UseAgentOperationsResult {
   const { data: fullAgentData, isLoading: isLoadingAgent } = useAgent(agent.id, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
-  const { createAgent } = useAgentMutations();
+  const { createAgent, saveAgent } = useAgentMutations();
 
   /**
    * Creates a duplicate of an existing agent with reset configurations
@@ -167,9 +170,35 @@ export function useAgentOperations({
     }
   }, [agent.id, onAgentDeleted]);
 
+  /**
+   * Handles agent pin/unpin with proper error handling
+   */
+  const pinAgent = useCallback(async (): Promise<void> => {
+    const id = agent.id;
+    const newPinnedState = !agent.isPinned;
+
+    try {
+      const updatedAgent = await saveAgentDirectly(id, agent, (currentAgent: IAgent) => {
+        return {
+          ...currentAgent,
+          isPinned: newPinnedState,
+        };
+      });
+
+      toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
+      // Update the agent in place instead of reloading the entire list
+      onAgentPinned?.(updatedAgent);
+
+    } catch (error: unknown) {
+      console.error('Failed to pin/unpin agent:', error);
+      toast.error('Failed to pin/unpin agent');
+    }
+  }, [agent.id, agent.isPinned, onAgentPinned, saveAgent]);
+
   return {
     duplicateAgent,
     deleteAgent,
+    pinAgent,
     isLoading: isLoadingAgent,
   };
 }

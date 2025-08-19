@@ -20,6 +20,7 @@ import {
   FaEllipsisVertical,
   FaEye,
   FaRegCopy,
+  FaThumbtack,
   FaTrash,
   FaUsers,
 } from 'react-icons/fa6';
@@ -32,13 +33,15 @@ interface AgentCardProps {
   agent: IAgent;
   /** Callback when agents need to be reloaded */
   loadAgents: (page: number, isInitialLoad?: boolean) => void;
+  /** Callback to update a single agent in place */
+  updateAgentInPlace: (updatedAgent: IAgent) => void;
 }
 
 /**
  * AgentCard component for displaying individual agent information
  * Features: avatar, name, description, action buttons, tooltips, and modals
  */
-export function AgentCard({ agent, loadAgents }: AgentCardProps) {
+export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardProps) {
   const navigate = useNavigate();
   const featureFlagPayload = useFeatureFlagPayload(FEATURE_FLAGS.AGENT_KEY_DROPDOWN);
   const { isStaffUser } = useAuthCtx();
@@ -51,13 +54,16 @@ export function AgentCard({ agent, loadAgents }: AgentCardProps) {
   // Custom hooks for state and data management
   const cardState = useAgentCardState({ agentId: agent.id });
   const agentData = useAgentData({ agent });
-  const { duplicateAgent, deleteAgent } = useAgentOperations({
+  const { duplicateAgent, deleteAgent, pinAgent } = useAgentOperations({
     agent,
     onAgentDeleted: () => {
       cardState.setIsDeleted(true);
       loadAgents(1, true);
     },
     onAgentDuplicated: () => loadAgents(1, true),
+    onAgentPinned: (updatedAgent) => {
+      updateAgentInPlace(updatedAgent);
+    },
   });
 
   // Track dropdown state
@@ -88,6 +94,18 @@ export function AgentCard({ agent, loadAgents }: AgentCardProps) {
       await deleteAgent();
     } finally {
       cardState.setIsDeleting(false);
+    }
+  };
+
+  const handlePinAgent = async () => {
+    cardState.setIsPinning(true);
+    try {
+      await pinAgent();
+      cardState.setIsActionDropdownVisible(false);
+    } catch (error) {
+      console.error('❌ Pin/unpin failed:', error);
+    } finally {
+      cardState.setIsPinning(false);
     }
   };
 
@@ -139,6 +157,29 @@ export function AgentCard({ agent, loadAgents }: AgentCardProps) {
             { 'opacity-50': cardState.isDeleted || cardState.isDeleting },
           )}
         >
+          {/* Pinned Triangle Container with Overflow Hidden */}
+          <div className="absolute inset-0 overflow-hidden rounded-lg pointer-events-none z-[5]">
+            {/* Pinned Triangle Indicator */}
+            {agent.isPinned && (
+              <div className="absolute bottom-0 left-0 z-10 pointer-events-none">
+                {/* Triangle Shape */}
+                <div className="relative">
+                  <div 
+                    className="w-0 h-0 border-l-[50px] border-l-v2-blue border-b-[50px] border-b-transparent"
+                    style={{
+                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
+                    }}
+                  />
+                  {/* Pinned Content */}
+                  <div className="absolute pt-[6px] bottom-[11px] left-[-32px] transform rotate-45 origin-bottom-left text-center w-[60px] h-[40px] bg-gray-400">
+                    <div className="">
+                      <FaThumbtack className="text-white text-[10px] m-auto" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           {/* Avatar Section */}
           <div className="w-[25%] h-[120px] p-1">
             <img
@@ -191,6 +232,44 @@ export function AgentCard({ agent, loadAgents }: AgentCardProps) {
 
                         <Menu.Items className="absolute right-0 top-6 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
                           <div className="py-1">
+                            {/* Pin/Unpin */}
+                            {agentData.permissions.canDuplicate && (
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handlePinAgent();
+                                      // Don't close menu immediately - let handlePinAgent control it
+                                    }}
+                                    disabled={cardState.isPinning}
+                                    className={classNames(
+                                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                      'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                      { 'opacity-50 cursor-not-allowed': cardState.isPinning },
+                                    )}
+                                  >
+                                    {cardState.isPinning ? (
+                                      <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <div className="relative mr-3 h-4 w-4">
+                                        <FaThumbtack className="h-4 w-4" />
+                                        {agent.isPinned && (
+                                          <div className="absolute inset-0 flex items-center justify-center w-6">
+                                            <div className="w-8 h-0.5 -left-1 bg-current transform rotate-[30deg]"></div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {cardState.isPinning 
+                                      ? (agent.isPinned ? 'Unpinning...' : 'Pinning...') 
+                                      : (agent.isPinned ? 'Unpin' : 'Pin')
+                                    }
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            )}
                             {/* Duplicate */}
                             {agentData.permissions.canDuplicate && (
                               <Menu.Item>

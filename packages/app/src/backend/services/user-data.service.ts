@@ -1,9 +1,9 @@
 import axios from 'axios';
-import config from '../config';
 import { Request } from 'express';
+import config from '../config';
 import { APIResponse } from '../types/';
+import { authHeaders, headersWithToken, includeAxiosAuth, smythAPIReq } from '../utils/';
 import { getAgentShortDescription } from '../utils/agent.utils';
-import { smythAPIReq, includeAxiosAuth, headersWithToken, authHeaders } from '../utils/';
 
 //const DATA_DIR = config.env.DATA_PATH;
 //const AGENTS_DIR = `${DATA_DIR}/agents`;
@@ -14,7 +14,7 @@ const DB_CRUD_ENDPOINT_PREFIX = config.env.SMYTH_API_BASE_URL;
 
 //* ENDPOINTS
 
-export async function saveAgent({ req, id, name, lockId, data, userName, teamId }) {
+export async function saveAgent({ req, id, name, lockId, data, userName, teamId, isPinned }) {
   if (!name) throw new Error('Missing name');
 
   const _data = {
@@ -23,6 +23,7 @@ export async function saveAgent({ req, id, name, lockId, data, userName, teamId 
     data,
     lockId,
     description: '',
+    isPinned,
   };
 
   // Generate short description if not provided
