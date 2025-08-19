@@ -4,6 +4,8 @@ export enum PluginTarget {
   Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
+  AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
+  AgentSettingsWidgets = 'agentSettings/widgets',
 }
 
 export enum PluginType {

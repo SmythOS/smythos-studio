@@ -8,16 +8,7 @@ import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPag
 import AIChatPage from '../features/ai-chat/pages/ai-chat';
 import PartnersPage from '../features/partners/pages/PartnersPage';
 import FeaturePageUpsell from '../features/subscriptions/components/paywalls/feature-page-upsell';
-import {
-  EnterpriseT1PageV4,
-  EnterpriseT2PageV4,
-  EnterpriseT3PageV4,
-  EnterpriseT4PageV4,
-  PartnerPageV4,
-} from '../features/subscriptions/pages/EnterpriseTierPagesV4';
-import MultiComponentSubscriptionPage from '../features/subscriptions/pages/MultiComponentSubscriptionPage';
-import { PlansPricingPage } from '../features/subscriptions/pages/PlansPricingPage';
-import SinglePriceSubscriptionPage from '../features/subscriptions/pages/SinglePriceSubscriptionPage';
+
 
 import TemplatesPage from '../features/templates/pages/TemplatesPage';
 
@@ -26,18 +17,9 @@ export const routeMap: IPageRoute[] = [
 
   { path: '/templates', component: TemplatesPage, title: 'Templates' },
 
-  {
-    path: '/plans',
-    component: PlansPricingPage,
-    title: 'Plans',
-  },
+ 
   { path: '/partners', component: PartnersPage, title: 'Partners' },
-  {
-    path: '/subscriptions/:priceId',
-    component: SinglePriceSubscriptionPage,
-    title: 'Subscription',
-  },
-  { path: '/subscriptions', component: MultiComponentSubscriptionPage, title: 'Subscription' },
+
   { path: '/account', component: AccountPage, title: 'Account' },
   {
     path: '/account-deleted',
@@ -84,49 +66,10 @@ export const routeMap: IPageRoute[] = [
     },
   },
 
-  {
-    path: '/enterprise-t1',
-    component: EnterpriseT1PageV4,
-    title: 'Enterprise T1',
-    skipAuth: true,
-    layoutOptions: {
-      sidebar: true,
-      topMenu: true,
-    },
-  },
-  {
-    path: '/enterprise-t2',
-    component: EnterpriseT2PageV4,
-    title: 'Enterprise T2',
-    skipAuth: true,
-    layoutOptions: {
-      sidebar: true,
-      topMenu: true,
-    },
-  },
-  {
-    path: '/enterprise-t3',
-    component: EnterpriseT3PageV4,
-    title: 'Enterprise T3',
-    skipAuth: true,
-    layoutOptions: {
-      sidebar: true,
-      topMenu: true,
-    },
-  },
-  {
-    path: '/enterprise-t4',
-    component: EnterpriseT4PageV4,
-    title: 'Enterprise T4',
-    skipAuth: true,
-    layoutOptions: {
-      sidebar: true,
-      topMenu: true,
-    },
-  },
+  
   {
     path: '/partner',
-    component: PartnerPageV4,
+    component: PartnersPage,
     title: 'Partner',
     skipAuth: true,
     layoutOptions: {

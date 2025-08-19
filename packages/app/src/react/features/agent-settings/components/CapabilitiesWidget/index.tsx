@@ -13,11 +13,11 @@ import { useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 
 type Props = {
-  isSubscribedToPlan?: boolean;
+  isOnPaidPlan?: boolean;
   isWriteAccess: boolean;
 };
 
-const CapabilitiesWidget = ({ isSubscribedToPlan, isWriteAccess }: Props) => {
+const CapabilitiesWidget = ({ isOnPaidPlan: isSubscribedToPlan, isWriteAccess }: Props) => {
   const { latestAgentDeploymentQuery } = useAgentSettingsCtx();
   return (
     <WidgetCard isWriteAccess={isWriteAccess} showOverflow={true}>

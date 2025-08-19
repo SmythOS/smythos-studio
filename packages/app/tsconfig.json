@@ -22,7 +22,7 @@
   "include": [
     "src/**/*",
     "node_modules/@types",
-    "eslint.config.js",
+    "eslint.config.js", "../../../src/server/api/pages/quota.ts",
     ],
   "exclude": ["node_modules"]
 }
