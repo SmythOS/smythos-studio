@@ -52,6 +52,11 @@
   padding: 0 !important;
 }
 
+.input.invalid:focus,
+.input.invalid.focused {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
 /* Remove checkerboard pattern from external Coloris library */
 /* High specificity overrides for CDN Coloris CSS */
 
