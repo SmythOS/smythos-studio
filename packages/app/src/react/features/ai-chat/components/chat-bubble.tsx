@@ -18,9 +18,6 @@ import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-// Re-export the interface for use in other components
-export type { IChatMessage };
-
 export const ChatBubble: FC<IChatMessage> = ({
   me,
   files,
