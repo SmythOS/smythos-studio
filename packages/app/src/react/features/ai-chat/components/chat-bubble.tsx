@@ -1,9 +1,3 @@
-import { Tooltip } from 'flowbite-react';
-import { FC, useRef, useState } from 'react';
-import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
 import {
   CodeBlockWithCopyButton,
   FileItemPreview,
@@ -11,6 +5,11 @@ import {
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
 import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
+import { Tooltip } from 'flowbite-react';
+import { FC, useRef, useState } from 'react';
+import { FaCheck, FaRegCopy } from 'react-icons/fa6';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import '../styles/index.css';
 
 const DEFAULT_AVATAR_URL =
