@@ -19,7 +19,6 @@ export const ChatBubble: FC<IChatMessage> = ({
   me,
   files,
   avatar,
-  isLast,
   message,
   type,
   isReplying,
