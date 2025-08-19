@@ -22,4 +22,8 @@ export interface IChatMessage {
   isFirstMessage?: boolean;
   files?: FileWithMetadata[];
   hideMessageBubble?: boolean;
+  thinkingMessage?: string;
+  isLast?: boolean;
+  isRetrying?: boolean;
+  onRetryClick?: () => void;
 }
