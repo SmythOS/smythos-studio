@@ -1,12 +1,3 @@
-/* eslint-disable max-len, no-unused-vars, @typescript-eslint/no-unused-vars */
-import { Tooltip } from 'flowbite-react';
-import { FC, useRef, useState } from 'react';
-import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
-import '../styles/index.css';
-
 import {
   CodeBlockWithCopyButton,
   FileItemPreview,
@@ -14,6 +5,12 @@ import {
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
 import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
+import { Tooltip } from 'flowbite-react';
+import { FC, useRef, useState } from 'react';
+import { FaCheck, FaRegCopy } from 'react-icons/fa6';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '../styles/index.css';
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
@@ -44,9 +41,7 @@ export const ChatBubble: FC<IChatMessage> = ({
   }
 
   return isReplying || isRetrying ? (
-    <>
-      <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
-    </>
+    <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
   ) : (
     <div className={me ? 'pl-[100px]' : ''}>
       {!hideMessageBubble && (
