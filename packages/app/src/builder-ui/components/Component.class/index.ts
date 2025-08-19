@@ -1780,6 +1780,12 @@ export class Component extends EventEmitter {
           !isEqual(templateData[name], values[name])
         )
           return true;
+
+        if (
+          Object.prototype.hasOwnProperty.call(entries, name) &&
+          !isEqual(entries[name]?.value, values[name])
+        )
+          return true;
       }
     } else {
       for (let name in entries) {

@@ -1173,20 +1173,28 @@ export function sidebarEditValues({
           }, 300);
 
           // Listen for immediate input changes (text inputs, textareas)
-          _form.addEventListener('input', (event: Event) => {
-            const target = event.target as HTMLElement;
-            if (target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea')) {
-              debouncedDraft();
-            }
-          }, true);
+          _form.addEventListener(
+            'input',
+            (event: Event) => {
+              const target = event.target as HTMLElement;
+              if (target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea')) {
+                debouncedDraft();
+              }
+            },
+            true,
+          );
 
           // Listen for committed changes (select, checkbox, radio)
-          _form.addEventListener('change', (event: Event) => {
-            const target = event.target as HTMLElement;
-            if (target.matches('select, input[type="checkbox"], input[type="radio"]')) {
-              debouncedDraft();
-            }
-          }, true);
+          _form.addEventListener(
+            'change',
+            (event: Event) => {
+              const target = event.target as HTMLElement;
+              if (target.matches('select, input[type="checkbox"], input[type="radio"]')) {
+                debouncedDraft();
+              }
+            },
+            true,
+          );
 
           _form._init();
           forms[tab] = { form: _form, fields: formFields };
