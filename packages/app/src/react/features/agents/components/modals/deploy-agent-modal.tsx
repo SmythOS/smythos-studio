@@ -18,6 +18,7 @@ import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
+import FormEmbodimentModal from '@src/react/features/embodiments/form-embodiment-modal';
 import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
@@ -82,7 +83,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   const [hasDeployment, setHasDeployment] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable';
+  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable' | 'form';
   const [openPanel, setOpenPanel] = useState<PanelType>('none');
   const [dialogModal, setDialogModal] = useState<{
     open: boolean;
@@ -446,6 +447,13 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
           onClose={handleClosePanel}
           domain={chatbotDomain}
           embodimentData={chatbotEmbodimentData}
+          isLoading={isLoadingEmbodiments}
+        />
+      )}
+      {openPanel === 'form' && (
+        <FormEmbodimentModal
+          onClose={handleClosePanel}
+          domain={chatbotDomain}
           isLoading={isLoadingEmbodiments}
         />
       )}
@@ -843,6 +851,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       onOpenCodeSnippetModal={handleOpenCodeSnippetModal}
                       onOpenAlexaPanel={() => handleOpenPanel('alexa')}
                       onOpenChatbotPanel={() => handleOpenPanel('chatbot')}
+                      onOpenFormPanel={() => handleOpenPanel('form')}
                       onOpenApiPanel={() => handleOpenPanel('api')}
                       onOpenMcpPanel={() => handleOpenPanel('mcp')}
                       onOpenLovablePanel={() => handleOpenPanel('lovable')}

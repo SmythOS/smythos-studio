@@ -12,6 +12,7 @@ import {
   getEmbodimentDescription,
   getEmbodimentIcon,
   getEmbodimentTitle,
+  getFormPreviewDialog,
 } from './embodiment-configs';
 
 type AgentSetting = {
@@ -136,6 +137,20 @@ export function structureAgentSetting(
           agentData.agentId,
           modalHandlers.embodimentsData?.find(
             (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.CHAT_BOT,
+          ),
+          modalHandlers.refreshEmbodiments,
+          modalHandlers.activeModal,
+        );
+      }
+
+      if (key === EMBODIMENT_TYPE.FORM) {
+        result.dialogComponent = getFormPreviewDialog(
+          modalHandlers.activeModal === key, // Pass visibility state
+          modalHandlers.closeModal,
+          modalHandlers.agent,
+          agentData.agentId,
+          modalHandlers.embodimentsData?.find(
+            (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.FORM,
           ),
           modalHandlers.refreshEmbodiments,
           modalHandlers.activeModal,
