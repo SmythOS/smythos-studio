@@ -13,25 +13,13 @@ import {
   ReplyLoader,
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
-import { FileWithMetadata } from '@react/shared/types/chat.types';
+import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-export interface IChatMessage {
-  me?: boolean;
-  message: string;
-  type?: 'user' | 'system' | 'thinking';
-  avatar?: string;
-  isLast?: boolean;
-  isError?: boolean;
-  isReplying?: boolean;
-  isRetrying?: boolean;
-  isFirstMessage?: boolean;
-  onRetryClick?: () => void;
-  files?: FileWithMetadata[];
-  hideMessageBubble?: boolean;
-}
+// Re-export the interface for use in other components
+export type { IChatMessage };
 
 export const ChatBubble: FC<IChatMessage> = ({
   me,
@@ -45,6 +33,7 @@ export const ChatBubble: FC<IChatMessage> = ({
   onRetryClick,
   isError = false,
   hideMessageBubble,
+  thinkingMessage,
 }) => {
   if (me) {
     return (
@@ -69,6 +58,8 @@ export const ChatBubble: FC<IChatMessage> = ({
           isError={isError}
           onRetryClick={onRetryClick}
           isRetrying={isRetrying}
+          thinkingMessage={thinkingMessage}
+          avatar={avatar}
         />
       )}
     </div>
@@ -111,6 +102,8 @@ interface ISystemMessageBubble {
   isError?: boolean;
   isRetrying?: boolean;
   onRetryClick?: () => void;
+  thinkingMessage?: string;
+  avatar?: string;
 }
 
 const SystemMessageBubble: FC<ISystemMessageBubble> = ({
@@ -118,6 +111,8 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
   isError,
   isRetrying,
   onRetryClick,
+  thinkingMessage,
+  avatar,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -201,10 +196,12 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
                 p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
               }}
             />
+            {/* Display thinking message inline if present */}
+            {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
           </div>
         )}
       </div>
-      {!isError && (
+      {!isError && !thinkingMessage && (
         <div className="flex gap-4 p-4 pl-0">
           <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="bottom">
             <button
