@@ -18,14 +18,14 @@ const DEFAULT_AVATAR_URL =
 export const ChatBubble: FC<IChatMessage> = (props) => {
   const {
     me,
+    type,
     files,
     avatar,
+    isError,
     message,
-    type,
     isReplying,
     isRetrying,
     onRetryClick,
-    isError,
     hideMessageBubble,
     thinkingMessage,
   } = props;
@@ -37,9 +37,7 @@ export const ChatBubble: FC<IChatMessage> = (props) => {
   }
 
   // Handle thinking messages
-  if (type === 'thinking') {
-    return <ThinkingMessage message={message} avatar={avatar} />;
-  }
+  if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
 
   return isReplying || isRetrying ? (
     <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
