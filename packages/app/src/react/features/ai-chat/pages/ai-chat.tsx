@@ -150,6 +150,10 @@ const AIChat: FC<AIChatProps> = ({
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
   useEffect(() => {
+    if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
+  }, [isAgentLoading, isQueryInputDisabled]);
+
+  useEffect(() => {
     if (agentSettingsData?.settings && currentAgent) {
       currentAgent.aiAgentSettings = agentSettingsData.settings;
       currentAgent.id = agentId;
@@ -159,12 +163,6 @@ const AIChat: FC<AIChatProps> = ({
       }
     }
   }, [agentSettingsData, currentAgent, agentId, createNewChatSession]);
-
-  useEffect(() => {
-    if (!isAgentLoading && !isQueryInputDisabled) {
-      queryInputRef.current?.focus();
-    }
-  }, [isAgentLoading, isQueryInputDisabled]);
 
   useEffect(() => {
     scrollToBottom();
