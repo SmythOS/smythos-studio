@@ -477,7 +477,7 @@ export class GenAILLM extends Component {
             events: {
               click: () => {
                 window.open(
-                  `${this.workspace.serverData.docUrl}/account-management/model-rates/#model-pricing`,
+                  `${this.workspace.serverData.docUrl}/account-management/billing-management/#model-pricing`,
                   '_blank',
                 );
               },
