@@ -149,7 +149,6 @@ const AIChat: FC<AIChatProps> = ({
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
-  // Fast effects - minimal dependencies
   useEffect(() => {
     if (agentSettingsData?.settings && currentAgent) {
       currentAgent.aiAgentSettings = agentSettingsData.settings;
