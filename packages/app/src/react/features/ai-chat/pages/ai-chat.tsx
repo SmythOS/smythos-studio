@@ -70,7 +70,7 @@ const AIChat: FC<AIChatProps> = ({
   });
 
   const { data: agentSettingsData } = useAgentSettings(agentId || '');
-  const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
+  const { mutateAsync: createChat, isLoading: isChatCreating } = useCreateChatMutation();
   const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
 
   // Custom Hooks - optimized
@@ -155,11 +155,17 @@ const AIChat: FC<AIChatProps> = ({
       currentAgent.aiAgentSettings = agentSettingsData.settings;
       currentAgent.id = agentId;
 
-      if (!currentAgent?.aiAgentSettings?.lastConversationId) {
-        createNewChatSession();
-      }
+      // Always start with a clear session when opening the chat
+      createNewChatSession();
     }
   }, [agentSettingsData, currentAgent, agentId, createNewChatSession]);
+
+  // Ensure clean state on mount - clear chat history every time page loads
+  useEffect(() => {
+    clearMessages();
+    setShowScrollButton(false);
+    isFirstMessageSentRef.current = false;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isAgentLoading && !isQueryInputDisabled) {
