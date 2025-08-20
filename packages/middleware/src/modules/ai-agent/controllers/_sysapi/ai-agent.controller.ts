@@ -1,8 +1,7 @@
+import { AiAgent, AiAgentSettings, AiAgentState } from '@prisma/client';
 import httpStatus from 'http-status';
 import { ExpressHandler, ExpressHandlerWithParams } from '../../../../../types';
-import { aiAgentService, agentDeploymentsService, aiAgentChatsService } from '../../services';
-import { AiAgent, AiAgentSettings, AiAgentState } from '@prisma/client';
-import ApiError from '../../../../utils/apiError';
+import { agentDeploymentsService, aiAgentChatsService, aiAgentService } from '../../services';
 
 export const getAgentById: ExpressHandler<
   // IN
@@ -217,64 +216,6 @@ export const getAgentSettings: ExpressHandlerWithParams<
     settings,
   });
 };
-
-// #region AI AGENT Analytics
-export const addAgentCallLog: ExpressHandler<
-  {
-    [key: string]: any;
-  },
-  {
-    log: any;
-  }
-> = async (req, res) => {
-  //* NOTE: this endpoint forwards the data to the service without any validation. The validation schema middleware is what validates user input
-  const { agentId } = req.params;
-
-  const data = { ...req.body };
-
-  // filter all nullish values
-  Object.keys(data).forEach(key => {
-    if (!data[key]) {
-      delete data[key];
-    }
-  });
-
-  const log = await aiAgentService.addAgentCallLogM2M({
-    aiAgentId: agentId,
-    data,
-  });
-
-  res.status(httpStatus.CREATED).json({
-    log,
-  });
-};
-
-export const updateAgentCallLog: ExpressHandlerWithParams<
-  {
-    agentId: string;
-    callId: string;
-  },
-  {
-    [key: string]: any;
-  },
-  {}
-> = async (req, res) => {
-  const { callId } = req.params;
-
-  if (Number.isNaN(+callId)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid callId');
-  }
-
-  await aiAgentService.updateAgentCallLogM2M({
-    logId: +callId,
-    data: req.body,
-  });
-
-  res.status(httpStatus.OK).json({
-    message: 'Agent call log updated successfully',
-  });
-};
-// #endregion AI AGENT Analytics
 
 // #region Agent Conversations
 

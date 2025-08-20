@@ -25,8 +25,7 @@
     "graph:gendot": "depcruise src --config .dependency-cruiser.cjs --output-type dot > ./doc/dependency.dot",
     "create-module": "bash _automation/commands/create-module.sh",
     "version": "pnpm run build",
-    "knip": "knip",
-    "postinstall": "pnpm run prisma:generate"
+    "knip": "knip"
   },
   "author": "",
   "license": "ISC",

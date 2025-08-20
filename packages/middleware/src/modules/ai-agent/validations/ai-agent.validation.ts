@@ -1,4 +1,3 @@
-import { query } from 'express';
 import Joi from 'joi';
 
 export const postAiAgent = {
@@ -8,14 +7,6 @@ export const postAiAgent = {
   }),
 };
 
-export const verifyDomain = {
-  body: Joi.object({
-    domain: Joi.string()
-      .regex(/^(?:[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}$/)
-      .message('Invalid domain format')
-      .required(),
-  }),
-};
 export const getAiAgents = {
   query: Joi.object({
     includeSettings: Joi.boolean().optional().default(false),
@@ -167,91 +158,6 @@ export const getDeploymentByMajorMinorVersion = {
     agentId: Joi.string().required(),
     majorVersion: Joi.number().required(),
     minorVersion: Joi.number().required(),
-  }),
-};
-
-export const getAgentCallLogs = {
-  params: Joi.object({
-    agentId: Joi.string().required(),
-  }),
-
-  query: Joi.object({
-    sourceId: Joi.string().optional().allow(null).allow(''),
-    componentId: Joi.string().optional().allow(null).allow(''),
-    inputDateFrom: Joi.string().optional().allow(null).allow(''),
-    inputDateTo: Joi.string().optional().allow(null).allow(''),
-    outputDateFrom: Joi.string().optional().allow(null).allow(''),
-    outputDateTo: Joi.string().optional().allow(null).allow(''),
-    sessionID: Joi.string().optional().allow(null).allow(''),
-    workflowID: Joi.string().optional().allow(null).allow(''),
-    processID: Joi.string().optional().allow(null).allow(''),
-    tags: Joi.string().optional().allow(null).allow(''),
-
-    page: Joi.number().optional().default(1),
-    limit: Joi.number().optional().default(50),
-  }),
-};
-
-export const getAgentCallLogsSessions = {
-  params: Joi.object({
-    agentId: Joi.string().required(),
-  }),
-
-  query: Joi.object({
-    page: Joi.number().optional().default(1),
-    limit: Joi.number().optional().default(50),
-  }),
-};
-
-export const addAgentCallLog = {
-  params: Joi.object({
-    agentId: Joi.string().required(),
-  }),
-
-  body: Joi.object({
-    sourceId: Joi.string().optional().allow(null).allow(''),
-    componentId: Joi.string().optional().allow(null).allow(''),
-    input: Joi.alternatives().try(Joi.object(), Joi.array()).optional().allow(null),
-    output: Joi.alternatives().try(Joi.object(), Joi.array()).optional().allow(null),
-    inputTimestamp: Joi.date().optional().allow(null).allow(''),
-    outputTimestamp: Joi.date().optional().allow(null).allow(''),
-    result: Joi.string().optional().allow(null).allow(''),
-    error: Joi.string().optional().allow(null).allow(''),
-    domain: Joi.string().optional().allow(null).allow(''),
-    inputTokens: Joi.number().optional().allow(null).allow(''),
-    outputTokens: Joi.number().optional().allow(null).allow(''),
-    sourceName: Joi.string().optional().allow(null).allow(''),
-    componentName: Joi.string().optional().allow(null).allow(''),
-    sessionID: Joi.string().optional().allow(null).allow(''),
-    workflowID: Joi.string().optional().allow(null).allow(''),
-    processID: Joi.string().optional().allow(null).allow(''),
-    tags: Joi.string().optional().allow(null).allow(''),
-  }),
-};
-
-export const updateAgentCallLog = {
-  params: Joi.object({
-    callId: Joi.string().required(),
-  }),
-
-  body: Joi.object({
-    sourceId: Joi.string().optional().allow(null).allow(''),
-    componentId: Joi.string().optional().allow(null).allow(''),
-    input: Joi.alternatives().try(Joi.object(), Joi.array()).optional(),
-    output: Joi.alternatives().try(Joi.object(), Joi.array()).optional(),
-    result: Joi.string().optional().allow(null).allow(''),
-    error: Joi.string().optional().allow(null).allow(''),
-    inputTimestamp: Joi.date().optional().allow(null).allow(''),
-    outputTimestamp: Joi.date().optional().allow(null).allow(''),
-    domain: Joi.string().optional().allow(null).allow(''),
-    inputTokens: Joi.number().optional().allow(null).allow(''),
-    outputTokens: Joi.number().optional().allow(null).allow(''),
-    sourceName: Joi.string().optional().allow(null).allow(''),
-    componentName: Joi.string().optional().allow(null).allow(''),
-    sessionID: Joi.string().optional().allow(null).allow(''),
-    workflowID: Joi.string().optional().allow(null).allow(''),
-    processID: Joi.string().optional().allow(null).allow(''),
-    tags: Joi.string().optional().allow(null).allow(''),
   }),
 };
 
