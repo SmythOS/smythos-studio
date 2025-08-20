@@ -32,6 +32,9 @@ export class GenAILLM extends Component {
   private groqReasoningModels: string[];
   private searchModels: string[];
   private gpt5ReasoningModels: string[];
+  private gpt5Models: string[];
+  private gptO3andO4Models: string[];
+  private gptSearchModels: string[];
 
   protected async prepare() {
     const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
@@ -61,6 +64,12 @@ export class GenAILLM extends Component {
 
     // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
     this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
+
+    this.gpt5Models = LLMRegistry.getGpt5Models();
+    this.gptO3andO4Models = LLMRegistry.getO3andO4Models();
+    this.gptSearchModels = LLMRegistry.getModelsByFeatures('search', 'openai').map(
+      (m) => m.entryId,
+    );
 
     modelOptions.unshift('Echo');
     const model = this.data.model || this.defaultModel;
@@ -545,7 +554,12 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere',
-          'data-excluded-models': this.anthropicThinkingModels.join(','),
+          'data-excluded-models': [
+            ...this.anthropicThinkingModels,
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
         },
         section: 'Advanced',
         help: hint.temperature,
@@ -579,6 +593,11 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,TogetherAI,VertexAI,Bedrock,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
         },
         section: 'Advanced',
         help: hint.stopSequences,
@@ -600,8 +619,11 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere',
           'data-excluded-models': [
-            ...this.anthropicThinkingModels,
             ...this.openaiReasoningModels,
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+            ...this.anthropicThinkingModels,
             ...this.groqReasoningModels,
           ].join(','),
         },
@@ -637,7 +659,14 @@ export class GenAILLM extends Component {
         step: 0.01,
         validate: `min=0 max=${maxFrequencyPenalty}`,
         validateMessage: `Allowed range 0 to ${maxFrequencyPenalty}`,
-        attributes: { 'data-supported-models': 'OpenAI,TogetherAI,Perplexity,cohere' },
+        attributes: {
+          'data-supported-models': 'OpenAI,TogetherAI,Perplexity,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
+        },
         section: 'Advanced',
         help: hint.frequencyPenalty,
         tooltipClasses: 'w-56 ',
@@ -652,7 +681,14 @@ export class GenAILLM extends Component {
         step: 0.01,
         validate: `min=0 max=${maxPresencePenalty}`,
         validateMessage: `Allowed range 0 to ${maxPresencePenalty}`,
-        attributes: { 'data-supported-models': 'OpenAI,Perplexity,cohere' },
+        attributes: {
+          'data-supported-models': 'OpenAI,Perplexity,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
+        },
         section: 'Advanced',
         help: hint.presencePenalty,
         tooltipClasses: 'w-56 ',
@@ -668,7 +704,7 @@ export class GenAILLM extends Component {
           { text: 'High', value: 'high' },
         ],
         attributes: {
-          'data-supported-models': this.gpt5ReasoningModels.join(','),
+          'data-supported-models': this.gpt5Models.join(','),
         },
         help: "Controls the verbosity of the model's response. Lower values result in more concise responses, while higher values result in more verbose responses. Currently supported by GPT-5 models.",
         tooltipClasses: 'w-56 ',
