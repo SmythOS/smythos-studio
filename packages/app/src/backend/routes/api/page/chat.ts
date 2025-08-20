@@ -149,9 +149,9 @@ router.post('/new', async (req, res) => {
           ...includeAxiosAuth(token).headers,
           'x-user-id': userId,
           'x-team-id': teamId,
+          'X-AGENT-ID': agentId,
           'x-agent-id': agentId,
           'x-smyth-team-id': teamId,
-          'X-AGENT-ID': agentId,
         },
       },
     );
