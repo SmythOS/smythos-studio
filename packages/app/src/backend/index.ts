@@ -23,7 +23,6 @@ import compression from 'compression';
 import RedisStore from 'connect-redis';
 import passport from 'passport';
 import { version } from '../../package.json';
-import { createAdminServer } from './adminServer';
 import { maintenanceCheckMiddleware } from './middlewares/maintainceCheck.mw';
 import { initializePassport } from './routes/oauth/helper/passportSetup';
 import { ModelsPollingService } from './services/ModelsPolling.service';
@@ -31,7 +30,6 @@ import { cacheClient } from './services/cache.service';
 
 const PORT = config.env.PORT || 4000;
 const app = express();
-const ADMIN_PORT = config.env.ADMIN_PORT || 4001;
 
 app.disable('x-powered-by');
 
@@ -129,11 +127,9 @@ app.use('/', pagesRouter);
 //error handling middlewares
 app.use(errorHandler);
 
-let server = app.listen(PORT, () => {
+let server = app.listen(PORT, 'localhost', () => {
   console.log(`Listening on port ${PORT}`);
 });
-
-createAdminServer(server, PORT, ADMIN_PORT);
 
 process.on('uncaughtException', (err) => {
   console.error('An uncaught error occurred!');
