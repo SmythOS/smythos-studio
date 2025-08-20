@@ -1,5 +1,3 @@
-import { IAgent } from '@react/features/agents/components/agentCard/types';
-import { getAgent } from "../agent-settings/clients";
 
 export const accquireLock = async (id) => {
   const response = await fetch(`/api/page/agent_settings/lock`, {
@@ -81,71 +79,3 @@ export function processAvatar(file: File): Promise<File> {
   });
 }
 
-export const saveAgentDirectly = async (
-  id: string,
-  agentData: IAgent,
-  updateDataCb: (agent: IAgent) => IAgent,
-) => {
-  const newPinnedState = !agentData.isPinned;
-
-  try {
-    const lockResult = await accquireLock(id);
-    if (!lockResult?.lockId) {
-      throw new Error('Failed to acquire lock');
-    }
-
-    const currentAgent = await getAgent(id);
-
-    const requestBody = {
-      id,
-      name: currentAgent.name || 'Untitled Agent',
-      data: {
-        ...currentAgent.data,
-      },
-      lockId: lockResult.lockId,
-      isPinned: newPinnedState,
-    };
-
-    const response = await fetch(`/api/agent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error('Failed to save agent');
-    }
-    const updatedAgentResponse = await response.json();
-
-    // Step 3: Convert the response to IAgent format and update state
-    const updatedAgent: IAgent = {
-      ...agentData, // Keep existing agent properties
-      isPinned: newPinnedState, // Update the pinned state
-      ...updatedAgentResponse, // Override with any properties from the response
-    };
-
-    return updatedAgent;
-
-  } catch (error: unknown) {
-    console.error('Failed to pin/unpin agent:', error);
-
-    // Handle specific error cases
-    if (error && typeof error === 'object' && 'status' in error && error.status === 403) {
-      throw new Error('You do not have access to update this agent.');
-    } else if (
-      error &&
-      typeof error === 'object' &&
-      'error' in error &&
-      error.error === 'Request failed with status code 409'
-    ) {
-      throw new Error(
-        'Failed to update agent as it is being edited by another user. Please try again later.',
-      );
-    } else {
-      throw new Error(`Failed to ${newPinnedState ? 'pin' : 'unpin'} agent`);
-    }
-  }
-};

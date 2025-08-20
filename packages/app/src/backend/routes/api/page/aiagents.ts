@@ -1,6 +1,6 @@
 import express from 'express';
-import { authHeaders, smythAPIReq } from '../../../utils';
 import { getAgents } from '../../../services/user-data.service';
+import { authHeaders, smythAPIReq } from '../../../utils';
 const router = express.Router();
 
 // routes for dynamic content goes here
@@ -85,6 +85,31 @@ router.get('/agents', async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: 'Something went wrong while fetching agents list' });
+  }
+});
+
+// AGENT PIN/UNPIN
+router.post('/ai-agent/:agentId/pin', async (req, res) => {
+  try {
+    const { agentId } = req.params;
+    const response = await smythAPIReq.post(`/ai-agent/${agentId}/pin`, {}, await authHeaders(req));
+    
+    return res.json(response.data);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: error?.message || 'Something went wrong while pinning the agent' });
+  }
+});
+
+router.delete('/ai-agent/:agentId/pin', async (req, res) => {
+  try {
+    const { agentId } = req.params;
+    const response = await smythAPIReq.delete(`/ai-agent/${agentId}/pin`, await authHeaders(req));
+    
+    return res.json(response.data);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: error?.message || 'Something went wrong while unpinning the agent' });
   }
 });
 

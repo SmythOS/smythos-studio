@@ -1,5 +1,5 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
-import { accquireLock, saveAgentDirectly } from '@react/features/agents/utils';
+import { accquireLock } from '@react/features/agents/utils';
 import { useAgent, useAgentMutations } from '@react/shared/hooks/agent';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
@@ -176,24 +176,46 @@ export function useAgentOperations({
   const pinAgent = useCallback(async (): Promise<void> => {
     const id = agent.id;
     const newPinnedState = !agent.isPinned;
+    const actionText = newPinnedState ? 'pin' : 'unpin';
 
     try {
-      const updatedAgent = await saveAgentDirectly(id, agent, (currentAgent: IAgent) => {
-        return {
-          ...currentAgent,
-          isPinned: newPinnedState,
-        };
+      const endpoint = `/api/page/aiagents/ai-agent/${id}/pin`;
+      const method = newPinnedState ? 'POST' : 'DELETE';
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+
+      if (!response.ok) {
+        // Try to get error message from response
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.error || `Failed to ${actionText} agent. Please try again.`;
+        throw new Error(errorMessage);
+      }
+
+      const updatedAgent: IAgent = {
+        ...agent,
+        isPinned: newPinnedState,
+      };
 
       toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
       // Update the agent in place instead of reloading the entire list
       onAgentPinned?.(updatedAgent);
 
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Failed to pin/unpin agent:', error);
-      toast.error('Failed to pin/unpin agent');
+      
+      // Check if error has a message, if not use generic error
+      if (error && typeof error === 'object' && 'message' in error) {
+        toast.error(error.message);
+      } else {
+        toast.error(`Failed to ${actionText} agent. Please try again.`);
+      }
     }
-  }, [agent.id, agent.isPinned, onAgentPinned, saveAgent]);
+  }, [agent, onAgentPinned]);
 
   return {
     duplicateAgent,
