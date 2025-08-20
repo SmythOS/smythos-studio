@@ -1759,6 +1759,7 @@ export class Component extends EventEmitter {
         console.log('new settings', values);
 
         this.emit('settingsSaved', values);
+        successToast('Settings saved');
         return true;
       }
     }
