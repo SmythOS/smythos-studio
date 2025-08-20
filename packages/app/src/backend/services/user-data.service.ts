@@ -14,7 +14,7 @@ const DB_CRUD_ENDPOINT_PREFIX = config.env.SMYTH_API_BASE_URL;
 
 //* ENDPOINTS
 
-export async function saveAgent({ req, id, name, lockId, data, userName, teamId, isPinned }) {
+export async function saveAgent({ req, id, name, lockId, data, userName, teamId }) {
   if (!name) throw new Error('Missing name');
 
   const _data = {
@@ -23,7 +23,6 @@ export async function saveAgent({ req, id, name, lockId, data, userName, teamId,
     data,
     lockId,
     description: '',
-    isPinned,
   };
 
   // Generate short description if not provided

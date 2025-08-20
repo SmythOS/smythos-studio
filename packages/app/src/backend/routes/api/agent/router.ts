@@ -6,7 +6,7 @@ import * as userData from '../../../services/user-data.service';
 const router = express.Router();
 
 router.post('/', [includeTeamDetails], async (req, res) => {
-  const { name, id, data, lockId, hasAvatar = false, isPinned } = req.body;
+  const { name, id, data, lockId, hasAvatar = false } = req.body;
   const userId = req?._user?.id;
   const userName = req?._user?.name || req?._user?.email;
   const teamId = req?._team?.id;
@@ -17,7 +17,7 @@ router.post('/', [includeTeamDetails], async (req, res) => {
   }
 
   const result: any = await userData
-    .saveAgent({ req, id, name, lockId, data, userName, teamId, isPinned })
+    .saveAgent({ req, id, name, lockId, data, userName, teamId })
     .catch((error) => ({ error }));
   if (result.error) {
     return res.status(400).json({ success: false, error: result.error.message });
