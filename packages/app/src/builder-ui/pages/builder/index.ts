@@ -11,6 +11,7 @@ import {
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
 import { popupValuesDialog } from '../../ui/tw-dialogs';
 import { delay } from '../../utils';
+import { registerCanvasContextMenu } from '../../workspace/CanvasContextMenu';
 import { setupAgentAuthScripts } from './agent-auth';
 import { setupAgentScripts } from './agent-settings';
 import { setupAgentTemplateScripts } from './agent-template';
@@ -237,6 +238,9 @@ export default async function scripts() {
 
   //handle components
   setupComponentsScripts(workspace);
+
+  // Register canvas context menu
+  registerCanvasContextMenu(workspace);
 
   // preload data
   preloadDataScripts(workspace);
