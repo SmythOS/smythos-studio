@@ -34,13 +34,13 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 
+      'max-len': 'off',
+
       // General JS/TS Rules
       'no-unused-vars': 'warn',
       'no-console': 'warn',
       'no-debugger': 'warn',
       'no-empty': 'warn',
-
-      'max-len': 'off',
 
       // TypeScript
       '@typescript-eslint/no-unused-vars': 'warn',

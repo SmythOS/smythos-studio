@@ -14,6 +14,7 @@ import {
   smythAPIReq,
 } from '../../../utils/';
 import { refreshMenu } from '../../pages/builder-sidebar';
+import { getIntegrations } from '../../router.utils/templates.utils';
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import rateLimit from 'express-rate-limit';
@@ -176,8 +177,8 @@ router.get('/keys/prefix/:keyName/exists', includeTeamDetails, async (req, res) 
   const team = req?._team?.id;
 
   const keys = await vault.get({ team }, req);
-  const keyNames = Object.values(keys).filter(
-    (keyEntry: { name: string }) => keyEntry.name?.startsWith(keyName),
+  const keyNames = Object.values(keys).filter((keyEntry: { name: string }) =>
+    keyEntry.name?.startsWith(keyName),
   );
 
   /*
@@ -441,6 +442,21 @@ const componentsMWHandler = forwardToSmythM2MAPIMiddleware();
 
 router.get('/app-config/components', componentsMWHandler);
 router.get('/app-config/collections', componentsMWHandler);
+
+router.get('/app-config/collections/:id/components', componentsMWHandler);
+
+router.get('/integrations', async (req, res) => {
+  try {
+    const integrations = await getIntegrations();
+    return res.json({ success: true, data: integrations });
+  } catch (error) {
+    console.error('Error loading integrations:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error loading integrations',
+    });
+  }
+});
 
 router.post('/app-config/components', (req, res) => {
   setTimeout(() => refreshMenu(), 2000);
@@ -1058,7 +1074,7 @@ async function checkUsageLimits(req) {
 
       const maxLimit = isPaidSubscriber
         ? limitData?.isLimitEnabled
-          ? limitData?.limitValue ?? Infinity
+          ? (limitData?.limitValue ?? Infinity)
           : Infinity
         : freeCredits;
 
