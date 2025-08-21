@@ -1,51 +1,35 @@
-/* eslint-disable max-len, no-unused-vars, @typescript-eslint/no-unused-vars */
-import { Tooltip } from 'flowbite-react';
-import { FC, useRef, useState } from 'react';
-import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
-import '../styles/index.css';
-
 import {
   CodeBlockWithCopyButton,
   FileItemPreview,
   ReplyLoader,
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
-import { FileWithMetadata } from '@react/shared/types/chat.types';
+import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
+import { Tooltip } from 'flowbite-react';
+import { FC, useRef, useState } from 'react';
+import { FaCheck, FaRegCopy } from 'react-icons/fa6';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '../styles/index.css';
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-export interface IChatMessage {
-  me?: boolean;
-  message: string;
-  type?: 'user' | 'system' | 'thinking';
-  avatar?: string;
-  isLast?: boolean;
-  isError?: boolean;
-  isReplying?: boolean;
-  isRetrying?: boolean;
-  isFirstMessage?: boolean;
-  onRetryClick?: () => void;
-  files?: FileWithMetadata[];
-  hideMessageBubble?: boolean;
-}
+export const ChatBubble: FC<IChatMessage> = (props) => {
+  const {
+    me,
+    type,
+    files,
+    avatar,
+    isError,
+    message,
+    isReplying,
+    isRetrying,
+    onRetryClick,
+    hideMessageBubble,
+    thinkingMessage,
+  } = props;
 
-export const ChatBubble: FC<IChatMessage> = ({
-  me,
-  files,
-  avatar,
-  isLast,
-  message,
-  type,
-  isReplying,
-  isRetrying,
-  onRetryClick,
-  isError = false,
-  hideMessageBubble,
-}) => {
   if (me) {
     return (
       <UserMessageBubble message={message} files={files} hideMessageBubble={hideMessageBubble} />
@@ -53,14 +37,10 @@ export const ChatBubble: FC<IChatMessage> = ({
   }
 
   // Handle thinking messages
-  if (type === 'thinking') {
-    return <ThinkingMessage message={message} avatar={avatar} />;
-  }
+  if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
 
   return isReplying || isRetrying ? (
-    <>
-      <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
-    </>
+    <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
   ) : (
     <div className={me ? 'pl-[100px]' : ''}>
       {!hideMessageBubble && (
@@ -69,6 +49,8 @@ export const ChatBubble: FC<IChatMessage> = ({
           isError={isError}
           onRetryClick={onRetryClick}
           isRetrying={isRetrying}
+          thinkingMessage={thinkingMessage}
+          avatar={avatar}
         />
       )}
     </div>
@@ -111,6 +93,8 @@ interface ISystemMessageBubble {
   isError?: boolean;
   isRetrying?: boolean;
   onRetryClick?: () => void;
+  thinkingMessage?: string;
+  avatar?: string;
 }
 
 const SystemMessageBubble: FC<ISystemMessageBubble> = ({
@@ -118,6 +102,8 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
   isError,
   isRetrying,
   onRetryClick,
+  thinkingMessage,
+  avatar,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -201,10 +187,12 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
                 p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
               }}
             />
+            {/* Display thinking message inline if present */}
+            {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
           </div>
         )}
       </div>
-      {!isError && (
+      {!isError && !thinkingMessage && (
         <div className="flex gap-4 p-4 pl-0">
           <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="bottom">
             <button

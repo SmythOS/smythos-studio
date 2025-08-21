@@ -2,11 +2,12 @@ import { debounce } from 'lodash-es';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { ChatBubble, IChatMessage } from '@react/features/ai-chat/components';
+import { ChatBubble } from '@react/features/ai-chat/components';
 import { CHAT_ERROR_MESSAGE } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { useChatMessagesSuspendedQuery } from '@react/features/ai-chat/hooks';
 import { AgentDetails } from '@react/shared/types/agent-data.types';
+import { IChatMessage } from '@react/shared/types/chat.types';
 
 interface ChatHistoryProps {
   chatId: string;
@@ -98,5 +99,5 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
 };
 
 const ErrorMessage: FC<{ avatar?: string }> = ({ avatar }) => (
-  <ChatBubble isError message={CHAT_ERROR_MESSAGE} avatar={avatar} />
+  <ChatBubble me={false} isError message={CHAT_ERROR_MESSAGE} avatar={avatar} />
 );

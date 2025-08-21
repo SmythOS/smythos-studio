@@ -117,7 +117,8 @@ export const useChatActions = ({
           signal,
           onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
             setChatHistoryMessages((bubbles) => {
-              // Only remove thinking messages if we have actual content
+              // Only remove thinking messages and clean message when we have actual content
+              // This ensures debug messages are preserved until content starts arriving
               if (value && value.trim() !== '') {
                 const filteredBubbles = bubbles.filter((msg) => msg.type !== 'thinking');
 
@@ -135,6 +136,7 @@ export const useChatActions = ({
                   updatedBubbles[lastSystemMessageIndex].isReplying = false;
                   updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
                   updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false; // Show the message bubble
+                  updatedBubbles[lastSystemMessageIndex].thinkingMessage = undefined; // Clear thinking message
                   return updatedBubbles;
                 }
                 return filteredBubbles;
@@ -153,39 +155,15 @@ export const useChatActions = ({
                   .filter(({ msg }) => msg.type === 'system')
                   .pop()?.index ?? -1;
 
-              // Check if there's already a thinking message after the last system message
-              const thinkingAfterSystem = bubbles
-                .slice(lastSystemIndex + 1)
-                .find((msg) => msg.type === 'thinking');
-
-              if (thinkingAfterSystem) {
-                // Update existing thinking message
-                thinkingAfterSystem.message = thinking.message;
-                return [...bubbles];
-              } else {
-                // Add new thinking message after the last system message
-                const thinkingMessage: IChatMessage = {
-                  me: false,
-                  message: thinking.message,
-                  type: 'thinking',
-                  avatar,
-                  isReplying: false, // Hide loading indicator for thinking messages
-                };
-
-                const newBubbles = [...bubbles];
-                if (lastSystemIndex !== -1) {
-                  // Insert after the last system message
-                  newBubbles.splice(lastSystemIndex + 1, 0, thinkingMessage);
-                  // Hide the system message when thinking starts
-                  newBubbles[lastSystemIndex].hideMessageBubble = true;
-                  newBubbles[lastSystemIndex].isReplying = false;
-                } else {
-                  // Add at the end if no system message
-                  newBubbles.push(thinkingMessage);
-                }
-
-                return newBubbles;
+              if (lastSystemIndex !== -1) {
+                // Update the existing system message with thinking message instead of creating separate bubble
+                const updatedBubbles = [...bubbles];
+                updatedBubbles[lastSystemIndex].thinkingMessage = thinking.message;
+                updatedBubbles[lastSystemIndex].isReplying = false;
+                return updatedBubbles;
               }
+
+              return bubbles;
             });
           },
           onStart: () => {
@@ -193,6 +171,8 @@ export const useChatActions = ({
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.type === 'system') {
+                // Show initial processing message and loading indicator
+                lastMessage.message = 'Processing your request...';
                 lastMessage.isReplying = true; // Show loading indicator for system message
               }
               return newMessages;
@@ -203,6 +183,14 @@ export const useChatActions = ({
               // Remove thinking messages when response is complete
               const filteredMessages = prev.filter((msg) => msg.type !== 'thinking');
               const newMessages = [...filteredMessages];
+
+              // Clear thinkingMessage from all system messages
+              newMessages.forEach((msg) => {
+                if (msg.type === 'system') {
+                  msg.thinkingMessage = undefined;
+                }
+              });
+
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage) {
                 lastMessage.isReplying = false;
