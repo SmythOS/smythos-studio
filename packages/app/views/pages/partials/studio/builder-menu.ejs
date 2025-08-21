@@ -87,10 +87,12 @@
       </div>
     </div>
 
-    <div id="embodiments-toolbar" class="items-center space-x-4 h-10 z-[1]">
-      <%- include('./embodiments-new'); -%>
-    </div>
-    <div class="nav-action-buttons hidden md:flex gap-2 h-10">
+    <!-- Builder Toolbar Actions Group -->
+    <div data-qa="builder-toolbar-actions" class="flex items-center space-x-4 h-10">
+      <div id="embodiments-toolbar" class="items-center space-x-4 h-10 z-[1]">
+        <%- include('./embodiments-new'); -%>
+      </div>
+      <div class="nav-action-buttons hidden md:flex gap-2 h-10">
       <div
         class="group relative rounded-lg border border-solid border-gray-200 text-gray-900 bg-white hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white"
       >
@@ -308,8 +310,10 @@
       >
         Deployment is locked in view mode.
       </div>
-      <button
-        id="share-agent-button-topbar"
+      </div>
+    </div>
+    <button
+      id="share-agent-button-topbar"
         class="text-gray-900 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm disabled:opacity-50 border border-solid border-gray-200 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:stroke-white disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-900 disabled:hover:[&_path]:stroke-black"
         type="button"
         disabled="true"

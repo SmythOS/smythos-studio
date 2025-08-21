@@ -44,109 +44,112 @@
 
      
 
-      <div class="relative group components-btn">
-        <button
-          id="components-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          @click="setSidebarTab('buildTab')"
-          data-tooltip-target="tooltip-components"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'buildTab' && isSidebarOpen}"
+      <!-- Components and Integrations Panel Group -->
+      <div data-qa="sidebar-components-integrations-panel">
+        <div class="relative group components-btn">
+          <button
+            id="components-button"
+            class="relative w-full flex items-center h-10 justify-center"
+            @click="setSidebarTab('buildTab')"
+            data-tooltip-target="tooltip-components"
+            data-tooltip-placement="right"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>path]:!fill-white': currentSidebarTab === 'buildTab' && isSidebarOpen}"
+            <div
+              class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
+              :class="{'!bg-gray-700': currentSidebarTab === 'buildTab' && isSidebarOpen}"
             >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M6.75 14.75C5.23121 14.75 4 15.9812 4 17.5C4 19.0188 5.23121 20.25 6.75 20.25C8.26879 20.25 9.5 19.0188 9.5 17.5C9.5 15.9812 8.26879 14.75 6.75 14.75ZM2.5 17.5C2.5 15.1528 4.40279 13.25 6.75 13.25C9.09721 13.25 11 15.1528 11 17.5C11 19.8472 9.09721 21.75 6.75 21.75C4.40279 21.75 2.5 19.8472 2.5 17.5Z"
-                fill="currentColor"
-              />
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M8 6.5C8 4.15279 9.90279 2.25 12.25 2.25C14.5972 2.25 16.5 4.15279 16.5 6.5C16.5 8.84721 14.5972 10.75 12.25 10.75C9.90279 10.75 8 8.84721 8 6.5ZM12.25 3.75C10.7312 3.75 9.5 4.98121 9.5 6.5C9.5 8.01879 10.7312 9.25 12.25 9.25C13.7688 9.25 15 8.01879 15 6.5C15 4.98121 13.7688 3.75 12.25 3.75Z"
-                fill="currentColor"
-              />
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M13.5 17.5C13.5 15.1528 15.4028 13.25 17.75 13.25C20.0972 13.25 22 15.1528 22 17.5C22 19.8472 20.0972 21.75 17.75 21.75C15.4028 21.75 13.5 19.8472 13.5 17.5ZM17.75 14.75C16.2312 14.75 15 15.9812 15 17.5C15 19.0188 16.2312 20.25 17.75 20.25C19.2688 20.25 20.5 19.0188 20.5 17.5C20.5 15.9812 19.2688 14.75 17.75 14.75Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-        </button>
-        <div
-          id="tooltip-components"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Components
-        </div>
-      </div>
-
-      <div class="relative group integrations-btn">
-        <button
-          id="integrations-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          @click="setSidebarTab('integrationsTab')"
-          data-tooltip-target="tooltip-integrations"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>g>path]:!stroke-white': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
-            >
-              <mask
-                id="mask0_14426_43463"
-                style="mask-type: alpha"
-                maskUnits="userSpaceOnUse"
-                x="0"
-                y="0"
-                width="24"
-                height="24"
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                :class="{'[&>path]:!fill-white': currentSidebarTab === 'buildTab' && isSidebarOpen}"
               >
-                <rect width="24" height="24" fill="#D9D9D9" />
-              </mask>
-              <g mask="url(#mask0_14426_43463)">
                 <path
-                  d="M18 20.25H14.8862C14.7625 19.548 14.4586 18.9163 13.97 18.3733C13.3102 17.6402 12.4735 17.25 11.5 17.25C10.5265 17.25 9.68978 17.6402 9.03003 18.3733C8.54135 18.9163 8.23748 19.548 8.11382 20.25H5C4.65049 20.25 4.36997 20.1343 4.11783 19.8822C3.86569 19.63 3.75 19.3495 3.75 19V15.8842C4.42572 15.762 5.04171 15.4699 5.58481 15.0097C6.35225 14.3595 6.75 13.5048 6.75 12.5C6.75 11.4952 6.35225 10.6405 5.58481 9.99026C5.04171 9.53013 4.42572 9.23803 3.75 9.11583V6C3.75 5.65049 3.86569 5.36997 4.11783 5.11783C4.36997 4.86569 4.65049 4.75 5 4.75H9H9.75V4C9.75 3.49355 9.9164 3.09426 10.2553 2.75533C10.5943 2.4164 10.9935 2.25 11.5 2.25C12.0065 2.25 12.4057 2.4164 12.7447 2.75533C13.0836 3.09426 13.25 3.49354 13.25 4V4.75H14H18C18.3495 4.75 18.63 4.86569 18.8822 5.11783C19.1343 5.36997 19.25 5.65049 19.25 6V10V10.75H20C20.5065 10.75 20.9057 10.9164 21.2447 11.2553C21.5836 11.5943 21.75 11.9935 21.75 12.5C21.75 13.0065 21.5836 13.4057 21.2447 13.7447C20.9057 14.0836 20.5065 14.25 20 14.25H19.25V15V19C19.25 19.3495 19.1343 19.63 18.8822 19.8822C18.63 20.1343 18.3495 20.25 18 20.25Z"
-                  stroke="currentColor"
-                  stroke-width="1.5"
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M6.75 14.75C5.23121 14.75 4 15.9812 4 17.5C4 19.0188 5.23121 20.25 6.75 20.25C8.26879 20.25 9.5 19.0188 9.5 17.5C9.5 15.9812 8.26879 14.75 6.75 14.75ZM2.5 17.5C2.5 15.1528 4.40279 13.25 6.75 13.25C9.09721 13.25 11 15.1528 11 17.5C11 19.8472 9.09721 21.75 6.75 21.75C4.40279 21.75 2.5 19.8472 2.5 17.5Z"
+                  fill="currentColor"
                 />
-              </g>
-            </svg>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M8 6.5C8 4.15279 9.90279 2.25 12.25 2.25C14.5972 2.25 16.5 4.15279 16.5 6.5C16.5 8.84721 14.5972 10.75 12.25 10.75C9.90279 10.75 8 8.84721 8 6.5ZM12.25 3.75C10.7312 3.75 9.5 4.98121 9.5 6.5C9.5 8.01879 10.7312 9.25 12.25 9.25C13.7688 9.25 15 8.01879 15 6.5C15 4.98121 13.7688 3.75 12.25 3.75Z"
+                  fill="currentColor"
+                />
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M13.5 17.5C13.5 15.1528 15.4028 13.25 17.75 13.25C20.0972 13.25 22 15.1528 22 17.5C22 19.8472 20.0972 21.75 17.75 21.75C15.4028 21.75 13.5 19.8472 13.5 17.5ZM17.75 14.75C16.2312 14.75 15 15.9812 15 17.5C15 19.0188 16.2312 20.25 17.75 20.25C19.2688 20.25 20.5 19.0188 20.5 17.5C20.5 15.9812 19.2688 14.75 17.75 14.75Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+          </button>
+          <div
+            id="tooltip-components"
+            role="tooltip"
+            class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+            data-popper-reference-hidden=""
+            data-popper-escaped=""
+            data-popper-placement="bottom"
+          >
+            Components
           </div>
-        </button>
-        <div
-          id="tooltip-integrations"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Integrations
+        </div>
+
+        <div class="relative group integrations-btn">
+          <button
+            id="integrations-button"
+            class="relative w-full flex items-center h-10 justify-center"
+            @click="setSidebarTab('integrationsTab')"
+            data-tooltip-target="tooltip-integrations"
+            data-tooltip-placement="right"
+          >
+            <div
+              class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
+              :class="{'!bg-gray-700': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                :class="{'[&>g>path]:!stroke-white': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
+              >
+                <mask
+                  id="mask0_14426_43463"
+                  style="mask-type: alpha"
+                  maskUnits="userSpaceOnUse"
+                  x="0"
+                  y="0"
+                  width="24"
+                  height="24"
+                >
+                  <rect width="24" height="24" fill="#D9D9D9" />
+                </mask>
+                <g mask="url(#mask0_14426_43463)">
+                  <path
+                    d="M18 20.25H14.8862C14.7625 19.548 14.4586 18.9163 13.97 18.3733C13.3102 17.6402 12.4735 17.25 11.5 17.25C10.5265 17.25 9.68978 17.6402 9.03003 18.3733C8.54135 18.9163 8.23748 19.548 8.11382 20.25H5C4.65049 20.25 4.36997 20.1343 4.11783 19.8822C3.86569 19.63 3.75 19.3495 3.75 19V15.8842C4.42572 15.762 5.04171 15.4699 5.58481 15.0097C6.35225 14.3595 6.75 13.5048 6.75 12.5C6.75 11.4952 6.35225 10.6405 5.58481 9.99026C5.04171 9.53013 4.42572 9.23803 3.75 9.11583V6C3.75 5.65049 3.86569 5.36997 4.11783 5.11783C4.36997 4.86569 4.65049 4.75 5 4.75H9H9.75V4C9.75 3.49355 9.9164 3.09426 10.2553 2.75533C10.5943 2.4164 10.9935 2.25 11.5 2.25C12.0065 2.25 12.4057 2.4164 12.7447 2.75533C13.0836 3.09426 13.25 3.49354 13.25 4V4.75H14H18C18.3495 4.75 18.63 4.86569 18.8822 5.11783C19.1343 5.36997 19.25 5.65049 19.25 6V10V10.75H20C20.5065 10.75 20.9057 10.9164 21.2447 11.2553C21.5836 11.5943 21.75 11.9935 21.75 12.5C21.75 13.0065 21.5836 13.4057 21.2447 13.7447C20.9057 14.0836 20.5065 14.25 20 14.25H19.25V15V19C19.25 19.3495 19.1343 19.63 18.8822 19.8822C18.63 20.1343 18.3495 20.25 18 20.25Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                </g>
+              </svg>
+            </div>
+          </button>
+          <div
+            id="tooltip-integrations"
+            role="tooltip"
+            class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
+            data-popper-reference-hidden=""
+            data-popper-escaped=""
+            data-popper-placement="bottom"
+          >
+            Integrations
+          </div>
         </div>
       </div>
 

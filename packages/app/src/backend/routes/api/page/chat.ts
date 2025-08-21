@@ -1,10 +1,10 @@
 import axios from 'axios';
+import { randomUUID } from 'crypto';
 import express from 'express';
 import config from '../../../config';
-import { randomUUID } from 'crypto';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
-import { authHeaders, includeAxiosAuth, smythAPIReq } from '../../../utils';
 import SmythPubStaticStorage from '../../../services/storage/SmythStaticStorage.class';
+import { authHeaders, includeAxiosAuth, smythAPIReq } from '../../../utils';
 
 const router = express.Router();
 const staticStorage = new SmythPubStaticStorage();
@@ -83,9 +83,7 @@ router.post('/stream', async (req, res) => {
   try {
     const result = await axios.post(
       getAgentServerURL(agentId as string, isUsingLocalServer) + '/aichat/stream',
-      {
-        message,
-      },
+      { message },
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -136,10 +134,11 @@ router.get('/list', async (req, res) => {
 
 router.post('/new', async (req, res) => {
   try {
-    // const response = await smythAPIReq.post(`/chats`, req.body, await authHeaders(req));
-    // TODO: instead of calling mw, call emb server to create the conversation
     const agentId = req.body.conversation?.aiAgentId;
     if (!agentId) return res.status(400).json({ error: 'conversation.aiAgentId is required' });
+
+    const userId = req._user?.id;
+    const teamId = req._team?.id;
     const token = req.user.accessToken;
 
     const response = await axios.post(
@@ -148,7 +147,11 @@ router.post('/new', async (req, res) => {
       {
         headers: {
           ...includeAxiosAuth(token).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
           'X-AGENT-ID': agentId,
+          'x-agent-id': agentId,
+          'x-smyth-team-id': teamId,
         },
       },
     );
