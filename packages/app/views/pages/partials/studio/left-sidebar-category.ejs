@@ -1,0 +1,168 @@
+<%
+let dynamic = (typeof entry === 'object' && entry?.type === 'dynamic');
+let sanitizedId = id.replace(/[^a-zA-Z0-9]/g, '');
+let category = id;
+const categoryIcon = icon || '';
+let cssstyle = '';
+let svgstyle = '';
+if (typeof color == 'string' && color) {
+    cssstyle += `color:${color};`;
+    svgstyle += `fill:${color};`;
+}
+%>
+<% if ((Array.isArray(entry) && entry.length > 0) || (!Array.isArray(entry) && entry)) { %>
+<li>
+    <div class="items-group-container navview-menu-group group-<%= category %>" 
+        x-data="{ 
+            open: true,
+            hasItems: false,
+            observer: null,
+            storageKey: 'toggle<%= sanitizedId %>',
+            
+            init() {
+                // Initialize from localStorage
+                this.open = localStorage.getItem(this.storageKey) !== 'false';
+                
+                if (<%= dynamic %>) {
+                    this.initDynamicCategory();
+                } else {
+                    this.hasItems = true;
+                }
+            },
+            
+            initDynamicCategory() {
+                // Initial check
+                this.checkItems();
+                
+                // Set up observer
+                this.setupObserver();
+                
+                // Fallback check every 500ms
+                setInterval(() => this.checkItems(), 500);
+            },
+            
+            setupObserver() {
+                // Clean up existing observer if any
+                if (this.observer) {
+                    this.observer.disconnect();
+                }
+                
+                // Create new observer
+                this.observer = new MutationObserver(() => this.checkItems());
+                
+                // Observe the entire document for changes
+                this.observer.observe(document.body, { 
+                    childList: true, 
+                    subtree: true 
+                });
+            },
+            
+            checkItems() {
+                const items = document.querySelectorAll('.comp-menuitem-list-<%= category %> li');
+                let hasValidItems = false;
+                
+                // Check and clean up items
+                items.forEach(item => {
+                    if (item.innerHTML.trim() !== '' && item.querySelector('a')) {
+                        hasValidItems = true;
+                    } else {
+                        item.remove();
+                    }
+                });
+                
+                // Update state and auto-close if needed
+                this.hasItems = hasValidItems;
+                if (!hasValidItems && this.open) {
+                    this.open = false;
+                    localStorage.setItem(this.storageKey, 'false');
+                }
+            },
+            
+            toggleOpen() {
+                if (this.hasItems) {
+                    this.open = !this.open;
+                    localStorage.setItem(this.storageKey, this.open);
+                }
+            }
+        }"
+        x-init="init()">
+        <div @click="toggleOpen()"
+            class="group-btn flex justify-between w-full text-sm items-center p-3 text-black transition duration-75 group bg-white"
+            :class="{ 'cursor-pointer': hasItems, 'cursor-default': !hasItems }"
+            :aria-expanded="hasItems ? open.toString() : 'false'"
+            aria-controls="<%= sanitizedId %>">
+            <div class="flex w-full items-center">
+                <div class="w-[calc(100%_-_16px)]">
+                    <span class="flex-1 text-left flex items-center justify-between gap-2 select-none" sidebar-toggle-item>
+                        <div class="flex items-center gap-2">
+                            <% if (categoryIcon) { %>
+                                <span class="icon" style="<%= cssstyle %>">
+                                    <% if (categoryIcon.startsWith('fa-')) { %>
+                                    <i class="<%= categoryIcon %>"></i>
+                                    <% } else if (categoryIcon.trim().startsWith('<svg')) { %>
+                                    <span class="svg-icon w-6 h-6">
+                                        <%- categoryIcon.match(/<path(?=.*?\sfill="[^"]*")[^>]*>/gm) ? categoryIcon : categoryIcon.replace(/<path /gm, '<path style="'+svgstyle+'"') %>
+                                    </span>
+                                    <% } else { %>
+                                    <span class="svg-icon <%= categoryIcon %> w-6 h-6"></span>
+                                    <% } %>
+                                </span>
+                            <% } %>
+                           <span class="name max-w-[150px] truncate inline-block"><%= label %></span>
+                        </div>
+                        <% if (dynamic) { %>
+                            <button id="btn-import-<%= category %>"
+                                @click.stop
+                                class="btn-import outline-1 outline-gray-200 cursor-pointer items-center justify-center w-4 h-4 p-2 text-sm font-medium text-gray-500 bg-gray-200 rounded-sm hover:text-white hover:font-bold hover:bg-gray-400 inline-flex">+</button>
+                        <% } %>
+                    </span>
+                </div>
+                <template x-if="hasItems">
+                    <i class="text-xs fa-solid fa-chevron-down transition-transform duration-200" 
+                       :class="open ? 'rotate-0' : '-rotate-90'"></i>
+                </template>
+            </div>
+        </div>
+        
+        <% if (!dynamic) { %>
+        <!-- Static category content -->
+        <ul id="<%= sanitizedId %>" 
+            x-show="open" 
+            class="items-group space-y-2 py-2 origin-top"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform scale-y-50"
+            x-transition:enter-end="opacity-100 transform scale-y-100"
+            x-transition:leave="transition ease-out duration-100"
+            x-transition:leave-end="opacity-0 transform scale-y-50">
+
+            <% entry.forEach((item, index) => { %>
+            <%- include('left-sidebar-cptItem', {
+                name: item.name,
+                level: 1,
+                description: item.description,
+                label: item.label||item.name,
+                visible: (typeof item.visible === 'undefined') || item.visible,
+                color: item.color,
+                icon: item.icon||item.name,
+                attributes: item.attributes||{},
+                children: item.children,
+                externalLink: item.externalLink
+            }) %>
+            <% }) %>
+        </ul>
+        <% } else { %>
+        <!-- Dynamic category content -->
+        <ul id="<%= sanitizedId %>" 
+            x-show="hasItems && open" 
+            x-cloak
+            class="comp-menuitem-list comp-menuitem-list-<%= category %> py-2 space-y-2"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform scale-y-50"
+            x-transition:enter-end="opacity-100 transform scale-y-100"
+            x-transition:leave="transition ease-out duration-100"
+            x-transition:leave-end="opacity-0 transform scale-y-50">
+        </ul>
+        <% } %>
+    </div>
+</li>
+<% } %>
