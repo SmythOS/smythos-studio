@@ -582,8 +582,8 @@ function isDroppedInCanvasArea(
   event: DragEvent | { dragEvent?: DragEvent; clientX?: number; clientY?: number },
 ): boolean {
   // Extract coordinates from either DragEvent or custom event object
-  const dropX = 'clientX' in event ? event.clientX : event.dragEvent?.clientX ?? 0;
-  const dropY = 'clientY' in event ? event.clientY : event.dragEvent?.clientY ?? 0;
+  const dropX = 'clientX' in event ? event.clientX : (event.dragEvent?.clientX ?? 0);
+  const dropY = 'clientY' in event ? event.clientY : (event.dragEvent?.clientY ?? 0);
 
   // Return false if coordinates are unavailable
   if (!dropX || !dropY) {
@@ -602,7 +602,7 @@ function isDroppedInCanvasArea(
 function setupBuilderMenuDragDrop() {
   // Initialize the dummy dragging div
   let dummyDiv = null;
-    interact(
+  interact(
     '#left-menu a[smt-component], #left-sidebar-integrations-menu a[smt-component]',
   ).draggable({
     // Create the dummy div when starting the drag
@@ -628,7 +628,9 @@ function setupBuilderMenuDragDrop() {
     onend: function (event) {
       if (workspace?.locked) return false;
 
-      dummyDiv.style.pointerEvents = 'none';
+      if (dummyDiv && dummyDiv.style) {
+        dummyDiv.style.pointerEvents = 'none';
+      }
 
       const droppedInCanvasArea = isDroppedInCanvasArea(event);
 
