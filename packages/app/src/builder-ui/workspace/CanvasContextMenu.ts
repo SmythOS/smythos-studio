@@ -46,8 +46,43 @@ function buildMenuItem(label: string, onClick: () => void, disabled = false): HT
   return item;
 }
 
+/**
+ * Find the component element that was right-clicked
+ */
+function findClickedComponent(event: MouseEvent): HTMLElement | null {
+  // If there's already a selection, don't try to select a component
+  if (document.querySelectorAll('.component.selected').length > 1) return;
+
+  const target = event.target as HTMLElement;
+  // Check if the target is a component or is inside a component
+  const component = target.closest('.component') as HTMLElement;
+  return component;
+}
+
+/**
+ * Select a component and update the workspace selection
+ */
+function selectComponent(workspace: Workspace, component: HTMLElement): void {
+  // Clear any existing selection
+  document.querySelectorAll('.component.selected').forEach((c) => c.classList.remove('selected'));
+
+  // Select the clicked component
+  component.classList.add('selected');
+
+  // Update workspace selection state
+  workspace.refreshComponentSelection(component);
+}
+
 async function createAndShowMenu(event: MouseEvent, workspace: Workspace) {
   destroyMenu();
+
+  // Find if we clicked on a component
+  const clickedComponent = findClickedComponent(event);
+
+  // If we clicked on a component, select it
+  if (clickedComponent) {
+    selectComponent(workspace, clickedComponent);
+  }
 
   const containerRect = workspace.container.getBoundingClientRect();
   const workspaceRect = workspace.domElement.getBoundingClientRect();
