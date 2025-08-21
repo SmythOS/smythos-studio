@@ -14,6 +14,19 @@ const state: MenuState = {
   closeHandler: null,
 };
 
+// Platform-specific keyboard shortcuts
+const getPlatformShortcuts = () => {
+  const isMac = navigator.userAgent.includes('Mac');
+
+  return {
+    copy: isMac ? '⌘C' : 'Ctrl+C',
+    paste: isMac ? '⌘V' : 'Ctrl+V',
+    delete: isMac ? '⌫' : 'Del',
+    export: isMac ? '⌘⇧E' : 'Ctrl+Shift+E',
+    search: isMac ? '⌘P' : 'Ctrl+P',
+  };
+};
+
 function destroyMenu() {
   if (state.menuEl && state.menuEl.parentElement) {
     state.menuEl.parentElement.removeChild(state.menuEl);
@@ -25,13 +38,38 @@ function destroyMenu() {
   }
 }
 
-function buildMenuItem(label: string, onClick: () => void, disabled = false): HTMLElement {
+function buildMenuItem(
+  label: string,
+  onClick: () => void,
+  disabled = false,
+  shortcut?: string,
+): HTMLElement {
   const item = document.createElement('button');
   item.type = 'button';
   item.className = `w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
     disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
   }`;
-  item.textContent = label;
+
+  // Create label container
+  const labelContainer = document.createElement('div');
+  labelContainer.className = 'flex justify-between items-center';
+
+  // Create label text
+  const labelText = document.createElement('span');
+  labelText.textContent = label;
+
+  // Create shortcut text
+  const shortcutText = document.createElement('span');
+  shortcutText.className = 'text-xs text-gray-500 ml-2';
+  shortcutText.textContent = shortcut || '';
+
+  labelContainer.appendChild(labelText);
+  if (shortcut) {
+    labelContainer.appendChild(shortcutText);
+  }
+
+  item.appendChild(labelContainer);
+
   if (!disabled) {
     item.addEventListener('click', (e) => {
       e.preventDefault();
@@ -102,7 +140,9 @@ async function createAndShowMenu(event: MouseEvent, workspace: Workspace) {
   const menu = document.createElement('div');
   menu.setAttribute('data-context-menu', 'true');
   menu.className =
-    'absolute z-50 bg-white border border-gray-200 rounded-md shadow-md w-44 select-none';
+    'absolute z-50 bg-white border border-gray-200 rounded-md shadow-md w-52 select-none';
+
+  const shortcuts = getPlatformShortcuts();
 
   // Build items
   const copyItem = buildMenuItem(
@@ -113,6 +153,7 @@ async function createAndShowMenu(event: MouseEvent, workspace: Workspace) {
       copySelection(workspace);
     },
     !copyEnabled,
+    shortcuts.copy,
   );
 
   const pasteItem = buildMenuItem(
@@ -132,6 +173,7 @@ async function createAndShowMenu(event: MouseEvent, workspace: Workspace) {
       }
     },
     !pasteEnabled,
+    shortcuts.paste,
   );
 
   const deleteItem = buildMenuItem(
@@ -140,16 +182,27 @@ async function createAndShowMenu(event: MouseEvent, workspace: Workspace) {
       await deleteSelectionWithConfirm(workspace);
     },
     !document.querySelector('#workspace-container .component.selected'),
+    shortcuts.delete,
   );
 
-  const exportItem = buildMenuItem('Export agent', async () => {
-    await workspace.exportTemplate();
-  });
+  const exportItem = buildMenuItem(
+    'Export agent',
+    async () => {
+      await workspace.exportTemplate();
+    },
+    false,
+    shortcuts.export,
+  );
 
-  const searchItem = buildMenuItem('Search', () => {
-    const searchHelper = CanvasSearchHelper.getInstance();
-    searchHelper.openSearch(workspace);
-  });
+  const searchItem = buildMenuItem(
+    'Search',
+    () => {
+      const searchHelper = CanvasSearchHelper.getInstance();
+      searchHelper.openSearch(workspace);
+    },
+    false,
+    shortcuts.search,
+  );
 
   // Append items with small separators
   const group = document.createElement('div');
