@@ -1,6 +1,5 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { API_CALL_DATA_ENTRIES, SMYTHOS_DOCS_URL } from '@src/shared/constants/general'; // Adjust the path as necessary
-import { deriveServiceFromOauthInfo } from '@src/shared/utils/oauth.utils';
 import { COMP_NAMES } from '../config';
 import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { toast } from '../ui/dialogs';
@@ -23,18 +22,108 @@ export class APICall extends Component {
   private oauthConnections: any = null;
   private oauthConnectionNames: any = null;
 
-
+  // *** ADDED: Helper function to extract platform from URL ***
+  private extractPlatformFromUrl(url?: string): string {
+    if (!url) return 'unknown';
+    try {
+      const hostname = new URL(url).hostname;
+      const matches = hostname.match(
+        /(?:^|\.)?([a-z0-9-]+)\.(?:com|net|org|io|co|app|ai|dev|cloud)(?:$|\.)/i,
+      );
+      if (matches && matches[1]) {
+        const platformName = matches[1].toLowerCase();
+        if (platformName === 'google') return 'Google';
+        if (platformName === 'linkedin') return 'LinkedIn';
+        if (platformName === 'twitter' || platformName === 'x') return 'Twitter/X';
+        return platformName.charAt(0).toUpperCase() + platformName.slice(1);
+      }
+      const parts = hostname.split('.');
+      if (parts.length > 1) {
+        const potentialPlatform = parts[0].toLowerCase();
+        if (
+          potentialPlatform !== 'www' &&
+          potentialPlatform !== 'api' &&
+          potentialPlatform !== 'app'
+        ) {
+          return potentialPlatform.charAt(0).toUpperCase() + potentialPlatform.slice(1);
+        }
+      }
+      return 'unknown';
+    } catch (e) {
+      console.warn('Could not parse URL for platform:', url, e);
+      return 'invalid_url';
+    }
+  }
 
   // Attempts to extract a provider/service name from typical OAuth URLs on a connection
   private extractServiceFromConnection(connection: any): string {
     if (!connection) return '';
     const oauthInfo = this.getConnectionOauthInfo(connection) || {};
-    return deriveServiceFromOauthInfo(oauthInfo);
+    return this.deriveServiceFromOauthInfo(oauthInfo);
+  }
+
+  // Helper method to get oauth_info from either new or old connection structure
+  private getConnectionOauthInfo(connection: any, connectionId?: string): any {
+    if (!connection) return {};
+
+    // Try multiple possible locations for OAuth info
+    // Priority order: auth_settings.oauth_info > oauth_info > auth_settings > root level
+    let oauthInfo = connection?.auth_settings?.oauth_info ||
+      connection?.oauth_info ||
+      connection?.auth_settings ||
+      connection;
+
+    // If we still don't have oauth_keys_prefix, try to find it in other locations
+    if (!oauthInfo?.oauth_keys_prefix) {
+      // Check if oauth_keys_prefix exists in auth_settings directly
+      if (connection?.auth_settings?.oauth_keys_prefix) {
+        oauthInfo = { ...oauthInfo, oauth_keys_prefix: connection.auth_settings.oauth_keys_prefix };
+      }
+      // Check if oauth_keys_prefix exists at root level
+      else if (connection?.oauth_keys_prefix) {
+        oauthInfo = { ...oauthInfo, oauth_keys_prefix: connection.oauth_keys_prefix };
+      }
+      // Check if we can derive it from the connection ID parameter
+      else if (connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
+        const derivedPrefix = connectionId.replace('_TOKENS', '');
+        oauthInfo = { ...oauthInfo, oauth_keys_prefix: derivedPrefix };
+      }
+    }
+
+    return oauthInfo;
+  }
+
+  // Derive service name from OAuth info (simplified version)
+  private deriveServiceFromOauthInfo(oauthInfo: any): string {
+    if (!oauthInfo) return '';
+
+    // Try to extract from URLs first
+    const urls = [
+      oauthInfo.authorizationURL,
+      oauthInfo.tokenURL,
+      oauthInfo.requestTokenURL,
+      oauthInfo.accessTokenURL,
+      oauthInfo.userAuthorizationURL
+    ].filter(Boolean);
+
+    for (const url of urls) {
+      const platform = this.extractPlatformFromUrl(url);
+      if (platform !== 'unknown' && platform !== 'invalid_url') {
+        return platform;
+      }
+    }
+
+    // Fallback to service type if available
+    if (oauthInfo.service) {
+      return oauthInfo.service.charAt(0).toUpperCase() + oauthInfo.service.slice(1);
+    }
+
+    return '';
   }
 
   protected async prepare() {
     try {
-      //console.log('[APICall.prepare] Fetching OAuth connections...');
+      console.log('[APICall.prepare] Fetching OAuth connections...');
       const response = await fetch(`${this.workspace.server}/api/page/vault/oauth-connections`, {
         method: 'GET',
         headers: {
@@ -54,7 +143,7 @@ export class APICall extends Component {
       }
 
       const oauthConnectionsData = (await response.json()) || {};
-      //console.log('[APICall.prepare] oauthConnectionsData:', oauthConnectionsData);
+      console.log('[APICall.prepare] oauthConnectionsData:', oauthConnectionsData);
       // Normalize: parse string values
       Object.keys(oauthConnectionsData).forEach((id) => {
         const value = oauthConnectionsData[id];
@@ -72,27 +161,13 @@ export class APICall extends Component {
       this.oauthConnections = oauthConnectionsData;
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
+      // Use the centralized buildOAuthSelectOptions method
       const options = this.buildOAuthSelectOptions(this.oauthConnections, componentSpecificId, '[APICall.prepare]');
 
       // Add 'None' option at the start
       options.unshift({ value: 'None', text: 'None', badge: '' });
 
-      // Handle deleted/removed
-      const currentSavedId = this.data.oauth_con_id;
-      if (currentSavedId && currentSavedId !== 'None') {
-        const foundOption = options.find((opt) => opt.value === currentSavedId);
-        if (!foundOption) {
-          const shortId = currentSavedId.replace('OAUTH_', '').replace('_TOKENS', '');
-          options.push({
-            value: currentSavedId,
-            text: `Deleted Connection (${shortId})`,
-            badge: createBadge('Removed', 'text-smyth-red-500 border-smyth-red-500 ml-1'),
-          });
-          //console.log(`[APICall.prepare] Added removed/deleted connection: id=${currentSavedId}`);
-        }
-      }
-
-      //console.log('[APICall.prepare] Final options for select:', options);
+      console.log('[APICall.prepare] Final options for select:', options);
       this.oauthConnectionNames = options;
     } catch (error) {
       console.error('[APICall.prepare] Exception:', error);
@@ -145,7 +220,7 @@ export class APICall extends Component {
         type: 'textarea',
         label: 'Headers',
         readonly: true,
-        help: `Headers pass essential metadata like Content-Type and authentication details. <br />Edit them in the API component settings to match your API’s requirements. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See headers guide →</a>`,
+        help: `Headers pass essential metadata like Content-Type and authentication details. <br />Edit them in the API component settings to match your API's requirements. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See headers guide →</a>`,
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-13',
         validate: `custom=isValidJson`,
@@ -600,7 +675,7 @@ export class APICall extends Component {
 
     // Find the selected connection object using the ID
     const selectedConnection = this.oauthConnections[selectedConnectionId];
-    const synthesizedOauthInfo = this.getConnectionOauthInfo(selectedConnection);
+    const synthesizedOauthInfo = this.getConnectionOauthInfo(selectedConnection, selectedConnectionId);
     if (!selectedConnection || !synthesizedOauthInfo) {
       toast('Selected OAuth connection details not found.', 'Error', 'alert');
       console.error(
@@ -677,7 +752,7 @@ export class APICall extends Component {
 
     // Derive human-friendly service for UI checks
     const derivedService = this.mapInternalToServiceName(serviceType || connectionType || '');
-    
+
     // --- Basic Payload Validation (on the fetched payload) ---
     let isValid = true;
     let missingFields = [];
@@ -758,20 +833,51 @@ export class APICall extends Component {
           if (this.oauthConnections[selectedConnectionId]) {
             this.oauthConnections[selectedConnectionId].isAuthenticated = true;
             // Store tokens if returned (primarily for client_credentials)
-            if (data.primary) this.oauthConnections[selectedConnectionId].primary = data.primary;
-            if (data.secondary)
-              this.oauthConnections[selectedConnectionId].secondary = data.secondary;
-            if (data.expires_in)
-              this.oauthConnections[selectedConnectionId].expires_in = data.expires_in;
+            if (data.primary) {
+              // Check if connection has new structure
+              if (this.oauthConnections[selectedConnectionId].auth_data) {
+                // New structure - store in auth_data
+                this.oauthConnections[selectedConnectionId].auth_data.primary = data.primary;
+                if (data.secondary) {
+                  this.oauthConnections[selectedConnectionId].auth_data.secondary = data.secondary;
+                }
+                if (data.expires_in) {
+                  this.oauthConnections[selectedConnectionId].auth_data.expires_in = data.expires_in;
+                }
+              } else {
+                // Legacy structure - store at root level
+                this.oauthConnections[selectedConnectionId].primary = data.primary;
+                if (data.secondary) {
+                  this.oauthConnections[selectedConnectionId].secondary = data.secondary;
+                }
+                if (data.expires_in) {
+                  this.oauthConnections[selectedConnectionId].expires_in = data.expires_in;
+                }
+              }
+            }
           }
           this.updateSidebarForOAuth(); // Update button text etc.
           await this.updateOAuthConnectionOptions(); // Refresh options to replace legacy entry
           this.refreshSettingsSidebar(); // Refresh the sidebar to show updated name
           this.updateOAuthActionButton(); // Update action button state
+
+          // Update component's button state
+          this.checkSettings();
         } else {
           // Update local state to reflect failure
           if (this.oauthConnections[selectedConnectionId]) {
             this.oauthConnections[selectedConnectionId].isAuthenticated = false;
+            // Clear tokens from both structures on failure
+            if (this.oauthConnections[selectedConnectionId].auth_data) {
+              // New structure
+              delete this.oauthConnections[selectedConnectionId].auth_data.primary;
+              delete this.oauthConnections[selectedConnectionId].auth_data.secondary;
+              delete this.oauthConnections[selectedConnectionId].auth_data.expires_in;
+            }
+            // Legacy structure
+            delete this.oauthConnections[selectedConnectionId].primary;
+            delete this.oauthConnections[selectedConnectionId].secondary;
+            delete this.oauthConnections[selectedConnectionId].expires_in;
           }
           // Refresh sidebar to reflect failed authentication state
           this.refreshSettingsSidebar();
@@ -787,6 +893,17 @@ export class APICall extends Component {
       // Update local state to reflect failure
       if (this.oauthConnections[selectedConnectionId]) {
         this.oauthConnections[selectedConnectionId].isAuthenticated = false;
+        // Clear tokens from both structures on failure
+        if (this.oauthConnections[selectedConnectionId].auth_data) {
+          // New structure
+          delete this.oauthConnections[selectedConnectionId].auth_data.primary;
+          delete this.oauthConnections[selectedConnectionId].auth_data.secondary;
+          delete this.oauthConnections[selectedConnectionId].auth_data.expires_in;
+        }
+        // Legacy structure
+        delete this.oauthConnections[selectedConnectionId].primary;
+        delete this.oauthConnections[selectedConnectionId].secondary;
+        delete this.oauthConnections[selectedConnectionId].expires_in;
       }
       // Refresh sidebar to reflect failed authentication state
       this.refreshSettingsSidebar();
@@ -827,6 +944,9 @@ export class APICall extends Component {
           }
           this.refreshSettingsSidebar();
           this.updateOAuthActionButton();
+
+          // Update component's button state
+          this.checkSettings();
         });
         window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
@@ -891,7 +1011,7 @@ export class APICall extends Component {
     } else {
       // Value might be a name, try to find the corresponding ID
       const foundEntry = Object.entries(this.oauthConnections).find(
-        ([id, conn]: [string, any]) => conn?.name === selectedValue,
+        ([id, conn]: [string, any]) => conn?.auth_settings?.name === selectedValue,
       );
       if (foundEntry) {
         connectionId = foundEntry[0];
@@ -900,10 +1020,114 @@ export class APICall extends Component {
     }
 
     // If no valid connection was found by ID or name
-    const oauthInfo = this.getConnectionOauthInfo(selectedConnection);
-    if (!connectionId || !oauthInfo?.oauth_keys_prefix) {
+    if (!connectionId || !selectedConnection) {
       console.warn(
         `Attempted to check auth status, but connection data is missing or invalid for selection: ${selectedValue}`,
+      );
+      return false;
+    }
+
+    // Check if connection has been locally marked as signed out
+    if (selectedConnection.isAuthenticated === false) {
+      console.log(`Connection ${connectionId} is locally marked as signed out`);
+      return false;
+    }
+
+    // Check if connection has explicit authentication state (new structure)
+    if (selectedConnection.isAuthenticated === true) {
+      console.log(`Connection ${connectionId} is explicitly marked as authenticated`);
+      return true;
+    }
+
+    // Get OAuth info from either new or old structure
+    const oauthInfo = this.getConnectionOauthInfo(selectedConnection, connectionId);
+
+    // Debug logging to understand the connection structure
+    console.log('[checkAuthentication] Connection analysis:', {
+      connectionId,
+      selectedValue,
+      hasOauthInfo: !!oauthInfo,
+      oauthInfoKeys: oauthInfo ? Object.keys(oauthInfo) : [],
+      hasOauthKeysPrefix: !!oauthInfo?.oauth_keys_prefix,
+      oauthKeysPrefix: oauthInfo?.oauth_keys_prefix,
+      connectionStructure: {
+        hasAuthData: !!selectedConnection?.auth_data,
+        hasAuthSettings: !!selectedConnection?.auth_settings,
+        hasOauthInfo: !!selectedConnection?.oauth_info,
+        rootKeys: Object.keys(selectedConnection || {}),
+        fullConnection: selectedConnection
+      }
+    });
+
+    if (!oauthInfo?.oauth_keys_prefix) {
+      // Fallback: try to derive oauth_keys_prefix from connection ID
+      if (connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
+        const derivedPrefix = connectionId.replace('_TOKENS', '');
+        console.log(`[checkAuthentication] Using derived oauth_keys_prefix: ${derivedPrefix}`);
+
+        // Create a fallback oauthInfo object
+        const fallbackOauthInfo = {
+          ...oauthInfo,
+          oauth_keys_prefix: derivedPrefix
+        };
+
+        // Continue with the fallback
+        const authCheckPayload = {
+          oauth_keys_prefix: derivedPrefix,
+        };
+
+        try {
+          const response = await fetch(`${this.workspace.server}/oauth/checkAuth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(authCheckPayload),
+          });
+
+          if (!response.ok) {
+            console.error(
+              `Auth check failed for ${derivedPrefix}: HTTP status ${response.status}`,
+            );
+            if (this.oauthConnections[connectionId]) {
+              this.oauthConnections[connectionId].isAuthenticated = false;
+            }
+            return false;
+          }
+
+          const data = await response.json();
+
+          // Update the local cache with the result from the backend
+          if (this.oauthConnections[connectionId]) {
+            // For new structure connections, check auth_data.primary
+            const newStructurePrimary = selectedConnection?.auth_data?.primary;
+            // For legacy connections, check oauth_info.primary or auth_settings.primary
+            const legacyPrimary = selectedConnection?.auth_settings?.primary || selectedConnection?.primary;
+
+            // Check if tokens exist AND are not empty strings
+            const hasValidTokens = (newStructurePrimary && newStructurePrimary.trim() !== '') ||
+              (legacyPrimary && legacyPrimary.trim() !== '');
+
+            const isAuthenticated = Boolean(data.success || hasValidTokens);
+
+            // Only update if we haven't explicitly marked it as signed out
+            if (this.oauthConnections[connectionId].isAuthenticated !== false) {
+              this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
+            }
+
+            return this.oauthConnections[connectionId].isAuthenticated;
+          }
+
+          return false;
+        } catch (error) {
+          console.error(`Error during auth check for ${derivedPrefix}:`, error);
+          if (this.oauthConnections[connectionId]) {
+            this.oauthConnections[connectionId].isAuthenticated = false;
+          }
+          return false;
+        }
+      }
+
+      console.warn(
+        `Attempted to check auth status, but oauth_keys_prefix is missing for connection: ${connectionId}`,
       );
       return false;
     }
@@ -934,12 +1158,29 @@ export class APICall extends Component {
       }
 
       const data = await response.json();
+
       // Update the local cache with the result from the backend
       if (this.oauthConnections[connectionId]) {
-        const legacyPrimary = this.oauthConnections[connectionId]?.auth_settings?.primary || this.oauthConnections[connectionId]?.primary;
-        this.oauthConnections[connectionId].isAuthenticated = Boolean(data.success || legacyPrimary);
+        // For new structure connections, check auth_data.primary
+        const newStructurePrimary = selectedConnection?.auth_data?.primary;
+        // For legacy connections, check oauth_info.primary or auth_settings.primary
+        const legacyPrimary = selectedConnection?.auth_settings?.primary || selectedConnection?.primary;
+
+        // Check if tokens exist AND are not empty strings
+        const hasValidTokens = (newStructurePrimary && newStructurePrimary.trim() !== '') ||
+          (legacyPrimary && legacyPrimary.trim() !== '');
+
+        const isAuthenticated = Boolean(data.success || hasValidTokens);
+
+        // Only update if we haven't explicitly marked it as signed out
+        if (this.oauthConnections[connectionId].isAuthenticated !== false) {
+          this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
+        }
+
+        return this.oauthConnections[connectionId].isAuthenticated;
       }
-      return this.oauthConnections[connectionId].isAuthenticated; // Prefer derived state for legacy tokens
+
+      return false;
     } catch (error) {
       console.error(`Error during auth check for ${oauthInfo.oauth_keys_prefix}:`, error);
       // Update cache to reflect fetch error
@@ -1093,25 +1334,41 @@ export class APICall extends Component {
   private async setCallbackUrl(sidebar) {
     const oauthService = sidebar?.querySelector('div[data-name="OAuth"]');
     if (oauthService) {
-      const selectedService = this?.data?.oauthService;
-      if (selectedService && this.data.oauthService !== 'None') {
-        if (this.data.oauthService !== 'OAuth2 Client Credentials') {
+      // Show loading state on authenticate button when sidebar opens
+      const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
+      if (oauth_button) {
+        this.activateSpinner(oauth_button);
+      }
+
+      const selectedConnectionId = this?.data?.oauth_con_id;
+      if (selectedConnectionId && selectedConnectionId !== 'None') {
+        // Display callback URL for relevant OAuth types
+        const selectedService = this?.data?.oauthService;
+        if (selectedService && selectedService !== 'OAuth2 Client Credentials') {
           const { cbUrl, key } = this.getOAuthCallbackDetails(selectedService);
-          const callbackURLSpan = sidebar.querySelector(`[data-field-name="${key}"] span`); // Combine the querySelector and innerHTML setting to minimize DOM queries
+          const callbackURLSpan = sidebar.querySelector(`[data-field-name="${key}"] span`);
           if (callbackURLSpan) {
             callbackURLSpan.innerHTML = cbUrl;
           }
         }
-        const isDataValid = await this.checkAuthentication();
-        if (isDataValid) {
-          const oauth_button: any = sidebar?.querySelector(
-            `[data-field-name="authenticate"] button`,
-          );
-          if (oauth_button) oauth_button.innerHTML = 'Sign Out';
+
+        // Always perform an authentication check for the selected connection
+        // The checkAuthentication method handles local state caching and backend calls.
+        await this.checkAuthentication();
+
+        // Update button state based on the result stored in this.oauthConnections
+        this.updateAuthenticationButtonState();
+
+      } else {
+        // No OAuth connection selected, show default state (Authenticate)
+        if (oauth_button) {
+          oauth_button.innerHTML = 'Authenticate';
+          oauth_button.disabled = false;
         }
       }
     } else {
-      setTimeout(this.setCallbackUrl, 20);
+      // If sidebar element is not found, retry after a short delay
+      setTimeout(() => this.setCallbackUrl(sidebar), 20);
     }
   }
 
@@ -1274,11 +1531,13 @@ export class APICall extends Component {
     const sidebar = this.getSettingsSidebar();
     if (!sidebar) return '';
     const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
+
     // Accept both id and prefix; backend normalizes
     const authData = {
       oauth_keys_prefix: this.data.oauth_con_id,
       invalidateAuthentication: true,
     };
+
     try {
       const response = await fetch(`${this.workspace.server}/oauth/signOut`, {
         method: 'POST',
@@ -1291,28 +1550,59 @@ export class APICall extends Component {
       }
 
       const data = await response.json();
-      if (oauth_button) {
-        button.disabled = false;
-        if (data.invalidate) {
-          // Check if the sign out was successful. 'data.invalidate' indicates successful sign-out
-          oauth_button.innerHTML = 'Authenticate'; // Update the button's text to 'Authenticate' after signing out
-          const body = sidebar?.querySelector('div[data-field-name="body"]');
-          if (body) {
-            const messageId = 'oauthMessageSpan';
-            let existingMessageSpan = sidebar?.querySelector(`#${messageId}`);
-            if (existingMessageSpan) existingMessageSpan.remove();
-          }
-          if (data.message && data.message !== '') toast(`${data.message}`);
-        } else {
-          oauth_button.innerHTML = 'Sign Out'; // Update the button's text to 'Authenticate' after signing out
-          toast(`${data.error}`, 'Error', 'alert');
+
+      // IMPORTANT: Update local state immediately after successful sign out
+      if (data.invalidate) {
+        // Update local connection state to reflect sign out
+        if (this.oauthConnections && this.data.oauth_con_id) {
+          this.clearConnectionAuthenticationState(this.data.oauth_con_id);
         }
+
+        // Clear any legacy authentication state
+        this.data.oauthService = 'None';
+
+        // Update button state immediately
+        if (oauth_button) {
+          oauth_button.innerHTML = 'Authenticate';
+          oauth_button.disabled = false;
+        }
+
+        // Remove OAuth message if present
+        const body = sidebar?.querySelector('div[data-field-name="body"]');
+        if (body) {
+          const messageId = 'oauthMessageSpan';
+          let existingMessageSpan = sidebar?.querySelector(`#${messageId}`);
+          if (existingMessageSpan) existingMessageSpan.remove();
+        }
+
+        // Show success message
+        if (data.message && data.message !== '') {
+          toast(`${data.message}`);
+        }
+
+        // Force refresh the sidebar to ensure all states are updated
+        this.refreshSettingsSidebar();
+
+        // Update component messages
+        this.clearComponentMessages();
+
+      } else {
+        // Sign out failed
+        if (oauth_button) {
+          oauth_button.innerHTML = 'Sign Out';
+          oauth_button.disabled = false;
+        }
+        toast(`${data.error}`, 'Error', 'alert');
       }
     } catch (error) {
-      toast(`Error during fetching or network issue`, 'Error', 'alert');
-      console.error('Error during fetching or network issue:', error);
-      oauth_button.innerHTML = 'Sign Out';
-      button.disabled = false;
+      toast(`Error during sign out: ${error.message}`, 'Error', 'alert');
+      console.error('Error during sign out:', error);
+
+      // Reset button state on error
+      if (oauth_button) {
+        oauth_button.innerHTML = 'Sign Out';
+        oauth_button.disabled = false;
+      }
     }
   }
   private updateSidebarForOAuth() {
@@ -1375,7 +1665,7 @@ export class APICall extends Component {
     button.innerHTML = `<span class="oauth-spinner smyth-spinner"></span>&nbsp;&nbsp;In Progress ...`; // Insert spinner HTML with hidden spaces
     button.disabled = true;
   }
-  private handleOAuthConnectionChange(selectedValue: string) {
+  private async handleOAuthConnectionChange(selectedValue: string) {
     const sidebar = this.getSettingsSidebar();
     const previousValue = this.data.oauth_con_id;
 
@@ -1394,7 +1684,7 @@ export class APICall extends Component {
       // Always synchronize the component's legacy field (oauthService) with the selected connection
       // to avoid stale/broken state across legacy/new structures.
       const selectedConn = this.oauthConnections[selectedValue];
-      const selectedOauthInfo = this.getConnectionOauthInfo(selectedConn);
+      const selectedOauthInfo = this.getConnectionOauthInfo(selectedConn, selectedValue);
       if (selectedOauthInfo?.service) {
         // Store a user-friendly value for legacy consumers
         this.data.oauthService = this.mapInternalToServiceName(selectedOauthInfo.service);
@@ -1409,17 +1699,35 @@ export class APICall extends Component {
           // Show loading state
           this.activateSpinner(oauth_button);
 
-          // Check authentication status
-          this.checkAuthentication()
-            .then((isAuthenticated) => {
-              oauth_button.disabled = false;
-              oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
-            })
-            .catch((error) => {
-              console.error('Error checking authentication:', error);
-              oauth_button.disabled = false;
-              oauth_button.innerHTML = 'Authenticate';
-            });
+          // Check local state first to avoid unnecessary backend calls for signed-out connections
+          let isAuthenticated = false;
+          if (this.oauthConnections[selectedValue]) {
+            const connection = this.oauthConnections[selectedValue];
+            if (connection.isAuthenticated === false) {
+              // Connection is locally marked as signed out
+              isAuthenticated = false;
+            } else if (connection.isAuthenticated === true) {
+              // Connection is explicitly marked as authenticated
+              isAuthenticated = true;
+            } else {
+              // Check for tokens in both structures
+              const hasTokens = (connection?.auth_data?.primary && connection?.auth_data?.primary.trim() !== '') ||
+                (connection?.auth_settings?.primary && connection?.auth_settings?.primary.trim() !== '') ||
+                (connection?.primary && connection?.primary.trim() !== '');
+              if (hasTokens) {
+                isAuthenticated = true;
+              } else {
+                // Check backend authentication status
+                isAuthenticated = await this.checkAuthentication();
+              }
+            }
+          } else {
+            // Connection not found, check backend
+            isAuthenticated = await this.checkAuthentication();
+          }
+
+          // Update button state based on authentication status
+          this.updateAuthenticationButtonState();
         }
       }
     }
@@ -1427,69 +1735,19 @@ export class APICall extends Component {
     // Update the action button icon and tooltip
     this.updateOAuthActionButton();
   }
-  /*   private handleOAuthConnectionChange(selectedValue: string) {
-      const sidebar = this.getSettingsSidebar();
-      if (!selectedValue || selectedValue === 'None') {
-        // Clear OAuth-related fields
-        this.data.oauth_con_id = 'None';
-        const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-        if (oauth_button) {
-          oauth_button.innerHTML = 'Authenticate';
-        }
-      } else {
-        // Set the oauth_con_id in the component's data
-        this.data.oauth_con_id = selectedValue;
-  
-        // For backward compatibility: if this is a new selection and matches the component's ID pattern
-        if (!this.data.oauthService || this.data.oauthService === 'None') {
-          const connection = this.oauthConnections[selectedValue];
-          if (connection) {
-            // Set the oauthService to maintain backward compatibility
-            this.data.oauthService = connection.oauth_info.service;
-  
-            // Update the UI to reflect the connection's authentication status
-            const sidebar = this.getSettingsSidebar();
-            if (sidebar) {
-              const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-              if (oauth_button) {
-                oauth_button.innerHTML = connection.isAuthenticated ? 'Sign Out' : 'Authenticate';
-              }
-            }
-          }
-        }
-      }
-  
-      // Update the action button icon and tooltip
-      this.updateOAuthActionButton();
-     <!--     const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-         if (!oauth_button) return;
-     
-         if (!this.data.oauth_con_id || this.data.oauth_con_id === 'None') {
-           oauth_button.innerHTML = 'Authenticate';
-         } else {
-           // Always check authentication status for the selected connection
-           this.activateSpinner(oauth_button);
-           this.checkAuthentication().then((isAuthenticated) => {
-             oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
-             oauth_button.disabled = false;
-           }).catch(() => {
-             oauth_button.innerHTML = 'Authenticate';
-             oauth_button.disabled = false;
-           });
-         }  -->
-    } */
 
   private async handleOAuthConnectionAction() {
     const currentValue = this.data.oauth_con_id;
     const isNone = !currentValue || currentValue === 'None';
-    //console.log('[OAuth Edit] Action started. Current Value:', currentValue, 'Is None:', isNone);
+    console.log('[OAuth Edit] Action started. Current Value:', currentValue, 'Is None:', isNone);
     // Fetch existing OAuth connections ONLY when editing to avoid modal delay on "Add New"
     if (!isNone) {
       try {
+        console.log('[OAuth Edit] Fetching OAuth connections for editing...');
         const response = await fetch('/api/page/vault/oauth-connections');
         if (!response.ok) throw new Error('Failed to fetch OAuth connections');
         this.oauthConnections = (await response.json()) || {};
-        //console.log('[OAuth Edit] Fetched connections:', this.oauthConnections);
+        console.log('[OAuth Edit] Fetched connections for editing:', this.oauthConnections);
       } catch (error) {
         console.error('Error fetching OAuth connections:', error);
         toast('Error fetching connections. Please try again.', 'Error', 'alert');
@@ -1498,6 +1756,7 @@ export class APICall extends Component {
     } else {
       // Ensure the object exists to avoid any downstream checks
       this.oauthConnections = this.oauthConnections || {};
+      console.log('[OAuth Edit] Creating new connection, using existing connections:', this.oauthConnections);
     }
 
     // Get current connection if editing and determine structure
@@ -1509,7 +1768,7 @@ export class APICall extends Component {
       ? currentConnectionRaw.auth_settings
       : currentConnectionRaw; // Assume old structure if new one isn't present
 
-    const currentOauthInfo = this.getConnectionOauthInfo(currentSettings) || {}; // Support both structures
+    const currentOauthInfo = this.getConnectionOauthInfo(currentSettings, currentValue) || {}; // Support both structures
     const currentName = currentSettings?.name || ''; // Get name from the settings part
 
     //console.log('[OAuth Edit] Identified Current Connection Settings:', currentSettings);
@@ -1913,35 +2172,7 @@ export class APICall extends Component {
     );
   }
 
-  // Synthesizes an oauth_info-like object from either new (auth_settings) or old structures
-  private getConnectionOauthInfo(connection: any): any {
-    if (!connection) return null;
-    const base = connection?.auth_settings || connection;
-    const legacyInfo = base?.oauth_info;
-    if (legacyInfo && typeof legacyInfo === 'object' && Object.keys(legacyInfo).length) return legacyInfo;
-    const keys = [
-      'oauth_keys_prefix',
-      'service',
-      'platform',
-      'scope',
-      'authorizationURL',
-      'tokenURL',
-      'clientID',
-      'clientSecret',
-      'requestTokenURL',
-      'accessTokenURL',
-      'userAuthorizationURL',
-      'consumerKey',
-      'consumerSecret',
-      'oauth1CallbackURL',
-      'oauth2CallbackURL',
-    ];
-    const result: any = {};
-    for (const k of keys) {
-      if (base && base[k] !== undefined) result[k] = base[k];
-    }
-    return result;
-  }
+
 
   // Build OAuth select options from connections with unified name detection and legacy fallback
   private buildOAuthSelectOptions(
@@ -1949,51 +2180,75 @@ export class APICall extends Component {
     componentSpecificId: string,
     logPrefix: string,
   ) {
-    return Object.entries(connections)
-      .map(([id, conn]: [string, any]) => {
-        let text = '';
-        let badge = '';
-        const shortId = id.replace('OAUTH_', '').replace('_TOKENS', '');
+    const options = [];
 
-        const hasName =
-          (conn?.auth_settings && Object.prototype.hasOwnProperty.call(conn.auth_settings, 'name')) ||
-          Object.prototype.hasOwnProperty.call(conn || {}, 'name') ||
-          (conn?.auth_settings?.oauth_info && Object.prototype.hasOwnProperty.call(conn.auth_settings.oauth_info, 'name')) ||
-          (conn?.oauth_info && Object.prototype.hasOwnProperty.call(conn.oauth_info, 'name'));
-        const connectionName =
-          (conn?.auth_settings && conn.auth_settings.name) ??
-          conn?.name ??
-          conn?.auth_settings?.oauth_info?.name ??
-          conn?.oauth_info?.name;
+    // First pass: add ALL connections that have a name property under auth_data (new structure)
+    for (const [id, conn] of Object.entries(connections)) {
+      if (conn && typeof conn === 'object') {
+        // Check for name in the new structure: auth_settings.name
+        const connectionName = conn?.auth_settings?.name;
 
-        if (conn && typeof conn === 'object') {
-          // Prefer explicit name if present and non-empty
-          if (hasName && connectionName) {
-            text = connectionName;
-            return { value: id, text, badge };
-          }
-          // Derive provider from URLs when name is missing/empty
-          const derived = this.extractServiceFromConnection(conn);
-          if (derived) {
-            text = `${derived} (${shortId})`;
-            return { value: id, text, badge };
-          }
-          // Fallback label
-          text = `Connection (${shortId})`;
-          return { value: id, text, badge };
+        if (connectionName) {
+          // Has a real name
+          options.push({
+            value: id,
+            text: connectionName,
+            badge: ''
+          });
+        } else if (conn?.auth_data && conn?.auth_settings) {
+          // New structure but no name - treat as legacy to ensure visibility
+          const service = conn?.auth_settings?.service || conn?.auth_settings?.type || 'Unknown';
+          const shortId = id.replace('OAUTH_', '').replace('_TOKENS', '');
+          options.push({
+            value: id,
+            text: `${service} [${shortId}]`,
+            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1')
+          });
         }
+      }
+    }
 
-        if ((typeof conn === 'string' || typeof conn === 'object') && id === componentSpecificId) {
-          const serviceName = conn?.auth_settings?.oauth_info?.service || conn?.oauth_info?.service || conn?.auth_settings?.type || conn?.type;
-          text = `${serviceName || 'Unknown'} [${shortId}]`;
-          badge = createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1');
-          return { value: id, text, badge };
+    // Second pass: add legacy connections that still exist AND oauthService is not 'None'
+    // This handles the case where legacy connections haven't been converted yet
+    if (connections[componentSpecificId] && this.data.oauthService && this.data.oauthService !== 'None') {
+      const conn = connections[componentSpecificId];
+
+      // Check if this connection has been converted to new structure
+      const hasNewStructure = conn?.auth_data && conn?.auth_settings;
+
+      if (!hasNewStructure) {
+        // Only add legacy connection if it hasn't been converted to new structure
+        const serviceName = conn?.auth_settings?.oauth_info?.service ||
+          conn?.oauth_info?.service ||
+          conn?.auth_settings?.type ||
+          conn?.type || 'Unknown';
+        const shortId = componentSpecificId.replace('OAUTH_', '').replace('_TOKENS', '');
+
+        // Only add if not already in options (avoid duplicates)
+        const alreadyExists = options.some(opt => opt.value === componentSpecificId);
+        if (!alreadyExists) {
+          options.push({
+            value: componentSpecificId,
+            text: `${serviceName} [${shortId}]`,
+            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1')
+          });
         }
+      }
+    }
 
-        // console.warn(`${logPrefix} Skipping connection ${id}: Missing name or invalid format.`);
-        return null;
-      })
-      .filter(Boolean);
+    console.log(`${logPrefix} Built options:`, {
+      namedConnections: options.filter(opt => !opt.badge).length,
+      legacyConnections: options.filter(opt => opt.badge).length,
+      totalOptions: options.length,
+      hasNewStructure: connections[componentSpecificId]?.auth_data ? 'yes' : 'no',
+      breakdown: {
+        withNames: options.filter(opt => !opt.badge).length,
+        newStructureNoName: options.filter(opt => opt.badge && opt.text.includes('[')).length,
+        oldLegacy: options.filter(opt => opt.badge && opt.value === componentSpecificId).length
+      }
+    });
+
+    return options;
   }
 
   /**
@@ -2023,30 +2278,16 @@ export class APICall extends Component {
 
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
-      // --- Use the same logic as in prepare() ---
+      // Use the centralized buildOAuthSelectOptions method
       const options = this.buildOAuthSelectOptions(this.oauthConnections, componentSpecificId, '[APICall.updateOAuthConnectionOptions]');
 
       // Add 'None' option at the start
       options.unshift({ value: 'None', text: 'None', badge: '' });
 
-      // Handle deleted/removed
-      const currentSavedId = this.data.oauth_con_id;
-      if (currentSavedId && currentSavedId !== 'None') {
-        const foundOption = options.find((opt) => opt.value === currentSavedId);
-        if (!foundOption) {
-          const shortId = currentSavedId.replace('OAUTH_', '').replace('_TOKENS', '');
-          options.push({
-            value: currentSavedId,
-            text: `Unknown (${shortId})`,
-            badge: createBadge('Deleted', 'text-smyth-red-500 border-smyth-red-500 ml-1'),
-          });
-        }
-      }
-
       // --- Update the options with badges ---
       if (this.settings?.oauth_con_id) {
         this.settings.oauth_con_id.options = options;
-        //console.log('Updated settings.oauth_con_id.options:', this.settings.oauth_con_id.options);
+        console.log('Updated settings.oauth_con_id.options:', this.settings.oauth_con_id.options);
       } else {
         console.warn('Could not find oauth_con_id in settings to update options.');
       }
@@ -2114,5 +2355,67 @@ export class APICall extends Component {
   // Static uid can remain private if only used internally
   private static uid(): string {
     return (Date.now() + Math.random()).toString(36).replace('.', '').toUpperCase();
+  }
+
+  /**
+   * Clears the authentication state for a specific connection
+   * @param connectionId - The ID of the connection to clear
+   */
+  private clearConnectionAuthenticationState(connectionId: string) {
+    if (this.oauthConnections && this.oauthConnections[connectionId]) {
+      const connection = this.oauthConnections[connectionId];
+
+      // Mark as not authenticated
+      connection.isAuthenticated = false;
+
+      // Clear tokens from both structures
+      if (connection.auth_data) {
+        // New structure
+        delete connection.auth_data.primary;
+        delete connection.auth_data.secondary;
+        delete connection.auth_data.expires_in;
+      }
+
+      // Legacy structure
+      delete connection.primary;
+      delete connection.secondary;
+      delete connection.expires_in;
+
+      console.log(`Cleared authentication state for connection: ${connectionId}`);
+    }
+  }
+
+  /**
+   * Updates the authentication button state based on current connection status
+   */
+  private updateAuthenticationButtonState() {
+    const sidebar = this.getSettingsSidebar();
+    if (!sidebar) return;
+
+    const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
+    if (!oauth_button) return;
+
+    // Check local state first
+    let isAuthenticated = false;
+    if (this.oauthConnections && this.data.oauth_con_id && this.data.oauth_con_id !== 'None') {
+      const connection = this.oauthConnections[this.data.oauth_con_id];
+      if (connection) {
+        // Check explicit authentication state first
+        if (connection.isAuthenticated === true) {
+          isAuthenticated = true;
+        } else if (connection.isAuthenticated === false) {
+          isAuthenticated = false;
+        } else {
+          // Check for tokens in both structures
+          const hasTokens = (connection?.auth_data?.primary && connection?.auth_data?.primary.trim() !== '') ||
+            (connection?.auth_settings?.primary && connection?.auth_settings?.primary.trim() !== '') ||
+            (connection?.primary && connection?.primary.trim() !== '');
+          isAuthenticated = Boolean(hasTokens);
+        }
+      }
+    }
+
+    oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
+    oauth_button.disabled = false;
   }
 }

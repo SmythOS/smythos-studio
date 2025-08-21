@@ -173,14 +173,14 @@ export function CreateOAuthConnectionModal({
           defaults = {
             authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
             tokenURL: 'https://oauth2.googleapis.com/token',
-            scope: 'openid email profile', // Example scope
+            scope: 'https://www.googleapis.com/auth/gmail.readonly', // Example scope
           };
           break;
         case 'LinkedIn':
           defaults = {
             authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
             tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken',
-            scope: 'profile openid email', // Example scope (using OIDC)
+            scope: 'r_liteprofile r_emailaddress', // Example scope (using OIDC)
           };
           break;
         case 'Twitter': // Assuming OAuth 1.0a for now based on APICall

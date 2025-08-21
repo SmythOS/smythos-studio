@@ -1,5 +1,4 @@
 // src/webappv2/pages/vault/use-vault-oauth.ts
-import { deriveServiceFromOauthInfo } from '@src/shared/utils/oauth.utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AuthenticateOAuthPayload,
@@ -79,9 +78,6 @@ function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean |
 
   return undefined;
 }
-// ============================================================================
-// API Functions (Refactored with fetch)
-// ============================================================================
 
 
 
@@ -183,28 +179,36 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
     }
     (runtimeConnectionData as any).oauth_info = oauthInfoSynth;
 
-    // Determine name presence, but do not skip unnamed; derive a readable label instead
-    const hasName =
+    // Check if connection has an original name property (not synthetic)
+    const hasOriginalName =
       hasOwn(runtimeConnectionData, 'name') ||
-      ((runtimeConnectionData as any)?.auth_settings && hasOwn((runtimeConnectionData as any).auth_settings, 'name')) ||
-      ((runtimeConnectionData as any)?.oauth_info && hasOwn((runtimeConnectionData as any).oauth_info, 'name'));
-    const rawName =
-      (runtimeConnectionData as any)?.name ??
-      (runtimeConnectionData as any)?.auth_settings?.name ??
-      (runtimeConnectionData as any)?.oauth_info?.name;
-    const shortId = id.replace('OAUTH_', '').replace('_TOKENS', '');
-    let effectiveName = (typeof rawName === 'string' ? rawName : '')?.trim();
-    if (!effectiveName) {
-      const derived = deriveServiceFromOauthInfo(oauthInfoSynth);
-      effectiveName = derived ? `${derived} (${shortId})` : `Connection (${shortId})`;
+      hasOwn(connectionData, 'name') ||
+      (connectionData.auth_settings && hasOwn(connectionData.auth_settings, 'name'));
+
+    // If no original name property exists, skip this connection
+    if (!hasOriginalName) {
+      console.log(`[fetchOAuthConnections] Skipping connection ${id} - no original name property`);
+      return null;
+    }
+
+    // Get the actual name value (could be empty string, but must exist)
+    const actualName =
+      runtimeConnectionData.name ??
+      connectionData.name ??
+      connectionData.auth_settings?.name;
+
+    // Ensure name is a string (even if empty)
+    if (typeof actualName !== 'string') {
+      console.warn(`[fetchOAuthConnections] Connection ${id} has non-string name:`, actualName);
+      return null;
     }
 
     const provisional: OAuthConnection = {
       ...(runtimeConnectionData as any),
       id: id,
+      name: actualName, // Use the actual name, even if empty
       isAuthenticated: undefined,
     } as OAuthConnection;
-    (provisional as any).name = effectiveName;
 
     // Derive local status when determinable
     const locallyDerived = computeLocalAuthStatus(provisional);
@@ -222,9 +226,13 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
       id.startsWith('OAUTH_') &&
       id.endsWith('_TOKENS')
     ) {
+      console.log(`[fetchOAuthConnections] Processing connection ${id}:`, rawData[id]);
       const normalized = normalizeEntry(id, rawData[id]);
       if (normalized) {
+        console.log(`[fetchOAuthConnections] Including connection ${id} with name: "${normalized.name}"`);
         normalizedSettings[id] = normalized;
+      } else {
+        console.log(`[fetchOAuthConnections] Filtered out connection ${id} - no original name property`);
       }
     }
   }

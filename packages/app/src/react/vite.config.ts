@@ -7,7 +7,7 @@ dotenv.config({ path: '../../.env' });
 // https://vite.dev/config/
 let EXPRESS_SERVER_PORT = parseInt(process.env.PORT || '4000');
 
-const proxyRoutes = ['/api', '/app', '/js', '/css', '/metroui'];
+const proxyRoutes = ['/api', '/app', '/js', '/css', '/metroui', '/oauth'];
 const redirectRoutes = ['/builder', '/logs', '/logto'];
 
 // Helper function to check if request should be proxied
