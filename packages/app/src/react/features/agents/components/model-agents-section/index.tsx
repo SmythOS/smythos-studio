@@ -29,7 +29,7 @@ const ModelAgentsSection = () => {
 
   if (isLoading) {
     return (
-      <section className="my-20">
+      <section className="my-10">
         <div className="flex justify-between align-middle mb-4 text-lg">
           <p>Model Agents</p>
         </div>
@@ -63,7 +63,7 @@ const ModelAgentsSection = () => {
 
   if (error) {
     return (
-      <section className="my-20">
+      <section className="my-10">
         <h2 className="text-xl font-medium text-gray-800 mb-4">Models</h2>
         <div className="p-4 text-red-500 bg-red-50 rounded-lg">
           Error loading models. Please try again later.
@@ -73,7 +73,7 @@ const ModelAgentsSection = () => {
   }
 
   return (
-    <section className="my-20">
+    <section className="my-10">
       <div className="flex justify-between align-middle mb-4 text-lg">
         <p>Model Agents</p>
       </div>
