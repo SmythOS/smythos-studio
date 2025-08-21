@@ -241,9 +241,7 @@ function AgentsPage() {
         <TemplatesSection templates={templates} userJobRole={userSettings?.jobRoleLabel} />
 
         {/* Learn Section */}
-        <div className="my-20 pb-3">
-          <Learn />
-        </div>
+        <Learn />
       </main>
 
       {/* Upsell Modal */}
