@@ -3,8 +3,10 @@
   class="flex flex-col absolute top-[34px]"
   id="agent-status"
   :class="{
-    '-right-[60px]': isSidebarOpen,
-    '-right-[44px]': !isSidebarOpen
+    'left-[84px]': !isSidebarOpen,
+    'left-[444px]': isSidebarOpen && currentSidebarTab === 'helpTab',
+    'left-[408px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab',
+    'left-[510px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab')
   }"
 >
   <div class="flex">
