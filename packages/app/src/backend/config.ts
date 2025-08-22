@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import Joi from 'joi';
 import os from 'os';
@@ -68,10 +69,6 @@ const config = {
     // NEEDS TO BE REMOVED SINCE IT IS USED BY A NON-USED COMPONENT
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-
-    // It's okay to not have these variables in the .env file in staging or production, we just have it to differentiate local and staging cache key to avoid unexpected value set from locally
-    STANDARD_MODELS_CACHE_KEY: process.env.STANDARD_MODELS_CACHE_KEY || '__llm_standard_models',
-    CUSTOM_MODELS_CACHE_KEY: process.env.CUSTOM_MODELS_CACHE_KEY || '__llm_custom_models',
   },
   api: {
     SMYTH_USER_API_URL: `${process.env.SMYTH_API_SERVER}/v1`,
@@ -80,6 +77,11 @@ const config = {
 
   flags: {
     useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS),
+  },
+
+  cache: {
+    STANDARD_MODELS_CACHE_KEY: `__llm_smod_cache_${_generateHash(process.env.UI_SERVER)}`,
+    getCustomModelsCacheKey: (teamId: string) => `__llm_cmod_cache_${teamId}`,
   },
 };
 
@@ -140,6 +142,12 @@ const { error, value } = requiredKeysSchema.validate(config.env);
 
 if (error) {
   console.warn('config validation error: ', error.message);
+}
+
+function _generateHash(str, algorithm = 'md5') {
+  const hash = crypto.createHash(algorithm);
+  hash.update(str);
+  return hash.digest('hex');
 }
 
 export default config;

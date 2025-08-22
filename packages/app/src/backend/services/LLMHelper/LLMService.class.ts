@@ -32,7 +32,7 @@ export class LLMService {
 
     try {
       const cachedModels = await this.getModelsFromCache(
-        `${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`,
+        config.cache.getCustomModelsCacheKey(teamId),
       );
 
       if (Object.keys(cachedModels).length > 0) {
@@ -41,7 +41,7 @@ export class LLMService {
 
       const latestModels = await this.getFreshCustomModels(req);
 
-      this.cacheModels(latestModels, `${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch(
+      this.cacheModels(latestModels, config.cache.getCustomModelsCacheKey(teamId)).catch(
         (error) => {
           console.error('Error caching models', error);
         },
@@ -87,7 +87,7 @@ export class LLMService {
 
   private async getStandardModels() {
     try {
-      const cachedModels = await this.getModelsFromCache(config.env.STANDARD_MODELS_CACHE_KEY);
+      const cachedModels = await this.getModelsFromCache(config.cache.STANDARD_MODELS_CACHE_KEY);
 
       if (Object.keys(cachedModels).length > 0) {
         return cachedModels;
@@ -96,7 +96,7 @@ export class LLMService {
       const latestModels = await this.getFreshStandardModels();
 
       if (latestModels && Object.keys(latestModels).length > 0) {
-        this.cacheModels(latestModels, config.env.STANDARD_MODELS_CACHE_KEY).catch((error) => {
+        this.cacheModels(latestModels, config.cache.STANDARD_MODELS_CACHE_KEY).catch((error) => {
           console.error('Error caching models', error);
         });
       }

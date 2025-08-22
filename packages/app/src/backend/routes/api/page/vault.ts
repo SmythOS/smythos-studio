@@ -205,7 +205,7 @@ const handleCustomLLMSave = async (req, res) => {
     });
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -285,7 +285,7 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
     const deleteModel = await deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${config.env.CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
