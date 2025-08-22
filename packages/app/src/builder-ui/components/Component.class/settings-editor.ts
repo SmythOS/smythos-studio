@@ -40,25 +40,10 @@ async function onComponentLoad(sidebar) {
     sidebar.querySelector('.del-btn').classList.add('hidden');
   } else {
     // Always hide the top save button for manual save/cancel flow
-    sidebar.querySelector('.action-save').classList.add('hidden');
+    sidebar.querySelector('.action-save').classList.remove('hidden');
     sidebar.querySelector('.del-btn').classList.remove('hidden');
     sidebar.querySelector('.close-btn').classList.remove('hidden');
   }
-
-  const form = sidebar.querySelector('form');
-
-  // Helper: toggle bottom Save/Cancel visibility based on changes
-  const setBottomActionsVisibility = (visible: boolean) => {
-    const actionsRoot = sidebar.querySelector('.actions .action-content');
-    if (!actionsRoot) return;
-    const btnSave = actionsRoot.querySelector('.action-save') as HTMLElement;
-    const btnCancel = actionsRoot.querySelector('.action-cancel') as HTMLElement;
-    if (btnSave) btnSave.classList[visible ? 'remove' : 'add']('hidden');
-    if (btnCancel) btnCancel.classList[visible ? 'remove' : 'add']('hidden');
-  };
-
-  // Initialize bottom actions hidden until there is a change
-  setBottomActionsVisibility(false);
 
   // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
 
@@ -451,15 +436,7 @@ export async function editSettings(component: Component) {
     // Prompt to discard if there are unsaved changes
     const changed = component.settingsChanged();
     if (!changed) return true;
-    // Hide buttons if we are prompting
-    const sb = document.querySelector('#right-sidebar');
-    if (sb) {
-      const actionsRoot = sb.querySelector('.actions .action-content');
-      actionsRoot &&
-        actionsRoot
-          .querySelectorAll('.action-save, .action-cancel')
-          .forEach((e) => e.classList.add('hidden'));
-    }
+
     const discard = await confirm(
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
@@ -470,17 +447,7 @@ export async function editSettings(component: Component) {
         btnYesClass: 'h-[48px] rounded-lg px-8',
       },
     );
-    // Re-evaluate visibility after prompt
-    if (sb) {
-      const actionsRoot = sb.querySelector('.actions .action-content');
-      const hasChanges = component.settingsChanged();
-      if (actionsRoot) {
-        const saveBtn = actionsRoot.querySelector('.action-save') as HTMLElement;
-        const cancelBtn = actionsRoot.querySelector('.action-cancel') as HTMLElement;
-        saveBtn && saveBtn.classList[hasChanges ? 'remove' : 'add']('hidden');
-        cancelBtn && cancelBtn.classList[hasChanges ? 'remove' : 'add']('hidden');
-      }
-    }
+
     return !!discard;
   };
 
@@ -1005,7 +972,7 @@ export async function editSettings(component: Component) {
       type: 'button',
       label: 'Cancel',
       class:
-        'action-cancel items-center ml-2 py-2 text-sm font-medium text-gray-500 bg-transparent hover:text-gray-900 hidden',
+        'action-cancel items-center ml-2 py-2 text-sm font-medium text-gray-500 bg-transparent hover:text-gray-900',
       click: () => {
         const closeBtn: HTMLButtonElement = document.querySelector(
           '#right-sidebar .close-btn',
@@ -1017,7 +984,7 @@ export async function editSettings(component: Component) {
       type: 'button',
       label: 'Save',
       class:
-        'action-save items-center py-2 text-sm font-medium bg-transparent text-blue-500 hover:text-blue-600 hidden',
+        'action-save items-center py-2 text-sm font-medium bg-transparent text-blue-500 hover:text-blue-600',
       click: () => {},
     },
   };
@@ -1033,18 +1000,6 @@ export async function editSettings(component: Component) {
     onSave: onSave.bind(component),
     onDraft: async function (values) {
       await onDraft.apply(component, [values]);
-      // Show/hide bottom Save/Cancel based on changes
-      const visible = component.settingsChanged();
-      const sb = document.querySelector('#right-sidebar');
-      if (sb) {
-        const actionsRoot = sb.querySelector('.actions .action-content');
-        if (actionsRoot) {
-          const saveBtn = actionsRoot.querySelector('.action-save') as HTMLElement;
-          const cancelBtn = actionsRoot.querySelector('.action-cancel') as HTMLElement;
-          saveBtn && saveBtn.classList[visible ? 'remove' : 'add']('hidden');
-          cancelBtn && cancelBtn.classList[visible ? 'remove' : 'add']('hidden');
-        }
-      }
     },
     onBeforeCancel: onBeforeCancelSettings,
     onCancel,
