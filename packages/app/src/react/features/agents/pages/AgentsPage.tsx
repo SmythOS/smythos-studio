@@ -1,9 +1,8 @@
 import {
-  AgentsBanner,
   AgentsGrid,
   AgentsHeader,
   GenerateAgentForm,
-  TemplatesSection,
+  TemplatesSection
 } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
@@ -42,7 +41,6 @@ function AgentsPage() {
   const saveUserSettingsMutation = useMutateOnboardingData();
   const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   // Authentication and permissions
   const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
@@ -198,12 +196,9 @@ function AgentsPage() {
           <GenerateAgentForm
             onSubmit={handleGenerateAgentSubmit}
             canEditAgents={canEditAgents}
-            isBannerVisible={isBannerVisible}
           />
         </FeatureFlagged>
 
-        {/* GPT-5 Promo Banner */}
-        {isBannerVisible && <AgentsBanner onClose={() => setIsBannerVisible(false)} />}
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}

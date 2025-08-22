@@ -11,7 +11,6 @@ import { GenerateAgentFormData } from '../types/agents.types';
 interface GenerateAgentFormProps {
   onSubmit: (data: GenerateAgentFormData) => void;
   canEditAgents: boolean;
-  isBannerVisible?: boolean;
 }
 
 /**
@@ -20,7 +19,6 @@ interface GenerateAgentFormProps {
 export function GenerateAgentForm({
   onSubmit,
   canEditAgents,
-  isBannerVisible = false,
 }: GenerateAgentFormProps) {
   const [initialWeaverMessage, setInitialWeaverMessage] = useState<string>('');
   const [isFileUploading, setIsFileUploading] = useState(false);
@@ -79,7 +77,7 @@ export function GenerateAgentForm({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!canEditAgents) {
-        toast.error("Your current access level doesn't include this feature.");
+        toast.error('Your current access level doesn\'t include this feature.');
         return;
       }
       handleSubmit();
@@ -114,8 +112,8 @@ export function GenerateAgentForm({
   return (
     <div
       className={classNames(
-        'w-full px-0 md:w-[80%] max-w-[808px] mx-auto pt-6 rounded-lg',
-        isBannerVisible ? 'mb-1' : 'mb-20',
+        'w-full px-0 md:w-[80%] max-w-[808px] mx-auto pt-6 rounded-lg mb-20',
+        
       )}
     >
       <div className="flex items-center justify-center gap-2">
