@@ -216,33 +216,54 @@ function sanitizeOAuthConnections(connections: any): any {
     const sanitizedConnection = JSON.parse(JSON.stringify(value));
 
     // Helper to sanitize sensitive fields
-    const sanitizeTokenFields = (obj: any) => {
-      if (!obj) return;
+    const sanitizeTokenFields = (obj: any, location: string = '') => {
+      if (!obj || typeof obj !== 'object') return;
 
-      // Replace actual tokens and expiration with placeholders
-      if (obj.primary) {
-        obj.primary = '[REDACTED]'; // Keep field to indicate token exists
+      // List of sensitive field names to sanitize
+      const sensitiveFields = ['primary', 'secondary', 'expires_in', 'refresh_token',
+        'access_token', 'accessToken', 'refreshToken', 'token',
+        'tokenSecret', 'accessTokenSecret'];
+
+      for (const field of sensitiveFields) {
+        if (obj[field] && typeof obj[field] === 'string' && obj[field] !== '[REDACTED]') {
+          obj[field] = '[REDACTED]';
+        }
       }
-      if (obj.secondary) {
-        obj.secondary = '[REDACTED]'; // Keep field to indicate token exists
-      }
-      if (obj.expires_in) {
-        obj.expires_in = '[REDACTED]'; // Hide expiration information
+
+      // Also check for any field that looks like a token (JWT pattern or long string)
+      // Exclude fields that are meant to be visible like clientID, clientSecret, consumerKey, etc.
+      const excludedFields = ['clientID', 'clientSecret', 'consumerKey', 'consumerSecret',
+        'oauth_keys_prefix', 'name', 'platform', 'service', 'type',
+        'scope', 'authorizationURL', 'tokenURL', 'requestTokenURL',
+        'accessTokenURL', 'userAuthorizationURL'];
+
+      for (const [fieldName, fieldValue] of Object.entries(obj)) {
+        if (typeof fieldValue === 'string' &&
+          fieldValue.length > 40 &&
+          !excludedFields.includes(fieldName) &&
+          fieldValue !== '[REDACTED]') {
+          // This might be a token - check for JWT pattern or OAuth token pattern
+          const looksLikeToken = fieldValue.includes('.') || // JWT (has dots)
+            fieldValue.match(/^[A-Za-z0-9_-]{40,}$/); // OAuth token pattern
+          if (looksLikeToken) {
+            obj[fieldName] = '[REDACTED]';
+          }
+        }
       }
     };
 
     // Sanitize auth_data (new structure)
-    if (sanitizedConnection.auth_data) {
-      sanitizeTokenFields(sanitizedConnection.auth_data);
+    if (sanitizedConnection.auth_data && typeof sanitizedConnection.auth_data === 'object') {
+      sanitizeTokenFields(sanitizedConnection.auth_data, 'auth_data');
     }
 
-    // Sanitize auth_settings (might exist in legacy)
-    if (sanitizedConnection.auth_settings) {
-      sanitizeTokenFields(sanitizedConnection.auth_settings);
+    // Sanitize auth_settings (might exist in legacy or contain misplaced tokens)
+    if (sanitizedConnection.auth_settings && typeof sanitizedConnection.auth_settings === 'object') {
+      sanitizeTokenFields(sanitizedConnection.auth_settings, 'auth_settings');
     }
 
     // Sanitize root level (legacy structure)
-    sanitizeTokenFields(sanitizedConnection);
+    sanitizeTokenFields(sanitizedConnection, 'root');
 
     sanitized[key] = sanitizedConnection;
   }
@@ -258,8 +279,34 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
       return res.status(500).json({ success: false, error: 'Failed to retrieve OAuth connections.' });
     }
 
+    // Parse any stringified entries before sanitization
+    const parsedSettings = {};
+    if (settings && typeof settings === 'object') {
+      for (const [key, value] of Object.entries(settings)) {
+        if (typeof value === 'string') {
+          try {
+            parsedSettings[key] = JSON.parse(value);
+          } catch (e) {
+            // If parsing fails, keep as is
+            parsedSettings[key] = value;
+          }
+        } else {
+          parsedSettings[key] = value;
+          // Log warning if tokens are exposed (for security monitoring)
+          if (value && typeof value === 'object') {
+            const hasExposedTokens =
+              (value.auth_data?.primary && value.auth_data.primary !== '[REDACTED]') ||
+              (value.primary && value.primary !== '[REDACTED]');
+            if (hasExposedTokens) {
+              console.warn(`[OAuth Security] Connection ${key} has unsanitized tokens - will be sanitized before sending to frontend`);
+            }
+          }
+        }
+      }
+    }
+
     // Sanitize the settings before sending to frontend
-    const sanitizedSettings = sanitizeOAuthConnections(settings);
+    const sanitizedSettings = sanitizeOAuthConnections(parsedSettings);
     res.json(sanitizedSettings);
   } catch (error) {
     console.error('Error fetching OAuth connections:', error);
