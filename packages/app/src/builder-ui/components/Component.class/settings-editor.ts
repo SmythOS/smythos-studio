@@ -999,7 +999,7 @@ export async function editSettings(component: Component) {
     actions: mergedActions,
     onSave: onSave.bind(component),
     onDraft: async function (values) {
-      await onDraft.apply(component, [values]);ß
+      await onDraft.apply(component, [values]);
     },
     onBeforeCancel: onBeforeCancelSettings,
     onCancel,
