@@ -24,9 +24,10 @@ function uid() {
 
 /**
  * Parses an expiration timestamp provided as string or number into a number (ms since epoch).
+ * Returns null for undefined, redacted, or invalid values.
  */
 function parseExpirationTimestamp(expiresIn?: string | number): number | null {
-  if (expiresIn === undefined) return null;
+  if (expiresIn === undefined || expiresIn === '[REDACTED]') return null;
   if (typeof expiresIn === 'number' && Number.isFinite(expiresIn)) return expiresIn;
   if (typeof expiresIn === 'string') {
     const numeric = Number(expiresIn);
@@ -51,6 +52,8 @@ function isTokenCurrentlyValid(expiresAtMs: number | null, bufferSeconds: number
  * - oauth2: primary token present; if expiry provided, ensure not expired; otherwise unknown
  * - oauth (OAuth1): require both primary and secondary (token + tokenSecret)
  * Returns true/false when determinable from local data, otherwise undefined to trigger server check.
+ * 
+ * When tokens are redacted, we assume they're valid to prevent infinite auth check loops.
  */
 function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean | undefined {
   const type = connection.type;
@@ -58,13 +61,21 @@ function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean |
   const secondary = connection.secondary;
   const expiresAt = parseExpirationTimestamp(connection.expires_in);
 
+  // Check if tokens exist (either actual values or [REDACTED] placeholders)
+  const hasPrimary = primary && primary !== '';
+  const hasSecondary = secondary && secondary !== '';
+
   if (type === 'oauth2_client_credentials') {
-    if (!primary) return false;
+    if (!hasPrimary) return false;
+    // If expires_in is redacted but token exists, assume valid (server will verify on actual API calls)
+    if (connection.expires_in === '[REDACTED]') return true;
     return isTokenCurrentlyValid(expiresAt);
   }
 
   if (type === 'oauth2') {
-    if (!primary) return false;
+    if (!hasPrimary) return false;
+    // If expires_in is redacted but token exists, assume valid (server will verify on actual API calls)
+    if (connection.expires_in === '[REDACTED]') return true;
     // If we know expiry, respect it. If not, leave unknown to allow precise server validation.
     if (expiresAt !== null) return isTokenCurrentlyValid(expiresAt);
     return undefined;
@@ -72,7 +83,7 @@ function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean |
 
   if (type === 'oauth') {
     // OAuth 1.0a typically has no expiry; both tokens must exist
-    if (primary && secondary) return true;
+    if (hasPrimary && hasSecondary) return true;
     return false;
   }
 

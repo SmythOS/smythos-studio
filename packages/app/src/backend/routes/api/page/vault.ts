@@ -197,6 +197,59 @@ router.delete('/keys/:keyId', includeTeamDetails, async (req, res) => {
   res.send({ success: true, data: { keyId } });
 });
 
+/**
+ * Sanitizes OAuth connections by replacing sensitive fields with placeholders.
+ * Replaces tokens and expiration info with [REDACTED] to prevent exposure.
+ */
+function sanitizeOAuthConnections(connections: any): any {
+  if (!connections || typeof connections !== 'object') return connections;
+
+  const sanitized = {};
+
+  for (const [key, value] of Object.entries(connections)) {
+    if (!value || typeof value !== 'object') {
+      sanitized[key] = value;
+      continue;
+    }
+
+    // Deep clone the connection object
+    const sanitizedConnection = JSON.parse(JSON.stringify(value));
+
+    // Helper to sanitize sensitive fields
+    const sanitizeTokenFields = (obj: any) => {
+      if (!obj) return;
+
+      // Replace actual tokens and expiration with placeholders
+      if (obj.primary) {
+        obj.primary = '[REDACTED]'; // Keep field to indicate token exists
+      }
+      if (obj.secondary) {
+        obj.secondary = '[REDACTED]'; // Keep field to indicate token exists
+      }
+      if (obj.expires_in) {
+        obj.expires_in = '[REDACTED]'; // Hide expiration information
+      }
+    };
+
+    // Sanitize auth_data (new structure)
+    if (sanitizedConnection.auth_data) {
+      sanitizeTokenFields(sanitizedConnection.auth_data);
+    }
+
+    // Sanitize auth_settings (might exist in legacy)
+    if (sanitizedConnection.auth_settings) {
+      sanitizeTokenFields(sanitizedConnection.auth_settings);
+    }
+
+    // Sanitize root level (legacy structure)
+    sanitizeTokenFields(sanitizedConnection);
+
+    sanitized[key] = sanitizedConnection;
+  }
+
+  return sanitized;
+}
+
 router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
   try {
     const settings = await getTeamSettingsObj(req, OAUTH_SETTING_KEY);
@@ -204,7 +257,10 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
       console.error('Failed to get OAuth settings due to an internal error.');
       return res.status(500).json({ success: false, error: 'Failed to retrieve OAuth connections.' });
     }
-    res.json(settings);
+
+    // Sanitize the settings before sending to frontend
+    const sanitizedSettings = sanitizeOAuthConnections(settings);
+    res.json(sanitizedSettings);
   } catch (error) {
     console.error('Error fetching OAuth connections:', error);
     res.status(500).json({ success: false, error: 'An unexpected error occurred while fetching OAuth connections.' });
