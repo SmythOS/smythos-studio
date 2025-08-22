@@ -6,7 +6,7 @@ import { AgentActivityModal } from '@src/react/features/agents/components/agentC
 import { AgentContributorsModal } from '@src/react/features/agents/components/agentCard/modals/AgentContributorsModal';
 import { AgentDeleteConfirmationModal } from '@src/react/features/agents/components/agentCard/modals/AgentDeleteConfirmationModal';
 import { IAgent } from '@src/react/features/agents/components/agentCard/types';
-import { ChatIconWithTail, PencilIcon } from '@src/react/shared/components/svgs';
+import { ChatIconWithTail, PencilIcon, PinIcon, PinIconSlim, UnPinIcon } from '@src/react/shared/components/svgs';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
@@ -20,7 +20,6 @@ import {
   FaEllipsisVertical,
   FaEye,
   FaRegCopy,
-  FaThumbtack,
   FaTrash,
   FaUsers,
 } from 'react-icons/fa6';
@@ -157,29 +156,6 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
             { 'opacity-50': cardState.isDeleted || cardState.isDeleting },
           )}
         >
-          {/* Pinned Triangle Container with Overflow Hidden */}
-          <div className="absolute inset-0 overflow-hidden rounded-lg pointer-events-none z-[5]">
-            {/* Pinned Triangle Indicator */}
-            {agent.isPinned && (
-              <div className="absolute bottom-0 left-0 z-10 pointer-events-none">
-                {/* Triangle Shape */}
-                <div className="relative">
-                  <div 
-                    className="w-0 h-0 border-l-[50px] border-l-v2-blue border-b-[50px] border-b-transparent"
-                    style={{
-                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
-                    }}
-                  />
-                  {/* Pinned Content */}
-                  <div className="absolute pt-[6px] bottom-[11px] left-[-32px] transform rotate-45 origin-bottom-left text-center w-[60px] h-[40px] bg-gray-400">
-                    <div className="">
-                      <FaThumbtack className="text-white text-[10px] m-auto" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
           {/* Avatar Section */}
           <div className="w-[25%] h-[120px] p-1">
             <img
@@ -206,10 +182,14 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                   by {userName}
                 </p>
               </div>
-
+              {agent.isPinned && (
+                <div className="relative py-1">
+                  <PinIconSlim className="text-white text-[10px] m-auto" />
+                </div>
+              )}
               {/* Actions Dropdown */}
               {(agentData.permissions.canEdit || agentData.permissions.canRead || isStaffUser) && (
-                <Menu as="div" className="relative ml-2">
+                <Menu as="div" className="relative">
                   {({ open }) => {
                     // Track dropdown state for tooltip visibility
                     if (dropdownOpenRef.current !== open) {
@@ -254,17 +234,15 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                                       <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
                                     ) : (
                                       <div className="relative mr-3 h-4 w-4">
-                                        <FaThumbtack className="h-4 w-4" />
-                                        {agent.isPinned && (
-                                          <div className="absolute inset-0 flex items-center justify-center w-6">
-                                            <div className="w-8 h-0.5 -left-1 bg-current transform rotate-[30deg]"></div>
-                                          </div>
-                                        )}
+                                        {agent.isPinned ?
+                                            <UnPinIcon className="h-4 w-4" /> :
+                                            <PinIcon className="h-4 w-4" />
+                                        }
                                       </div>
                                     )}
                                     {cardState.isPinning 
                                       ? (agent.isPinned ? 'Unpinning...' : 'Pinning...') 
-                                      : (agent.isPinned ? 'Unpin' : 'Pin')
+                                      : (agent.isPinned ? 'Unpin Agent' : 'Pin Agent')
                                     }
                                   </button>
                                 )}
