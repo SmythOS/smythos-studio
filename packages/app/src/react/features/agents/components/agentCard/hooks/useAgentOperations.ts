@@ -179,7 +179,7 @@ export function useAgentOperations({
     const actionText = newPinnedState ? 'pin' : 'unpin';
 
     try {
-      const endpoint = `/api/page/aiagents/ai-agent/${id}/pin`;
+      const endpoint = `/api/page/agents/ai-agent/${id}/pin`;
       const method = newPinnedState ? 'POST' : 'DELETE';
 
       const response = await fetch(endpoint, {
