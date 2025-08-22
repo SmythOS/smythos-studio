@@ -27,7 +27,7 @@ const getPlatformShortcuts = () => {
   };
 };
 
-function destroyMenu() {
+export function destroyMenu() {
   if (state.menuEl && state.menuEl.parentElement) {
     state.menuEl.parentElement.removeChild(state.menuEl);
   }
