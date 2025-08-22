@@ -1,20 +1,13 @@
-import express, { Request } from 'express';
-import {
-  authHeaders,
-  forwardToSmythAPIMiddleware,
-  includeAxiosAuth,
-  smythAPIReq,
-} from '../../../utils';
-import { getAgents } from '../../../services/user-data.service';
-import * as userData from '../../../services/user-data.service';
-import SmythPubStaticStorage from '../../../services/storage/SmythStaticStorage.class';
 import { randomUUID } from 'crypto';
-import { includeTeamDetails } from '../../../middlewares/auth.mw';
-import * as falai from '../../../services/falai-helper';
+import express, { Request } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { generateLinkedInAvatarPrompt } from '../../../../shared/constants/prompts';
-import axios from 'axios';
-import config from '../../../config';
+import { includeTeamDetails } from '../../../middlewares/auth.mw';
+import * as falai from '../../../services/falai-helper';
+import SmythPubStaticStorage from '../../../services/storage/SmythStaticStorage.class';
+import * as userData from '../../../services/user-data.service';
+import { getAgents } from '../../../services/user-data.service';
+import { authHeaders, forwardToSmythAPIMiddleware, smythAPIReq } from '../../../utils';
 const router = express.Router();
 const staticStorage = new SmythPubStaticStorage();
 
@@ -46,15 +39,6 @@ router.put('/agent/:id/settings', async (req, res) => {
     return res.status(500).json({ error: 'Something went wrong while updating agent settings' });
   }
 });
-
-router.get('/ai-agent/:agentId/bulk-calls/*', forwardToSmythAPIMiddleware());
-router.post('/ai-agent/:agentId/bulk-calls/*', forwardToSmythAPIMiddleware());
-router.delete('/ai-agent/:agentId/bulk-calls/*', forwardToSmythAPIMiddleware());
-
-router.get('/jobs/*', forwardToSmythAPIMiddleware());
-router.post('/jobs/*', forwardToSmythAPIMiddleware());
-router.put('/jobs/*', forwardToSmythAPIMiddleware());
-router.delete('/jobs/*', forwardToSmythAPIMiddleware());
 
 router.get('/ai-agent/:agentId/deployments', forwardToSmythAPIMiddleware());
 router.get('/ai-agent/:agentId/deployments/latest', forwardToSmythAPIMiddleware());
@@ -254,46 +238,6 @@ router.delete('/ai-agent/:agentId/avatar', async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: 'Something went wrong while deleting agent avatar' });
-  }
-});
-
-router.get('/ai-agent/:agentId/export-logs', async (req, res) => {
-  const env = req.query.env || 'prod';
-  const dateRange = req.query.dateRange || undefined;
-  const userId = req._user?.id;
-  const teamId = req._team?.id;
-  const token = req.user.accessToken;
-  const agentId = req.headers['x-agent-id'];
-
-  try {
-    // Build the URL with query parameters
-    let url = `${config.env.API_SERVER}/aichat/export-conversations`;
-
-    const result = await axios.post(
-      url,
-      {
-        env,
-        ...(dateRange && { dateRange }),
-      },
-      {
-        headers: {
-          ...includeAxiosAuth(token).headers,
-          'x-team-id': teamId,
-          'x-agent-id': agentId,
-          'x-smyth-team-id': teamId,
-        },
-      },
-    );
-
-    // Set the appropriate headers for file download
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename="chat-export.json"');
-
-    console.log('result', result.data);
-    res.send(result.data);
-  } catch (error) {
-    console.log(error.response.data);
-    return res.status(500).json({ error: 'Something went wrong while exporting logs' });
   }
 });
 

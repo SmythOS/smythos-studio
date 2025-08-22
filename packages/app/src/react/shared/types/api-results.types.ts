@@ -79,6 +79,11 @@ export interface DeploymentWithAgentSnapshot extends Deployment {
   aiAgent: { name: string; domain: { name: string; id: string }[] };
 }
 
+export interface FormPreviewEmbodimentData {
+  name: string;
+  allowedDomains: string[];
+}
+
 export interface ChatbotEmbodimentData {
   name: string;
   introMessage: string;

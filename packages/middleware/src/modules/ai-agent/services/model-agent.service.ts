@@ -1,9 +1,9 @@
-import { prisma } from '../../../../prisma/prisma-client';
+import crypto from 'crypto';
 import _ from 'lodash';
+import { agentDeploymentsService } from '.';
+import { prisma } from '../../../../prisma/prisma-client';
 import modelAgents from '../../../data/model-agents.json';
 import ApiError from '../../../utils/apiError';
-import crypto from 'crypto';
-import { agentDeploymentsService } from '.';
 
 /**
  * Service class for handling model agent operations
@@ -58,6 +58,9 @@ class ModelAgentService {
       },
       select: this.getAgentSelect(options),
     });
+
+    // for backward compatibility, add to the agent an empty domain object
+    agent.domain = [];
 
     // Get template data to check if agent is up to date
     const tmpl = await this.prepareTemplateData({ id, teamId, parentTeamId });
@@ -145,6 +148,9 @@ class ModelAgentService {
           select: this.getAgentSelect(options),
         });
 
+        // for backward compatibility, add to the agent an empty domain object
+        (_agent as any).domain = [];
+
         return _agent;
       },
       { timeout: 120_000 },
@@ -209,10 +215,15 @@ class ModelAgentService {
           }
         }
 
-        return tx.aiAgent.findUnique({
+        let _agent = await tx.aiAgent.findUnique({
           where: { id: agent.id },
           select: this.getAgentSelect(options),
         });
+
+        // for backward compatibility, add to the agent an empty domain object
+        (_agent as any).domain = [];
+
+        return _agent;
       },
       { timeout: 120_000 },
     );
@@ -229,14 +240,6 @@ class ModelAgentService {
       name: true,
       updatedAt: true,
       description: true,
-      domain: {
-        select: {
-          name: true,
-          id: true,
-          verified: true,
-          lastStatus: true,
-        },
-      },
       ...(options.include?.includes('team.subscription')
         ? {
             team: {

@@ -13,6 +13,8 @@ import { useParams } from 'react-router';
 
 import { useAgentSettings } from '@react/features/ai-chat/hooks/agent-settings';
 import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
+import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
+import { PageACL } from '@src/shared/state_stores/auth';
 
 declare const workspace: Workspace;
 
@@ -56,6 +58,7 @@ interface AgentSettingsContextType {
   serverStatusData: ServerStatus | null;
   refetchAllData: () => Promise<void>;
   agentAuthData: Record<string, string> | null;
+  pageAccess: PageACL;
 }
 
 const initialState: AgentSettingsContextType = {
@@ -70,6 +73,7 @@ const initialState: AgentSettingsContextType = {
   serverStatusQuery: null,
   serverStatusData: null,
   agentAuthData: null,
+  pageAccess: { read: false, write: false },
 };
 
 const AgentSettingsContext = createContext<AgentSettingsContextType | null>(null);
@@ -87,6 +91,10 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
 }) => {
   const [workSpaceObj, setWorkSpaceObj] = useState<Workspace | null>(workspace || null);
   const [agentAuthData, setAgentAuthData] = useState<any>(null);
+
+  const { getPageAccess } = useAuthCtx();
+
+  const pageAccess = getPageAccess('/agent-settings', false);
 
   // Always call useParams to avoid violating Rules of Hooks
   const params = useParams<{ agentId: string }>();
@@ -294,6 +302,7 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
         serverStatusData: serverStatusQuery.data,
         refetchAllData,
         agentAuthData,
+        pageAccess,
       }}
     >
       {children}

@@ -1012,6 +1012,8 @@ export class Workspace extends EventEmitter {
     let selectionRectangle = null;
 
     document.getElementById('workspace-container').addEventListener('mousedown', (event) => {
+      const isContextMenu = !!(event.target as HTMLElement).closest('[data-context-menu="true"]');
+      if (isContextMenu) return;
       document
         .querySelectorAll('#workspace-container .component')
         .forEach((e) => e.classList.remove('selected', 'unselected'));

@@ -1,55 +1,25 @@
+import {
+  GetObjectCommand,
+  GetObjectCommandInput,
+  HeadObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import axios from 'axios';
+import express from 'express';
 import { pipeline, Readable } from 'stream';
 import { promisify } from 'util';
-import express from 'express';
-import axios from 'axios';
-import {
-  S3Client,
-  GetObjectCommand,
-  HeadObjectCommand,
-  GetObjectCommandInput,
-} from '@aws-sdk/client-s3';
 
 import config from '../../config';
 
-import { includeTeamDetails } from '../../middlewares/auth.mw';
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import { includeTeamDetails } from '../../middlewares/auth.mw';
 const router = express.Router();
 const pipelineAsync = promisify(pipeline);
 
-// const debuggerProxy: any = createProxyMiddleware({
-//     target: config.env.API_SERVER, // the target server
-//     changeOrigin: false, // needed for virtual hosted sites
-//     pathRewrite: {
-//         '^/dbg': '', // remove the /proxy prefix when forwarding
-//     },
-//     onProxyReq: (proxyReq, req: any, res) => {
-//         // Log the full URL to which the request is redirected
-//         const targetUrl = `//${proxyReq.getHeader('host')}${proxyReq.path}`;
-//         console.log(`DBG Proxy Redirecting to: ${targetUrl}`);
-//         console.log('body', req.body);
-//         console.log('headers', req.headers);
-
-//         //const accessToken = req.user.accessToken;
-//         //proxyReq.setHeader('Authorization', 'Bearer ' + accessToken);
-
-//         // Remove the Cookie header
-//         proxyReq.removeHeader('Cookie');
-//     },
-//     onProxyRes: (proxyRes, req, res) => {
-//         console.log('DBG Proxy Response:', proxyRes.statusCode, proxyRes.statusMessage);
-//     },
-//     onError: (err, req, res) => {
-//         console.log(err);
-//     },
-// });
-// router.use('/', debuggerProxy);
-
 router.get('/debugSession/:id', async (req, res, next) => {
-  console.log('DBG Session', req.params.id);
   try {
     const { id } = req.params;
     const url = `${config.env.API_SERVER}/agent/${id}/debugSession`;
-    console.log('DBG Session URL', url);
 
     //x-hash-id is configured in smyth load balancer to use user IP by default or custom value if provided
     //here we force it to use the real client IP in order to keep debug sessions consistent
@@ -58,10 +28,8 @@ router.get('/debugSession/:id', async (req, res, next) => {
       'x-hash-id': client_ip,
       'x-smyth-debug': 'true',
     };
-    console.log('### DBG Session Headers x-hash-id', url, headers);
     const result: any = await axios.get(url, { headers });
 
-    console.log('### DBG Session result', result.data);
     const dbgSession = result.data?.dbgSession;
 
     res.send({ dbgSession });
@@ -79,12 +47,7 @@ router.post(`/api`, async (req, res) => {
     //x-hash-id is configured in smyth load balancer to use user IP by default or custom value if provided
     //here we force it to use the real client IP in order to keep debug sessions consistent
     const client_ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log(
-      'DBG call with x-hash-id',
-      client_ip,
-      'req.socket.remoteAddress',
-      req.socket.remoteAddress,
-    );
+
     const headers = {
       'x-hash-id': client_ip,
       'x-smyth-debug': 'true',
@@ -116,21 +79,12 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
   ws: false,
   pathRewrite: (path: string) => {
     const newPath = path.split('/sse')[1];
-    console.log('SSE Path rewrite:', path, '->', newPath);
     return newPath;
   },
 
   // Configure proxy headers
   onProxyReq: (proxyReq: any, req: any, res: any) => {
     const hashId = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log('SSE Proxy Request to:', `${targetUrl}${proxyReq.path}`);
-    console.log('SSE Request Headers:', req.headers);
-    console.log(
-      'SSE request with x-hash-id',
-      hashId,
-      'req.socket.remoteAddress',
-      req.socket.remoteAddress,
-    );
 
     proxyReq.setHeader('x-hash-id', hashId);
     proxyReq.setHeader('x-smyth-debug', 'true');
@@ -139,15 +93,10 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
     proxyReq.setHeader('Cache-Control', 'no-cache');
 
     proxyReq.removeHeader('Accept-Encoding');
-
-    console.log('SSE Modified Headers:', proxyReq.getHeaders());
   },
 
   // Handle proxy response
   onProxyRes: (proxyRes: any, req: any, res: any) => {
-    console.log('SSE Proxy Response Status:', proxyRes.statusCode);
-    console.log('SSE Response Headers:', proxyRes.headers);
-
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -160,8 +109,6 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
     let buffer = '';
 
     proxyRes.on('data', (chunk: Buffer) => {
-      // console.log('SSE Received chunk:', chunk.toString());
-
       // Append the new chunk to our buffer
       buffer += chunk.toString();
 
@@ -185,7 +132,6 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
       if (buffer.trim()) {
         res.write(`${buffer}\n\n`);
       }
-      console.log(`SSE Connection ended after ${messageCount} messages`);
       res.end();
     });
 
@@ -194,9 +140,7 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
     });
 
     // Monitor client disconnection
-    req.on('close', () => {
-      console.log('SSE Client disconnected');
-    });
+    req.on('close', () => {});
   },
 
   // Error handling

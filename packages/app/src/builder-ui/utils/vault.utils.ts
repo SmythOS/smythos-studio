@@ -342,7 +342,7 @@ const _innerLink = (targetField: HTMLInputElement, message: string = '', keyName
 
     const saveBtn = formGroup
       .closest('#right-sidebar')
-      ?.querySelector('.save-btn') as HTMLButtonElement;
+      ?.querySelector('.action-save') as HTMLButtonElement;
 
     if (saveBtn) saveBtn.disabled = true;
 

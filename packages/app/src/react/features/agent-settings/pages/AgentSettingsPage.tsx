@@ -2,10 +2,8 @@ import ChatWithAgentWidget from '@react/features/agent-settings/components/Assig
 import CapabilitiesWidget from '@react/features/agent-settings/components/CapabilitiesWidget';
 import EnvironmentWidget from '@react/features/agent-settings/components/Deployments/EnvironmentWidget';
 import EmbodimentsWidget from '@react/features/agent-settings/components/EmbodimentsWidget';
-import LogsWidget from '@react/features/agent-settings/components/LogsWidget';
 import MyToolsWidget from '@react/features/agent-settings/components/MyToolsWidget';
 import OverviewWidgetsContainer from '@react/features/agent-settings/components/OverviewWidgetsContainer';
-import ScheduleWidget from '@react/features/agent-settings/components/ScheduleWidget';
 import AuthWidget from '@react/features/agent-settings/components/Security/AuthWidget';
 import ChangeLogWidget from '@react/features/agent-settings/components/Security/ChangeLogWidget';
 import {
@@ -17,11 +15,13 @@ import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import config from '@src/builder-ui/config';
 import FullScreenError from '@src/react/features/error-pages/pages/FullScreenError';
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { Breadcrumb } from 'flowbite-react';
 import { useEffect, useRef, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { BaseAgentSettingsTabs } from '../constants';
 
 const OPEN_TAB = 'Overview';
 
@@ -36,8 +36,8 @@ export const AgentSettingsPage = (props: Props) => {
 };
 
 export const AgentSettingTabs = () => {
-  const { userInfo, getPageAccess } = useAuthCtx();
-  const { agentId, agentQuery, allDeploymentsQuery, latestAgentDeploymentQuery } =
+  const { userInfo } = useAuthCtx();
+  const { agentId, agentQuery, allDeploymentsQuery, latestAgentDeploymentQuery, pageAccess } =
     useAgentSettingsCtx();
 
   // Define type for session storage data
@@ -59,11 +59,21 @@ export const AgentSettingTabs = () => {
     sessionStorage.removeItem('agentSettings');
   });
 
-  const pageAccess = getPageAccess('/agent-settings', false);
-  const isWriteAccess = pageAccess?.write;
-  const isSubscribedToPlan = userInfo?.subs?.plan?.paid ?? false;
+  const isWriteAccess = pageAccess.write;
+  const isOnPaidPlan = userInfo?.subs?.plan?.paid ?? false;
 
-  const widgets = {
+  const pluginWidgets = plugins.getPluginsByTarget(PluginTarget.AgentSettingsWidgets, PluginType.Config).flatMap((plugin) => (plugin as any).config).reduce((acc, plugin) => {
+    Object.keys(plugin).forEach((key) => {
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(...plugin[key]);
+    });
+    return acc;
+  }, {});
+
+
+  const baseWidgets: Record<keyof typeof BaseAgentSettingsTabs, React.ReactNode[]> = {
     Overview: [<OverviewWidgetsContainer isWriteAccess={isWriteAccess} />],
     Security: [<AuthWidget isWriteAccess={isWriteAccess} />],
     Tasks: [
@@ -71,9 +81,8 @@ export const AgentSettingTabs = () => {
         isWriteAccess={isWriteAccess}
         isAgentDeployed={!!latestAgentDeploymentQuery?.data?.deployment}
       />,
-      <CapabilitiesWidget isSubscribedToPlan={isSubscribedToPlan} isWriteAccess={isWriteAccess} />,
+      <CapabilitiesWidget isOnPaidPlan={isOnPaidPlan} isWriteAccess={isWriteAccess} />,
       <MyToolsWidget isWriteAccess={isWriteAccess} />,
-      <ScheduleWidget isSubscribedToPlan={isSubscribedToPlan} isWriteAccess={isWriteAccess} />,
     ],
     Deployments: [
       <EmbodimentsWidget
@@ -87,19 +96,24 @@ export const AgentSettingTabs = () => {
       />,
       <ChangeLogWidget isWriteAccess={isWriteAccess} allDeployments={allDeploymentsQuery} />,
     ],
-    Logs: [
-      <LogsWidget
-        isSubscribedToPlan={isSubscribedToPlan}
-        isWriteAccess={isWriteAccess}
-        userInfo={userInfo}
-      />,
-    ],
   };
+
+  let mergedWidgets = {...baseWidgets, ...pluginWidgets};
+
+
+  // we need to make sure that the original widgets objects are not overridden by the plugin widgets if the same key exists
+  Object.keys(baseWidgets).forEach((key) => {
+    if (pluginWidgets[key]) {
+      mergedWidgets[key] = [...(baseWidgets[key] || []), ...(pluginWidgets[key] || [])];
+    }
+  });
+
+
 
   return (
     <>
       <div className="flex justify-around mb-6 border-solid border-b-2 border-gray-200">
-        {Object.keys(widgets).map((name, index) => {
+        {Object.keys(mergedWidgets).map((name, index) => {
           return (
             <button
               key={index}
@@ -117,7 +131,7 @@ export const AgentSettingTabs = () => {
         })}
       </div>
       <div className="grid grid-cols-1 gap-6">
-        {Object.entries(widgets).map(([key, widgetlist], index) =>
+        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, any[]], index) =>
           widgetlist.map((widget, index) => (
             <div key={index} hidden={currentTab !== key}>
               {widget}
@@ -132,7 +146,7 @@ export const AgentSettingTabs = () => {
 export const AgentSettingsPageBody = (props: Props) => {
   const { agentId, agentQuery, agentTestDomainQuery, settingsQuery } = useAgentSettingsCtx();
   const { userInfo } = useAuthCtx();
-  const isSubscribedToPlan = userInfo?.subs?.plan?.paid ?? false;
+  const isOnPaidPlan = userInfo?.subs?.plan?.paid ?? false;
   const containerRef = useRef<HTMLDivElement>(null);
   if (!agentQuery.isLoading && !agentTestDomainQuery.isLoading) {
     if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
@@ -194,7 +208,7 @@ export const AgentSettingsPageBody = (props: Props) => {
         </h2>
 
         <div className="flex gap-4">
-          {!isSubscribedToPlan && (
+          {!isOnPaidPlan && (
             <CustomButton
               handleClick={handleUpgrade}
               variant="tertiary"
