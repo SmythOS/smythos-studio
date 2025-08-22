@@ -21,6 +21,8 @@ export class APICall extends Component {
   private boundHandleFocusAfterAuth = this.handleFocusAfterAuth.bind(this);
   private oauthConnections: any = null;
   private oauthConnectionNames: any = null;
+  private authCheckPromises: Map<string, Promise<boolean>> = new Map();
+  private updateAuthButtonDebounceTimer: any = null;
 
   // *** ADDED: Helper function to extract platform from URL ***
   private extractPlatformFromUrl(url?: string): string {
@@ -860,6 +862,8 @@ export class APICall extends Component {
           await this.updateOAuthConnectionOptions(); // Refresh options to replace legacy entry
           this.refreshSettingsSidebar(); // Refresh the sidebar to show updated name
           this.updateOAuthActionButton(); // Update action button state
+          // Note: updateAuthenticationButtonState not needed here as the button was already
+          // set to "Sign Out" in updateSidebarForOAuth and we know it's authenticated
 
           // Update component's button state
           this.checkSettings();
@@ -881,6 +885,7 @@ export class APICall extends Component {
           }
           // Refresh sidebar to reflect failed authentication state
           this.refreshSettingsSidebar();
+          // Note: updateAuthenticationButtonState will be called through refreshSettingsSidebar if needed
         }
         await this.updateButtonAndRemoveFocusListener(); // Restore button state
       } else {
@@ -907,6 +912,7 @@ export class APICall extends Component {
       }
       // Refresh sidebar to reflect failed authentication state
       this.refreshSettingsSidebar();
+      // Note: updateAuthenticationButtonState will be called through refreshSettingsSidebar if needed
       await this.updateButtonAndRemoveFocusListener(); // Restore button state
     }
   }
@@ -929,9 +935,15 @@ export class APICall extends Component {
       case 'oauth':
         console.log('Authentication was successful');
         successToast(`${event.data.type} authentication was successful`);
+
+        // Clear auth check cache for the current connection after successful auth
+        if (this.data.oauth_con_id) {
+          this.authCheckPromises.delete(this.data.oauth_con_id);
+        }
+
         this.updateSidebarForOAuth();
         // Refresh options from server to replace any legacy entry with its named/unnamed converted form
-        this.updateOAuthConnectionOptions().then(() => {
+        this.updateOAuthConnectionOptions().then(async () => {
           // If the previously selected id was legacy component-specific id, remap to the converted id if necessary
           const currentId = this.data.oauth_con_id;
           if (currentId && this.oauthConnections[currentId] === undefined) {
@@ -944,6 +956,8 @@ export class APICall extends Component {
           }
           this.refreshSettingsSidebar();
           this.updateOAuthActionButton();
+          // Update authentication button state after sidebar refresh
+          await this.updateAuthenticationButtonState();
 
           // Update component's button state
           this.checkSettings();
@@ -984,16 +998,56 @@ export class APICall extends Component {
   }
 
   /**
-   * Checks the current authentication status for the selected connection.
-   */
+ * Checks the current authentication status for the selected connection.
+ */
   private async checkAuthentication(): Promise<boolean> {
     const selectedValue = this.data.oauth_con_id;
-    //console.log(selectedValue);
+
     // If 'None' or no value is selected, it's not authenticated for this component.
     if (selectedValue === 'None' || !selectedValue) {
       return false;
     }
 
+    // Check if we already have a pending auth check for this connection
+    const existingPromise = this.authCheckPromises.get(selectedValue);
+    if (existingPromise) {
+      console.log(`[checkAuth] Reusing existing auth check promise for: ${selectedValue}`);
+      return existingPromise;
+    }
+
+    console.log(`[checkAuth] Creating new auth check promise for: ${selectedValue}`);
+    // Create new auth check promise
+    const authCheckPromise = this.performAuthCheck(selectedValue);
+
+    // Store the promise in the cache
+    this.authCheckPromises.set(selectedValue, authCheckPromise);
+
+    // Keep the cache for longer to handle rapid successive calls
+    // We'll clear it after 1 second to allow all related UI updates to complete
+    authCheckPromise.finally(() => {
+      setTimeout(() => {
+        // Only clear if it's still the same promise (not replaced by a newer one)
+        if (this.authCheckPromises.get(selectedValue) === authCheckPromise) {
+          this.authCheckPromises.delete(selectedValue);
+        }
+      }, 1000); // Keep cache for 1 second after completion
+    });
+
+    // Also set a timeout to clear stale promises (increase to 5 seconds)
+    setTimeout(() => {
+      // Only clear if it's still the same promise
+      if (this.authCheckPromises.get(selectedValue) === authCheckPromise) {
+        this.authCheckPromises.delete(selectedValue);
+      }
+    }, 5000); // Clear after 5 seconds max
+
+    return authCheckPromise;
+  }
+
+  /**
+   * Performs the actual authentication check (separated for caching)
+   */
+  private async performAuthCheck(selectedValue: string): Promise<boolean> {
     // Ensure connections are loaded.
     if (!this.oauthConnections) {
       console.warn('Attempted to check auth status, but oauthConnections is not loaded.');
@@ -1027,117 +1081,26 @@ export class APICall extends Component {
       return false;
     }
 
-    // Check if connection has been locally marked as signed out
-    if (selectedConnection.isAuthenticated === false) {
-      console.log(`Connection ${connectionId} is locally marked as signed out`);
-      return false;
-    }
-
-    // Check if connection has explicit authentication state (new structure)
-    if (selectedConnection.isAuthenticated === true) {
-      console.log(`Connection ${connectionId} is explicitly marked as authenticated`);
-      return true;
-    }
-
     // Get OAuth info from either new or old structure
     const oauthInfo = this.getConnectionOauthInfo(selectedConnection, connectionId);
 
-    // Debug logging to understand the connection structure
-    console.log('[checkAuthentication] Connection analysis:', {
-      connectionId,
-      selectedValue,
-      hasOauthInfo: !!oauthInfo,
-      oauthInfoKeys: oauthInfo ? Object.keys(oauthInfo) : [],
-      hasOauthKeysPrefix: !!oauthInfo?.oauth_keys_prefix,
-      oauthKeysPrefix: oauthInfo?.oauth_keys_prefix,
-      connectionStructure: {
-        hasAuthData: !!selectedConnection?.auth_data,
-        hasAuthSettings: !!selectedConnection?.auth_settings,
-        hasOauthInfo: !!selectedConnection?.oauth_info,
-        rootKeys: Object.keys(selectedConnection || {}),
-        fullConnection: selectedConnection
-      }
-    });
+    // Derive oauth_keys_prefix if not found
+    let oauth_keys_prefix = oauthInfo?.oauth_keys_prefix;
+    if (!oauth_keys_prefix && connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
+      oauth_keys_prefix = connectionId.replace('_TOKENS', '');
+    }
 
-    if (!oauthInfo?.oauth_keys_prefix) {
-      // Fallback: try to derive oauth_keys_prefix from connection ID
-      if (connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
-        const derivedPrefix = connectionId.replace('_TOKENS', '');
-        console.log(`[checkAuthentication] Using derived oauth_keys_prefix: ${derivedPrefix}`);
-
-        // Create a fallback oauthInfo object
-        const fallbackOauthInfo = {
-          ...oauthInfo,
-          oauth_keys_prefix: derivedPrefix
-        };
-
-        // Continue with the fallback
-        const authCheckPayload = {
-          oauth_keys_prefix: derivedPrefix,
-        };
-
-        try {
-          const response = await fetch(`${this.workspace.server}/oauth/checkAuth`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(authCheckPayload),
-          });
-
-          if (!response.ok) {
-            console.error(
-              `Auth check failed for ${derivedPrefix}: HTTP status ${response.status}`,
-            );
-            if (this.oauthConnections[connectionId]) {
-              this.oauthConnections[connectionId].isAuthenticated = false;
-            }
-            return false;
-          }
-
-          const data = await response.json();
-
-          // Update the local cache with the result from the backend
-          if (this.oauthConnections[connectionId]) {
-            // For new structure connections, check auth_data.primary
-            const newStructurePrimary = selectedConnection?.auth_data?.primary;
-            // For legacy connections, check oauth_info.primary or auth_settings.primary
-            const legacyPrimary = selectedConnection?.auth_settings?.primary || selectedConnection?.primary;
-
-            // Check if tokens exist AND are not empty strings
-            const hasValidTokens = (newStructurePrimary && newStructurePrimary.trim() !== '') ||
-              (legacyPrimary && legacyPrimary.trim() !== '');
-
-            const isAuthenticated = Boolean(data.success || hasValidTokens);
-
-            // Only update if we haven't explicitly marked it as signed out
-            if (this.oauthConnections[connectionId].isAuthenticated !== false) {
-              this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
-            }
-
-            return this.oauthConnections[connectionId].isAuthenticated;
-          }
-
-          return false;
-        } catch (error) {
-          console.error(`Error during auth check for ${derivedPrefix}:`, error);
-          if (this.oauthConnections[connectionId]) {
-            this.oauthConnections[connectionId].isAuthenticated = false;
-          }
-          return false;
-        }
-      }
-
-      console.warn(
-        `Attempted to check auth status, but oauth_keys_prefix is missing for connection: ${connectionId}`,
-      );
+    if (!oauth_keys_prefix) {
+      console.warn(`Cannot determine oauth_keys_prefix for connection: ${connectionId}`);
       return false;
     }
 
-    // --- Proceed with the check using the found connection ---
-
-    // The backend /oauth/checkAuth primarily needs the prefix.
+    // Call backend checkAuth to get actual authentication status
     const authCheckPayload = {
-      oauth_keys_prefix: oauthInfo.oauth_keys_prefix,
+      oauth_keys_prefix: oauth_keys_prefix,
     };
+
+    console.log(`[checkAuth] Sending auth check request for ${connectionId}`);
 
     try {
       const response = await fetch(`${this.workspace.server}/oauth/checkAuth`, {
@@ -1148,45 +1111,25 @@ export class APICall extends Component {
 
       if (!response.ok) {
         console.error(
-          `Auth check failed for ${oauthInfo.oauth_keys_prefix}: HTTP status ${response.status}`,
+          `Auth check failed for ${oauth_keys_prefix}: HTTP status ${response.status}`,
         );
-        // Update cache to reflect failed check
-        if (this.oauthConnections[connectionId]) {
-          this.oauthConnections[connectionId].isAuthenticated = false;
-        }
         return false;
       }
 
       const data = await response.json();
 
-      // Update the local cache with the result from the backend
+      // Backend response is the source of truth
+      const isAuthenticated = Boolean(data.success);
+
+      // Update local cache with backend result
       if (this.oauthConnections[connectionId]) {
-        // For new structure connections, check auth_data.primary
-        const newStructurePrimary = selectedConnection?.auth_data?.primary;
-        // For legacy connections, check oauth_info.primary or auth_settings.primary
-        const legacyPrimary = selectedConnection?.auth_settings?.primary || selectedConnection?.primary;
-
-        // Check if tokens exist AND are not empty strings
-        const hasValidTokens = (newStructurePrimary && newStructurePrimary.trim() !== '') ||
-          (legacyPrimary && legacyPrimary.trim() !== '');
-
-        const isAuthenticated = Boolean(data.success || hasValidTokens);
-
-        // Only update if we haven't explicitly marked it as signed out
-        if (this.oauthConnections[connectionId].isAuthenticated !== false) {
-          this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
-        }
-
-        return this.oauthConnections[connectionId].isAuthenticated;
+        this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
       }
 
-      return false;
+      console.log(`[checkAuth] Connection ${connectionId}: authenticated=${isAuthenticated}`);
+      return isAuthenticated;
     } catch (error) {
-      console.error(`Error during auth check for ${oauthInfo.oauth_keys_prefix}:`, error);
-      // Update cache to reflect fetch error
-      if (this.oauthConnections[connectionId]) {
-        this.oauthConnections[connectionId].isAuthenticated = false;
-      }
+      console.error(`Error during auth check for ${oauth_keys_prefix}:`, error);
       return false;
     }
   }
@@ -1251,7 +1194,11 @@ export class APICall extends Component {
       await this.addRightSidebarFunction(sidebar);
 
       // Update the OAuth action button when sidebar opens
-      setTimeout(() => this.updateOAuthActionButton(), 100);
+      // Note: updateAuthenticationButtonState is already called in addRightSidebarFunction -> setCallbackUrl
+      // So we only need to update the action button here
+      setTimeout(() => {
+        this.updateOAuthActionButton();
+      }, 100);
     });
   }
 
@@ -1334,12 +1281,6 @@ export class APICall extends Component {
   private async setCallbackUrl(sidebar) {
     const oauthService = sidebar?.querySelector('div[data-name="OAuth"]');
     if (oauthService) {
-      // Show loading state on authenticate button when sidebar opens
-      const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-      if (oauth_button) {
-        this.activateSpinner(oauth_button);
-      }
-
       const selectedConnectionId = this?.data?.oauth_con_id;
       if (selectedConnectionId && selectedConnectionId !== 'None') {
         // Display callback URL for relevant OAuth types
@@ -1352,15 +1293,12 @@ export class APICall extends Component {
           }
         }
 
-        // Always perform an authentication check for the selected connection
-        // The checkAuthentication method handles local state caching and backend calls.
-        await this.checkAuthentication();
-
-        // Update button state based on the result stored in this.oauthConnections
-        this.updateAuthenticationButtonState();
-
+        // Update authentication button state (will check backend)
+        // This will be debounced and use cached results
+        await this.updateAuthenticationButtonState();
       } else {
         // No OAuth connection selected, show default state (Authenticate)
+        const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
         if (oauth_button) {
           oauth_button.innerHTML = 'Authenticate';
           oauth_button.disabled = false;
@@ -1523,6 +1461,10 @@ export class APICall extends Component {
         );
       }
     }
+
+    // Note: updateAuthenticationButtonState is not needed here since we already called checkAuthentication
+    // which uses the same cached promise that updateAuthenticationButtonState would use
+    // The sidebar button will be updated through other paths if needed
   }
 
   // remove tokens to invalidate authentication
@@ -1583,6 +1525,9 @@ export class APICall extends Component {
         // Force refresh the sidebar to ensure all states are updated
         this.refreshSettingsSidebar();
 
+        // Note: The authentication button was already updated to "Authenticate" above
+        // No need to call updateAuthenticationButtonState again
+
         // Update component messages
         this.clearComponentMessages();
 
@@ -1606,7 +1551,8 @@ export class APICall extends Component {
     }
   }
   private updateSidebarForOAuth() {
-    this.checkSettings();
+    // Note: Removed checkSettings() call here to avoid duplicate auth checks
+    // The component messages will be updated through other paths
     const sidebar = this.getSettingsSidebar();
     if (!sidebar) return;
     const body = sidebar?.querySelector('div[data-field-name="body"]');
@@ -1625,21 +1571,17 @@ export class APICall extends Component {
       // Insert the new message span after the body div
       body.parentNode.insertBefore(messageSpan, body.nextSibling);
     }
+
+    // Update component messages separately
+    this.clearComponentMessages();
   }
   private async updateAuthenticationButton() {
-    const sidebar = this.getSettingsSidebar();
+    // This function is now just a wrapper that calls updateAuthenticationButtonState
+    // to leverage the debouncing and caching mechanisms
+    await this.updateAuthenticationButtonState();
+
+    // Also update the component button if needed
     const isDataValid = await this.checkAuthentication();
-    if (sidebar) {
-      const oauthButton: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-      if (oauthButton) {
-        oauthButton.disabled = false;
-        if (isDataValid) {
-          oauthButton.innerHTML = 'Sign Out';
-        } else {
-          oauthButton.innerHTML = 'Authenticate';
-        }
-      }
-    }
     const cptButton: any = this.domElement?.querySelector('button.oauthButton');
     if (cptButton) {
       cptButton.disabled = false;
@@ -1669,6 +1611,11 @@ export class APICall extends Component {
     const sidebar = this.getSettingsSidebar();
     const previousValue = this.data.oauth_con_id;
 
+    // Clear auth check cache when changing connections
+    if (previousValue) {
+      this.authCheckPromises.delete(previousValue);
+    }
+
     // First handle the selection change
     if (!selectedValue || selectedValue === 'None') {
       // Clear OAuth-related fields
@@ -1694,41 +1641,8 @@ export class APICall extends Component {
 
       // If the selection has changed, check authentication status and update button
       if (selectedValue !== previousValue) {
-        const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
-        if (oauth_button) {
-          // Show loading state
-          this.activateSpinner(oauth_button);
-
-          // Check local state first to avoid unnecessary backend calls for signed-out connections
-          let isAuthenticated = false;
-          if (this.oauthConnections[selectedValue]) {
-            const connection = this.oauthConnections[selectedValue];
-            if (connection.isAuthenticated === false) {
-              // Connection is locally marked as signed out
-              isAuthenticated = false;
-            } else if (connection.isAuthenticated === true) {
-              // Connection is explicitly marked as authenticated
-              isAuthenticated = true;
-            } else {
-              // Check for tokens in both structures
-              const hasTokens = (connection?.auth_data?.primary && connection?.auth_data?.primary.trim() !== '') ||
-                (connection?.auth_settings?.primary && connection?.auth_settings?.primary.trim() !== '') ||
-                (connection?.primary && connection?.primary.trim() !== '');
-              if (hasTokens) {
-                isAuthenticated = true;
-              } else {
-                // Check backend authentication status
-                isAuthenticated = await this.checkAuthentication();
-              }
-            }
-          } else {
-            // Connection not found, check backend
-            isAuthenticated = await this.checkAuthentication();
-          }
-
-          // Update button state based on authentication status
-          this.updateAuthenticationButtonState();
-        }
+        // Update button state (this will check backend)
+        await this.updateAuthenticationButtonState();
       }
     }
 
@@ -2147,6 +2061,9 @@ export class APICall extends Component {
                   isNone ? 'Connection created successfully' : 'Connection updated successfully',
                 );
 
+                // Clear auth check cache for the edited/created connection
+                this.authCheckPromises.delete(connectionId);
+
                 // Fetch latest connections and update settings definition
                 await this.updateOAuthConnectionOptions();
 
@@ -2154,6 +2071,8 @@ export class APICall extends Component {
                 this.data.oauth_con_id = connectionId;
                 this.refreshSettingsSidebar();
                 this.updateOAuthActionButton(); // Update the edit/add button icon
+                // Update authentication button state after sidebar refresh
+                await this.updateAuthenticationButtonState();
               } catch (error) {
                 console.error('Error saving OAuth connection:', error);
                 toast(`Error: ${error.message}`, 'Error', 'alert');
@@ -2381,6 +2300,9 @@ export class APICall extends Component {
       delete connection.secondary;
       delete connection.expires_in;
 
+      // Clear any cached auth check promises for this connection
+      this.authCheckPromises.delete(connectionId);
+
       console.log(`Cleared authentication state for connection: ${connectionId}`);
     }
   }
@@ -2388,31 +2310,41 @@ export class APICall extends Component {
   /**
    * Updates the authentication button state based on current connection status
    */
-  private updateAuthenticationButtonState() {
+  private async updateAuthenticationButtonState() {
+    // Clear any existing debounce timer
+    if (this.updateAuthButtonDebounceTimer) {
+      clearTimeout(this.updateAuthButtonDebounceTimer);
+    }
+
+    // Debounce the actual update to prevent rapid successive calls
+    return new Promise<void>((resolve) => {
+      this.updateAuthButtonDebounceTimer = setTimeout(async () => {
+        await this.performAuthButtonUpdate();
+        resolve();
+      }, 150); // Increased to 150ms debounce to better group rapid calls
+    });
+  }
+
+  /**
+   * Performs the actual authentication button state update
+   */
+  private async performAuthButtonUpdate() {
     const sidebar = this.getSettingsSidebar();
     if (!sidebar) return;
 
     const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
     if (!oauth_button) return;
 
-    // Check local state first
+    console.log(`[performAuthButtonUpdate] Updating button for connection: ${this.data.oauth_con_id}`);
+
+    // Show loading state while checking
+    this.activateSpinner(oauth_button);
+
+    // Check authentication status with backend for accurate state
     let isAuthenticated = false;
-    if (this.oauthConnections && this.data.oauth_con_id && this.data.oauth_con_id !== 'None') {
-      const connection = this.oauthConnections[this.data.oauth_con_id];
-      if (connection) {
-        // Check explicit authentication state first
-        if (connection.isAuthenticated === true) {
-          isAuthenticated = true;
-        } else if (connection.isAuthenticated === false) {
-          isAuthenticated = false;
-        } else {
-          // Check for tokens in both structures
-          const hasTokens = (connection?.auth_data?.primary && connection?.auth_data?.primary.trim() !== '') ||
-            (connection?.auth_settings?.primary && connection?.auth_settings?.primary.trim() !== '') ||
-            (connection?.primary && connection?.primary.trim() !== '');
-          isAuthenticated = Boolean(hasTokens);
-        }
-      }
+    if (this.data.oauth_con_id && this.data.oauth_con_id !== 'None') {
+      // Always verify with backend to ensure accurate state
+      isAuthenticated = await this.checkAuthentication();
     }
 
     oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';

@@ -289,8 +289,19 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
 
     // 2. Get the specific entry being updated, or default to an empty object
     const existingEntry = existingSettingsMap[entryId] || {};
-    // 3. Preserve existing auth_data (if it exists)
-    const preservedAuthData = existingEntry.auth_data || {}; // Keep existing tokens
+    // 3. Preserve existing auth_data (if it exists) OR migrate from old structure
+    let preservedAuthData = existingEntry.auth_data || {}; // Keep existing tokens
+
+    // If auth_data is empty but tokens exist at root level (old structure), migrate them
+    if ((!preservedAuthData.primary && !preservedAuthData.secondary) &&
+      (existingEntry.primary || existingEntry.secondary)) {
+      console.log('[OAuth Edit] Migrating tokens from old structure to new auth_data');
+      preservedAuthData = {
+        primary: existingEntry.primary || '',
+        secondary: existingEntry.secondary || '',
+        expires_in: existingEntry.expires_in || ''
+      };
+    }
 
     // 4-5. Merge and normalize the settings using helper
     const mergedAuthSettings = mergeAuthSettings(existingEntry, newSettings);
