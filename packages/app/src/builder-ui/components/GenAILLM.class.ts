@@ -11,8 +11,8 @@ import { Component } from './Component.class';
 
 // Since getWebSearchFields is called multiple times, using a static import is more efficient than a lazy import.
 import { SMYTHOS_DOCS_URL } from '../../shared/constants/general';
-import ianaTimezones from '../data/IANA-time-zones.json';
-import isoCountryCodes from '../data/ISO-country-code.json';
+import ianaTimezones from '../params/IANA-time-zones';
+import isoCountryCodes from '../params/ISO-country-code';
 
 declare var Metro;
 

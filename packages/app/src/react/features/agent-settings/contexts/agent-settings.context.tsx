@@ -136,6 +136,7 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
   }
 
   // Add this function to handle agent updates
+  // TODO: @Samme you should not refetching all these data every time the agent is updated!!!!!
   async function agentUpdated() {
     await refetchAllData();
     updateWorkSpaceObj();
