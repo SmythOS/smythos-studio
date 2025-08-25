@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import copy from 'rollup-plugin-copy';
 import del from 'rollup-plugin-delete';
 import esbuild from 'rollup-plugin-esbuild';
 import postcss from 'rollup-plugin-postcss';
@@ -31,7 +30,7 @@ export default [
     input: 'src/react/index.tsx', // Your React entry file
 
     output: {
-      dir: path.resolve(currentDir, '../../../static/js/build/webappv2'),
+      dir: './dist/assets',
       format: 'esm',
       sourcemap: true,
 
@@ -43,7 +42,7 @@ export default [
       // },
     },
     plugins: [
-      del({ targets: path.resolve(currentDir, '../../../static/js/build/webappv2/*.dev.js*') }),
+      del({ targets: './dist/assets/*.dev.js*' }),
 
       resolve({
         browser: true,
@@ -73,14 +72,7 @@ export default [
       json({
         compact: true,
       }),
-      copy({
-        targets: [
-          {
-            src: path.resolve(currentDir, '../../../src/builder-ui/data/*'),
-            dest: path.resolve(currentDir, '../../../static/data'),
-          },
-        ],
-      }),
+
       postcss({
         plugins: [],
       }),
