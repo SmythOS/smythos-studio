@@ -240,16 +240,6 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
         arrow.style.transform = 'translateX(10px)';
       }
     });
-
-    // Add click handler to Advanced section toggle to show/hide test API button
-    const advancedToggle = form.querySelector('#collapse_toggle_Advanced') as HTMLElement;
-    advancedToggle?.addEventListener('click', () => {
-      if (!advancedToggle.classList.contains('active-toggle')) {
-        testApiButton.classList.add('hidden');
-      } else {
-        testApiButton.classList.remove('hidden');
-      }
-    });
     form.appendChild(testApiButton);
   }
 
