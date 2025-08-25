@@ -1,3 +1,4 @@
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { AgentCard } from './AgentCard.class';
 import { AgentPlugin } from './AgentPlugin.class';
 import { APICall } from './APICall.class';
@@ -9,7 +10,6 @@ import { Base64Encoder } from './Base64Encoder.class';
 import { Classifier } from './Classifier.class';
 import { Code } from './Code.class';
 import { Component } from './Component.class';
-import { ComputerUse } from './ComputerUse.class';
 import { DataSourceCleaner } from './DataSourceCleaner.class';
 import { DataSourceIndexer } from './DataSourceIndexer.class';
 import { DataSourceLookup } from './DataSourceLookup.class';
@@ -64,10 +64,9 @@ import { SMSSender } from './SMSSender';
 import { TTS } from './TTS.class';
 import { Twitter } from './Twitter.class';
 import { VisionLLM } from './VisionLLM.class';
-import { WebScrape } from './WebScrape.class';
-import { WebSearch } from './WebSearch.class';
 import { ZapierAction } from './ZapierAction.class';
-const components = {
+
+const baseComponents = {
   Component,
   Classifier,
   PromptGenerator,
@@ -127,8 +126,6 @@ const components = {
   MultimodalLLM,
   GenAILLM,
   FileStore,
-  WebScrape,
-  WebSearch,
   ImageGenerator,
   TextToImage,
   ImageToImage,
@@ -140,8 +137,25 @@ const components = {
   Outpainting,
   Inpainting,
   AgentCard,
-  ComputerUse,
   MCPClient,
 };
 
-export default components;
+export const getBuilderComponents = () => {
+  const pluginComponents = (
+    plugins.getPluginsByTarget(PluginTarget.BuilderSREComponents, PluginType.Config) as {
+      [key: string]: any;
+    }[]
+  ).reduce((acc, item) => {
+    return {
+      ...acc,
+      ...item.config,
+    };
+  }, {});
+
+  return {
+    ...baseComponents,
+    ...pluginComponents,
+  };
+};
+
+export default baseComponents;

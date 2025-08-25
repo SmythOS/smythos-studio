@@ -13,7 +13,6 @@ import {
   smythAPI,
   smythAPIReq,
 } from '../../../utils/';
-import { refreshMenu } from '../../pages/builder-sidebar';
 import { getIntegrations } from '../../router.utils/templates.utils';
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -459,11 +458,9 @@ router.get('/integrations', async (req, res) => {
 });
 
 router.post('/app-config/components', (req, res) => {
-  setTimeout(() => refreshMenu(), 2000);
   return componentsMWHandler(req, res);
 });
 router.put('/app-config/components/:id', (req, res) => {
-  setTimeout(() => refreshMenu(), 2000);
   return componentsMWHandler(req, res);
 });
 
