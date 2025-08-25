@@ -6,6 +6,7 @@ import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
 import ChatbotCodeSnippetModal from '../agent-settings/modals/chatbotCode.modal';
+import FormEmbodimentModal from './form-embodiment-modal';
 
 export const AlwaysAvailableEmbodiments = [
   'API',
@@ -172,6 +173,7 @@ export const getFormPreviewDialog = (
 };
 
 export const getCodeSnippetModal = (
+  embodimentType: EMBODIMENT_TYPE.FORM | EMBODIMENT_TYPE.CHAT_BOT,
   isOpen: boolean,
   closeModal: () => void,
   agent,
@@ -184,14 +186,27 @@ export const getCodeSnippetModal = (
     return null; // Return null to not render when closed, allowing iframe to reload
   }
 
-  return createPortal(
-    <ChatbotCodeSnippetModal
-      onClose={closeModal}
-      domain={agent?.domain?.[0]?.name}
-      embodimentData={embodimentsData?.find(
-        (e) => e?.aiAgentId === agentId && e?.type === EMBODIMENT_TYPE.CHAT_BOT,
-      )}
-    />,
-    document.body,
-  );
+  if (embodimentType === EMBODIMENT_TYPE.CHAT_BOT) {
+    return createPortal(
+      <ChatbotCodeSnippetModal
+        onClose={closeModal}
+        domain={agent?.domain?.[0]?.name}
+        embodimentData={embodimentsData?.find(
+          (e) => e?.aiAgentId === agentId && e?.type === embodimentType,
+        )}
+      />,
+      document.body,
+    );
+  }
+
+  if (embodimentType === EMBODIMENT_TYPE.FORM) {
+    return createPortal(
+      <FormEmbodimentModal
+        onClose={closeModal}
+        domain={agent?.domain?.[0]?.name}
+        showBackButton={false}
+      />,
+      document.body,
+    );
+  }
 };
