@@ -26,6 +26,7 @@ import {
   updateDebugControls,
   updateDebugControlsOnSelection,
 } from '../../utils/debugger.utils';
+import { destroyMenu as destroyCanvasContextMenu } from '../../workspace/CanvasContextMenu';
 import {
   addMockDataToggleButton,
   MockDataToggleButtonState,
@@ -2379,6 +2380,7 @@ export class Component extends EventEmitter {
     overlay.style.display = 'none';
 
     const openSettingsSidebar = async (event) => {
+      destroyCanvasContextMenu();
       //if (this.workspace?.locked) return false;
       if (this.domElement.classList.contains('dragging')) return;
       if (this.domElement.classList.contains('resizing')) return;
