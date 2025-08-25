@@ -1,9 +1,13 @@
 import hotkeys from 'hotkeys-js';
-import { Component } from '../components/Component.class';
 import { CanvasSearchHelper } from '../helpers/canvasSearch.helper';
-import { confirm, runUIEnterKey } from '../ui/dialogs';
-import { delay } from '../utils';
+import { runUIEnterKey } from '../ui/dialogs';
 import { sortAgent } from './ComponentSort';
+import {
+  canCopy,
+  canPaste,
+  copySelection,
+  deleteSelectionWithConfirm,
+} from './SelectionActions';
 import { Workspace } from './Workspace.class';
 
 export function registerHotkeys(workspace: Workspace) {
@@ -27,7 +31,7 @@ export function registerHotkeys(workspace: Workspace) {
   const hotkey: any = hotkeys.noConflict();
   const deleteHotkeys = 'del, backspace';
   let deleteConfirmationActive = false; // Flag to prevent multiple modals
-  
+
   // Initialize search functionality
   const searchHelper = CanvasSearchHelper.getInstance();
   try {
@@ -59,97 +63,22 @@ export function registerHotkeys(workspace: Workspace) {
   });
 
   hotkey(deleteHotkeys, async (event, handler) => {
-    if (workspace.locked) return false;
-    if (deleteConfirmationActive) return false; // Prevent additional modals
-
-    const selection = window.getSelection();
-    const selectedText = selection.toString();
-
-    // Check if the selection is within an editable element
-    const isEditableElement = (node: Node): boolean => {
-      const element = node instanceof Element ? node : node.parentElement;
-      return (
-        element instanceof HTMLElement &&
-        (element.isContentEditable || element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')
-      );
-    };
-
-    if (
-      selectedText &&
-      (isEditableElement(selection.anchorNode) || isEditableElement(selection.focusNode))
-    ) {
-      return false; // Don't proceed with component deletion if text is selected in an editable element
-    }
-
-    const list = [...document.querySelectorAll('.component.selected')];
-    if (list.length <= 0) return false;
-    const components = list.map((c: any) => c._control);
-    deleteConfirmationActive = true; // Set flag when modal is about to show
-    const confirmText = list.length === 1 ? 'component' : 'components';
-    const shouldDelete = await confirm(
-      '',
-      `Are you sure you want to delete selected ${confirmText}?`,
-      {
-        icon: '',
-        btnNoLabel: 'No, Cancel',
-        btnYesLabel: "Yes, I'm sure",
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
-      },
-    );
-    deleteConfirmationActive = false; // Reset flag after modal interaction
-    if (!shouldDelete) return;
-    const promises = [];
-    components.forEach((c: Component) => {
-      promises.push(c.delete(true, false));
-    });
-
-    await Promise.all(promises);
-    await delay(200);
-    workspace.saveAgent();
+    const ok = await deleteSelectionWithConfirm(workspace);
+    return ok ? true : false;
   });
   hotkey(keys.save, (event, handler) => {
     if (workspace.locked) return false;
     //workspace.saveAgent();
   });
   hotkey(keys.copy, (event, handler) => {
-    const selectedText = window.getSelection().toString();
-    if (selectedText) {
-      return;
-      //copy selected text
-      // workspace.writeToClipboard(selectedText);
-      // return true;
-    }
-    if (workspace.locked) return false;
-    if (
-      workspace.hoveredElement.tagName == 'TEXTAREA' ||
-      workspace.hoveredElement.tagName == 'INPUT' ||
-      workspace.hoveredElement.classList.contains('dbg') ||
-      workspace.hoveredElement.closest('.dbg')
-    )
-      return;
-    if (document.activeElement != document.body) return;
-    //console.log('copy pressed');
-    const selectionData = workspace.clipboard.copySelection();
-    workspace.clipboard.write(selectionData);
+    if (!canCopy(workspace)) return false;
+    copySelection(workspace);
   });
   hotkey(keys.paste, async (event, handler) => {
-    if (workspace.locked) return false;
-    if (
-      workspace.hoveredElement.tagName == 'TEXTAREA' ||
-      workspace.hoveredElement.tagName == 'INPUT' ||
-      workspace.hoveredElement.classList.contains('dbg') ||
-      workspace.hoveredElement.closest('.dbg')
-    )
-      return;
-    if (document.activeElement != document.body) return;
-    //console.log('paste pressed');
-    //unselect all components
+    if (!(await canPaste(workspace))) return false;
     document.querySelectorAll('.component.selected').forEach((c) => c.classList.remove('selected'));
-
     const text = await workspace.clipboard.read();
-
     workspace.clipboard.pasteSelection(text);
-
     workspace.redraw();
   });
   hotkey(keys.undo, (event, handler) => {

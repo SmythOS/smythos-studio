@@ -115,7 +115,7 @@ export const useChatActions = ({
           fileKeys: attachedFiles?.map((f) => f.metadata.key).filter(Boolean) as string[],
           chatId,
           signal,
-          onResponse: (value: string) => {
+          onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
             setChatHistoryMessages((bubbles) => {
               // Only remove thinking messages if we have actual content
               if (value && value.trim() !== '') {
@@ -129,12 +129,13 @@ export const useChatActions = ({
                     .pop()?.index ?? -1;
 
                 if (lastSystemMessageIndex !== -1) {
-                  // Update the system message with final response
+                  // Update the system message with final response and error info
                   const updatedBubbles = [...filteredBubbles];
                   updatedBubbles[lastSystemMessageIndex].message = value;
                   updatedBubbles[lastSystemMessageIndex].isReplying = false;
-                  updatedBubbles[lastSystemMessageIndex].isError = false;
+                  updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
                   updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false; // Show the message bubble
+                  updatedBubbles[lastSystemMessageIndex].thinkingMessage = undefined; // Clear thinking message
                   return updatedBubbles;
                 }
                 return filteredBubbles;
@@ -153,39 +154,15 @@ export const useChatActions = ({
                   .filter(({ msg }) => msg.type === 'system')
                   .pop()?.index ?? -1;
 
-              // Check if there's already a thinking message after the last system message
-              const thinkingAfterSystem = bubbles
-                .slice(lastSystemIndex + 1)
-                .find((msg) => msg.type === 'thinking');
-
-              if (thinkingAfterSystem) {
-                // Update existing thinking message
-                thinkingAfterSystem.message = thinking.message;
-                return [...bubbles];
-              } else {
-                // Add new thinking message after the last system message
-                const thinkingMessage: IChatMessage = {
-                  me: false,
-                  message: thinking.message,
-                  type: 'thinking',
-                  avatar,
-                  isReplying: false, // Hide loading indicator for thinking messages
-                };
-
-                const newBubbles = [...bubbles];
-                if (lastSystemIndex !== -1) {
-                  // Insert after the last system message
-                  newBubbles.splice(lastSystemIndex + 1, 0, thinkingMessage);
-                  // Hide the system message when thinking starts
-                  newBubbles[lastSystemIndex].hideMessageBubble = true;
-                  newBubbles[lastSystemIndex].isReplying = false;
-                } else {
-                  // Add at the end if no system message
-                  newBubbles.push(thinkingMessage);
-                }
-
-                return newBubbles;
+              if (lastSystemIndex !== -1) {
+                // Update the existing system message with thinking message instead of creating separate bubble
+                const updatedBubbles = [...bubbles];
+                updatedBubbles[lastSystemIndex].thinkingMessage = thinking.message;
+                updatedBubbles[lastSystemIndex].isReplying = false;
+                return updatedBubbles;
               }
+
+              return bubbles;
             });
           },
           onStart: () => {
@@ -203,6 +180,14 @@ export const useChatActions = ({
               // Remove thinking messages when response is complete
               const filteredMessages = prev.filter((msg) => msg.type !== 'thinking');
               const newMessages = [...filteredMessages];
+
+              // Clear thinkingMessage from all system messages
+              newMessages.forEach((msg) => {
+                if (msg.type === 'system') {
+                  msg.thinkingMessage = undefined;
+                }
+              });
+
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage) {
                 lastMessage.isReplying = false;
@@ -292,7 +277,7 @@ export const useChatActions = ({
               .filter(Boolean) as string[],
             chatId,
             signal,
-            onResponse: (value: string) => {
+            onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
               setChatHistoryMessages((bubbles) => {
                 // Only remove thinking messages if we have actual content
                 if (value && value.trim() !== '') {
@@ -306,11 +291,11 @@ export const useChatActions = ({
                       .pop()?.index ?? -1;
 
                   if (lastSystemMessageIndex !== -1) {
-                    // Update the system message with final response
+                    // Update the system message with final response and error info
                     const updatedBubbles = [...filteredBubbles];
                     updatedBubbles[lastSystemMessageIndex].message = value;
                     updatedBubbles[lastSystemMessageIndex].isReplying = false;
-                    updatedBubbles[lastSystemMessageIndex].isError = false;
+                    updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
                     updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false;
                     return updatedBubbles;
                   }

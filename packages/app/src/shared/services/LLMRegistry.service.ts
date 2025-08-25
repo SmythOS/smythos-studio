@@ -24,6 +24,10 @@ export class LLMRegistry {
     'others',
   ];
 
+  // Single source of truth for determining GPT5 models (verbosity + reasoning effort support)
+  private static readonly GPT5_MODEL_PATTERN = /gpt-5/i;
+  private static readonly O3_AND_O4_MODELS_PATTERN = /o3|o4/i;
+
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
     return models;
@@ -214,5 +218,70 @@ export class LLMRegistry {
       // If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
+  }
+
+  /**
+   * Get all GPT5 models that support both verbosity and reasoning effort parameters
+   *
+   * @returns Array of model IDs that are GPT5 models
+   */
+  public static getGpt5ReasoningModels(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isGpt5ReasoningModels(modelId));
+  }
+
+  /**
+   * Check if a model is a GPT5 model (supports both verbosity and reasoning effort).
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model is a GPT5 model
+   */
+  public static isGpt5ReasoningModels(modelId: string): boolean {
+    const models = this.getModels();
+    return Boolean(
+      modelId &&
+        this.GPT5_MODEL_PATTERN.test(modelId) &&
+        models?.[modelId]?.features?.includes('reasoning'),
+    );
+  }
+
+  /**
+   * Get all GPT5 models based on model name pattern matching
+   *
+   * @returns Array of model IDs that match the GPT5 pattern (case-insensitive)
+   */
+  public static getGpt5Models(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isGpt5Models(modelId));
+  }
+
+  /**
+   * Check if a model is a GPT5 model based on its name pattern
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model ID matches the GPT5 pattern (case-insensitive), false otherwise
+   */
+  public static isGpt5Models(modelId: string): boolean {
+    return Boolean(modelId && this.GPT5_MODEL_PATTERN.test(modelId));
+  }
+
+  /**
+   * Get all O3 and O4 models based on model name pattern matching
+   *
+   * @returns Array of model IDs that match the O3 and O4 pattern (case-insensitive)
+   */
+  public static getO3andO4Models(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isO3andO4Models(modelId));
+  }
+
+  /**
+   * Check if a model is an O3 or O4 model based on its name pattern
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model ID matches the O3 or O4 pattern (case-insensitive), false otherwise
+   */
+  public static isO3andO4Models(modelId: string): boolean {
+    return Boolean(modelId && this.O3_AND_O4_MODELS_PATTERN.test(modelId));
   }
 }

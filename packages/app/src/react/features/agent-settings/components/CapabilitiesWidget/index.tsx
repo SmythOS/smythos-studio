@@ -5,20 +5,29 @@ import { WIDGETS_PRICING_ALERT_TEXT } from '@react/features/agent-settings/const
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { Component } from '@react/shared/types/agent-data.types';
 import { EVENTS } from '@shared/posthog/constants/events';
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { PostHog } from '@src/shared/posthog';
 
 import { Badge, Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 
 type Props = {
-  isSubscribedToPlan?: boolean;
+  isOnPaidPlan?: boolean;
   isWriteAccess: boolean;
 };
 
-const CapabilitiesWidget = ({ isSubscribedToPlan, isWriteAccess }: Props) => {
+interface SkillBtnConfig {
+  renderBtn: (componentId: string) => React.ReactNode;
+}
+
+const CapabilitiesWidget = ({ isOnPaidPlan: isSubscribedToPlan, isWriteAccess }: Props) => {
   const { latestAgentDeploymentQuery } = useAgentSettingsCtx();
+
+  
+
+
   return (
     <WidgetCard isWriteAccess={isWriteAccess} showOverflow={true}>
       <div className={'bg-gray-50 p-4'} data-qa="agent-skills-container">
@@ -88,6 +97,15 @@ function Endpoint({ component }: { component: Component }) {
   const [isTriggeringSkill, setIsTriggeringSkill] = useState(false);
   const { agentId } = useAgentSettingsCtx();
 
+  let pluginItems = (
+    plugins.getPluginsByTarget(PluginTarget.AgentSettingsSkillsWidgetSkillButton, PluginType.Config) as {
+      config: SkillBtnConfig;
+    }[]
+  ).flatMap((item) => item.config);
+
+  // const skillWidgetBtns = pluginItems.map((item) => item.renderBtn(component.id));
+  const skillWidgetBtns = useMemo(() => pluginItems.map((item) => item.renderBtn(component.id)), [component.id]);
+
   return (
     <>
       <div className="flex justify-between group cursor-pointer">
@@ -108,18 +126,7 @@ function Endpoint({ component }: { component: Component }) {
             <FaPlay className="w-3 h-3" color="#1a73e8" />
             <p className=" text-[#1A73E8] text-sm ml-1 font-semibold">Call </p>
           </button>
-          <button
-            className="  flex group-hover:flex items-center"
-            onClick={() => {
-              PostHog.track(EVENTS.AGENT_SETTINGS_EVENTS.app_agent_skills_click, {
-                button: 'bulk work',
-              });
-              window.open(`/agent-settings/${agentId}/bulk/${component.id}`, '_blank');
-            }}
-          >
-            <img src="/img/icons/Wrench.svg" alt="configure" className="w-4 h-4" />
-            <p className=" text-[#1A73E8] text-sm ml-1 font-semibold">Bulk Work</p>
-          </button>
+          {skillWidgetBtns}
         </div>
       </div>
 

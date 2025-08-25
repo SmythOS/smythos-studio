@@ -1,9 +1,8 @@
 import {
-  AgentsBanner,
   AgentsGrid,
   AgentsHeader,
   GenerateAgentForm,
-  TemplatesSection,
+  TemplatesSection
 } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
@@ -25,10 +24,10 @@ import { V4_ALL_PLANS } from '@shared/constants/general';
 import { Analytics } from '@shared/posthog/services/analytics';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import { GenerateAgentFormData, Template } from '@src/react/features/agents/types/agents.types';
-import UpSellModal from '@src/react/features/subscriptions/components/paywalls/up-sell';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFetchTemplates } from '../../templates/hooks/useFetchTemplates';
+import UpSellModal from '../components/meta/up-sell';
 
 /**
  * Main agents page component with agent generation, listing, and template sections
@@ -42,7 +41,6 @@ function AgentsPage() {
   const saveUserSettingsMutation = useMutateOnboardingData();
   const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   // Authentication and permissions
   const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
@@ -198,12 +196,9 @@ function AgentsPage() {
           <GenerateAgentForm
             onSubmit={handleGenerateAgentSubmit}
             canEditAgents={canEditAgents}
-            isBannerVisible={isBannerVisible}
           />
         </FeatureFlagged>
 
-        {/* GPT-5 Promo Banner */}
-        {isBannerVisible && <AgentsBanner onClose={() => setIsBannerVisible(false)} />}
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
@@ -241,9 +236,7 @@ function AgentsPage() {
         <TemplatesSection templates={templates} userJobRole={userSettings?.jobRoleLabel} />
 
         {/* Learn Section */}
-        <div className="my-20 pb-3">
-          <Learn />
-        </div>
+        <Learn />
       </main>
 
       {/* Upsell Modal */}

@@ -1,10 +1,24 @@
-import { atomDark, coy, darcula, dark, materialDark, materialLight, materialOceanic, okaidia, oneDark, oneLight, prism, tomorrow, twilight, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  atomDark,
+  coy,
+  darcula,
+  dark,
+  materialDark,
+  materialLight,
+  materialOceanic,
+  okaidia,
+  oneDark,
+  oneLight,
+  prism,
+  tomorrow,
+  twilight,
+  vs,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export const HUMAN_DESCRIPTION_LIMIT = 120;
 export const HUMAN_DESCRIPTION_THRESHOLD = 120 - 120 * 0.05;
 export const MODEL_DESCRIPTION_LIMIT = 8000;
 export const MODEL_DESCRIPTION_THRESHOLD = 8000 - 8000 * 0.05;
-
 
 export const CHATBOT_DEFAULT_TEXTS = {
   systemMessage: 'Hello! How can I assist you today?',
@@ -92,3 +106,10 @@ export const SYNTAX_HIGHLIGHT_THEMES = [
     value: okaidia,
   },
 ];
+
+export const BaseAgentSettingsTabs = {
+  Overview: 'Overview',
+  Security: 'Security',
+  Tasks: 'Tasks',
+  Deployments: 'Deployments',
+};

@@ -5,7 +5,7 @@ import { TeamSubs } from '@src/react/shared/types/subscription';
 export const getTeamRoles = async (
   teamId?: string,
 ): Promise<{ roles: apiResultsTypes.TeamRoleWithMembers[] }> => {
-  const result = await fetch('/app/page/teams/roles', {
+  const result = await fetch('/api/page/teams/roles', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json', ...(teamId && { [TEAM_ID_HEADER]: teamId }) },
   });
@@ -14,7 +14,7 @@ export const getTeamRoles = async (
 
 type GetTeamMembersResponse = { members: apiResultsTypes.TeamMemberWithRole[] };
 export const getTeamMembers = async (teamId?: string): Promise<GetTeamMembersResponse> => {
-  const result = await fetch('/app/page/teams/members?includeRoles=true', {
+  const result = await fetch('/api/page/teams/members?includeRoles=true', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json', ...(teamId && { [TEAM_ID_HEADER]: teamId }) },
   });
