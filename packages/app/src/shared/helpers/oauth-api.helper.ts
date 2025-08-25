@@ -159,7 +159,7 @@ export function buildOAuthSelectOptions(
       });
 
       if (logPrefix) {
-        console.log(`${logPrefix} Added option:`, { id, name, label });
+        // console.log(`${logPrefix} Added option:`, { id, name, label });
       }
 
     } catch (error) {

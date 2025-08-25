@@ -38,11 +38,11 @@ export function OAuthConnections() {
 
   // --- React Query Hooks ---
   const { data: connectionsData, isLoading, error: fetchError } = useOAuthConnections();
-  console.log('[OAuthConnections] useOAuthConnections hook result:', {
-    connectionsData,
-    isLoading,
-    fetchError,
-  });
+  // console.log('[OAuthConnections] useOAuthConnections hook result:', {
+  //   connectionsData,
+  //   isLoading,
+  //   fetchError,
+  // });
   const createMutation = useCreateOAuthConnection();
   const updateMutation = useUpdateOAuthConnection();
   const deleteMutation = useDeleteOAuthConnection();
@@ -54,20 +54,20 @@ export function OAuthConnections() {
 
   // Derived state: convert connectionsData object to array for mapping
   const connections = React.useMemo(() => {
-    console.log('[OAuthConnections] Processing connectionsData:', connectionsData);
+    // console.log('[OAuthConnections] Processing connectionsData:', connectionsData);
     if (!connectionsData) return [];
     const arr = Object.values(connectionsData);
     const sorted = arr.sort((a, b) =>
       (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }),
     );
-    console.log('[OAuthConnections] Sorted connections array:', sorted);
+    // console.log('[OAuthConnections] Sorted connections array:', sorted);
     return sorted;
   }, [connectionsData]);
 
   // --- Authentication Message Handling ---
   const handleAuthMessage = useCallback(
     (event: MessageEvent) => {
-      console.log('[OAuthConnections] handleAuthMessage received event:', event.data);
+      // console.log('[OAuthConnections] handleAuthMessage received event:', event.data);
       // Environment-aware origin check
       const allowedOrigins = new Set<string>([
         window.location.origin, // frontend origin
@@ -82,13 +82,13 @@ export function OAuthConnections() {
       const { type, data } = event.data || {};
 
       if (type === 'oauth' || type === 'oauth2') {
-        console.log('[handleAuthMessage] Authentication successful for type:', type);
+        // console.log('[handleAuthMessage] Authentication successful for type:', type);
         toast({ title: 'Success', description: 'Authentication successful!' });
         // Invalidate the query cache to refetch data AFTER successful auth
-        console.log('[handleAuthMessage] Invalidating OAuth queries to refetch data');
+        // console.log('[handleAuthMessage] Invalidating OAuth queries to refetch data');
         queryClient.invalidateQueries({ queryKey: OAUTH_QUERY_KEY });
       } else if (type === 'error') {
-        console.log('[handleAuthMessage] Authentication error:', data);
+        // console.log('[handleAuthMessage] Authentication error:', data);
         toast({
           title: 'Authentication Error',
           description: data?.message || 'An unknown error occurred during authentication.',
@@ -116,7 +116,7 @@ export function OAuthConnections() {
 
   // Effect to check authentication status for connections when data changes
   useEffect(() => {
-    console.log('[OAuthConnections] Effect triggered - connectionsData changed:', connectionsData);
+    // console.log('[OAuthConnections] Effect triggered - connectionsData changed:', connectionsData);
     if (!connectionsData) return;
 
     // Prevent duplicate concurrent checks per prefix
@@ -133,12 +133,12 @@ export function OAuthConnections() {
       if (!prefix || pending.has(prefix)) return;
 
       pending.add(prefix);
-      console.log(
-        '[OAuthConnections] Checking auth status for connection:',
-        conn.name,
-        'prefix:',
-        prefix,
-      );
+      // console.log(
+      //   '[OAuthConnections] Checking auth status for connection:',
+      //   conn.name,
+      //   'prefix:',
+      //   prefix,
+      // );
       checkAuthMutation.mutate(conn.oauth_info);
     });
   }, [connectionsData, checkAuthMutation]);
@@ -146,12 +146,12 @@ export function OAuthConnections() {
   // --- CRUD Handlers ---
 
   const handleSaveConnection = async (formData: OAuthConnectionFormData) => {
-    console.log('[OAuthConnections] handleSaveConnection called with formData:', formData);
+    // console.log('[OAuthConnections] handleSaveConnection called with formData:', formData);
     setIsProcessing(true);
     try {
       if (editingConnection) {
         // Update existing connection
-        console.log('[OAuthConnections] Updating existing connection:', editingConnection.id);
+        // console.log('[OAuthConnections] Updating existing connection:', editingConnection.id);
         await updateMutation.mutateAsync({
           connectionId: editingConnection.id,
           updatedFields: formData,
@@ -159,27 +159,27 @@ export function OAuthConnections() {
         toast({ title: 'Success', description: 'OAuth connection updated.' });
       } else {
         // Create new connection
-        console.log('[OAuthConnections] Creating new connection');
+        // console.log('[OAuthConnections] Creating new connection');
         await createMutation.mutateAsync(formData);
         toast({ title: 'Success', description: 'OAuth connection created.' });
         // After creating, proactively initiate auth for oauth/oauth2 (not client creds)
         const service = formData.oauthService;
         if (service && service !== 'OAuth2 Client Credentials') {
-          console.log(
-            '[OAuthConnections] Initiating auth for newly created connection with service:',
-            service,
-          );
+          // console.log(
+          //   '[OAuthConnections] Initiating auth for newly created connection with service:',
+          //   service,
+          // );
           // The list will be refetched; to get the new item, delay slightly then initiate
           setTimeout(() => {
             // Find the newly created connection in the cache and trigger auth popup
             const latest =
               queryClient.getQueryData<Record<string, OAuthConnection>>(OAUTH_QUERY_KEY);
-            console.log('[OAuthConnections] Latest query data for auth initiation:', latest);
+            // console.log('[OAuthConnections] Latest query data for auth initiation:', latest);
             if (latest) {
               const created = Object.values(latest)
                 .filter((c) => c.name === formData.name)
                 .sort((a, b) => (a.id > b.id ? -1 : 1))[0];
-              console.log('[OAuthConnections] Found newly created connection for auth:', created);
+              // console.log('[OAuthConnections] Found newly created connection for auth:', created);
               if (created?.oauth_info) {
                 initiateAuthMutation.mutate(created.oauth_info);
               }
@@ -214,11 +214,11 @@ export function OAuthConnections() {
   };
 
   const handleDeleteConfirm = async (connection: OAuthConnection) => {
-    console.log(
-      '[OAuthConnections] handleDeleteConfirm called for connection:',
-      connection.id,
-      connection.name,
-    );
+    // console.log(
+    //   '[OAuthConnections] handleDeleteConfirm called for connection:',
+    //   connection.id,
+    //   connection.name,
+    // );
     setIsProcessing(true);
     try {
       await deleteMutation.mutateAsync({ connectionId: connection.id });
@@ -235,17 +235,17 @@ export function OAuthConnections() {
       });
       // Keep modal open on error? Or close? For now, we only close on success.
     } finally {
-      console.log('Finished handleDeleteConfirm.');
+      // console.log('Finished handleDeleteConfirm.');
       setIsProcessing(false);
     }
   };
 
   const handleDuplicateClick = async (connection: OAuthConnection) => {
-    console.log(
-      '[OAuthConnections] handleDuplicateClick called for connection:',
-      connection.id,
-      connection.name,
-    );
+    // console.log(
+    //   '[OAuthConnections] handleDuplicateClick called for connection:',
+    //   connection.id,
+    //   connection.name,
+    // );
     setIsProcessing(true);
     try {
       await duplicateMutation.mutateAsync({ connectionToDuplicate: connection });
@@ -258,7 +258,7 @@ export function OAuthConnections() {
         variant: 'destructive',
       });
     } finally {
-      console.log('Finished handleDuplicateClick.');
+      // console.log('Finished handleDuplicateClick.');
       setIsProcessing(false);
     }
   };
@@ -266,20 +266,20 @@ export function OAuthConnections() {
   // --- Authentication Handlers ---
 
   const handleAuthenticateClick = async (connection: OAuthConnection) => {
-    console.log(
-      '[OAuthConnections] handleAuthenticateClick called for connection:',
-      connection.id,
-      connection.name,
-      connection.type,
-    );
+    // console.log(
+    //   '[OAuthConnections] handleAuthenticateClick called for connection:',
+    //   connection.id,
+    //   connection.name,
+    //   connection.type,
+    // );
 
     try {
       // Fix: Check oauth_info.service instead of connection.type
       if (connection.oauth_info?.service === 'oauth2_client_credentials') {
-        console.log(
-          '[OAuthConnections] Using client credentials authentication for:',
-          connection.name,
-        );
+        // console.log(
+        //   '[OAuthConnections] Using client credentials authentication for:',
+        //   connection.name,
+        // );
         await authenticateClientCredsMutation.mutateAsync(connection.oauth_info);
         toast({
           title: 'Authenticated!',
@@ -288,7 +288,7 @@ export function OAuthConnections() {
         // Reflect status in UI immediately
         queryClient.invalidateQueries({ queryKey: OAUTH_QUERY_KEY });
       } else {
-        console.log('[OAuthConnections] Using OAuth flow authentication for:', connection.name);
+        // console.log('[OAuthConnections] Using OAuth flow authentication for:', connection.name);
         await initiateAuthMutation.mutateAsync(connection.oauth_info);
       }
     } catch (err: any) {
@@ -302,11 +302,11 @@ export function OAuthConnections() {
   };
 
   const handleSignOutClick = async (connection: OAuthConnection) => {
-    console.log(
-      '[OAuthConnections] handleSignOutClick called for connection:',
-      connection.id,
-      connection.name,
-    );
+    // console.log(
+    //   '[OAuthConnections] handleSignOutClick called for connection:',
+    //   connection.id,
+    //   connection.name,
+    // );
     setIsProcessing(true);
     try {
       await signOutMutation.mutateAsync({
@@ -322,7 +322,7 @@ export function OAuthConnections() {
         variant: 'destructive',
       });
     } finally {
-      console.log('Finished handleSignOutClick.');
+      // console.log('Finished handleSignOutClick.');
       setIsProcessing(false);
     }
   };

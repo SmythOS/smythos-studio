@@ -342,7 +342,7 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
     // If auth_data is empty but tokens exist at root level (old structure), migrate them
     if ((!preservedAuthData.primary && !preservedAuthData.secondary) &&
       (existingEntry.primary || existingEntry.secondary)) {
-      console.log('[OAuth Edit] Migrating tokens from old structure to new auth_data');
+      // console.log('[OAuth Edit] Migrating tokens from old structure to new auth_data');
       preservedAuthData = {
         primary: existingEntry.primary || '',
         secondary: existingEntry.secondary || '',

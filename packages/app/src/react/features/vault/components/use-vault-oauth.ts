@@ -185,7 +185,7 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
 
     // If no original name property exists, skip this connection
     if (!hasOriginalName) {
-      console.log(`[fetchOAuthConnections] Skipping connection ${id} - no original name property`);
+      // console.log(`[fetchOAuthConnections] Skipping connection ${id} - no original name property`);
       return null;
     }
 
@@ -224,13 +224,13 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
       id.startsWith('OAUTH_') &&
       id.endsWith('_TOKENS')
     ) {
-      console.log(`[fetchOAuthConnections] Processing connection ${id}:`, rawData[id]);
+      // console.log(`[fetchOAuthConnections] Processing connection ${id}:`, rawData[id]);
       const normalized = normalizeEntry(id, rawData[id]);
       if (normalized) {
-        console.log(`[fetchOAuthConnections] Including connection ${id} with name: "${normalized.name}"`);
+        // console.log(`[fetchOAuthConnections] Including connection ${id} with name: "${normalized.name}"`);
         normalizedSettings[id] = normalized;
       } else {
-        console.log(`[fetchOAuthConnections] Filtered out connection ${id} - no original name property`);
+        // console.log(`[fetchOAuthConnections] Filtered out connection ${id} - no original name property`);
       }
     }
   }

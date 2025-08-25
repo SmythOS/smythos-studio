@@ -126,7 +126,7 @@ export class Workspace extends EventEmitter {
 
       // Invalidate OAuth connections cache when they're updated from React
       if (event.detail.queryKey.includes('oauthConnections')) {
-        console.log('[Workspace] OAuth connections updated, invalidating cache');
+        // console.log('[Workspace] OAuth connections updated, invalidating cache');
         this.invalidateOAuthConnectionsCache();
       }
     });
@@ -170,7 +170,7 @@ export class Workspace extends EventEmitter {
     });
 
     this.jsPlumbInstance.bind('beforeDrop', (info) => {
-      console.log('beforeDrop: ', info);
+      // console.log('beforeDrop: ', info);
       if (this.collapsed) return false;
       if (this.locked) return false;
       // Check if a connection already exists between the source and target
@@ -424,7 +424,7 @@ export class Workspace extends EventEmitter {
           }
         });
 
-        console.log('[Workspace.getOAuthConnections] OAuth connections cached:', this.oauthConnections);
+        // console.log('[Workspace.getOAuthConnections] OAuth connections cached:', this.oauthConnections);
         return this.oauthConnections;
       })
       .catch((error) => {
@@ -441,7 +441,7 @@ export class Workspace extends EventEmitter {
    * Call this when OAuth connections are updated
    */
   public invalidateOAuthConnectionsCache(): void {
-    console.log('[Workspace] Invalidating OAuth connections cache');
+    // console.log('[Workspace] Invalidating OAuth connections cache');
     this.oauthConnections = null;
     this.oauthConnectionsPromise = null;
   }
@@ -467,7 +467,7 @@ export class Workspace extends EventEmitter {
     if (sourceBR.right > targetBR.left) {
       const cornerRadius =
         sourceComponentBR.left - targetComponentBR.left > 100 &&
-        sourceComponentBR.top - targetComponentBR.bottom > 100
+          sourceComponentBR.top - targetComponentBR.bottom > 100
           ? 80
           : 30;
 
@@ -691,7 +691,7 @@ export class Workspace extends EventEmitter {
         scheme: scheme,
       },
     });
-    console.log('Populated shared state');
+    // console.log('Populated shared state');
   }
 
   async loadUserSubscription() {
@@ -829,7 +829,7 @@ export class Workspace extends EventEmitter {
 
     try {
       const result = await this.agent.delete(id);
-      console.log('Agent Delete result', result);
+      // console.log('Agent Delete result', result);
       if (result.error || !result?.success) {
         return false;
       } else {
@@ -967,7 +967,7 @@ export class Workspace extends EventEmitter {
         smoothScroll: true,
         duration: 300,
         easing: 'ease-out',
-        handleStartEvent(e) {},
+        handleStartEvent(e) { },
       });
 
       const parent = zoom.parentElement;
@@ -1169,7 +1169,7 @@ export class Workspace extends EventEmitter {
     components.forEach((component) => {
       try {
         this.componentTemplates[component.id] = JSON.parse(component.data);
-      } catch (error) {}
+      } catch (error) { }
     });
   }
   private async initServerData() {
@@ -1374,12 +1374,12 @@ export class Workspace extends EventEmitter {
 
     //Repaint the source and target components after a delay to ensure the connection is properly rendered
     if (repaint) {
-    setTimeout(() => {
-      this.jsPlumbInstance.repaint(sourceComponent);
+      setTimeout(() => {
+        this.jsPlumbInstance.repaint(sourceComponent);
         this.jsPlumbInstance.repaint(targetComponent);
       }, 300);
     }
-  
+
     return con;
   }
 
@@ -1693,7 +1693,7 @@ export class Workspace extends EventEmitter {
 
       const connections = {};
 
-      
+
 
       const sTime = Date.now();
       //(jsPlumb as any).batch(() =>{
@@ -1711,24 +1711,24 @@ export class Workspace extends EventEmitter {
           false
         );
         connections[conId] = con;
-        
-        
-        });
-      
-    //});
-    this._suspendConnectionRestyle = false;
 
 
-   
+      });
+
+      //});
+      this._suspendConnectionRestyle = false;
+
+
+
       for (const con of Object.values(connections)) {
         setImmediate(() => {
           this.updateConnectionStyle(con);
         });
       }
 
-      
 
-    console.log('time taken', Date.now() - sTime);
+
+      // console.log('time taken', Date.now() - sTime);
 
       this.renderAgentCard(configuration);
 
@@ -1736,7 +1736,7 @@ export class Workspace extends EventEmitter {
 
       showOverlay('Almost Ready ...');
       await delay(200);
-      
+
       this.redraw();
       //await delay(500);
 
@@ -1784,7 +1784,7 @@ export class Workspace extends EventEmitter {
       properties.top = configuration.ui.agentCard.top;
     } else {
       const skills = configuration?.components?.filter((c) => c.name === 'APIEndpoint');
-      console.log('skills to compare', skills);
+      // console.log('skills to compare', skills);
 
       if (skills.length > 0) {
         // get the skill with the least Y and place the card above it to the left. x - agent_card_width, y - agent_card_height / 2
@@ -1842,7 +1842,7 @@ export class Workspace extends EventEmitter {
     });
   }
   public lock(options?: { showViewOnlyMsg?: boolean }) {
-    console.log('Locking Workspace');
+    // console.log('Locking Workspace');
     this.locked = true;
     document.querySelector('#builder-container')?.classList.remove('locked');
     if (options?.showViewOnlyMsg) this.toggleViewOnlyModeMsg(true);
@@ -1864,7 +1864,7 @@ export class Workspace extends EventEmitter {
   }
 
   public unlock() {
-    console.log('Unlocking Workspace');
+    // console.log('Unlocking Workspace');
     this.locked = false;
     document.querySelector('#builder-container')?.classList.remove('locked');
     this.toggleViewOnlyModeMsg(false);
@@ -1907,7 +1907,7 @@ export class Workspace extends EventEmitter {
       }
     });
     this.agent.addEventListener('lock', (prevStatus) => {
-      console.log('lock', prevStatus);
+      // console.log('lock', prevStatus);
       if (prevStatus?.startsWith('unlock') || !prevStatus) {
         this.lock({ showViewOnlyMsg: false });
       }
@@ -2320,7 +2320,7 @@ export class Workspace extends EventEmitter {
    * Initialize the monitor
    */
   private initMonitor(): void {
-    console.log('INIT MONITOR');
+    // console.log('INIT MONITOR');
 
     // Close existing monitor if any
     if (this.monitor) {

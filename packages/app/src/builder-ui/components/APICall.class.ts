@@ -59,11 +59,11 @@ export class APICall extends Component {
 
   protected async prepare() {
     try {
-      console.log('[APICall.prepare] Getting OAuth connections from workspace cache...');
+      // console.log('[APICall.prepare] Getting OAuth connections from workspace cache...');
 
       // Get OAuth connections from workspace cache
       const oauthConnectionsData = await this.workspace.getOAuthConnections();
-      console.log('[APICall.prepare] OAuth connections retrieved from cache:', oauthConnectionsData);
+      // console.log('[APICall.prepare] OAuth connections retrieved from cache:', oauthConnectionsData);
 
       this.oauthConnections = oauthConnectionsData || {};
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
@@ -74,7 +74,7 @@ export class APICall extends Component {
       // Add 'None' option at the start
       options.unshift({ value: 'None', text: 'None', badge: '' });
 
-      console.log('[APICall.prepare] Final options for select:', options);
+      // console.log('[APICall.prepare] Final options for select:', options);
       this.oauthConnectionNames = options;
     } catch (error) {
       console.error('[APICall.prepare] Exception:', error);
@@ -566,10 +566,10 @@ export class APICall extends Component {
 
     // Find the selected connection object using the ID
     const selectedConnection = this.oauthConnections[selectedConnectionId];
-    console.log('[OAuth Auth] Selected connection:', selectedConnection);
+    // console.log('[OAuth Auth] Selected connection:', selectedConnection);
 
     const synthesizedOauthInfo = this.getConnectionOauthInfo(selectedConnection, selectedConnectionId);
-    console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
+    // console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
 
     if (!selectedConnection || !synthesizedOauthInfo) {
       toast('Selected OAuth connection details not found.', 'Error', 'alert');
@@ -835,7 +835,7 @@ export class APICall extends Component {
     switch (event.data?.type) {
       case 'oauth2':
       case 'oauth':
-        console.log('Authentication was successful');
+        // console.log('Authentication was successful');
         successToast(`${event.data.type} authentication was successful`);
 
         // Clear auth check cache for the current connection after successful auth
@@ -913,11 +913,11 @@ export class APICall extends Component {
     // Check if we already have a pending auth check for this connection
     const existingPromise = this.authCheckPromises.get(selectedValue);
     if (existingPromise) {
-      console.log(`[checkAuth] Reusing existing auth check promise for: ${selectedValue}`);
+      // console.log(`[checkAuth] Reusing existing auth check promise for: ${selectedValue}`);
       return existingPromise;
     }
 
-    console.log(`[checkAuth] Creating new auth check promise for: ${selectedValue}`);
+    // console.log(`[checkAuth] Creating new auth check promise for: ${selectedValue}`);
     // Create new auth check promise
     const authCheckPromise = this.performAuthCheck(selectedValue);
 
@@ -1002,7 +1002,7 @@ export class APICall extends Component {
       oauth_keys_prefix: oauth_keys_prefix,
     };
 
-    console.log(`[checkAuth] Sending auth check request for ${connectionId}`);
+    // console.log(`[checkAuth] Sending auth check request for ${connectionId}`);
 
     try {
       const response = await fetch(`${this.workspace.server}/oauth/checkAuth`, {
@@ -1028,7 +1028,7 @@ export class APICall extends Component {
         this.oauthConnections[connectionId].isAuthenticated = isAuthenticated;
       }
 
-      console.log(`[checkAuth] Connection ${connectionId}: authenticated=${isAuthenticated}`);
+      // console.log(`[checkAuth] Connection ${connectionId}: authenticated=${isAuthenticated}`);
       return isAuthenticated;
     } catch (error) {
       console.error(`Error during auth check for ${oauth_keys_prefix}:`, error);
@@ -1555,13 +1555,13 @@ export class APICall extends Component {
   private async handleOAuthConnectionAction() {
     const currentValue = this.data.oauth_con_id;
     const isNone = !currentValue || currentValue === 'None';
-    console.log('[OAuth Edit] Action started. Current Value:', currentValue, 'Is None:', isNone);
+    // console.log('[OAuth Edit] Action started. Current Value:', currentValue, 'Is None:', isNone);
     // Fetch existing OAuth connections ONLY when editing to avoid modal delay on "Add New"
     if (!isNone) {
       try {
-        console.log('[OAuth Edit] Getting OAuth connections from workspace cache for editing...');
+        // console.log('[OAuth Edit] Getting OAuth connections from workspace cache for editing...');
         this.oauthConnections = await this.workspace.getOAuthConnections();
-        console.log('[OAuth Edit] Retrieved connections for editing:', this.oauthConnections);
+        // console.log('[OAuth Edit] Retrieved connections for editing:', this.oauthConnections);
       } catch (error) {
         console.error('Error fetching OAuth connections:', error);
         toast('Error fetching connections. Please try again.', 'Error', 'alert');
@@ -1570,7 +1570,7 @@ export class APICall extends Component {
     } else {
       // Ensure the object exists to avoid any downstream checks
       this.oauthConnections = this.oauthConnections || {};
-      console.log('[OAuth Edit] Creating new connection, using existing connections:', this.oauthConnections);
+      // console.log('[OAuth Edit] Creating new connection, using existing connections:', this.oauthConnections);
     }
 
     // Get current connection if editing and determine structure
@@ -1940,17 +1940,17 @@ export class APICall extends Component {
       }
     }
 
-    console.log(`${logPrefix} Built options:`, {
-      namedConnections: options.filter(opt => !opt.badge).length,
-      legacyConnections: options.filter(opt => opt.badge).length,
-      totalOptions: options.length,
-      hasNewStructure: connections[componentSpecificId]?.auth_data ? 'yes' : 'no',
-      breakdown: {
-        withNames: options.filter(opt => !opt.badge).length,
-        newStructureNoName: options.filter(opt => opt.badge && opt.text.includes('[')).length,
-        oldLegacy: options.filter(opt => opt.badge && opt.value === componentSpecificId).length
-      }
-    });
+    // console.log(`${logPrefix} Built options:`, {
+    //   namedConnections: options.filter(opt => !opt.badge).length,
+    //   legacyConnections: options.filter(opt => opt.badge).length,
+    //   totalOptions: options.length,
+    //   hasNewStructure: connections[componentSpecificId]?.auth_data ? 'yes' : 'no',
+    //   breakdown: {
+    //     withNames: options.filter(opt => !opt.badge).length,
+    //     newStructureNoName: options.filter(opt => opt.badge && opt.text.includes('[')).length,
+    //     oldLegacy: options.filter(opt => opt.badge && opt.value === componentSpecificId).length
+    //   }
+    // });
 
     return options;
   }
@@ -1974,7 +1974,7 @@ export class APICall extends Component {
       // --- Update the options with badges ---
       if (this.settings?.oauth_con_id) {
         this.settings.oauth_con_id.options = options;
-        console.log('Updated settings.oauth_con_id.options:', this.settings.oauth_con_id.options);
+        // console.log('Updated settings.oauth_con_id.options:', this.settings.oauth_con_id.options);
       } else {
         console.warn('Could not find oauth_con_id in settings to update options.');
       }
@@ -2068,7 +2068,7 @@ export class APICall extends Component {
       // Clear any cached auth check promises for this connection
       this.authCheckPromises.delete(connectionId);
 
-      console.log(`Cleared authentication state for connection: ${connectionId}`);
+      // console.log(`Cleared authentication state for connection: ${connectionId}`);
     }
   }
 
@@ -2100,7 +2100,7 @@ export class APICall extends Component {
     const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
     if (!oauth_button) return;
 
-    console.log(`[performAuthButtonUpdate] Updating button for connection: ${this.data.oauth_con_id}`);
+    // console.log(`[performAuthButtonUpdate] Updating button for connection: ${this.data.oauth_con_id}`);
 
     // Show loading state while checking
     this.activateSpinner(oauth_button);

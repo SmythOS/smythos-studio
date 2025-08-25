@@ -17,7 +17,7 @@ export async function preloadDataScripts(workspace: Workspace) {
     //#region preload OAuth connections
     workspace.getOAuthConnections()
       .then(() => {
-        console.log('[PreloadData] OAuth connections preloaded successfully');
+        // console.log('[PreloadData] OAuth connections preloaded successfully');
       })
       .catch((error) => {
         console.error('[PreloadData] Failed to preload OAuth connections:', error);
@@ -39,6 +39,6 @@ export async function preloadDataScripts(workspace: Workspace) {
       });
     //#endregion
   } catch {
-    console.log('Preloading vault data failed.');
+    // console.log('Preloading vault data failed.');
   }
 }
