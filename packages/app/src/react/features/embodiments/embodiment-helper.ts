@@ -48,7 +48,8 @@ export function structureAgentSetting(
     openModal: (modalType: string) => void;
     closeModal: () => void;
     showCodeSnippet: boolean;
-    openCodeSnippet: () => void;
+    activeCodeSnippetKey: string | null;
+    openCodeSnippet: (key: string) => void;
     closeCodeSnippet: () => void;
     agent?: Agent;
     embodimentsData?: Embodiment[];
@@ -107,7 +108,7 @@ export function structureAgentSetting(
   // Add modal handlers and components if provided
   if (modalHandlers) {
     result.openModal = () => modalHandlers.openModal(key);
-    result.openCodeSnippet = modalHandlers.openCodeSnippet;
+    result.openCodeSnippet = () => modalHandlers.openCodeSnippet(key);
 
     // PRELOADING STRATEGY:
     // Create modal components for preloading if this is the active instance
@@ -159,9 +160,13 @@ export function structureAgentSetting(
 
       // Add code snippet modal for chat bot (preload when it should be visible)
       // Note: iframe-based components are conditionally rendered to allow reload as requested
-      if (key === EMBODIMENT_TYPE.CHAT_BOT && shouldCodeSnippetVisible(key, agentData)) {
+      if (
+        (key === EMBODIMENT_TYPE.CHAT_BOT || key === EMBODIMENT_TYPE.FORM) &&
+        shouldCodeSnippetVisible(key, agentData)
+      ) {
         result.codeSnippetComponent = getCodeSnippetModal(
-          modalHandlers.showCodeSnippet, // Pass visibility state
+          key,
+          modalHandlers.showCodeSnippet && modalHandlers.activeCodeSnippetKey === key, // Pass visibility state
           modalHandlers.closeCodeSnippet,
           modalHandlers.agent,
           agentData.agentId,
@@ -183,7 +188,7 @@ const shouldCodeSnippetVisible = (
   },
 ) => {
   return (
-    embodimentType === EMBODIMENT_TYPE.CHAT_BOT &&
+    (embodimentType === EMBODIMENT_TYPE.CHAT_BOT || embodimentType === EMBODIMENT_TYPE.FORM) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
   );
@@ -228,7 +233,8 @@ export const useAgentSettings = (
     openModal: (modalType: string) => void;
     closeModal: () => void;
     showCodeSnippet: boolean;
-    openCodeSnippet: () => void;
+    activeCodeSnippetKey: string | null;
+    openCodeSnippet: (key: string) => void;
     closeCodeSnippet: () => void;
     agent?: Agent;
     embodimentsData?: Embodiment[];

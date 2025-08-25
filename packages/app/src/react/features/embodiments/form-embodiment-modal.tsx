@@ -19,6 +19,10 @@ export interface FormEmbodimentModalProps {
    * Loading state while embodiment data is being fetched.
    */
   isLoading?: boolean;
+  /**
+   * Whether to show the back button.
+   */
+  showBackButton?: boolean;
 }
 
 /**
@@ -32,6 +36,7 @@ const FormEmbodimentModal: React.FC<FormEmbodimentModalProps> = ({
   onClose,
   domain = 'your-domain.com',
   isLoading = false,
+  showBackButton = true,
 }) => {
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -87,6 +92,7 @@ const FormEmbodimentModal: React.FC<FormEmbodimentModalProps> = ({
           title="Form Preview Integration Snippet"
           onBack={onClose}
           onClose={onClose}
+          showBackButton={showBackButton}
         />
 
         {/* Content */}
