@@ -60,13 +60,13 @@ export const routeMap: IPageRoute[] = [
     path: '/',
     component: AgentsPage,
     title: 'Agents',
-    layoutOptions: { background: 'agentsGradient' },
+    layoutOptions: { background: 'white' },
   },
   {
     path: '/agents',
     component: AgentsPage,
     title: 'Agents',
-    layoutOptions: { background: 'agentsGradient' },
+    layoutOptions: { background: 'white' },
   },
 
 
