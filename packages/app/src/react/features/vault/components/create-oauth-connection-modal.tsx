@@ -17,22 +17,17 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import { Textarea } from '@src/react/shared/components/ui/textarea';
+import {
+  OAUTH_SERVICES,
+  deriveCallbackUrl,
+  mapInternalToServiceName,
+  mapServiceNameToInternal,
+} from '@src/shared/utils/oauth.utils';
 import React, { useEffect, useMemo, useState } from 'react';
 import type {
   CreateOAuthConnectionModalProps,
   OAuthConnectionFormData,
 } from '../types/oauth-connection';
-
-// Mimic options from APICall.class.ts
-const OAUTH_SERVICES = [
-  'None',
-  'Google',
-  'Twitter', // Needs special handling for OAuth1a/OAuth2 based on URLs? Assume OAuth2 for now via PKCE.
-  'LinkedIn',
-  'Custom OAuth2.0',
-  'Custom OAuth1.0',
-  'OAuth2 Client Credentials',
-];
 
 export function CreateOAuthConnectionModal({
   isOpen,
@@ -196,40 +191,16 @@ export function CreateOAuthConnectionModal({
     }
   }, [selectedService, isEditMode]);
 
-  // Derived Callback URLs (display only) - these match use-vault-oauth helpers
-  const deriveCallbackUrl = (service: string, type: 'oauth' | 'oauth2'): string | undefined => {
-    const internalService = mapServiceNameToInternal(service);
-    if (internalService === 'none') return undefined;
+  // Derived Callback URLs (display only)
+  const oauth2CallbackURL = useMemo(() => {
+    const internalService = mapServiceNameToInternal(selectedService);
+    return deriveCallbackUrl(internalService, 'oauth2');
+  }, [selectedService]);
 
-    const getBackendOrigin = () => {
-      try {
-        const { protocol, hostname } = window.location;
-        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-        if (isLocal) {
-          return `${protocol}//localhost:4000`;
-        }
-        return window.location.origin;
-      } catch {
-        return window.location.origin;
-      }
-    };
-
-    const baseUrl = getBackendOrigin();
-    const callbackPath = `/oauth/${internalService}/callback`;
-    try {
-      return new URL(callbackPath, baseUrl).toString();
-    } catch (e) {
-      return undefined;
-    }
-  };
-  const oauth2CallbackURL = useMemo(
-    () => deriveCallbackUrl(selectedService, 'oauth2'),
-    [selectedService],
-  );
-  const oauth1CallbackURL = useMemo(
-    () => deriveCallbackUrl(selectedService, 'oauth'),
-    [selectedService],
-  );
+  const oauth1CallbackURL = useMemo(() => {
+    const internalService = mapServiceNameToInternal(selectedService);
+    return deriveCallbackUrl(internalService, 'oauth');
+  }, [selectedService]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -511,31 +482,4 @@ export function CreateOAuthConnectionModal({
       </DialogContent>
     </Dialog>
   );
-}
-
-// Helper to map internal service name back to display name for editing
-function mapInternalToServiceName(internalName: string): string {
-  const map: Record<string, string> = {
-    google: 'Google',
-    twitter: 'Twitter',
-    linkedin: 'LinkedIn',
-    oauth2: 'Custom OAuth2.0',
-    oauth1: 'Custom OAuth1.0',
-    oauth2_client_credentials: 'OAuth2 Client Credentials',
-    none: 'None',
-  };
-  return map[internalName] || internalName;
-}
-// Helper to map display name to internal service name
-function mapServiceNameToInternal(serviceName: string): string {
-  const map: Record<string, string> = {
-    Google: 'google',
-    Twitter: 'twitter',
-    LinkedIn: 'linkedin',
-    'Custom OAuth2.0': 'oauth2',
-    'Custom OAuth1.0': 'oauth1',
-    'OAuth2 Client Credentials': 'oauth2_client_credentials',
-    None: 'none',
-  };
-  return map[serviceName] || serviceName.toLowerCase();
 }

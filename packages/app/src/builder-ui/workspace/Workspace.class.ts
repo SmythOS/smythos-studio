@@ -96,6 +96,8 @@ export class Workspace extends EventEmitter {
   private pendingAddComponent: any = null;
   public deployments: any = {};
   public domainData: any = {};
+  public oauthConnections: any = null;
+  public oauthConnectionsPromise: Promise<any> | null = null;
 
   public componentTemplates: any = {};
   public ACL = {};
@@ -120,6 +122,12 @@ export class Workspace extends EventEmitter {
         this.getDeploymentInfo().then((result) => {
           this.emit('deploymentsUpdated', result);
         });
+      }
+
+      // Invalidate OAuth connections cache when they're updated from React
+      if (event.detail.queryKey.includes('oauthConnections')) {
+        console.log('[Workspace] OAuth connections updated, invalidating cache');
+        this.invalidateOAuthConnectionsCache();
       }
     });
 
@@ -364,6 +372,80 @@ export class Workspace extends EventEmitter {
     return result;
   }
 
+  /**
+   * Fetches OAuth connections and caches them
+   * Returns cached data if already fetched
+   */
+  public async getOAuthConnections(forceRefresh: boolean = false): Promise<any> {
+    // If we're forcing a refresh, clear the cache
+    if (forceRefresh) {
+      this.oauthConnections = null;
+      this.oauthConnectionsPromise = null;
+    }
+
+    // Return cached data if available
+    if (this.oauthConnections !== null) {
+      return this.oauthConnections;
+    }
+
+    // If a fetch is already in progress, return that promise
+    if (this.oauthConnectionsPromise !== null) {
+      return this.oauthConnectionsPromise;
+    }
+
+    // Fetch OAuth connections
+    this.oauthConnectionsPromise = fetch(`${this.server}/api/page/vault/oauth-connections`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        credentials: 'include',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.error('[Workspace.getOAuthConnections] Error fetching OAuth connections:', response.status);
+          throw new Error(`Failed to fetch OAuth connections: ${response.status}`);
+        }
+        const data = await response.json();
+        this.oauthConnections = data || {};
+
+        // Normalize: parse string values
+        Object.keys(this.oauthConnections).forEach((id) => {
+          const value = this.oauthConnections[id];
+          if (typeof value === 'string') {
+            try {
+              this.oauthConnections[id] = JSON.parse(value);
+            } catch (e) {
+              console.warn(
+                `[Workspace.getOAuthConnections] Could not parse stringified connection for id=${id}:`,
+                e,
+              );
+            }
+          }
+        });
+
+        console.log('[Workspace.getOAuthConnections] OAuth connections cached:', this.oauthConnections);
+        return this.oauthConnections;
+      })
+      .catch((error) => {
+        console.error('[Workspace.getOAuthConnections] Failed to fetch OAuth connections:', error);
+        this.oauthConnectionsPromise = null; // Reset promise on error
+        throw error;
+      });
+
+    return this.oauthConnectionsPromise;
+  }
+
+  /**
+   * Invalidates the OAuth connections cache
+   * Call this when OAuth connections are updated
+   */
+  public invalidateOAuthConnectionsCache(): void {
+    console.log('[Workspace] Invalidating OAuth connections cache');
+    this.oauthConnections = null;
+    this.oauthConnectionsPromise = null;
+  }
+
   private _suspendConnectionRestyle = false;
   public updateConnectionStyle(_connection) {
     if (this._suspendConnectionRestyle) return;
@@ -376,7 +458,7 @@ export class Workspace extends EventEmitter {
     if (!_sourceComponent || !_targetComponent) return;
 
     _connection.removeAllOverlays();
-    
+
     const sourceBR = _source.getBoundingClientRect();
     const targetBR = _target.getBoundingClientRect();
     const sourceComponentBR = _sourceComponent.getBoundingClientRect();

@@ -1,4 +1,19 @@
 // src/webappv2/pages/vault/use-vault-oauth.ts
+import {
+  authenticateClientCredentials as authenticateClientCredentialsShared,
+  checkOAuthAuthentication as checkOAuthAuthenticationShared,
+  deleteOAuthConnection as deleteOAuthConnectionShared,
+  fetchOAuthConnections as fetchOAuthConnectionsShared,
+  initiateOAuthFlow as initiateOAuthFlowShared,
+  saveOAuthConnection as saveOAuthConnectionShared,
+  signOutOAuthConnection as signOutOAuthConnectionShared
+} from '@src/shared/helpers/oauth-api.helper';
+import {
+  generateOAuthId,
+  isOAuth1Service,
+  mapInternalToServiceName,
+  mapServiceNameToInternal
+} from '@src/shared/utils/oauth.utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AuthenticateOAuthPayload,
@@ -13,10 +28,6 @@ import type {
 } from '../types/oauth-connection';
 
 export const OAUTH_QUERY_KEY = ['oauthConnections'];
-
-function uid() {
-  return (Date.now() + Math.random()).toString(36).replace('.', '').toUpperCase();
-}
 
 // ============================================================================
 // Local Auth Status Derivation Helpers
@@ -92,30 +103,7 @@ function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean |
 
 
 
-/**
- * Helper function to handle fetch responses and errors.
- * @param {Response} response - The fetch Response object.
- * @returns {Promise<any>} - A promise resolving to the JSON data.
- * @throws {Error} - Throws an error if the network response is not ok.
- */
-const handleApiResponse = async (response: Response): Promise<any> => {
-  if (!response.ok) {
-    // Attempt to get error details from the response body
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch (e) {
-      // Ignore if body isn't JSON or can't be parsed
-    }
-    const errorMessage = errorData?.message || `HTTP error! status: ${response.status}`;
-    throw new Error(errorMessage);
-  }
-  // Handle cases where the response might be empty (e.g., 204 No Content)
-  if (response.status === 204) {
-    return undefined; // Or return an empty object/success indicator as needed
-  }
-  return response.json(); // Parse JSON data from the response body
-};
+
 
 /**
  * Fetches all OAuth connection settings by calling the backend API.
@@ -129,8 +117,7 @@ const handleApiResponse = async (response: Response): Promise<any> => {
  * @returns {Promise<OAuthSettings>} A promise resolving to the filtered OAuth settings object.
  */
 const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
-  const response = await fetch('/api/page/vault/oauth-connections');
-  const rawData = await handleApiResponse(response);
+  const rawData = await fetchOAuthConnectionsShared();
 
   const normalizedSettings: OAuthSettings = {};
 
@@ -267,18 +254,7 @@ const saveOAuthConnectionSettings = async ({
   connectionId: string;
   settingsData: Record<string, any>; // Type appropriately, expecting the auth_settings structure
 }): Promise<unknown> => {
-  // No sanitization needed here as we only send settings
-  const response = await fetch('/api/page/vault/oauth-connections', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      entryId: connectionId,
-      data: settingsData, // Send only the settings data
-    }),
-  });
-  return handleApiResponse(response);
+  return saveOAuthConnectionShared(connectionId, settingsData);
 };
 
 /**
@@ -290,22 +266,8 @@ const saveOAuthConnectionSettings = async ({
 const deleteOAuthConnection = async ({
   connectionId,
 }: DeleteOAuthConnectionPayload): Promise<any> => {
-  // Calls the backend API endpoint responsible for deleting an 'oauth' team setting entry
-  const response = await fetch(`/api/page/vault/oauth-connections/${connectionId}`, { // Ensure this endpoint exists and uses deleteTeamSettingsObj(req, 'oauth', connectionId)
-    method: 'DELETE',
-  });
-
-  // Adjust response handling if DELETE returns 204 No Content
-  if (!response.ok) {
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch (e) { /* Ignore non-JSON body */ }
-    const errorMessage = errorData?.message || `HTTP error! status: ${response.status}`;
-    throw new Error(errorMessage);
-  }
-  // For 204 or successful 200/202:
-  return { success: true }; // Indicate success
+  await deleteOAuthConnectionShared(connectionId);
+  return { success: true };
 };
 
 /**
@@ -314,28 +276,11 @@ const deleteOAuthConnection = async ({
  * @returns {Promise<{ authUrl: string }>} A promise resolving to the authentication URL.
  */
 const initiateOAuth = async (payload: AuthenticateOAuthPayload): Promise<{ authUrl: string }> => {
-  // Derive the appropriate callback URL based on service type
-  const service = payload.service;
-  const isOAuth1 = ['oauth1', 'twitter', 'oauth'].includes(service);
-  const isOAuth2 = ['google', 'linkedin', 'oauth2'].includes(service);
-
-  let enhancedPayload = { ...payload };
-
-  // Add the appropriate callback URL
-  if (isOAuth1) {
-    enhancedPayload.oauth1CallbackURL = deriveCallbackUrl(service, '', 'oauth');
-  } else if (isOAuth2) {
-    enhancedPayload.oauth2CallbackURL = deriveCallbackUrl(service, '', 'oauth2');
+  const result = await initiateOAuthFlowShared(payload, false); // false to not auto-open popup
+  if (!result.authUrl) {
+    throw new Error('No authentication URL received');
   }
-
-  const response = await fetch('/oauth/init', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(enhancedPayload),
-  });
-  return handleApiResponse(response);
+  return { authUrl: result.authUrl };
 };
 
 /**
@@ -345,18 +290,10 @@ const initiateOAuth = async (payload: AuthenticateOAuthPayload): Promise<{ authU
  */
 const checkAuthStatus = async (payload: CheckAuthStatusPayload): Promise<{ success: boolean }> => {
   try {
-    const response = await fetch(`/oauth/checkAuth`, { // Use relative path unless backend is on different origin
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    const data = await handleApiResponse(response);
-    return data;
+    return await checkOAuthAuthenticationShared(payload);
   } catch (error) {
-    console.error('API: checkAuthStatus - Fetch Error:', error); // Log fetch error
-    throw error; // Re-throw error to be caught by mutation's onError
+    console.error('API: checkAuthStatus - Error:', error);
+    throw error;
   }
 };
 
@@ -366,18 +303,7 @@ const checkAuthStatus = async (payload: CheckAuthStatusPayload): Promise<{ succe
  * @returns {Promise<any>} A promise resolving with the API response.
  */
 const signOutOAuth = async ({ connectionId }: SignOutOAuthPayload): Promise<any> => {
-  // TODO: Replace with actual API call to backend endpoint
-  const response = await fetch('/oauth/signOut', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      oauth_keys_prefix: connectionId, // Backend expects OAUTH_{UUID}_TOKENS
-      invalidateAuthentication: true,
-    }),
-  });
-  return handleApiResponse(response);
+  return signOutOAuthConnectionShared(connectionId, true);
 };
 
 // ============================================================================
@@ -435,7 +361,7 @@ export function useCreateOAuthConnection() {
 
   return useMutation<unknown, Error, CreateOAuthConnectionPayload>({
     mutationFn: async (payload: CreateOAuthConnectionPayload) => {
-      const connectionId = `OAUTH_${uid()}_TOKENS`;
+      const connectionId = `OAUTH_${generateOAuthId()}_TOKENS`;
       const { oauthService, name, platform, ...rest } = payload;
 
       // Determine type and internal service name
@@ -501,16 +427,16 @@ export function useUpdateOAuthConnection() {
       }
 
       // Determine the final type and service name after update
-      const finalType = oauthService
-        ? (['Custom OAuth1.0', 'Twitter'].includes(oauthService)
-          ? 'oauth'
-          : oauthService === 'OAuth2 Client Credentials'
-            ? 'oauth2_client_credentials'
-            : 'oauth2')
-        : currentData.type;
       const finalInternalService = oauthService
         ? mapServiceNameToInternal(oauthService)
         : currentData.oauth_info.service;
+      const finalType = oauthService
+        ? (isOAuth1Service(finalInternalService)
+          ? 'oauth'
+          : finalInternalService === 'oauth2_client_credentials'
+            ? 'oauth2_client_credentials'
+            : 'oauth2')
+        : currentData.type;
 
       // Build the updated oauth_info object
       // Start with ALL existing oauth_info fields, then selectively update
@@ -801,12 +727,7 @@ export function useSignOutOAuth() {
 }
 
 const authenticateClientCredentials = async (payload: OAuthInfo): Promise<{ success: boolean; message: string }> => {
-  const response = await fetch('/oauth/client_credentials', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  return handleApiResponse(response);
+  return authenticateClientCredentialsShared(payload);
 };
 
 export function useAuthenticateClientCredentials() {
@@ -822,81 +743,3 @@ export function useAuthenticateClientCredentials() {
   });
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Maps the user-facing service name (from the dropdown) to the internal service identifier.
- * @param {string} serviceName - The name selected by the user (e.g., 'Google', 'Custom OAuth2.0').
- * @returns {string} The internal service name (e.g., 'google', 'oauth2').
- */
-function mapServiceNameToInternal(serviceName: string): string {
-  const map: Record<string, string> = {
-    'Google': 'google',
-    'Twitter': 'twitter', // Assuming internal name is 'twitter' for both OAuth1 & 2? Backend router logic might differentiate
-    'LinkedIn': 'linkedin',
-    'Custom OAuth2.0': 'oauth2',
-    'Custom OAuth1.0': 'oauth1', // Or maybe just 'oauth'? Align with backend router.ts
-    'OAuth2 Client Credentials': 'oauth2_client_credentials', // Align with backend router.ts
-    'None': 'none',
-  };
-  return map[serviceName] || serviceName.toLowerCase(); // Fallback
-}
-
-/**
- * Maps the internal service identifier back to the user-facing service name.
- * @param {string} internalName - The internal service name (e.g., 'google', 'oauth2').
- * @returns {string} The user-facing service name (e.g., 'Google', 'Custom OAuth2.0').
- */
-function mapInternalToServiceName(internalName: string): string {
-  const map: Record<string, string> = {
-    'google': 'Google',
-    'twitter': 'Twitter', // Need to be careful if backend uses 'oauth' vs 'oauth2' internally for twitter
-    'linkedin': 'LinkedIn',
-    'oauth2': 'Custom OAuth2.0',
-    'oauth1': 'Custom OAuth1.0', // Or 'oauth'?
-    'oauth2_client_credentials': 'OAuth2 Client Credentials',
-    'none': 'None',
-  };
-  return map[internalName] || internalName; // Fallback
-}
-
-
-/**
- * Derives the callback URL based on the service, connection ID prefix, and OAuth type.
- * Note: Ensure this matches the exact URL registered with the OAuth provider and expected by the backend.
- * @param {string} service - Internal service name ('google', 'oauth2', etc.).
- * @param {string} prefix - The OAuth prefix (e.g., OAUTH_{UUID}).
- * @param {'oauth' | 'oauth2'} type - The OAuth type.
- * @returns {string | undefined} The derived callback URL or undefined if not applicable.
- */
-function deriveCallbackUrl(
-  service: string,
-  prefix: string,
-  type: 'oauth' | 'oauth2',
-): string | undefined {
-  if (service === 'none') return undefined;
-
-  const getBackendOrigin = () => {
-    try {
-      const { protocol, hostname } = window.location;
-      const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-      if (isLocal) {
-        return `${protocol}//localhost:4000`;
-      }
-      return window.location.origin; // staging/prod use full URL without port hacks
-    } catch {
-      return window.location.origin;
-    }
-  };
-
-  const baseUrl = getBackendOrigin();
-  const callbackPath = `/oauth/${service}/callback`;
-  try {
-    return new URL(callbackPath, baseUrl).toString();
-  } catch (e) {
-    console.error('Error constructing callback URL:', e);
-    return undefined;
-  }
-}

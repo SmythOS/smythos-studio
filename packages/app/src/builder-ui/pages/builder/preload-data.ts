@@ -14,6 +14,16 @@ export async function preloadDataScripts(workspace: Workspace) {
       });
     //#endregion
 
+    //#region preload OAuth connections
+    workspace.getOAuthConnections()
+      .then(() => {
+        console.log('[PreloadData] OAuth connections preloaded successfully');
+      })
+      .catch((error) => {
+        console.error('[PreloadData] Failed to preload OAuth connections:', error);
+      });
+    //#endregion
+
     //#region preload mock data
     // workspace?.agent?.id is not available here
     // Extract agent ID from URL path

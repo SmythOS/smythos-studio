@@ -1,6 +1,22 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { API_CALL_DATA_ENTRIES, SMYTHOS_DOCS_URL } from '@src/shared/constants/general'; // Adjust the path as necessary
+import {
+  deriveServiceFromOauthInfo,
+  extractServiceFromConnection,
+  getConnectionOauthInfo,
+  saveOAuthConnection
+} from '@src/shared/helpers/oauth-api.helper';
+import {
+  OAUTH_SERVICES,
+  extractPlatformFromUrl,
+  generateOAuthId,
+  mapInternalToServiceName,
+  mapServiceNameToInternal
+} from '@src/shared/utils/oauth.utils';
 import { COMP_NAMES } from '../config';
+import {
+  generateOAuthModalHTML
+} from '../helpers/oauth-modal.helper';
 import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { toast } from '../ui/dialogs';
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
@@ -24,143 +40,32 @@ export class APICall extends Component {
   private authCheckPromises: Map<string, Promise<boolean>> = new Map();
   private updateAuthButtonDebounceTimer: any = null;
 
-  // *** ADDED: Helper function to extract platform from URL ***
+  // Wrapper methods to use helper functions
   private extractPlatformFromUrl(url?: string): string {
-    if (!url) return 'unknown';
-    try {
-      const hostname = new URL(url).hostname;
-      const matches = hostname.match(
-        /(?:^|\.)?([a-z0-9-]+)\.(?:com|net|org|io|co|app|ai|dev|cloud)(?:$|\.)/i,
-      );
-      if (matches && matches[1]) {
-        const platformName = matches[1].toLowerCase();
-        if (platformName === 'google') return 'Google';
-        if (platformName === 'linkedin') return 'LinkedIn';
-        if (platformName === 'twitter' || platformName === 'x') return 'Twitter/X';
-        return platformName.charAt(0).toUpperCase() + platformName.slice(1);
-      }
-      const parts = hostname.split('.');
-      if (parts.length > 1) {
-        const potentialPlatform = parts[0].toLowerCase();
-        if (
-          potentialPlatform !== 'www' &&
-          potentialPlatform !== 'api' &&
-          potentialPlatform !== 'app'
-        ) {
-          return potentialPlatform.charAt(0).toUpperCase() + potentialPlatform.slice(1);
-        }
-      }
-      return 'unknown';
-    } catch (e) {
-      console.warn('Could not parse URL for platform:', url, e);
-      return 'invalid_url';
-    }
+    return extractPlatformFromUrl(url);
   }
 
-  // Attempts to extract a provider/service name from typical OAuth URLs on a connection
   private extractServiceFromConnection(connection: any): string {
-    if (!connection) return '';
-    const oauthInfo = this.getConnectionOauthInfo(connection) || {};
-    return this.deriveServiceFromOauthInfo(oauthInfo);
+    return extractServiceFromConnection(connection);
   }
 
-  // Helper method to get oauth_info from either new or old connection structure
   private getConnectionOauthInfo(connection: any, connectionId?: string): any {
-    if (!connection) return {};
-
-    // Try multiple possible locations for OAuth info
-    // Priority order: auth_settings.oauth_info > oauth_info > auth_settings > root level
-    let oauthInfo = connection?.auth_settings?.oauth_info ||
-      connection?.oauth_info ||
-      connection?.auth_settings ||
-      connection;
-
-    // If we still don't have oauth_keys_prefix, try to find it in other locations
-    if (!oauthInfo?.oauth_keys_prefix) {
-      // Check if oauth_keys_prefix exists in auth_settings directly
-      if (connection?.auth_settings?.oauth_keys_prefix) {
-        oauthInfo = { ...oauthInfo, oauth_keys_prefix: connection.auth_settings.oauth_keys_prefix };
-      }
-      // Check if oauth_keys_prefix exists at root level
-      else if (connection?.oauth_keys_prefix) {
-        oauthInfo = { ...oauthInfo, oauth_keys_prefix: connection.oauth_keys_prefix };
-      }
-      // Check if we can derive it from the connection ID parameter
-      else if (connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
-        const derivedPrefix = connectionId.replace('_TOKENS', '');
-        oauthInfo = { ...oauthInfo, oauth_keys_prefix: derivedPrefix };
-      }
-    }
-
-    return oauthInfo;
+    return getConnectionOauthInfo(connection, connectionId);
   }
 
-  // Derive service name from OAuth info (simplified version)
   private deriveServiceFromOauthInfo(oauthInfo: any): string {
-    if (!oauthInfo) return '';
-
-    // Try to extract from URLs first
-    const urls = [
-      oauthInfo.authorizationURL,
-      oauthInfo.tokenURL,
-      oauthInfo.requestTokenURL,
-      oauthInfo.accessTokenURL,
-      oauthInfo.userAuthorizationURL
-    ].filter(Boolean);
-
-    for (const url of urls) {
-      const platform = this.extractPlatformFromUrl(url);
-      if (platform !== 'unknown' && platform !== 'invalid_url') {
-        return platform;
-      }
-    }
-
-    // Fallback to service type if available
-    if (oauthInfo.service) {
-      return oauthInfo.service.charAt(0).toUpperCase() + oauthInfo.service.slice(1);
-    }
-
-    return '';
+    return deriveServiceFromOauthInfo(oauthInfo);
   }
 
   protected async prepare() {
     try {
-      console.log('[APICall.prepare] Fetching OAuth connections...');
-      const response = await fetch(`${this.workspace.server}/api/page/vault/oauth-connections`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          credentials: 'include',
-        },
-      });
+      console.log('[APICall.prepare] Getting OAuth connections from workspace cache...');
 
-      if (!response.ok) {
-        console.error(
-          '[APICall.prepare] Error fetching OAuth connections:',
-          response.status,
-          response.statusText,
-        );
-        this.oauthConnectionNames = [{ value: 'None', text: 'None', badge: '' }];
-        return true;
-      }
+      // Get OAuth connections from workspace cache
+      const oauthConnectionsData = await this.workspace.getOAuthConnections();
+      console.log('[APICall.prepare] OAuth connections retrieved from cache:', oauthConnectionsData);
 
-      const oauthConnectionsData = (await response.json()) || {};
-      console.log('[APICall.prepare] oauthConnectionsData:', oauthConnectionsData);
-      // Normalize: parse string values
-      Object.keys(oauthConnectionsData).forEach((id) => {
-        const value = oauthConnectionsData[id];
-        if (typeof value === 'string') {
-          try {
-            oauthConnectionsData[id] = JSON.parse(value);
-          } catch (e) {
-            console.warn(
-              `[APICall.prepare] Could not parse stringified connection for id=${id}:`,
-              e,
-            );
-          }
-        }
-      });
-      this.oauthConnections = oauthConnectionsData;
+      this.oauthConnections = oauthConnectionsData || {};
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
       // Use the centralized buildOAuthSelectOptions method
@@ -327,15 +232,7 @@ export class APICall extends Component {
           'SmythOS supports OAuth 2.0 with OpenID Connect (OIDC) for secure user authentication and authorization.',
         sectionTooltipClasses: 'w-64 ml-12',
         sectionArrowClasses: '-ml-11',
-        options: [
-          'None',
-          'Google',
-          'Twitter',
-          'LinkedIn',
-          'Custom OAuth2.0',
-          'Custom OAuth1.0',
-          'OAuth2 Client Credentials',
-        ],
+        options: [...OAUTH_SERVICES],
         value: 'None',
         events: {
           change: (event) => this.handleServiceChange(event.target.value),
@@ -645,15 +542,7 @@ export class APICall extends Component {
    * @returns {string} The internal service name corresponding to the selected service.
    */
   private mapSelectedService(service) {
-    const serviceMap = {
-      'OAuth2 Client Credentials': 'oauth2_client_credentials',
-      'Custom OAuth1.0': 'oauth1',
-      'Custom OAuth2.0': 'oauth2',
-      Google: 'google',
-      LinkedIn: 'linkedin',
-      Twitter: 'twitter',
-    };
-    return serviceMap[service] || service.toLowerCase();
+    return mapServiceNameToInternal(service);
   }
 
   /**
@@ -677,13 +566,26 @@ export class APICall extends Component {
 
     // Find the selected connection object using the ID
     const selectedConnection = this.oauthConnections[selectedConnectionId];
+    console.log('[OAuth Auth] Selected connection:', selectedConnection);
+
     const synthesizedOauthInfo = this.getConnectionOauthInfo(selectedConnection, selectedConnectionId);
+    console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
+
     if (!selectedConnection || !synthesizedOauthInfo) {
       toast('Selected OAuth connection details not found.', 'Error', 'alert');
       console.error(
         'Selected connection or its oauth_info not found for ID:',
         selectedConnectionId,
+        'Connection:',
+        selectedConnection
       );
+      return;
+    }
+
+    // Validate that required fields are present
+    if (!synthesizedOauthInfo.service) {
+      console.error('[OAuth Auth] Missing service field in oauth_info:', synthesizedOauthInfo);
+      toast('OAuth connection is missing required service information. Please edit and save the connection again.', 'Error', 'alert');
       return;
     }
 
@@ -753,7 +655,7 @@ export class APICall extends Component {
       connectionType === 'oauth2_client_credentials' || serviceType === 'oauth2_client_credentials';
 
     // Derive human-friendly service for UI checks
-    const derivedService = this.mapInternalToServiceName(serviceType || connectionType || '');
+    const derivedService = mapInternalToServiceName(serviceType || connectionType || '');
 
     // --- Basic Payload Validation (on the fetched payload) ---
     let isValid = true;
@@ -1634,7 +1536,7 @@ export class APICall extends Component {
       const selectedOauthInfo = this.getConnectionOauthInfo(selectedConn, selectedValue);
       if (selectedOauthInfo?.service) {
         // Store a user-friendly value for legacy consumers
-        this.data.oauthService = this.mapInternalToServiceName(selectedOauthInfo.service);
+        this.data.oauthService = mapInternalToServiceName(selectedOauthInfo.service);
       } else {
         this.data.oauthService = 'None';
       }
@@ -1657,11 +1559,9 @@ export class APICall extends Component {
     // Fetch existing OAuth connections ONLY when editing to avoid modal delay on "Add New"
     if (!isNone) {
       try {
-        console.log('[OAuth Edit] Fetching OAuth connections for editing...');
-        const response = await fetch('/api/page/vault/oauth-connections');
-        if (!response.ok) throw new Error('Failed to fetch OAuth connections');
-        this.oauthConnections = (await response.json()) || {};
-        console.log('[OAuth Edit] Fetched connections for editing:', this.oauthConnections);
+        console.log('[OAuth Edit] Getting OAuth connections from workspace cache for editing...');
+        this.oauthConnections = await this.workspace.getOAuthConnections();
+        console.log('[OAuth Edit] Retrieved connections for editing:', this.oauthConnections);
       } catch (error) {
         console.error('Error fetching OAuth connections:', error);
         toast('Error fetching connections. Please try again.', 'Error', 'alert');
@@ -1690,122 +1590,21 @@ export class APICall extends Component {
 
     // Determine service name and platform from the extracted settings
     const currentService = currentSettings
-      ? this.mapInternalToServiceName(currentOauthInfo.service)
+      ? mapInternalToServiceName(currentOauthInfo.service)
       : 'None';
     const currentPlatform = currentOauthInfo.platform || '';
 
-    // --- Log the specific values being used for the form HTML (read from currentOauthInfo) ---
+    // Extract values needed for later use in onDOMReady
     const consumerKeyValue = currentOauthInfo.consumerKey || '';
     const consumerSecretValue = currentOauthInfo.consumerSecret || '';
-    // ... (add logs for other key fields if needed for debugging) ...
 
-    // --- Define Static HTML Content --- (Read values from extracted variables)
-    const formHTML = `
-      <form id="oauth-connection-form" class="grid gap-4 py-4">
-        <!-- Name Field -->
-        <div class="grid grid-cols-4 items-center gap-4 form-group">
-          <label for="name" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name <span class="text-red-500">*</span></label>
-          <div class="col-span-3">
-            <input type="text" id="name" name="name" value="${currentName}" required 
-                   class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" />
-          </div>
-        </div>
-        <!-- Platform Field -->
-        <div class="grid grid-cols-4 items-center gap-4 form-group">
-          <label for="platform" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Platform <span class="text-red-500">*</span></label>
-          <div class="col-span-3">
-            <input type="text" id="platform" name="platform" value="${currentPlatform}" required
-                   placeholder="e.g., Google Mail, HubSpot CRM"
-                   class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" />
-          </div>
-        </div>
-        <!-- OAuth Service Selector -->
-        <div class="grid grid-cols-4 items-center gap-4 form-group">
-          <label for="oauthService" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Auth Service <span class="text-red-500">*</span></label>
-          <div class="col-span-3">
-            <select id="oauthService" name="oauthService" required
-                    class="input flex items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm h-9 w-full outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500">
-              ${[
-        'None',
-        'Google',
-        'Twitter',
-        'LinkedIn',
-        'Custom OAuth2.0',
-        'Custom OAuth1.0',
-        'OAuth2 Client Credentials',
-      ]
-        .map(
-          (service) =>
-            `<option value="${service}" ${service === currentService ? 'selected' : ''
-            }>${service}</option>`,
-        )
-        .join('')}
-            </select>
-          </div>
-        </div>
-        <!-- OAuth 2.0 Fields Container -->
-        <div id="oauth2-fields" class="contents hidden">
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="authorizationURL" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Auth URL</label>
-              <div class="col-span-3"><input type="text" id="authorizationURL" name="authorizationURL" value="${currentOauthInfo.authorizationURL || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="tokenURL" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Token URL</label>
-              <div class="col-span-3"><input type="text" id="tokenURL" name="tokenURL" value="${currentOauthInfo.tokenURL || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="clientID" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Client ID</label>
-              <div class="col-span-3"><input type="text" id="clientID" name="clientID" value="${currentOauthInfo.clientID || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="clientSecret" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Client Secret</label>
-              <div class="col-span-3"><input type="password" id="clientSecret" name="clientSecret" value="${currentOauthInfo.clientSecret || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-             <div class="grid grid-cols-4 items-center gap-4 form-group" data-oauth-field="scope">
-              <label for="scope" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Scopes</label>
-              <div class="col-span-3"><textarea id="scope" name="scope" class="input w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 text-sm px-3 py-2 border-gray-300 focus:border-b-2 focus:border-b-blue-500 min-h-[70px] resize-none">${currentOauthInfo.scope || ''
-      }</textarea></div>
-            </div>
-        </div>
-
-        <!-- OAuth 1.0a Fields Container -->
-        <div id="oauth1-fields" class="contents hidden">
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="requestTokenURL" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Request Token URL</label>
-              <div class="col-span-3"><input type="text" id="requestTokenURL" name="requestTokenURL" value="${currentOauthInfo.requestTokenURL || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="accessTokenURL" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Access Token URL</label>
-              <div class="col-span-3"><input type="text" id="accessTokenURL" name="accessTokenURL" value="${currentOauthInfo.accessTokenURL || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="userAuthorizationURL" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">User Auth URL</label>
-              <div class="col-span-3"><input type="text" id="userAuthorizationURL" name="userAuthorizationURL" value="${currentOauthInfo.userAuthorizationURL || ''
-      }" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="consumerKey" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Consumer Key</label>
-              <div class="col-span-3"><input type="text" id="consumerKey" name="consumerKey" value="${consumerKeyValue}" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4 form-group">
-              <label for="consumerSecret" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Consumer Secret</label>
-              <div class="col-span-3"><input type="password" id="consumerSecret" name="consumerSecret" value="${consumerSecretValue}" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
-            </div>
-        </div>
-
-        <!-- Callback URL Display Container -->
-        <div id="callback-url-display" class="grid grid-cols-4 items-center gap-4 hidden">
-            <label class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Callback URL</label>
-            <div class="col-span-3 text-sm text-gray-500 break-all"></div>
-        </div>
-      </form>
-    `;
+    // Generate form HTML using helper function
+    const formHTML = generateOAuthModalHTML(
+      currentName,
+      currentPlatform,
+      currentService,
+      currentOauthInfo
+    );
 
     // Show dialog using twEditValuesWithCallback, passing HTML content
     await twEditValuesWithCallback(
@@ -1990,7 +1789,7 @@ export class APICall extends Component {
 
               try {
                 const isCreating = isNone;
-                const connectionId = isCreating ? `OAUTH_${APICall.uid()}_TOKENS` : currentValue;
+                const connectionId = isCreating ? `OAUTH_${generateOAuthId()}_TOKENS` : currentValue;
                 const service = this.mapServiceNameToInternal(formData.oauthService);
                 const type = ['Custom OAuth1.0', 'Twitter'].includes(formData.oauthService)
                   ? 'oauth'
@@ -2040,22 +1839,7 @@ export class APICall extends Component {
 
                 // 3. Save only the constructed auth_settings
                 //console.log('[APICall Save] Saving connection settings:', JSON.stringify(authSettingsToSave, null, 2));
-                const response = await fetch('/api/page/vault/oauth-connections', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    entryId: connectionId,
-                    data: authSettingsToSave, // Send only the settings part
-                  }),
-                });
-
-                if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
-                  throw new Error(
-                    errorData.error ||
-                    `Failed to save OAuth connection (Status: ${response.status})`,
-                  );
-                }
+                await saveOAuthConnection(connectionId, authSettingsToSave);
                 closeTwDialog(dialogElm); // Manually close dialog on success
                 toast(
                   isNone ? 'Connection created successfully' : 'Connection updated successfully',
@@ -2064,7 +1848,8 @@ export class APICall extends Component {
                 // Clear auth check cache for the edited/created connection
                 this.authCheckPromises.delete(connectionId);
 
-                // Fetch latest connections and update settings definition
+                // Invalidate workspace cache and update connection options
+                this.workspace.invalidateOAuthConnectionsCache();
                 await this.updateOAuthConnectionOptions();
 
                 // Update component data and refresh UI elements
@@ -2175,25 +1960,8 @@ export class APICall extends Component {
    */
   private async updateOAuthConnectionOptions() {
     try {
-      const response = await fetch('/api/page/vault/oauth-connections');
-      if (!response.ok) throw new Error('Failed to fetch OAuth connections');
-
-      this.oauthConnections = (await response.json()) || {};
-
-      // Normalize: parse string values
-      Object.keys(this.oauthConnections).forEach((id) => {
-        const value = this.oauthConnections[id];
-        if (typeof value === 'string') {
-          try {
-            this.oauthConnections[id] = JSON.parse(value);
-          } catch (e) {
-            console.warn(
-              `[APICall.updateOAuthConnectionOptions] Could not parse stringified connection for id=${id}:`,
-              e,
-            );
-          }
-        }
-      });
+      // Force refresh to get latest connections
+      this.oauthConnections = await this.workspace.getOAuthConnections(true);
 
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
@@ -2271,10 +2039,7 @@ export class APICall extends Component {
     return map[internalName] || internalName;
   }
 
-  // Static uid can remain private if only used internally
-  private static uid(): string {
-    return (Date.now() + Math.random()).toString(36).replace('.', '').toUpperCase();
-  }
+
 
   /**
    * Clears the authentication state for a specific connection

@@ -1,12 +1,13 @@
+import { mapStatusCodeToMessage } from '@src/shared/utils/oauth.utils';
+import axios from 'axios';
+import crypto from 'crypto';
 import express from 'express';
 import passport from 'passport';
-import { dynamicStrategyInitialization } from '../../middlewares/dynamicStrategy.mw';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
+import { dynamicStrategyInitialization } from '../../middlewares/dynamicStrategy.mw';
 import { getTeamSettingsObj, saveTeamSettingsObj } from '../../services/team-data.service';
-const router = express.Router();
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
-import crypto from 'crypto';
-import axios from 'axios';
+const router = express.Router();
 
 // Websites that don't provide expires_in But estimated times in docs.
 const PROVIDER_EXPIRATION_TIMES = {
@@ -17,10 +18,6 @@ const PROVIDER_EXPIRATION_TIMES = {
   // Add other providers here with their specific expiration times
   // 'api.example.com': { expiresInSeconds: X, bufferInSeconds: Y }
 };
-
-// ------------------------------
-// Internal helpers (pure, no side-effects)
-// ------------------------------
 
 /**
  * Returns the provider configuration object to compare against request body.
@@ -711,23 +708,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
   }
 });
 
-// This function maps HTTP status codes to user-friendly error messages
-function mapStatusCodeToMessage(statusCode) {
-  switch (statusCode) {
-    case 400:
-      return 'Bad Request. Please verify your request and try again.';
-    case 401:
-      return 'Unauthorized. Please ensure you are logged in and have the necessary permissions.';
-    case 403:
-      return 'Forbidden. Access is denied.';
-    case 404:
-      return 'Not Found. The requested resource was not found.';
-    case 500:
-      return 'Internal Server Error. Something went wrong on our end.';
-    default:
-      return 'An unexpected error occurred. Please try again.';
-  }
-}
+
 
 async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
   try {

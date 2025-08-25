@@ -1,6 +1,11 @@
 // src/webappv2/pages/vault/oauth-connections.tsx
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
 import { useToast } from '@src/react/shared/hooks/useToast';
+import {
+  extractPlatformFromUrl,
+  getBackendOrigin,
+  mapOAuthTypeDisplay,
+} from '@src/shared/utils/oauth.utils';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 import { Circle, Copy, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -64,15 +69,9 @@ export function OAuthConnections() {
     (event: MessageEvent) => {
       console.log('[OAuthConnections] handleAuthMessage received event:', event.data);
       // Environment-aware origin check
-      const computeBackendOrigin = () => {
-        const { protocol, hostname } = window.location;
-        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-        return isLocal ? `${protocol}//localhost:4000` : window.location.origin;
-      };
-
       const allowedOrigins = new Set<string>([
         window.location.origin, // frontend origin
-        computeBackendOrigin(), // backend origin
+        getBackendOrigin(), // backend origin
       ]);
 
       if (!allowedOrigins.has(event.origin)) {
@@ -330,56 +329,6 @@ export function OAuthConnections() {
 
   // --- Helper Functions ---
 
-  // Function to extract platform from URL
-  const extractPlatformFromUrl = (url?: string): string => {
-    if (!url) return 'unknown';
-    try {
-      const hostname = new URL(url).hostname;
-      // Match common domains and extract the main part
-      const matches = hostname.match(
-        /(?:^|\.)?([a-z0-9-]+)\.(?:com|net|org|io|co|app|ai|dev|cloud)(?:$|\.)/i,
-      );
-      if (matches && matches[1]) {
-        // Handle common aliases or specific cases
-        const platformName = matches[1].toLowerCase();
-        if (platformName === 'google') return 'Google'; // Normalize
-        if (platformName === 'linkedin') return 'LinkedIn'; // Normalize
-        if (platformName === 'twitter' || platformName === 'x') return 'Twitter/X'; // Normalize
-        return platformName.charAt(0).toUpperCase() + platformName.slice(1); // Capitalize
-      }
-      // Fallback for less common TLDs or structures (e.g., just the part before the first dot)
-      const parts = hostname.split('.');
-      if (parts.length > 1) {
-        const potentialPlatform = parts[0].toLowerCase();
-        if (
-          potentialPlatform !== 'www' &&
-          potentialPlatform !== 'api' &&
-          potentialPlatform !== 'app'
-        ) {
-          return potentialPlatform.charAt(0).toUpperCase() + potentialPlatform.slice(1);
-        }
-      }
-      return 'unknown'; // Fallback if no good match
-    } catch (e) {
-      console.warn('Could not parse URL for platform:', url, e);
-      return 'invalid_url';
-    }
-  };
-
-  // Helper to map type to display string
-  const mapTypeDisplay = (type: string): string => {
-    switch (type) {
-      case 'oauth':
-        return 'OAuth1';
-      case 'oauth2':
-        return 'OAuth2';
-      case 'oauth2_client_credentials':
-        return 'Client Creds';
-      default:
-        return 'Unknown';
-    }
-  };
-
   // Function to determine the platform display value
   const getPlatformDisplay = (conn: OAuthConnection): string => {
     // 1. Use explicitly set platform if available
@@ -489,7 +438,7 @@ export function OAuthConnections() {
                         className="inline-flex h-5 items-center justify-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]"
                         title={conn.type}
                       >
-                        {mapTypeDisplay(conn.type)}
+                        {mapOAuthTypeDisplay(conn.type)}
                       </span>
                     </td>
                     {/* Status Column */}
@@ -628,18 +577,4 @@ export function OAuthConnections() {
       />
     </div>
   );
-}
-
-// Helper function to map internal service name back to display name
-function mapInternalToServiceName(internalName: string): string {
-  const map: Record<string, string> = {
-    google: 'Google',
-    twitter: 'Twitter',
-    linkedin: 'LinkedIn',
-    oauth2: 'Custom OAuth2.0',
-    oauth1: 'Custom OAuth1.0',
-    oauth2_client_credentials: 'OAuth2 Client Credentials',
-    none: 'None',
-  };
-  return map[internalName] || internalName; // Fallback
 }
