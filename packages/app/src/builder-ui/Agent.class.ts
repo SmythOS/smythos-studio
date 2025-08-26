@@ -506,6 +506,7 @@ export class Agent extends EventEmitter {
         [EMBODIMENT_TYPE.LLM]: 'true',
         [EMBODIMENT_TYPE.API.toUpperCase()]: 'true',
         [EMBODIMENT_TYPE.MCP]: '{"isEnabled":true}',
+        [EMBODIMENT_TYPE.A2A]: 'true',
         [EMBODIMENT_TYPE.ALEXA]: 'true',
       };
       const currentSettings = await getAgentSettings(agentId);

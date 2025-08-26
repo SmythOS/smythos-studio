@@ -1,5 +1,5 @@
 import { VaultSecret } from '../routes/router.utils';
-import { includeAxiosAuth, smythAPIReq, smythVaultAPI } from '../utils';
+import { includeAxiosAuth, smythVaultAPI } from '../utils';
 
 export async function setVaultSecret({ token, teamId, key, value, metadata, secretId }) {
   if (!token) {

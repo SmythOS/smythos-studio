@@ -201,6 +201,7 @@ const shouldConfigurationVisible = (
     !agentData.isReadOnlyAccess &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.API.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.MCP.toLocaleLowerCase() &&
+    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.A2A.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.ALEXA.toLocaleLowerCase() &&
     // NOTE: TEMPORARY DISABLE CONFIGURATION FOR AGENT LLM
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.LLM.toLocaleLowerCase()

@@ -86,6 +86,10 @@ interface Props {
    */
   onOpenFormPanel: () => void;
   /**
+   * Called when the user requests to open the A2A panel.
+   */
+  onOpenA2APanel: () => void;
+  /**
    * If true, the card is visible; otherwise, hidden.
    */
   isVisible: boolean;
@@ -109,6 +113,7 @@ function PostDeploymentModal({
   onOpenApiPanel,
   onOpenMcpPanel,
   onOpenLovablePanel,
+  onOpenA2APanel,
   isVisible,
 }: Props) {
   const { workspace, allDeployments } = useDeploymentSidebarCtx();
@@ -249,6 +254,8 @@ function PostDeploymentModal({
         return 'api-embodiment';
       case 'mcp':
         return 'mcp-embodiment';
+      case 'a2a':
+        return 'a2a-embodiment';
       case 'alexa':
         return 'alexa-embodiment';
       default:
@@ -414,6 +421,20 @@ function PostDeploymentModal({
           variant="tertiary"
           className="px-3 py-1 h-8 text-xs"
           handleClick={onOpenMcpPanel}
+          aria-label="Get URL"
+          type="button"
+        />,
+      );
+    }
+    // A2A
+    else if (key === EMBODIMENT_TYPE.A2A) {
+      buttons.push(
+        <Button
+          key={'get-url-' + EMBODIMENT_TYPE.A2A}
+          label="Get URL"
+          variant="tertiary"
+          className="px-3 py-1 h-8 text-xs"
+          handleClick={onOpenA2APanel}
           aria-label="Get URL"
           type="button"
         />,

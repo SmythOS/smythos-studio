@@ -20,6 +20,7 @@ export enum EMBODIMENT_TYPE {
   CHAT_BOT = 'chatbot',
   API = 'api',
   MCP = 'mcp',
+  A2A = 'a2a',
   DISCORD = 'discord',
   FORM = 'form',
   LLM = 'llm', // Add this line

@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { FaCommentDots, FaDiscord, FaGear, FaIdCard, FaRobot } from 'react-icons/fa6';
-import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
+import { A2AIcon, AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
@@ -11,6 +11,7 @@ export const AlwaysAvailableEmbodiments = [
   'API',
   EMBODIMENT_TYPE.MCP,
   EMBODIMENT_TYPE.ALEXA,
+  EMBODIMENT_TYPE.A2A,
   // TODO: Uncomment this when Ingrid provides the updated prompt for integration
   // EMBODIMENT_TYPE.LOVABLE,
 ];
@@ -25,6 +26,8 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
       return <FaGear className={classes} />;
     case EMBODIMENT_TYPE.MCP:
       return <MCPIcon className={classes} />;
+    case EMBODIMENT_TYPE.A2A:
+      return <A2AIcon className={classes} />;
     case EMBODIMENT_TYPE.DISCORD:
       return <FaDiscord className={classes} />;
     case EMBODIMENT_TYPE.FORM:
@@ -48,6 +51,8 @@ export const getEmbodimentTitle = (embodimentType: string): string => {
       return 'MCP';
     case EMBODIMENT_TYPE.FORM:
       return 'Form Preview';
+    case EMBODIMENT_TYPE.A2A:
+      return 'A2A';
     default:
       return embodimentType;
   }
@@ -63,6 +68,8 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
       return 'Enable Agent to communicate with each other using a set of definitions and protocols.';
     case EMBODIMENT_TYPE.MCP:
       return 'Enable MCP Client to communicate with your agent.';
+    case EMBODIMENT_TYPE.A2A:
+      return 'Enable A2A Client to communicate with your agent.';
     case EMBODIMENT_TYPE.ALEXA:
       return 'Enable Alexa to communicate with your agent.';
     case EMBODIMENT_TYPE.LLM:
@@ -86,6 +93,8 @@ export const getEmbodimentDataAttribute = (embodimentType: string): string => {
       return 'api-embodiment-card';
     case EMBODIMENT_TYPE.MCP:
       return 'mcp-embodiment-card';
+    case EMBODIMENT_TYPE.A2A:
+      return 'a2a-embodiment-card';
     case EMBODIMENT_TYPE.ALEXA:
       return 'alexa-embodiment-card';
     case EMBODIMENT_TYPE.LLM:

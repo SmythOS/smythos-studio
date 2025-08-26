@@ -36,6 +36,7 @@ const embodimentHandlers = {
   openAPIEmbodiment: null,
   openFormPreviewEmbodiment: null,
   openMCPEmbodiment: null,
+  openA2AEmbodiment: null,
 };
 
 // Add this export to allow setting the handlers
@@ -516,6 +517,13 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openMCPEmbodiment?.();
+          break;
+
+        case 'a2a':
+          PostHog.track('a2a_embodiment_click', {
+            position: 'embodiment sidebar tab',
+          });
+          embodimentHandlers.openA2AEmbodiment?.();
           break;
       }
     });
@@ -1913,6 +1921,7 @@ function getDisplayHeading(key: string, title: string): string {
     agent_skill: 'Form Preview',
     alexa: 'Publish as Alexa Skill',
     mcp: 'MCP',
+    a2a: 'A2A',
   };
 
   // Check if it's one of our special test cases
@@ -1944,6 +1953,7 @@ function getNavText(key: string, title: string): string {
     agent_skill: 'Form',
     alexa: 'Alexa',
     mcp: 'MCP',
+    a2a: 'A2A',
   };
 
   // Check if it's one of our special test cases

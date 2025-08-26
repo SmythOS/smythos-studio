@@ -528,6 +528,23 @@ export const MCPIcon = (props) => (
   </svg>
 );
 
+
+export const A2AIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 64 64"
+    width="20px"
+    height="20px"
+    fill="#000000"
+    {...props}
+  >
+    <circle cx="32" cy="32" r="30" stroke="#000000" strokeWidth="4" fill="none" />
+    <rect x="16" y="22" width="32" height="20" rx="6" ry="6" fill="#000000" />
+    <circle cx="26" cy="32" r="3" fill="white" />
+    <circle cx="38" cy="32" r="3" fill="white" />
+  </svg>
+);
+
 export const AlexaIcon = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

@@ -158,6 +158,11 @@ export const EMBODIMENT_DESCRIPTIONS: Record<string, EmbodimentDescription> = {
     tooltipTitle: 'MCP',
     description: 'Use your agent as an MCP for seamless integration with existing MCP workflows.',
   },
+  a2a: {
+    title: 'A2A',
+    tooltipTitle: 'A2A',
+    description: 'Use your agent as an A2A for seamless integration with existing A2A workflows.',
+  },
 };
 
 export const COMP_NAMES = {

@@ -34,6 +34,7 @@ import { CloseIcon } from '../../../../shared/components/svgs';
 import Modal from '../../../../shared/components/ui/modals/Modal';
 import { EMBODIMENT_TYPE } from '../../../../shared/enums';
 import { Embodiment } from '../../../../shared/types/api-results.types';
+import A2AEmbodimentModal from '../../../embodiments/a2a-embodiment-modal';
 import AlexaEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
 import ApiEmbodimentModal from '../../../embodiments/api-embodiment-modal';
 import ChatbotEmbodimentModal from '../../../embodiments/chatbot-embodiment-modal';
@@ -83,7 +84,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   const [hasDeployment, setHasDeployment] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable' | 'form';
+  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable' | 'form' | 'a2a';
   const [openPanel, setOpenPanel] = useState<PanelType>('none');
   const [dialogModal, setDialogModal] = useState<{
     open: boolean;
@@ -460,6 +461,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       {openPanel === 'api' && <ApiEmbodimentModal onClose={handleClosePanel} />}
       {openPanel === 'mcp' && <McpEmbodimentModal onClose={handleClosePanel} />}
       {openPanel === 'lovable' && <LovableEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === 'a2a' && <A2AEmbodimentModal onClose={handleClosePanel} />}
       {dialogModal && dialogModal.open && (
         <Modal
           isOpen={dialogModal.open}
@@ -855,6 +857,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       onOpenApiPanel={() => handleOpenPanel('api')}
                       onOpenMcpPanel={() => handleOpenPanel('mcp')}
                       onOpenLovablePanel={() => handleOpenPanel('lovable')}
+                      onOpenA2APanel={() => handleOpenPanel('a2a')}
                       isVisible={isCollapsed && !isAnyOverlayOpen}
                     />
                   </div>
