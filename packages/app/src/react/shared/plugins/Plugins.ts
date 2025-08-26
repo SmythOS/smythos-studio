@@ -9,6 +9,7 @@ export enum PluginTarget {
   AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
   BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
   BuilderSREComponents = 'builder/sreComponents',
+  AgentsPageSection = 'agentsPage/section',
 }
 
 export enum PluginType {
