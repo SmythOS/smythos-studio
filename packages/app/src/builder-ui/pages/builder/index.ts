@@ -9,6 +9,7 @@ import {
   renderMobileHandler,
 } from '@src/builder-ui/ui/react-injects';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
+import { builderPageTutorialWorkflow } from '../../tutorials';
 import { popupValuesDialog } from '../../ui/tw-dialogs';
 import { delay } from '../../utils';
 import { registerCanvasContextMenu } from '../../workspace/CanvasContextMenu';
@@ -247,6 +248,10 @@ export default async function scripts() {
 
   workspace.addEventListener('AgentReady', async (e) => {
     console.log('AgentReady');
+
+    const workflow = builderPageTutorialWorkflow();
+    if (workflow) workflow?.start();
+
     dbg.init();
   });
 
