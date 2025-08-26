@@ -1,9 +1,12 @@
 import { useOnboarding } from '@src/react/features/agents/contexts/OnboardingContext';
 import OnboardingTask from '@src/react/features/onboarding/components/agent-onboarding-section/OnboardingTask';
+import { Spinner } from '@src/react/shared/components/ui/spinner';
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { OnboardingTaskType } from '@src/react/shared/types/onboard.types';
-import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GoChevronDown } from 'react-icons/go';
-// import CreateMemberModal from 'src/react/features/teams/modals/create-member';
 
 const ProgressBar = ({ progress }): JSX.Element => {
   return (
@@ -39,12 +42,27 @@ const ChecklistHeader = ({ progress, isChecklistVisible, onToggleChecklist, onDi
 
 export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
   // Always call all hooks first, regardless of any conditional logic
-  const { tasks, isOnboardLoading, isInviteMemberModalOpen, setInviteMemberModalOpen } =
-    useOnboarding();
+  const {
+    tasks,
+    isOnboardLoading,
+    isInviteMemberModalOpen,
+    setInviteMemberModalOpen,
+    isInviteSpaceMemberModalOpen,
+    setInviteSpaceMemberModalOpen,
+  } = useOnboarding();
 
   const [isChecklistVisible, setIsChecklistVisible] = useState(
     (window?.localStorage?.getItem('showOnboardingChecklist') ?? 'true') === 'true',
   );
+
+  // Memoize the modal close handlers to prevent re-renders
+  const handleModalClose = useCallback(() => {
+    setInviteMemberModalOpen(false);
+  }, [setInviteMemberModalOpen]);
+
+  const handleSpaceMemberModalClose = useCallback(() => {
+    setInviteSpaceMemberModalOpen(false);
+  }, [setInviteSpaceMemberModalOpen]);
 
   // Memoize progress calculation
   const progress = useMemo(() => {
@@ -57,7 +75,7 @@ export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
     return tasks
       .sort((a, b) => (a.completed ? 1 : b.completed ? -1 : 0))
       .map((task) => (
-        <div key={task.title} className="h-full">
+        <div key={task.title} className="flex h-full">
           <OnboardingTask {...task} />
         </div>
       ));
@@ -66,10 +84,13 @@ export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
   // Memoize the toggle function to prevent unnecessary re-renders
   const onToggleChecklist = useMemo(() => {
     return () => {
-      setIsChecklistVisible(!isChecklistVisible);
-      window?.localStorage?.setItem('showOnboardingChecklist', (!isChecklistVisible).toString());
+      setIsChecklistVisible((prev) => {
+        const newValue = !prev;
+        window?.localStorage?.setItem('showOnboardingChecklist', newValue.toString());
+        return newValue;
+      });
     };
-  }, [isChecklistVisible]);
+  }, []);
 
   // Early return for loading state
   if (isOnboardLoading) {
@@ -103,19 +124,69 @@ export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
       />
 
       {isChecklistVisible && (
-        <div className="grid grid-cols-4 gap-4 max-sm:grid-cols-1 max-lg:grid-cols-2 grid-auto-rows-1">
+        <div className="grid grid-cols-4 gap-4 max-sm:grid-cols-1 max-lg:grid-cols-2 auto-rows-fr">
           {taskList}
         </div>
       )}
 
-      {/* TODO:ENT: add this */}
-      {/* {isInviteMemberModalOpen &&
+      {/* Enterprise: render invite member modal via plugin system if provided */}
+      {isInviteMemberModalOpen &&
         createPortal(
           <Suspense fallback={<Spinner />}>
-            <CreateMemberModal onClose={() => setInviteMemberModalOpen(false)} />
+            {(() => {
+              // Prefer function-based plugin so we can pass onClose
+              const functionPlugins = plugins.getPluginsByTarget(
+                PluginTarget.Onboarding,
+                PluginType.Function,
+              ) as Array<{
+                type: PluginType.Function;
+                function: (args: { onClose: () => void }) => ReactNode;
+              }>;
+
+              if (functionPlugins.length > 0) {
+                const modalFactory = functionPlugins[0].function;
+                return modalFactory({ onClose: handleModalClose });
+              }
+
+              // Fallback: component plugin (no props). Provider must handle closing.
+              const componentPlugins = plugins.getPluginsByTarget(
+                PluginTarget.Onboarding,
+                PluginType.Component,
+              ) as Array<{ type: PluginType.Component; component: ReactNode }>;
+              return componentPlugins[0]?.component ?? null;
+            })()}
           </Suspense>,
           document.body,
-        )} */}
+        )}
+      {/* Enterprise: render space member modal via plugin system if provided */}
+      {isInviteSpaceMemberModalOpen &&
+        createPortal(
+          <Suspense fallback={<Spinner />}>
+            {(() => {
+              // Prefer function-based plugin so we can pass onClose
+              const functionPlugins = plugins.getPluginsByTarget(
+                PluginTarget.OnboardingSpaceMember,
+                PluginType.Function,
+              ) as Array<{
+                type: PluginType.Function;
+                function: (args: { onClose: () => void }) => ReactNode;
+              }>;
+
+              if (functionPlugins.length > 0) {
+                const modalFactory = functionPlugins[0].function;
+                return modalFactory({ onClose: handleSpaceMemberModalClose });
+              }
+
+              // Fallback: component plugin (no props). Provider must handle closing.
+              const componentPlugins = plugins.getPluginsByTarget(
+                PluginTarget.OnboardingSpaceMember,
+                PluginType.Component,
+              ) as Array<{ type: PluginType.Component; component: ReactNode }>;
+              return componentPlugins[0]?.component ?? null;
+            })()}
+          </Suspense>,
+          document.body,
+        )}
     </div>
   );
 };

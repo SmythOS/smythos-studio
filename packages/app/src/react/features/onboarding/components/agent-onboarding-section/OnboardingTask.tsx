@@ -35,18 +35,16 @@ const TaskCard = React.memo(
       <div
         onClick={handleClick}
         className={classNames(
-          'relative border border-solid flex items-start rounded-lg p-3 gap-2 bg-[#F9FAFB] border-[#D1D5DB] group hover:border-v2-blue hover:shadow-md cursor-pointer h-[120px]',
+          'relative border border-solid flex flex-col justify-between rounded-lg p-3 bg-[#F9FAFB] border-[#D1D5DB] group hover:border-v2-blue hover:shadow-md cursor-pointer min-h-[120px] h-full',
         )}
       >
-        <div className="flex flex-col w-full">
-          <img ref={imgRef} width={23} height={23} alt="onboarding-task" loading="lazy" />
-          <h3 className={classNames('font-medium', 'text-base', 'my-1', 'text-[#0F172A]')}>
-            {title}
-          </h3>
+        <div className="flex flex-col flex-1">
+          <div className="flex items-start justify-between">
+            <img ref={imgRef} width={23} height={23} alt="onboarding-task" loading="lazy" />
+            {completed && <span className="mif-checkmark text-sm text-v2-blue"></span>}
+          </div>
+          <h3 className={classNames('font-medium text-base my-1 text-[#0F172A]')}>{title}</h3>
           <p className={classNames('text-sm text-[#6B7280] max-w-[95%]')}>{description}</p>
-          {completed && (
-            <span className="mif-checkmark text-sm text-v2-blue absolute top-0 right-0"></span>
-          )}
         </div>
         <span className="mif-arrow-right text-[#6B7280] text-sm group-hover:text-v2-blue absolute bottom-4 right-4"></span>
       </div>
@@ -63,7 +61,7 @@ const OnboardingTask = ({
   icon,
 }: OnboardingTaskProps) => {
   const saveUserSettingsMutation = useMutateOnboardingData();
-  const { setTaskCompleted, setInviteMemberModalOpen } = useOnboarding();
+  const { setTaskCompleted, setMemberModalState } = useOnboarding();
 
   const completeTask = (button) => {
     const effectiveType = button.type || type;
@@ -84,7 +82,7 @@ const OnboardingTask = ({
 
   const handleInviteTeamMembers = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setInviteMemberModalOpen(true);
+    setMemberModalState(true);
   };
 
   if (type === OnboardingTaskType.INVITE_TEAM_MEMBERS) {

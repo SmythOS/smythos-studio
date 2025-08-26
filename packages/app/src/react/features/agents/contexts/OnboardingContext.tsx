@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
+import { teamAPI as ceTeamAPI } from '@react/features/teams/clients';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { OnboardingTaskProps, OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { PRICING_PLANS_V4 } from '@src/react/shared/enums';
-import { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { createContext, FC, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useGetOnboardingData } from '../../onboarding/hooks/useGetUserOnboardingSettings';
 import { onboardingTasks } from '../data/onboarding-tasks';
 
@@ -28,12 +30,15 @@ type OnboardingContextType = {
 
   isInviteMemberModalOpen: boolean;
   setInviteMemberModalOpen: (isInviteMemberModalOpen: boolean) => void;
+  setMemberModalState: (isOpen: boolean) => void;
+  isInviteSpaceMemberModalOpen: boolean;
+  setInviteSpaceMemberModalOpen: (isInviteSpaceMemberModalOpen: boolean) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export const OnboardingProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { userInfo, loading } = useAuthCtx();
+  const { userInfo, loading, currentUserTeam } = useAuthCtx();
   const [isOnboardingCompleted, setOnboardingCompleted] = useState(false);
   const [isToastOpen, setToastOpen] = useState(false);
   const { data: userSettings, isLoading } = useGetOnboardingData({
@@ -44,12 +49,31 @@ export const OnboardingProvider: FC<{ children: ReactNode }> = ({ children }) =>
       refetchOnReconnect: false,
     },
   });
+
+  // Preload team roles data for faster modal opening
+  useQuery({
+    queryKey: ['team_roles'],
+    queryFn: () => ceTeamAPI.getTeamRoles(),
+    enabled: !!currentUserTeam, // Only fetch when user has a team
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
   const [tasks, setTasks] = useState<OnboardingTaskProps[]>([]);
   const [lastCompletedTask, setLastCompletedTask] = useState<OnboardingTaskType | null>(null);
   const [nextTask, setNextTask] = useState<OnboardingTaskType | null>(null);
   const [isOnboardingDismissed, setOnboardingDismissed] = useState(false);
   const [isOnboardingFinished, setIsOnboardingFinished] = useState(false);
   const [isInviteMemberModalOpen, setInviteMemberModalOpen] = useState(false);
+  const [isInviteSpaceMemberModalOpen, setInviteSpaceMemberModalOpen] = useState(false);
+
+  const setMemberModalState = useCallback((isOpen: boolean) => {
+    if (currentUserTeam?.parentId === null) {
+      setInviteMemberModalOpen(true);
+    } else {
+      setInviteSpaceMemberModalOpen(true);
+    }
+  }, []);
 
   const setTasksWrapper = (tasks: OnboardingTaskProps[]) => {
     setTasks(tasks);
@@ -149,6 +173,9 @@ export const OnboardingProvider: FC<{ children: ReactNode }> = ({ children }) =>
         setOnboardingDismissed,
         isInviteMemberModalOpen,
         setInviteMemberModalOpen,
+        setMemberModalState,
+        isInviteSpaceMemberModalOpen,
+        setInviteSpaceMemberModalOpen,
       }}
     >
       {children}

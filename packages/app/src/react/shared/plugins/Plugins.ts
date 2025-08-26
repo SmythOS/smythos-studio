@@ -2,6 +2,7 @@ export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
   TopMenuItem = 'topMenuItem',
   Onboarding = 'onboarding',
+  OnboardingSpaceMember = 'onboarding/spaceMember',
   SidebarMenuItems = 'sidebarMenuItems',
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
   AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
