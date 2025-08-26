@@ -32,16 +32,32 @@ export default class LocalStorage implements StaticStorage {
 
   constructor(protected readonly accessControl: StorageACL) {
     // Base storage path from config or default to user data directory
-    this.storagePath = appConfig.env.DATA_PATH || path.join(process.cwd(), 'data');
-    this.publicPath = path.join(this.storagePath, StorageACL.PublicRead);
-    this.privatePath = path.join(this.storagePath, StorageACL.Private);
+    this.storagePath = path.join('uploads');
+    this.publicPath = path.join(this.storagePath, 'public');
+    this.privatePath = path.join(this.storagePath, 'private');
 
-    // Ensure directories exist
-    this.ensureDirectoriesExist();
+    // Ensure directories exist synchronously during initialization
+    this.ensureDirectoriesExistSync();
   }
 
   /**
-   * Ensures that the required storage directories exist
+   * Ensures that the required storage directories exist (synchronous version for constructor)
+   */
+  private ensureDirectoriesExistSync(): void {
+    try {
+      fs.mkdirSync(this.storagePath, { recursive: true });
+      fs.mkdirSync(this.publicPath, { recursive: true });
+      fs.mkdirSync(this.privatePath, { recursive: true });
+
+      logger.info('Storage directories created successfully');
+    } catch (error) {
+      logger.error('Failed to create storage directories:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ensures that the required storage directories exist (async version)
    */
   private async ensureDirectoriesExist(): Promise<void> {
     try {
@@ -66,8 +82,13 @@ export default class LocalStorage implements StaticStorage {
    */
   private getFilePath(key: string): string {
     // Sanitize the key to prevent directory traversal attacks
+    // Remove any ../ patterns and leading slashes
     const sanitizedKey = key.replace(/\.\.\//g, '').replace(/^\//, '');
-    return path.join(this.getBasePath(), sanitizedKey);
+    const fullPath = path.join(this.getBasePath(), sanitizedKey);
+
+    logger.info(`Path mapping: ${key} -> ${sanitizedKey} -> ${fullPath}`);
+
+    return fullPath;
   }
 
   /**
@@ -118,37 +139,181 @@ export default class LocalStorage implements StaticStorage {
   }
 
   /**
+   * Gets file extension from MIME type
+   */
+  private getExtensionFromMimeType(mimeType: string): string {
+    const mimeToExt: { [key: string]: string } = {
+      // Images
+      'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
+      'image/png': '.png',
+      'image/gif': '.gif',
+      'image/webp': '.webp',
+      'image/svg+xml': '.svg',
+      'image/bmp': '.bmp',
+      'image/tiff': '.tiff',
+      'image/tif': '.tif',
+      'image/ico': '.ico',
+      'image/x-icon': '.ico',
+
+      // Documents
+      'application/pdf': '.pdf',
+      'application/msword': '.doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/vnd.ms-excel': '.xls',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'application/vnd.ms-powerpoint': '.ppt',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+
+      // Text
+      'text/plain': '.txt',
+      'text/html': '.html',
+      'text/css': '.css',
+      'text/javascript': '.js',
+      'text/csv': '.csv',
+
+      // Data
+      'application/json': '.json',
+      'application/xml': '.xml',
+      'application/zip': '.zip',
+      'application/x-rar-compressed': '.rar',
+      'application/x-7z-compressed': '.7z',
+
+      // Video
+      'video/mp4': '.mp4',
+      'video/webm': '.webm',
+      'video/ogg': '.ogv',
+      'video/avi': '.avi',
+      'video/mov': '.mov',
+      'video/wmv': '.wmv',
+
+      // Audio
+      'audio/mpeg': '.mp3',
+      'audio/wav': '.wav',
+      'audio/ogg': '.ogg',
+      'audio/m4a': '.m4a',
+      'audio/flac': '.flac',
+    };
+
+    return mimeToExt[mimeType.toLowerCase()] || '';
+  }
+
+  /**
    * Creates a multer middleware for file uploads
    */
   public createUploadMw({ key, purge, limits, fileFilter }: CreateUploadMwParams): multer.Multer {
+    // Store the key and file info for each request to make it available later
+    const requestStorage = new Map();
+
     const storage = multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, this.getBasePath());
+      destination: async (req, file, cb) => {
+        try {
+          const fileName = typeof key === 'function' ? key(req, file) : key;
+          const baseFileName = fileName || this.generateUniqueKey(file.originalname);
+
+          // Get proper extension from MIME type
+          const extension = this.getExtensionFromMimeType(file.mimetype);
+
+          // Create final filename with extension
+          const finalFileName =
+            extension && !baseFileName.toLowerCase().endsWith(extension.toLowerCase())
+              ? baseFileName + extension
+              : baseFileName;
+
+          // Store the final filename and file info for this request
+          requestStorage.set(req, {
+            finalFileName,
+            mimetype: file.mimetype,
+            originalname: file.originalname,
+          });
+
+          logger.info(`File upload destination prepared:`, {
+            originalKey: fileName,
+            baseFileName,
+            mimetype: file.mimetype,
+            extension,
+            finalFileName,
+          });
+
+          // Get the full file path and extract directory
+          const filePath = this.getFilePath(finalFileName);
+          const dirPath = path.dirname(filePath);
+
+          // Ensure the directory exists
+          await fsPromises.mkdir(dirPath, { recursive: true });
+
+          cb(null, dirPath);
+        } catch (error) {
+          cb(error as Error, '');
+        }
       },
       filename: (req, file, cb) => {
         try {
-          const fileName = typeof key === 'function' ? key(req, file) : key;
-          const finalFileName = fileName || this.generateUniqueKey(file.originalname);
+          // Retrieve the data we stored earlier
+          const storedData = requestStorage.get(req);
+
+          if (!storedData) {
+            throw new Error('Unable to retrieve file data');
+          }
+
+          // Extract just the filename part (not the full path)
+          const justFileName = path.basename(storedData.finalFileName);
 
           // Set up purge timeout if specified
           if (purge) {
-            const filePath = path.join(this.getBasePath(), finalFileName);
+            const filePath = this.getFilePath(storedData.finalFileName);
             // Delay the purge setup to ensure file is created first
             setTimeout(() => this.setupPurgeTimeout(filePath, purge), 1000);
           }
 
-          cb(null, finalFileName);
+          logger.info(`File upload filename set:`, {
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            storedFileName: storedData.finalFileName,
+            diskFileName: justFileName,
+          });
+
+          cb(null, justFileName);
         } catch (error) {
           cb(error as Error, '');
         }
       },
     });
 
-    return multer({
+    const upload = multer({
       storage,
       limits,
       fileFilter,
     });
+
+    // Wrap the multer middleware to add the key to the file object
+    return {
+      ...upload,
+      single: (fieldName: string) => {
+        const singleMiddleware = upload.single(fieldName);
+        return (req, res, next) => {
+          singleMiddleware(req, res, (err) => {
+            if (err) return next(err);
+
+            // Add the key property to the file object if file was uploaded
+            if (req.file && requestStorage.has(req)) {
+              const storedData = requestStorage.get(req);
+              (req.file as any).key = storedData.finalFileName;
+
+              // Clean up the stored data
+              requestStorage.delete(req);
+            }
+
+            next();
+          });
+        };
+      },
+      // Add other multer methods if needed
+      array: upload.array,
+      fields: upload.fields,
+      none: upload.none,
+      any: upload.any,
+    } as multer.Multer;
   }
 
   /**
@@ -171,9 +336,18 @@ export default class LocalStorage implements StaticStorage {
 
     try {
       const filePath = this.getFilePath(key);
+      const dirPath = path.dirname(filePath);
 
       // Ensure directory exists
-      await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
+      await fsPromises.mkdir(dirPath, { recursive: true });
+
+      // Verify directory was created
+      try {
+        await fsPromises.access(dirPath);
+      } catch (accessError) {
+        logger.error(`Directory creation failed: ${dirPath}`, accessError);
+        throw new Error(`Failed`);
+      }
 
       // Convert body to buffer if it's a string
       const buffer = typeof body === 'string' ? Buffer.from(body) : body;
@@ -186,14 +360,13 @@ export default class LocalStorage implements StaticStorage {
         this.setupPurgeTimeout(filePath, purge);
       }
 
-      logger.info(`File successfully saved: ${filePath}`);
-
       return {
         success: true,
         url: this.getPublicUrl(key),
       };
     } catch (error) {
       logger.error(`Error saving file with key ${key}:`, error);
+
       throw error;
     }
   }
@@ -215,8 +388,6 @@ export default class LocalStorage implements StaticStorage {
       // Delete the file
       await fsPromises.unlink(filePath);
 
-      logger.info(`File successfully deleted: ${filePath}`);
-
       return { success: true };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
@@ -225,7 +396,6 @@ export default class LocalStorage implements StaticStorage {
         return { success: true };
       }
 
-      logger.error(`Error deleting file with key ${key}:`, error);
       throw error;
     }
   }
@@ -234,17 +404,20 @@ export default class LocalStorage implements StaticStorage {
    * Generates a public URL for accessing the file
    */
   public getPublicUrl(key: string): string {
+    if (!key || typeof key !== 'string') {
+      throw new Error('Key is required and must be a non-empty string for URL generation.');
+    }
+
     if (this.accessControl === StorageACL.Private) {
       throw new Error('Private files are not accessible via public URL.');
     }
-    const accessPath = StorageACL.PublicRead;
 
     const baseUrl = appConfig.env.UI_SERVER || `http://localhost:${appConfig.env.PORT || 3000}`;
 
     // Remove leading slash from key if present
     const cleanKey = key.replace(/^\//, '');
 
-    return `${baseUrl}/static/${accessPath}/${cleanKey}`;
+    return `${baseUrl}/uploads/public/${cleanKey}`;
   }
 
   /**
@@ -267,7 +440,7 @@ export default class LocalStorage implements StaticStorage {
   }
 
   async getStream(key: string, options?: { range?: string }) {
-    const filePath = path.join(this.getBasePath(), key);
+    const filePath = this.getFilePath(key);
     if (options?.range) {
       const [startStr, endStr] = options.range.replace(/bytes=/, '').split('-');
       const start = parseInt(startStr, 10);
