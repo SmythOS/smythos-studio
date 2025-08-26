@@ -20,12 +20,14 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
     intervalMs = 300,
   } = options;
 
-  const { data: tutorialSeen } = useGetUserSettings(userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL);
+  const { data: tutorialSeen, isLoading } = useGetUserSettings(
+    userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL,
+  );
   const storeUserSettings = useStoreUserSettings(userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL);
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLoading) return;
 
     // Check if user has already seen the tutorial or if tutorial has already been started
     if (tutorialSeen === 'true' || hasStartedRef.current) return;
