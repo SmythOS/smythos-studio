@@ -7,7 +7,7 @@ import { builderStore } from '../../shared/state_stores/builder/store';
 import { Agent } from '../Agent.class';
 import { AgentCard } from '../components/AgentCard.class';
 import { Component } from '../components/Component.class';
-import components from '../components/index';
+import { getBuilderComponents } from '../components/index';
 import { registerDbgMonitorUI } from '../debugger';
 import EventEmitter from '../EventEmitter.class';
 import { extendJsPlumb } from '../overrides/jsplumb.override';
@@ -944,6 +944,7 @@ export class Workspace extends EventEmitter {
           if (properties.sender) {
             properties.sender.classList.remove('active');
           }
+          const components = getBuilderComponents();
           const Component = components[name] || components['Component'];
 
           const component = new Component(this, { ...properties }, triggerSettings);
@@ -1295,6 +1296,7 @@ export class Workspace extends EventEmitter {
         };
       }
 
+      const components = getBuilderComponents();
       const Component = components[name] || components['Component'];
 
       const component = new Component(this, { ...properties }, triggerSettings);
@@ -1315,7 +1317,7 @@ export class Workspace extends EventEmitter {
     targetComponentId: string | HTMLElement,
     sourceEndpointID: string | number,
     targetEndpointID: string | number,
-    repaint = true
+    repaint = true,
   ) {
     const sourceComponent =
       typeof sourceComponentId === 'string'
@@ -1689,19 +1691,15 @@ export class Workspace extends EventEmitter {
 
       showOverlay('Connecting Components ...');
 
-
       // Load the connections after a delay to ensure endpoints are registered properly
       await delay(300);
 
       const connections = {};
 
-
-
       const sTime = Date.now();
       //(jsPlumb as any).batch(() =>{
       this._suspendConnectionRestyle = true;
       configuration.connections.forEach(async (connection) => {
-
         const conId = `${connection.sourceId}.${connection.sourceIndex}:${connection.targetId}.${connection.targetIndex}`;
         if (connections[conId]) return; //skip existing connections ==> avoid duplicate connections
 
@@ -1710,17 +1708,13 @@ export class Workspace extends EventEmitter {
           connection.targetId,
           connection.sourceIndex,
           connection.targetIndex,
-          false
+          false,
         );
         connections[conId] = con;
-
-
       });
 
       //});
       this._suspendConnectionRestyle = false;
-
-
 
       for (const con of Object.values(connections)) {
         setImmediate(() => {
@@ -1728,9 +1722,7 @@ export class Workspace extends EventEmitter {
         });
       }
 
-
-
-      // console.log('time taken', Date.now() - sTime);
+      console.log('time taken', Date.now() - sTime);
 
       this.renderAgentCard(configuration);
 

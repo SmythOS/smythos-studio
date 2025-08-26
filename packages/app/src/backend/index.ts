@@ -43,8 +43,8 @@ app.use(maintenanceCheckMiddleware);
 
 // Serve static files
 app.use(compression());
-app.use('/', express.static('static'));
-// app.use('/doc', cors(corsOptions), express.static('docs'));
+app.use('/', express.static('dist/static'));
+app.use('/assets', express.static('dist/assets'));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({

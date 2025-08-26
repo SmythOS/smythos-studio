@@ -6,7 +6,7 @@ import { SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
 import config from '../../config';
 import ejsHelper from '../../ejsHelper';
 import { UserSettingsKey } from '../../types/user-data';
-import builderSidebar from './builder-sidebar';
+import { getBuilderSidebarMenu } from './builder-sidebar';
 import { getNavPages, profilePages } from './menus';
 import { checkOnboarding as checkOnboardingMW } from './onboarding.mw';
 
@@ -74,7 +74,7 @@ router.get('/builder', checkOnboardingMW, llmModelsLoaderMiddleware, async (req,
   res.render('index', {
     page: 'builder',
     agentId: '',
-    menu: builderSidebar,
+    menu: getBuilderSidebarMenu(),
     showTopMenuBar: false,
     plan,
     ...res.locals.ejsOnboardingData,
@@ -100,7 +100,7 @@ router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, as
     res.render('index', {
       page: 'builder',
       agentId: req.params.agentId,
-      menu: builderSidebar,
+      menu: getBuilderSidebarMenu(),
       showTopMenuBar: false,
       agent: agentData ? { ...agentData, avatar: agentAvatar } : { avatar: agentAvatar },
       plan,
@@ -116,7 +116,7 @@ router.get('/logs/:agentId', async (req, res) => {
   res.render('index', {
     page: 'logs',
     agentId,
-    menu: builderSidebar,
+    menu: getBuilderSidebarMenu(),
     tag: req.query?.tag || '',
     sessionID: req.query?.sessionID || '',
     showTopMenuBar: true,

@@ -7,6 +7,8 @@ export enum PluginTarget {
   AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
   AgentSettingsWidgets = 'agentSettings/widgets',
   AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
+  BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
+  BuilderSREComponents = 'builder/sreComponents',
 }
 
 export enum PluginType {

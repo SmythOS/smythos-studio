@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import copy from 'rollup-plugin-copy';
 import esbuild from 'rollup-plugin-esbuild';
 import postcss from 'rollup-plugin-postcss';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -41,7 +40,7 @@ export default [
     input: './src/builder-ui/index.ts',
     output: {
       entryFileNames: 'index.dev.js',
-      dir: path.resolve(currentDir, '../../../static/js/build'),
+      dir: './dist/assets',
       format: 'iife',
       sourcemap: true,
     },
@@ -77,14 +76,7 @@ export default [
         compact: true,
       }),
       sourcemaps(),
-      copy({
-        targets: [
-          {
-            src: path.resolve(currentDir, '../../../src/builder-ui/data/*'),
-            dest: path.resolve(currentDir, '../../../static/data'),
-          },
-        ],
-      }),
+
       postcss({
         plugins: [],
       }),
