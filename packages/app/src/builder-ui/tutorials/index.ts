@@ -1,10 +1,11 @@
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { getUserSettings, saveUserSettings } from '@src/react/shared/hooks/useUserSettings';
+import { Analytics } from '@src/shared/posthog/services/analytics';
 
 export const builderPageTutorialWorkflow = async () => {
   const tutorialSeen = await getUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL);
 
-  if (tutorialSeen) return null;
+  if (tutorialSeen === 'true') return null;
 
   const Tutorial = (window as any)?.Tutorial;
   if (!Tutorial) return null;
@@ -17,6 +18,15 @@ export const builderPageTutorialWorkflow = async () => {
           popoverElements.popoverTitle.innerText
         } (${tutorialWorkflow.currentStep + 1}/${tutorialWorkflow.getSteps().length})`;
       }, 0);
+    },
+    onReset: () => {
+      // Called when overlay is about to be cleared
+      Analytics.track('builder_page_tutorial_completed', {
+        page_url: '/builder',
+        source: 'Tutorial completed on builder page onboarding',
+      });
+
+      saveUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL, 'true');
     },
     animate: true,
     showButtons: true,
@@ -73,8 +83,6 @@ export const builderPageTutorialWorkflow = async () => {
       },
     },
   ]);
-
-  await saveUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL, 'true');
 
   return tutorialWorkflow;
 };
