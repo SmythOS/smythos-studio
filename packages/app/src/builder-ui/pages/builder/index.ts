@@ -249,10 +249,10 @@ export default async function scripts() {
   workspace.addEventListener('AgentReady', async (e) => {
     console.log('AgentReady');
 
-    const workflow = builderPageTutorialWorkflow();
-    if (workflow) workflow?.start();
-
     dbg.init();
+
+    const tutorialWorkflow = await builderPageTutorialWorkflow();
+    if (tutorialWorkflow) tutorialWorkflow?.start();
   });
 
   // Render mobile handler

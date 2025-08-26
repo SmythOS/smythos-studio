@@ -1,14 +1,21 @@
-export const builderPageTutorialWorkflow = () => {
+import { userSettingKeys } from '@shared/userSettingKeys';
+import { getUserSettings, saveUserSettings } from '@src/react/shared/hooks/useUserSettings';
+
+export const builderPageTutorialWorkflow = async () => {
+  const tutorialSeen = await getUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL);
+
+  if (tutorialSeen) return null;
+
   const Tutorial = (window as any)?.Tutorial;
   if (!Tutorial) return null;
 
-  const workflow = new Tutorial({
+  const tutorialWorkflow = new Tutorial({
     onPopoverRender: (popoverElements) => {
       // Update the popover title with step count immediately after internal boarding logic
       setTimeout(() => {
         popoverElements.popoverTitle.innerText = `${
           popoverElements.popoverTitle.innerText
-        } (${workflow.currentStep + 1}/${workflow.getSteps().length})`;
+        } (${tutorialWorkflow.currentStep + 1}/${tutorialWorkflow.getSteps().length})`;
       }, 0);
     },
     animate: true,
@@ -20,7 +27,7 @@ export const builderPageTutorialWorkflow = () => {
     opacity: 0.7,
   });
 
-  workflow.defineSteps([
+  tutorialWorkflow.defineSteps([
     {
       element: '#workspace-container',
       popover: {
@@ -67,5 +74,7 @@ export const builderPageTutorialWorkflow = () => {
     },
   ]);
 
-  return workflow;
+  await saveUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL, 'true');
+
+  return tutorialWorkflow;
 };
