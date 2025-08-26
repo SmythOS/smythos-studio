@@ -250,7 +250,6 @@
 .Note .note-markdown {
   padding: 10px;
   margin-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
   overflow: auto;
   max-height: calc(100% - 120px);
   box-sizing: border-box;
