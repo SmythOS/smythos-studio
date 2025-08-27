@@ -1,15 +1,20 @@
+import { assetStorage } from '@src/backend/services/storage';
 import { randomUUID } from 'crypto';
 import express, { Request } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { generateLinkedInAvatarPrompt } from '../../../../shared/constants/prompts';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import * as falai from '../../../services/falai-helper';
-import SmythPubStaticStorage from '../../../services/storage/SmythStaticStorage.class';
 import * as userData from '../../../services/user-data.service';
 import { getAgents } from '../../../services/user-data.service';
-import { authHeaders, forwardToSmythAPIMiddleware, smythAPIReq } from '../../../utils';
+import {
+  authHeaders,
+  forwardToSmythAPIMiddleware,
+  md5Hash,
+  posixPath,
+  smythAPIReq,
+} from '../../../utils';
 const router = express.Router();
-const staticStorage = new SmythPubStaticStorage();
 
 // routes for dynamic content goes here
 
@@ -129,13 +134,8 @@ router.put('/release-lock', async (req, res) => {
   res.send({ success: true });
 });
 
-const uploadAvatarMw = staticStorage.getMulter({
-  key: (req, file) =>
-    SmythPubStaticStorage.path(
-      'teams',
-      SmythPubStaticStorage.hash(req._team.id),
-      `avatar-${randomUUID()}`,
-    ),
+const uploadAvatarMw = assetStorage.createUploadMw({
+  key: (req, file) => posixPath('teams', md5Hash(req._team.id), `avatar-${randomUUID()}`),
   limits: {
     fileSize: 1024 * 1024 * 15, // 15MB
   },
@@ -157,7 +157,7 @@ router.post(
 
     // @ts-ignore
     const key = req.file.key;
-    const publicUrl = staticStorage.getPublicUrl(key);
+    const publicUrl = assetStorage.getPublicUrl(key);
 
     // save the avatar in the agent settings
     await smythAPIReq.put(
@@ -192,12 +192,8 @@ router.post(
         prompt: generateLinkedInAvatarPrompt(),
       });
 
-      const key = SmythPubStaticStorage.path(
-        'teams',
-        SmythPubStaticStorage.hash(req._team.id),
-        `avatar-${randomUUID()}`,
-      );
-      const uploaded = await staticStorage.saveContent({
+      const key = posixPath('teams', md5Hash(req._team.id), `avatar-${randomUUID()}`);
+      const uploaded = await assetStorage.saveContent({
         key,
         contentType: 'image/png',
         body: Buffer.from(base64Image, 'base64'),

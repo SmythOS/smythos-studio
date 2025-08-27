@@ -45,6 +45,7 @@ app.use(maintenanceCheckMiddleware);
 app.use(compression());
 app.use('/', express.static('dist/static'));
 app.use('/assets', express.static('dist/assets'));
+app.use('/uploads', express.static('uploads'));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({

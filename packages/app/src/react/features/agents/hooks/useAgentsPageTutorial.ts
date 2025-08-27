@@ -1,36 +1,36 @@
-import { useAuthCtx } from '@react/shared/contexts/auth.context';
+import { useGetUserSettings, useStoreUserSettings } from '@react/shared/hooks/useUserSettings';
 import { Analytics } from '@src/shared/posthog/services/analytics';
-import { useEffect } from 'react';
+import { userSettingKeys } from '@src/shared/userSettingKeys';
+import { useEffect, useRef } from 'react';
 
 type UseAgentsPageTutorialOptions = {
   enabled?: boolean;
-  storageKeyPrefix?: string;
   maxAttempts?: number;
   intervalMs?: number;
 };
 
 /**
  * Triggers the in-app tutorial on the Agents page for first-time visitors.
- * Uses a per-user localStorage key to ensure it shows only once per user.
+ * Uses user settings to ensure it shows only once per user.
  */
 export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}): void {
   const {
     enabled = true,
-    storageKeyPrefix = 'agents_page_tutorial_seen',
     maxAttempts = 30, // ~9s total at 300ms
     intervalMs = 300,
   } = options;
 
-  const { userInfo } = useAuthCtx();
+  const { data: tutorialSeen, isLoading } = useGetUserSettings(
+    userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL,
+  );
+  const storeUserSettings = useStoreUserSettings(userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL);
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLoading) return;
 
-    const userId = userInfo?.user?.id || 'anon';
-    const storageKey = `${storageKeyPrefix}:${userId}`;
-
-    const hasSeen = typeof window !== 'undefined' && localStorage.getItem(storageKey) === 'true';
-    if (hasSeen) return;
+    // Check if user has already seen the tutorial or if tutorial has already been started
+    if (tutorialSeen === 'true' || hasStartedRef.current) return;
 
     let attempts = 0;
 
@@ -45,6 +45,9 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
 
     const startTutorial = () => {
       try {
+        // Mark as started to prevent multiple triggers
+        hasStartedRef.current = true;
+
         const TutorialCtor = (window as any).Tutorial as any;
         if (!TutorialCtor) return;
 
@@ -58,8 +61,11 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
             // Called when overlay is about to be cleared
             Analytics.track('home_page_tutorial_completed', {
               page_url: '/agents',
-              source: 'Tutorial completed on home page onboarding'
+              source: 'Tutorial completed on home page onboarding',
             });
+
+            // Mark tutorial as completed in user settings
+            storeUserSettings.mutate('true');
           },
           animate: true,
           showButtons: true,
@@ -107,7 +113,6 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
         ]);
 
         home_page_onboarding.start();
-        localStorage.setItem(storageKey, 'true');
       } catch {
         // swallow errors to avoid blocking the page
       }
@@ -126,7 +131,5 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
     return () => {
       if (interval) window.clearInterval(interval);
     };
-  }, [enabled, storageKeyPrefix, maxAttempts, intervalMs, userInfo?.user?.id]);
+  }, [enabled, maxAttempts, intervalMs, tutorialSeen, storeUserSettings]);
 }
-
-

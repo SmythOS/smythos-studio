@@ -1,16 +1,11 @@
-import {
-  GetObjectCommand,
-  GetObjectCommandInput,
-  HeadObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
 import axios from 'axios';
 import express from 'express';
-import { pipeline, Readable } from 'stream';
+import { pipeline } from 'stream';
 import { promisify } from 'util';
 
 import config from '../../config';
 
+import { privateStorage } from '@src/backend/services/storage';
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
 const router = express.Router();
@@ -173,7 +168,9 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
 // Replace the existing SSE proxy route with the new implementation
 router.use('/sse', createProxyMiddleware(createSSEProxyOptions(config.env.API_SERVER)));
 
-// TODO: refactor file-proxy implementation
+// TODO: should be moved to any SRE server
+//! FIX: but this will not work with self-hosted env since SRE is not guranteed to store in S3 and so this
+//! needs to be reloacted to the debugger server
 
 router.get('/file-proxy', includeTeamDetails, async (req, res) => {
   const { url } = req.query as { url: string };
@@ -208,65 +205,47 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
     const rangeHeader = req.headers.range;
     let s3Range: string | undefined;
     let statusCode = 200;
-    let contentLength: number | undefined;
+    let streamOptions: { range?: string } = {};
 
     if (rangeHeader) {
-      const s3Client = new S3Client({
-        region: config.env.AWS_S3_REGION,
-        credentials: {
-          accessKeyId: config.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: config.env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
+      // Get file size from S3 metadata (assuming we are in SaaS so SRE would store the data in S3)
 
-      // Get file size from S3 metadata
-      const headCommand = new HeadObjectCommand({
-        Bucket: config.env.AWS_S3_BUCKET_NAME,
-        Key: resourceId,
-      });
-      const headResponse = await s3Client.send(headCommand);
-      const fileSize = headResponse.ContentLength;
+      const meta = await privateStorage.stat(resourceId);
+      const fileSize = meta.size;
 
-      if (fileSize) {
-        const parts = rangeHeader.replace(/bytes=/, '').split('-');
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const [startStr, endStr] = rangeHeader.replace(/bytes=/, '').split('-');
+      const start = parseInt(startStr, 10);
+      const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
 
-        if (start >= fileSize || end >= fileSize) {
-          res.setHeader('Content-Range', `bytes */${fileSize}`);
-          return res.status(416).send('Requested Range Not Satisfiable');
-        }
-
-        const chunkSize = end - start + 1;
-        s3Range = `bytes=${start}-${end}`;
-        statusCode = 206;
-        contentLength = chunkSize;
-
-        res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-        res.setHeader('Content-Length', chunkSize);
+      if (start >= fileSize || end >= fileSize) {
+        res.setHeader('Content-Range', `bytes */${fileSize}`);
+        return res.status(416).send('Requested Range Not Satisfiable');
       }
+
+      const chunkSize = end - start + 1;
+      streamOptions.range = `bytes=${start}-${end}`;
+      statusCode = 206;
+
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      res.setHeader('Content-Length', chunkSize);
     }
 
-    // Get the S3 stream with the appropriate range
-    const s3Stream = await getS3Stream(resourceId, s3Range);
+    // Stream via generic adapter
+    const fileStream = await privateStorage.getStream(resourceId, streamOptions);
 
     // Handle 'close' event to clean up if client disconnects
-    res.on('close', () => {
-      s3Stream.destroy();
-    });
+    res.on('close', () => (fileStream as any)?.destroy?.());
 
     // Set the status code
     res.status(statusCode);
 
     // Stream the file from S3
-    await pipelineAsync(s3Stream, res);
+    await pipelineAsync(fileStream, res);
   } catch (error: any) {
-    if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
-      console.error('Error streaming file from S3:', error);
-      if (!res.headersSent) {
-        res.status(500).send('Error streaming file');
-      }
-    }
+    // if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+    console.error('Error streaming file:', error);
+    if (!res.headersSent) res.status(500).send('Error streaming file');
+    // }
   }
 });
 
@@ -285,47 +264,6 @@ function URIParser(uri: string) {
     team,
     path: parsed.pathname,
   };
-}
-
-/**
- * Reads a file from S3 bucket and returns a readable stream
- * @param {string} resourceId - The full path of the S3 object (e.g., 'teams/team-id/path/to/file')
- * @param {string} [range] - The byte range to retrieve from S3 (e.g., 'bytes=0-1023')
- * @returns {Promise<Readable>} A readable stream of the S3 object
- * @throws {Error} If the object cannot be retrieved from S3
- */
-async function getS3Stream(resourceId: string, range?: string): Promise<Readable> {
-  const s3Client = new S3Client({
-    region: config.env.AWS_S3_REGION,
-    credentials: {
-      accessKeyId: config.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: config.env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
-
-  const commandParams: GetObjectCommandInput = {
-    Bucket: config.env.AWS_S3_BUCKET_NAME,
-    Key: resourceId,
-  };
-
-  if (range) {
-    commandParams.Range = range;
-  }
-
-  const command = new GetObjectCommand(commandParams);
-
-  try {
-    const response = await s3Client.send(command);
-
-    if (!response.Body) {
-      throw new Error('No data returned from S3');
-    }
-
-    return response.Body as Readable;
-  } catch (error: any) {
-    console.error('Error reading from S3:', error);
-    throw new Error(`Failed to read file from S3: ${error.message}`);
-  }
 }
 
 /**
