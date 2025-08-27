@@ -78,6 +78,14 @@ interface Props {
    */
   onOpenMcpPanel: () => void;
   /**
+   * Called when the user requests to open the Lovable panel.
+   */
+  onOpenLovablePanel: () => void;
+  /**
+   * Called when the user requests to open the Form panel.
+   */
+  onOpenFormPanel: () => void;
+  /**
    * If true, the card is visible; otherwise, hidden.
    */
   isVisible: boolean;
@@ -97,8 +105,10 @@ function PostDeploymentModal({
   onOpenCodeSnippetModal,
   onOpenAlexaPanel,
   onOpenChatbotPanel,
+  onOpenFormPanel,
   onOpenApiPanel,
   onOpenMcpPanel,
+  onOpenLovablePanel,
   isVisible,
 }: Props) {
   const { workspace, allDeployments } = useDeploymentSidebarCtx();
@@ -327,6 +337,35 @@ function PostDeploymentModal({
         );
       }
     }
+    // Form Preview
+    else if (key === EMBODIMENT_TYPE.FORM) {
+      if (setting.openCodeSnippet) {
+        buttons.push(
+          <button
+            key={'configuration-' + EMBODIMENT_TYPE.FORM}
+            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-smythos-blue-500 hover:text-white rounded"
+            onClick={() => setting.openModal()}
+            type="button"
+            aria-label="Configuration"
+          >
+            <FaSliders />
+          </button>,
+        );
+      }
+      if (setting.openModal) {
+        buttons.push(
+          <Button
+            key="get-code"
+            label="Get Code"
+            variant="tertiary"
+            className="px-3 py-1 h-8 text-xs"
+            handleClick={() => onOpenFormPanel()}
+            aria-label="Get Code"
+            type="button"
+          />,
+        );
+      }
+    }
     // LLM
     else if (key === EMBODIMENT_TYPE.LLM) {
       buttons.push(
@@ -390,6 +429,18 @@ function PostDeploymentModal({
           className="px-3 py-1 h-8 text-xs"
           handleClick={onOpenAlexaPanel}
           aria-label="Get Endpoints"
+          type="button"
+        />,
+      );
+    } else if (key === EMBODIMENT_TYPE.LOVABLE) {
+      buttons.push(
+        <Button
+          key={'get-endpoints-' + EMBODIMENT_TYPE.LOVABLE}
+          label="Get Code"
+          variant="tertiary"
+          className="px-3 py-1 h-8 text-xs"
+          handleClick={onOpenLovablePanel}
+          aria-label="Get Code"
           type="button"
         />,
       );

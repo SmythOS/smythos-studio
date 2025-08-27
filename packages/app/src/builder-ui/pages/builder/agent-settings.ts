@@ -112,8 +112,8 @@ function createAgent() {
           agentNameLength < 3
             ? 'Name should be at least 3 characters long.'
             : agentNameLength > 60
-            ? 'Name should not be more than 60 characters long.'
-            : '';
+              ? 'Name should not be more than 60 characters long.'
+              : '';
 
         agentNameError.classList.toggle('hidden', !isAgentNameInValid);
       }
@@ -605,7 +605,7 @@ async function loadAgentDomainsList() {
 }
 
 async function loadAgentTemplatesList() {
-  const result = await fetch('/api/page/builder/agent-templates', {
+  const result = await fetch('/api/enterprise/page/builder/agent-templates', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -834,13 +834,13 @@ export async function openChatGPTEmbodiment() {
             ${
               testDomain
                 ? '<li>- Click Import URL and enter the following URL if you want to use your test agent: ' +
-                  `<b>${scheme}://${testDomain}/api-docs/openapi-llm.json</b></li>`
+                  `<b>${scheme}://${testDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }
             ${
               prodDomain
                 ? '<li> - Click Import URL and enter the following URL if you want to use your production agent: ' +
-                  `<b>${scheme}://${prodDomain}/api-docs/openapi-llm.json</b></li>`
+                  `<b>${scheme}://${prodDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }
             </li>

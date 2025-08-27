@@ -1,13 +1,12 @@
+import { assetStorage } from '@src/backend/services/storage';
 import axios from 'axios';
+import { randomUUID } from 'crypto';
 import express from 'express';
 import config from '../../../config';
-import { randomUUID } from 'crypto';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
-import { authHeaders, includeAxiosAuth, smythAPIReq } from '../../../utils';
-import SmythPubStaticStorage from '../../../services/storage/SmythStaticStorage.class';
+import { authHeaders, includeAxiosAuth, md5Hash, posixPath, smythAPIReq } from '../../../utils';
 
 const router = express.Router();
-const staticStorage = new SmythPubStaticStorage();
 
 const isUsingLocalServer = false;
 
@@ -23,14 +22,9 @@ function getAgentServerURL(agentId: string, isLocal = false) {
 router.use([includeTeamDetails]); // is it ok?
 
 // Configure multer middleware for file uploads
-const uploadFileMw = staticStorage.getMulter({
+const uploadFileMw = assetStorage.createUploadMw({
   purge: 'DAILY',
-  key: (req, file) =>
-    SmythPubStaticStorage.path(
-      'teams',
-      SmythPubStaticStorage.hash(req._team.id),
-      `file-${randomUUID()}`,
-    ),
+  key: (req, file) => posixPath('teams', md5Hash(req._team.id), `file-${randomUUID()}`),
   limits: {
     fileSize: 1024 * 1024 * 20, // 20MB limit
   },
@@ -72,7 +66,7 @@ router.post('/stream', async (req, res) => {
   const agentId = req.headers['x-agent-id'];
   const conversationId = req.headers['x-conversation-id'];
   const isAgentChat = req.headers['x-ai-agent'] === 'true';
-  const filePublicUrls = fileKeys.map((key) => staticStorage.getPublicUrl(key));
+  const filePublicUrls = fileKeys.map((key) => assetStorage.getPublicUrl(key));
 
   if (filePublicUrls.length > 0) {
     message = [message, '###', 'Attachments:', ...filePublicUrls.map((url) => `- ${url}`)].join(
@@ -83,9 +77,7 @@ router.post('/stream', async (req, res) => {
   try {
     const result = await axios.post(
       getAgentServerURL(agentId as string, isUsingLocalServer) + '/aichat/stream',
-      {
-        message,
-      },
+      { message },
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -136,10 +128,11 @@ router.get('/list', async (req, res) => {
 
 router.post('/new', async (req, res) => {
   try {
-    // const response = await smythAPIReq.post(`/chats`, req.body, await authHeaders(req));
-    // TODO: instead of calling mw, call emb server to create the conversation
     const agentId = req.body.conversation?.aiAgentId;
     if (!agentId) return res.status(400).json({ error: 'conversation.aiAgentId is required' });
+
+    const userId = req._user?.id;
+    const teamId = req._team?.id;
     const token = req.user.accessToken;
 
     const response = await axios.post(
@@ -148,7 +141,11 @@ router.post('/new', async (req, res) => {
       {
         headers: {
           ...includeAxiosAuth(token).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
           'X-AGENT-ID': agentId,
+          'x-agent-id': agentId,
+          'x-smyth-team-id': teamId,
         },
       },
     );
@@ -226,7 +223,7 @@ router.post('/upload', [includeTeamDetails, uploadFileMw.single('file')], async 
   try {
     // @ts-ignore
     const key = req.file.key;
-    const publicUrl = staticStorage.getPublicUrl(key);
+    const publicUrl = assetStorage.getPublicUrl(key);
 
     return res.json({
       success: true,
@@ -250,7 +247,7 @@ router.delete('/deleteFile', [includeTeamDetails], async (req, res) => {
   }
 
   try {
-    await staticStorage.deleteObject(key as string);
+    await assetStorage.deleteContent({ key });
     return res.json({ success: true });
   } catch (error) {
     console.error('Error deleting file:', error);

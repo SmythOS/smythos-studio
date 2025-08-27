@@ -2289,6 +2289,7 @@ input[data-vault-exclusive='true']:disabled {
   margin: 0;
   color: #333;
   cursor: text;
+  word-break: break-all;
 }
 
 .menu-button {
@@ -2607,13 +2608,15 @@ body.locked #tooltip-deploy-locked {
 
 /* Debug Switcher Message Positioning - Pure CSS Solution */
 /* Modern browsers: When embodiment sidebar is open (using :has() to detect from body level) */
-body:has(#right-container.open #embodiment-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+body:has(#right-container.open #embodiment-sidebar:not(.hidden))
+  .debug-switcher-message:not(.hidden) {
   transform: translateX(-180px);
   /* Standard translation (-translate-x-45 = -180px) */
 }
 
 /* Pure CSS: When embodiment sidebar is open AND no upgrade button exists */
-body:not(:has(#upgrade-button-topbar)):has(#right-container.open #embodiment-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+body:not(:has(#upgrade-button-topbar)):has(#right-container.open #embodiment-sidebar:not(.hidden))
+  .debug-switcher-message:not(.hidden) {
   transform: translateX(-268px);
   /* Additional 88px translation = total -268px */
 }
@@ -2624,6 +2627,69 @@ body:has(#right-container.open #right-sidebar:not(.hidden)) .debug-switcher-mess
 }
 
 /* Pure CSS: Reset when regular right-sidebar (not embodiment) is open AND no upgrade button */
-body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:not(.hidden)) .debug-switcher-message:not(.hidden) {
+body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:not(.hidden))
+  .debug-switcher-message:not(.hidden) {
   transform: translateX(0);
 }
+
+/* In-App Tutorial styles START */
+
+#boarding-popover-item {
+  padding: 20px !important;
+  border-radius: 8px !important;
+}
+
+#boarding-popover-item .boarding-popover-title {
+  font-family: 'Inter' !important;
+  font-weight: 500 !important;
+  font-style: Medium !important;
+  font-size: 14px !important;
+  line-height: 140% !important;
+  letter-spacing: -1% !important;
+  color: #242424 !important;
+}
+
+#boarding-popover-item .boarding-popover-description {
+  font-family: 'Inter' !important;
+  font-weight: 400 !important;
+  font-style: Regular !important;
+  font-size: 13px !important;
+  line-height: 140% !important;
+  letter-spacing: -1% !important;
+  vertical-align: middle !important;
+  color: #424242 !important;
+}
+
+#boarding-popover-item .boarding-next-btn,
+#boarding-popover-item .boarding-prev-btn {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #ffffff !important;
+  background: #3c89f9 !important;
+  border-radius: 6px !important;
+  text-shadow: none !important;
+  padding: 8px 14px !important;
+  border: none !important;
+}
+
+#boarding-popover-item .boarding-close-btn {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #999999 !important;
+  background: #ffffff !important;
+  text-shadow: none !important;
+  padding: 8px 14px !important;
+  border: none !important;
+}
+
+#boarding-popover-item .boarding-navigation-btns {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+}
+
+#boarding-popover-item .boarding-popover-footer {
+  margin-top: 14px !important;
+}
+
+/* In-App Tutorial styles END */

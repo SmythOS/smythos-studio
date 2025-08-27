@@ -27,36 +27,13 @@
           <div class="title-right-buttons inline-flex" dir="rtl">
             <button
               type="button"
-              class="save-btn h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
-              data-tooltip-target="tooltip-save-close"
-              data-tooltip-placement="left"
+              class="close-btn tooltip-trigger tooltip-pill relative h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
+              data-tooltip="Close"
+              data-tooltip-position="left"
+              aria-label="Close"
             >
               <span class="mt-1 mif-cross"></span>
             </button>
-            <div
-              id="tooltip-save-close"
-              role="tooltip"
-              class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-              style="font-family: 'Inter', sans-serif"
-            >
-              Save&nbsp;and&nbsp;Close
-            </div>
-            <button
-              type="button"
-              class="close-btn h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
-              data-tooltip-target="tooltip-close"
-              data-tooltip-placement="left"
-            >
-              <span class="mt-1 mif-cross"></span>
-            </button>
-            <div
-              id="tooltip-close"
-              role="tooltip"
-              class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-              style="font-family: 'Inter', sans-serif"
-            >
-              Close
-            </div>
           </div>
         </div>
       </div>
@@ -69,7 +46,10 @@
         <div class="action-content w-full"></div>
         <button
           type="button"
-          class="del-btn items-center h-12 p-3 text-sm font-medium bg-transparent hover:bg-red-200 focus:z-10 focus:ring-2 opacity-80 hover:opacity-100"
+          class="del-btn tooltip-trigger tooltip-pill relative items-center h-12 p-3 text-sm font-medium bg-transparent focus:z-10 focus:ring-2"
+          data-tooltip="Delete Component"
+          data-tooltip-position="left"
+          aria-label="Delete Component"
         >
           <span class="svg-icon delete h-5 w-5"></span>
         </button>

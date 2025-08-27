@@ -20,7 +20,7 @@ import {
 } from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import ComponentInputEditor from '@src/react/features/builder/modals/ComponentInputEditor';
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
-import { WelcomeInvitePage } from '@src/react/features/onboarding/pages/WelcomeInvitePage';
+// import { WelcomeInvitePage } from '@src/react/features/onboarding/pages/WelcomeInvitePage';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
@@ -207,7 +207,6 @@ export function renderConfirmDialogModals({ rootID }: { rootID: string }) {
             message="Restore this version?"
             onClose={cancelRestore}
             handleConfirm={confirmRestore}
-            handleCancel={cancelRestore}
             lowMsg="Are you sure you want to restore this to a previous version? Any unsaved changes will be lost."
           />
         )}
@@ -259,7 +258,7 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
             <Spinner />
           </div>
         )}
-        {appState?.isShareAgentModalOpen && (
+        {/* {appState?.isShareAgentModalOpen && (
           <div className="fixed inset-0">
             <WelcomeInvitePage
               isShareAgent={true}
@@ -268,7 +267,7 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
               agentName={workspace.agent.name}
             />
           </div>
-        )}
+        )} */}
         {showConfirmationModal && (
           <div className="fixed inset-0">
             <ConfirmModal

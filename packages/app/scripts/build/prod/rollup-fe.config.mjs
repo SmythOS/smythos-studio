@@ -25,7 +25,7 @@ export default [
     input: 'src/react/index.tsx', // Your React entry file
 
     output: {
-      dir: './static/js/webappv2/react',
+      dir: './dist/assets',
       format: 'esm',
       entryFileNames: 'app.bundle.min.js', // Custom name for the entry chunk
       chunkFileNames: '[name]-[hash].min.js', // Naming pattern for dynamically imported chunks
@@ -35,7 +35,7 @@ export default [
       },
     },
     plugins: [
-      del({ targets: 'static/js/webappv2/react/*.min.js*' }),
+      del({ targets: './dist/assets/*.min.js*' }),
       resolve({
         browser: true,
       }),
@@ -60,9 +60,6 @@ export default [
       json({
         compact: true,
       }),
-      copy({
-        targets: [{ src: 'src/builder-ui/data/*', dest: 'static/data' }],
-      }),
       postcss({
         plugins: [],
       }),
@@ -80,7 +77,7 @@ export default [
     input: './src/builder-ui/index.ts',
     output: {
       entryFileNames: 'index.min.js',
-      dir: './static/js/build',
+      dir: './dist/assets',
       format: 'iife',
     },
     plugins: [
@@ -109,9 +106,6 @@ export default [
       commonjs(),
       json({
         compact: true,
-      }),
-      copy({
-        targets: [{ src: 'src/builder-ui/data/*', dest: 'static/data' }],
       }),
       postcss({
         plugins: [],

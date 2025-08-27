@@ -13,13 +13,52 @@ export class Note extends Component {
       typographer: true, // Smart quotes, dashes, etc.
     });
 
+    // --- MIGRATION LOGIC FOR OLD NOTES ---
+    // If old fields exist, migrate to new model
+    if (typeof this.data.formatting_mode === 'undefined') {
+      let desc = this.data.description || '';
+      let md = this.data.markdown_content || '';
+
+      if (this.data.markdown_enabled) {
+        this.data.formatting_mode = 'markdown';
+        this.data.content = (desc && md) ? (desc.trim() + '\n\n' + md.trim()) : (md || desc);
+      } else {
+        this.data.formatting_mode = 'plaintext';
+        this.data.content = desc || '';
+      }
+    }
+    // Ensure content is always present
+    if (typeof this.data.content === 'undefined') this.data.content = '';
+    // Fallback to preserve old description if content is empty
+    if (!this.data.content && this.data.description) {
+      this.data.content = this.data.description;
+    }
     // #region [ Settings config ] ==================
     this.settings = {
-      description: {
+      formatting_mode: {
+        type: 'dropdown',
+        label: 'Formatting Mode',
+        value: this.data.formatting_mode || 'plaintext',
+        options: [
+          { text: 'Plain Text', value: 'plaintext' },
+          { text: 'Markdown', value: 'markdown' },
+        ],
+        help: 'Choose how your note content is formatted and displayed.',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        hintPosition: 'bottom',
+        events: {
+          change: (e) => {
+            this.data.formatting_mode = e.target.value;
+            this.updateNoteContent();
+          },
+        },
+      },
+      content: {
         type: 'textarea',
-        label: 'Description',
-        value: '',
-        help: "Add a note's text content to keep track of ideas, tasks, or reminders.",
+        label: 'Content',
+        value: this.data.content || '',
+        help: "Add your note's text or markdown content.",
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
@@ -31,7 +70,7 @@ export class Note extends Component {
         type: 'color',
         label: 'Text Color',
         class: 'w-full',
-        value: '#000000',
+        value: this.data.textColor || '#000000',
         help: "Choose the color of the note's text to improve readability or match your style.",
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -49,7 +88,7 @@ export class Note extends Component {
         type: 'color',
         label: 'Background Color',
         class: 'w-full',
-        value: '#c7ff1529',
+        value: this.data.color || '#c7ff1529',
         help: 'Set the background color of the note to organize or highlight different types of information.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -60,34 +99,9 @@ export class Note extends Component {
           },
         },
       },
-      markdown_enabled: {
-        type: 'toggle',
-        label: 'Enable Markdown',
-        section: 'Advanced',
-        value: true,
-        help: 'If enabled, allows you to add markdown content that will be rendered in the note.',
-        tooltipClasses: 'w-64 ',
-        arrowClasses: '-ml-11',
-        display: 'inline',
-        events: {
-          change: this.markdownToggleHandler.bind(this),
-        },
-      },
-      markdown_content: {
-        type: 'textarea',
-        label: 'Markdown Content',
-        section: 'Advanced',
-        value: '',
-        help: 'Add markdown content that will be rendered in the note.',
-        tooltipClasses: 'w-56 ',
-        arrowClasses: '-ml-11',
-        hintPosition: 'bottom',
-        validate: `maxlength=5000`,
-        validateMessage: 'Your text exceeds the 5,000 character limit.',
-      },
     };
 
-    const dataEntries = ['color', 'textColor', 'markdown_enabled', 'markdown_content'];
+    const dataEntries = ['color', 'textColor', 'formatting_mode', 'content'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
@@ -162,59 +176,40 @@ export class Note extends Component {
     const markdownElement = this.domElement?.querySelector('.note-markdown');
     if (markdownElement) {
       markdownElement.remove();
-      this.autoResizeNote();
     }
   }
 
-  private autoResizeNote(): void {
-    const contentWrapper = this.domElement?.querySelector('.note-content-wrapper');
-    if (!contentWrapper) return;
-
-    setTimeout(() => {
-      // Get the natural height of the content
-      const scrollHeight = contentWrapper.scrollHeight;
-      const titleBarHeight = 40;
-      const padding = 20;
-      const minHeight = 80;
-
-      // Calculate new height based on content
-      const calculatedHeight = scrollHeight + titleBarHeight + padding;
-      const newHeight = Math.max(calculatedHeight, minHeight);
-
-      // Resize to fit content (both shrink and grow)
-      const heightPx = newHeight + 'px';
-      this.domElement.style.height = heightPx;
-      this.properties.height = heightPx;
-      this.data._noteHeight = heightPx;
-    }, 10); // Small delay to ensure DOM is updated
-  }
-
   private renderMarkdownContent(): void {
+    // Only render if markdown mode and content exists
+    if (this.data.formatting_mode !== 'markdown' || !this.data.content?.trim()) {
+      this.removeMarkdownContent();
+      return;
+    }
     // Clear existing markdown content
     const existingMarkdown = this.domElement?.querySelector('.note-markdown');
     if (existingMarkdown) {
       existingMarkdown.remove();
     }
-
-    // Only render if markdown is enabled and content exists
-    if (!this.data.markdown_enabled || !this.data.markdown_content?.trim()) {
-      return;
-    }
-
     const contentWrapper = this.domElement?.querySelector('.note-content-wrapper');
     if (!contentWrapper) return;
 
-    // Create and append markdown container
+    // Create and append markdown container (no separator line)
     const markdownDiv = document.createElement('div');
     markdownDiv.classList.add('note-markdown');
-    markdownDiv.innerHTML = this.markdownParser.render(this.data.markdown_content);
+    markdownDiv.innerHTML = this.markdownParser.render(this.data.content);
     contentWrapper.appendChild(markdownDiv);
   }
 
   private updateNoteContent(): void {
-    this.domElement.querySelector('.note-text').innerHTML = this.data.description || '';
-    this.renderMarkdownContent();
-    this.autoResizeNote();
+    const textEl = this.domElement.querySelector('.note-text');
+    if (!textEl) return;
+    if (this.data.formatting_mode === 'markdown') {
+      textEl.innerHTML = '';
+      this.renderMarkdownContent();
+    } else {
+      this.removeMarkdownContent();
+      textEl.textContent = this.data.content || '';
+    }
   }
 
   private updateNoteStyles(): void {
@@ -236,16 +231,12 @@ export class Note extends Component {
     if (backgroundColorInput && this.data.color) {
       backgroundColorInput.style.backgroundColor = this.data.color;
     }
-
-    // Handle markdown field visibility
-    const markdownContentField = sidebar.querySelector('.form-box[data-field-name="markdown_content"]');
-    if (markdownContentField) {
-      markdownContentField.classList.toggle('hidden', !this.data.markdown_enabled);
-    }
   }
 
   protected async run(): Promise<any> {
     this.addEventListener('settingsSaved', (e) => {
+      this.data.content = this.settings.content.value;
+      this.data.formatting_mode = this.settings.formatting_mode.value;
       this.updateNoteContent();
       this.updateNoteStyles();
     });
@@ -295,19 +286,21 @@ export class Note extends Component {
     div.querySelector('.input-container').classList.add('hidden');
     div.querySelector('.output-container').classList.add('hidden');
     div.querySelector('.button-container').classList.add('hidden');
-
-    // Create a content wrapper to contain both description and markdown
+    // Create a content wrapper to contain the content
     const contentWrapper = document.createElement('div');
     contentWrapper.classList.add('note-content-wrapper');
 
     const text = document.createElement('pre');
     text.classList.add('note-text');
-    text.innerHTML = this.data.description || '';
 
+    if (this.data.formatting_mode === 'markdown') {
+      text.innerHTML = '';
+    } else {
+      text.textContent = this.data.content || '';
+    }
     contentWrapper.appendChild(text);
     div.appendChild(contentWrapper);
-
-    // Render markdown content after the description text
+    // Render markdown content after the description text (no separator line)
     setTimeout(() => {
       this.renderMarkdownContent();
     }, 0);

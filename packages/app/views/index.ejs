@@ -38,8 +38,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
 
   <!-- Conditional loading of Tailwind CSS2 -->
-  <link rel="stylesheet" href="/css/tailwind-v2.css" />
-  <!-- <link rel="stylesheet" href="/css/tailwind.css" /> -->
+  <link rel="stylesheet" href="/assets/css/tailwind-v2.css" />
 
   <link rel="stylesheet" href="/css/smyth-tailwind.css" />
 
@@ -71,9 +70,9 @@
     src="//smythos.com/wp-content/themes/generatepress_child/js/iframeResizer.contentWindow.min.js"></script>
     <!-- Should be placed in builder partial so it does not load on other pages -->
   <% if (env === 'DEV') { %>
-  <script src="/js/build/index.dev.js"></script>
+  <script src="/assets/index.dev.js"></script>
   <% } else { %>
-  <script src="/js/build/index.min.js"></script>
+  <script src="/assets/index.min.js"></script>
   <% } %>
   <script src="/js/misc.js"></script>
 

@@ -22,7 +22,7 @@
     <div>
       <button
         type="button"
-        class="close-btn size-10 p-0.5 rounded-full text-[#757575]"
+        class="close-btn p-0.5 rounded-full text-[#757575]"
         data-tooltip-target="tooltip-close-help"
         data-tooltip-placement="left"
         @click="
@@ -47,26 +47,16 @@
   </div>
   <div
     dir="ltr"
-    class="relative overflow-hidden flex-1 px-4 py-6"
+    class="relative overflow-hidden flex-1 py-6"
     style="
       position: relative;
       --radix-scroll-area-corner-width: 0px;
       --radix-scroll-area-corner-height: 0px;
     "
   >
-    <style>
-      [data-radix-scroll-area-viewport] {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        -webkit-overflow-scrolling: touch;
-      }
-      [data-radix-scroll-area-viewport]::-webkit-scrollbar {
-        display: none;
-      }
-    </style>
     <div
       data-radix-scroll-area-viewport=""
-      class="h-full w-full rounded-[inherit]"
+      class="h-full w-full rounded-[inherit] px-4"
       style="overflow: hidden scroll"
     >
       <div style="min-width: 100%; display: table">
@@ -180,6 +170,16 @@
               </li>
               <li data-id="23">
                 <a
+                  href="https://academy.smythos.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full justify-start text-sm font-normal"
+                >
+                  <%- include('icons/academy.ejs'); -%> Academy
+                </a>
+              </li>
+              <li data-id="23">
+                <a
                   href="https://discord.gg/smythos"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -238,7 +238,7 @@
     modalContainer.innerHTML = `
     <div class="fixed inset-0 bg-black bg-opacity-75 z-[99999] flex items-center justify-center"
          onclick="closeOverviewTutorial(event)">
-      <div class="relative w-[90%] max-w-[1200px] h-[90vh] bg-white rounded-lg overflow-hidden"
+      <div class="relative w-[90%] max-w-[1200px] h-[90vh] px-4  bg-white rounded-lg overflow-hidden"
            onclick="event.stopPropagation()">
         <!-- Close button -->
         <button
@@ -263,7 +263,7 @@
 
         <!-- Arcade iframe -->
         <iframe
-          src="https://app.arcade.software/xAGgTWEM6EVP57670ikM"
+          src="https://demo.arcade.software/YxF1cCoJ40EbefdkvdYD?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
           frameborder="0"
           loading="lazy"
           allowfullscreen

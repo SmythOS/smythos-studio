@@ -21,6 +21,10 @@ export interface ModalHeaderEmbodimentProps {
    * Additional CSS classes for the header container.
    */
   className?: string;
+  /**
+   * Whether to show the back button.
+   */
+  showBackButton?: boolean;
 }
 
 /**
@@ -35,24 +39,27 @@ const ModalHeaderEmbodiment: React.FC<ModalHeaderEmbodimentProps> = ({
   onBack,
   onClose,
   className = '',
+  showBackButton = true,
 }) => {
   return (
     <div className={`relative mb-4 ${className}`}>
       {/* Title */}
-      <div className="mt-[-7px] pl-8 pr-8">
-        <span className="block text-lg font-semibold leading-tight text-[#222] text-left">
+      <div className={`mt-[-7px] pr-8 ${showBackButton ? 'pl-8' : ''}`}>
+        <span className="block text-xl font-semibold leading-tight text-[#1E1E1E] text-left">
           {title}
         </span>
       </div>
       {/* Back button */}
-      <button
-        className="absolute -left-2 -top-2 p-[6px] text-[#222] hover:bg-gray-100 rounded"
-        onClick={onBack}
-        aria-label="Back"
-        style={{ lineHeight: 0 }}
-      >
-        <BackButtonWithTail width={16} height={14} />
-      </button>
+      {showBackButton && (
+        <button
+          className="absolute -left-2 -top-2 p-[6px] text-[#222] hover:bg-gray-100 rounded"
+          onClick={onBack}
+          aria-label="Back"
+          style={{ lineHeight: 0 }}
+        >
+          <BackButtonWithTail width={16} height={14} />
+        </button>
+      )}
       {/* Close button */}
       <button
         className="absolute -right-2 -top-2 p-[6px] text-[#222] hover:bg-gray-100 rounded"
@@ -65,4 +72,4 @@ const ModalHeaderEmbodiment: React.FC<ModalHeaderEmbodimentProps> = ({
   );
 };
 
-export default ModalHeaderEmbodiment; 
+export default ModalHeaderEmbodiment;

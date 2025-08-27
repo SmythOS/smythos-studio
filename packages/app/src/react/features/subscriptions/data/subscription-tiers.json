@@ -1,7 +1,0 @@
-[
-  { "key": "free", "name": "Free", "displayName": "Free" },
-  { "key": "builder", "name": "Builder", "displayName": "Builder" },
-  { "key": "startup", "name": "Startup", "displayName": "Startup" },
-  { "key": "scaleup", "name": "Scaleup", "displayName": "Scaleup" },
-  { "key": "enterprise", "name": "Enterprise", "displayName": "Enterprise" }
-]

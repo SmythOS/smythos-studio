@@ -122,9 +122,15 @@ export const RootLayout = ({
           )}
         >
           {useFullWidthLayout ? (
-            <div className="absolute top-[-12px] left-0 h-[calc(100%+3rem)] w-[100%] bg-white"></div>
+            <div
+              className={classNames(
+                'absolute top-[-12px] left-0 h-[calc(100%+3rem)] w-[100%] rounded-none bg-[#FFF]')}
+            ></div>
           ) : (
-            <div className="absolute top-1 h-full ml-16 md:ml-auto w-[calc(100%-4.5rem)] md:w-[calc(100%-0.75rem)] bg-white rounded-t-lg border border-solid border-[#D1D1D1]"></div>
+            <div
+              className={classNames(
+                'absolute top-1 h-full ml-16 md:ml-auto w-[calc(100%-4.5rem)] md:w-[calc(100%-0.75rem)] rounded-t-lg border border-solid border-[#D1D1D1] bg-[#FFF]')}
+            ></div>
           )}
           <Suspense
             fallback={

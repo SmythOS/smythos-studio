@@ -16,7 +16,10 @@ interface GenerateAgentFormProps {
 /**
  * Form component for generating new agents with text input and file attachment support
  */
-export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentFormProps) {
+export function GenerateAgentForm({
+  onSubmit,
+  canEditAgents,
+}: GenerateAgentFormProps) {
   const [initialWeaverMessage, setInitialWeaverMessage] = useState<string>('');
   const [isFileUploading, setIsFileUploading] = useState(false);
   const generateAgentInputRef = useRef<HTMLTextAreaElement>(null);
@@ -74,7 +77,7 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!canEditAgents) {
-        toast.error("Your current access level doesn't include this feature.");
+        toast.error('Your current access level doesn\'t include this feature.');
         return;
       }
       handleSubmit();
@@ -107,7 +110,12 @@ export function GenerateAgentForm({ onSubmit, canEditAgents }: GenerateAgentForm
   );
 
   return (
-    <div className="w-full px-0 md:w-[80%] max-w-[808px] mx-auto pt-6 rounded-lg mb-20">
+    <div
+      className={classNames(
+        'w-full px-0 md:w-[80%] max-w-[808px] mx-auto pt-6 rounded-lg mb-20',
+        
+      )}
+    >
       <div className="flex items-center justify-center gap-2">
         <h3 className="text-[#0F172A] text-2xl md:text-[2rem] md:leading-[1.5rem] tracking-normal font-semibold">
           What agent can I help you build?

@@ -1,5 +1,6 @@
 // TODO: Refactor this file (specially setting fields for different providers)
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
+import { REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
 import { createBadge } from '../ui/badges';
@@ -10,8 +11,8 @@ import { Component } from './Component.class';
 
 // Since getWebSearchFields is called multiple times, using a static import is more efficient than a lazy import.
 import { SMYTHOS_DOCS_URL } from '../../shared/constants/general';
-import ianaTimezones from '../data/IANA-time-zones.json';
-import isoCountryCodes from '../data/ISO-country-code.json';
+import ianaTimezones from '../params/IANA-time-zones';
+import isoCountryCodes from '../params/ISO-country-code';
 
 declare var Metro;
 
@@ -28,7 +29,12 @@ export class GenAILLM extends Component {
   private defaultModel: string;
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
+  private groqReasoningModels: string[];
   private searchModels: string[];
+  private gpt5ReasoningModels: string[];
+  private gpt5Models: string[];
+  private gptO3andO4Models: string[];
+  private gptSearchModels: string[];
 
   protected async prepare() {
     const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
@@ -51,7 +57,19 @@ export class GenAILLM extends Component {
     this.openaiReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'openai').map(
       (m) => m.entryId,
     );
+    this.groqReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'groq').map(
+      (m) => m.entryId,
+    );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+
+    // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
+    this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
+
+    this.gpt5Models = LLMRegistry.getGpt5Models();
+    this.gptO3andO4Models = LLMRegistry.getO3andO4Models();
+    this.gptSearchModels = LLMRegistry.getModelsByFeatures('search', 'openai').map(
+      (m) => m.entryId,
+    );
 
     modelOptions.unshift('Echo');
     const model = this.data.model || this.defaultModel;
@@ -121,6 +139,8 @@ export class GenAILLM extends Component {
 
       'useReasoning',
       'maxThinkingTokens',
+      'reasoningEffort',
+      'verbosity',
     ];
     for (let item of dataEntries) {
       // Check if the field needs default value initialization
@@ -381,6 +401,10 @@ export class GenAILLM extends Component {
               this.toggleReasoningNestedFields(useReasoningElm, form);
             }
             // #endregion
+
+            // #region Update verbosity field visibility based on model
+            this.updateVerbosityFieldVisibility(currentElement.value, form);
+            // #endregion
           },
         },
 
@@ -453,7 +477,7 @@ export class GenAILLM extends Component {
             events: {
               click: () => {
                 window.open(
-                  `${this.workspace.serverData.docUrl}/account-management/model-rates/#model-pricing`,
+                  `${this.workspace.serverData.docUrl}/account-management/billing-management/#model-pricing`,
                   '_blank',
                 );
               },
@@ -530,7 +554,12 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere',
-          'data-excluded-models': this.anthropicThinkingModels.join(','),
+          'data-excluded-models': [
+            ...this.anthropicThinkingModels,
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
         },
         section: 'Advanced',
         help: hint.temperature,
@@ -564,6 +593,11 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,TogetherAI,VertexAI,Bedrock,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
         },
         section: 'Advanced',
         help: hint.stopSequences,
@@ -585,8 +619,12 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere',
           'data-excluded-models': [
-            ...this.anthropicThinkingModels,
             ...this.openaiReasoningModels,
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+            ...this.anthropicThinkingModels,
+            ...this.groqReasoningModels,
           ].join(','),
         },
         section: 'Advanced',
@@ -621,7 +659,14 @@ export class GenAILLM extends Component {
         step: 0.01,
         validate: `min=0 max=${maxFrequencyPenalty}`,
         validateMessage: `Allowed range 0 to ${maxFrequencyPenalty}`,
-        attributes: { 'data-supported-models': 'OpenAI,TogetherAI,Perplexity,cohere' },
+        attributes: {
+          'data-supported-models': 'OpenAI,TogetherAI,Perplexity,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
+        },
         section: 'Advanced',
         help: hint.frequencyPenalty,
         tooltipClasses: 'w-56 ',
@@ -636,11 +681,35 @@ export class GenAILLM extends Component {
         step: 0.01,
         validate: `min=0 max=${maxPresencePenalty}`,
         validateMessage: `Allowed range 0 to ${maxPresencePenalty}`,
-        attributes: { 'data-supported-models': 'OpenAI,Perplexity,cohere' },
+        attributes: {
+          'data-supported-models': 'OpenAI,Perplexity,cohere',
+          'data-excluded-models': [
+            ...this.gpt5Models,
+            ...this.gptO3andO4Models,
+            ...this.gptSearchModels,
+          ].join(','),
+        },
         section: 'Advanced',
         help: hint.presencePenalty,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
+      },
+      verbosity: {
+        type: 'select',
+        label: 'Verbosity',
+        value: 'medium',
+        options: [
+          { text: 'Low', value: 'low' },
+          { text: 'Medium', value: 'medium' },
+          { text: 'High', value: 'high' },
+        ],
+        attributes: {
+          'data-supported-models': this.gpt5Models.join(','),
+        },
+        help: "Controls the verbosity of the model's response. Lower values result in more concise responses, while higher values result in more verbose responses. Currently supported by GPT-5 models.",
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
       },
       passthrough: {
         type: 'checkbox',
@@ -717,7 +786,10 @@ export class GenAILLM extends Component {
         label: 'Use Reasoning',
         value: false,
         attributes: {
-          'data-supported-models': this.anthropicThinkingModels.join(','),
+          'data-supported-models': [
+            ...this.anthropicThinkingModels,
+            ...this.groqReasoningModels,
+          ].join(','),
         },
         help: 'Enable thinking capabilities to allow the model to break down complex problems into steps and think through solutions methodically',
         tooltipClasses: 'w-56 ',
@@ -741,9 +813,9 @@ export class GenAILLM extends Component {
         max: allowedReasoningTokens,
         value: defaultThinkingTokens,
         step: 4,
-        // attributes: {
-        //   'data-supported-models': this.anthropicThinkingModels.join(','),
-        // },
+        attributes: {
+          'data-supported-models': this.anthropicThinkingModels.join(','),
+        },
         help: hint.maxThinkingTokens,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -751,8 +823,39 @@ export class GenAILLM extends Component {
         fieldsGroup: 'Max Thinking Tokens',
       },
 
+      reasoningEffort: {
+        type: 'select',
+        label: 'Reasoning Effort',
+        value: this.getDefaultReasoningEffortForModel(
+          this.data.model || this.defaultModel,
+          this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        ),
+        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        help: 'Controls the level of effort the model will put into reasoning. GPT-OSS models support low/medium/high levels, while Qwen models support none/default.',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
+        fieldsGroup: 'Reasoning Effort',
+      },
+
       ...(await this.getWebSearchFields()),
     };
+  }
+
+  /**
+   * Update verbosity field visibility based on the selected model
+   */
+  private updateVerbosityFieldVisibility(modelId: string, form: HTMLFormElement) {
+    if (!form) return;
+
+    const verbosityField = form.querySelector('[data-field-name="verbosity"]') as HTMLElement;
+    if (!verbosityField) return;
+
+    if (LLMRegistry.isGpt5ReasoningModels(modelId)) {
+      verbosityField.classList.remove('hidden');
+    } else {
+      verbosityField.classList.add('hidden');
+    }
   }
 
   private async getWebSearchFields() {
@@ -1270,9 +1373,137 @@ export class GenAILLM extends Component {
   }
 
   private toggleReasoningNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
-    const fieldsToShow = ['maxThinkingTokens'];
+    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
+    const currentModel = modelSelect?.value || this.data.model;
 
+    const fieldsToShow: string[] = [];
+
+    // Only show maxThinkingTokens for Anthropic models
+    if (this.anthropicThinkingModels.includes(currentModel)) {
+      fieldsToShow.push('maxThinkingTokens');
+    }
+
+    // Handle reasoning effort field visibility
+    const reasoningEffortField = form?.querySelector(
+      '[data-field-name="reasoningEffort"]',
+    ) as HTMLElement;
+    const reasoningOptions = this.getReasoningEffortOptions(currentModel);
+
+    // Handle reasoning effort field visibility for both GPT-5 and Groq models
+    if (reasoningOptions.length > 0) {
+      if (this.gpt5ReasoningModels.includes(currentModel)) {
+        // For GPT-5 models: Always show reasoningEffort regardless of useReasoning state
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.remove('hidden');
+        }
+        // Update reasoning effort options
+        this.updateReasoningEffortOptions(currentModel);
+      } else if (this.groqReasoningModels.includes(currentModel)) {
+        // For Groq reasoning models: Only show when useReasoning is checked
+        if (reasoningEffortField) {
+          if (parentField.checked) {
+            reasoningEffortField.classList.remove('hidden');
+            // Update reasoning effort options when shown
+            this.updateReasoningEffortOptions(currentModel);
+          } else {
+            reasoningEffortField.classList.add('hidden');
+          }
+        }
+      } else {
+        // Hide for all other models (GPT-4, etc.)
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.add('hidden');
+        }
+      }
+    } else {
+      // If no reasoning options available, hide the field
+      if (reasoningEffortField) {
+        reasoningEffortField.classList.add('hidden');
+      }
+    }
+
+    // Handle other nested fields (maxThinkingTokens) with the standard toggle logic
     this.toggleNestedFields(parentField, form, fieldsToShow);
+  }
+
+  /**
+   * Get reasoning effort options based on the current model
+   * Returns empty array for unsupported models to hide the field
+   */
+  private getReasoningEffortOptions(model: string): { text: string; value: string }[] {
+    if (!model) return [];
+
+    const modelLower = model.toLowerCase();
+
+    // Find matching model configuration
+    const modelConfig = REASONING_EFFORTS.find((config) => config.pattern.test(modelLower));
+
+    return modelConfig?.options || [];
+  }
+
+  /**
+   * Update reasoning effort field options based on the selected model
+   * Only updates options, visibility is handled by toggleReasoningNestedFields
+   */
+  private updateReasoningEffortOptions(model: string): void {
+    const field = document.getElementById('reasoningEffort') as HTMLSelectElement;
+    if (!field) return;
+
+    const selectElem = Metro.getPlugin(field, 'select');
+    if (!selectElem) return;
+
+    const options = this.getReasoningEffortOptions(model);
+
+    // Don't update if no options available - field should be hidden by toggleReasoningNestedFields
+    if (options.length === 0) return;
+
+    const currentValue = field.value || 'medium';
+
+    // Remove all existing options
+    if (selectElem.elem?.options) {
+      selectElem.removeOptions([...selectElem.elem.options].map((o: HTMLOptionElement) => o.value));
+    }
+
+    // Add new options
+    options.forEach((option) => {
+      selectElem.addOption(option.value, option.text, false); // Don't auto-select during addition
+    });
+
+    // Determine the best default value for the model type
+    const defaultValue = this.getDefaultReasoningEffortForModel(model, options);
+    const availableValues = options.map((opt) => opt.value);
+
+    // Set the appropriate value: current if valid, otherwise default
+    const valueToSet = availableValues.includes(currentValue) ? currentValue : defaultValue;
+    selectElem.val(valueToSet);
+  }
+
+  /**
+   * Get the appropriate default reasoning effort value for a given model
+   */
+  private getDefaultReasoningEffortForModel(
+    model: string,
+    options: { text: string; value: string }[],
+  ): string {
+    if (options.length === 0) return '';
+
+    const modelLower = model.toLowerCase();
+
+    // Default values for different model types
+    if (
+      modelLower.includes('gpt') ||
+      modelLower.includes('openai') ||
+      modelLower.includes('smythos/gpt')
+    ) {
+      // For GPT models, prefer 'medium' as a balanced default
+      return options.find((opt) => opt.value === 'medium')?.value || options[0].value;
+    } else if (modelLower.includes('qwen')) {
+      // For Qwen models, prefer 'default' over 'none'
+      return options.find((opt) => opt.value === 'default')?.value || options[0].value;
+    }
+
+    // For any other models, use the first available option
+    return options[0].value;
   }
 
   private toggleCountryFieldBasedOnDataSources(form: HTMLFormElement) {

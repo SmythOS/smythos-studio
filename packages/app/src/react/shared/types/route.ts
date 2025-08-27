@@ -14,6 +14,11 @@ export interface IPageRoute {
     noScroll?: boolean;
     container?: boolean;
     useFullWidthLayout?: boolean;
+    /**
+     * Optional page background override for the content container.
+     * Defaults to white when not provided.
+     */
+    background?: 'white' | 'agentsGradient';
   };
 
   render?: (res: any) => void;

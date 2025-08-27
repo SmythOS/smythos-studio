@@ -1,11 +1,21 @@
 export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
   TopMenuItem = 'topMenuItem',
+  Onboarding = 'onboarding',
+  SidebarMenuItems = 'sidebarMenuItems',
+  TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
+  AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
+  AgentSettingsWidgets = 'agentSettings/widgets',
+  AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
+  BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
+  BuilderSREComponents = 'builder/sreComponents',
+  AgentsPageSection = 'agentsPage/section',
 }
 
 export enum PluginType {
   Function = 'function',
   Component = 'component',
+  Config = 'config',
 }
 
 export type TPlugin =
@@ -16,6 +26,10 @@ export type TPlugin =
   | {
       type: PluginType.Component;
       component: React.ReactNode;
+    }
+  | {
+      type: PluginType.Config;
+      config: any;
     };
 
 export class Plugins {

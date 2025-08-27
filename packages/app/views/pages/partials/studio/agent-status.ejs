@@ -1,4 +1,14 @@
-<div class="flex flex-col" id="agent-status">
+<div
+  x-data="sidebarState()"
+  class="flex flex-col absolute top-[34px]"
+  id="agent-status"
+  :class="{
+    'left-[84px]': !isSidebarOpen,
+    'left-[444px]': isSidebarOpen && currentSidebarTab === 'helpTab',
+    'left-[408px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab',
+    'left-[510px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab')
+  }"
+>
   <div class="flex">
     <div id="agent-top-bar-status">
       <div class="text-xs flex gap-1 items-center h-full">

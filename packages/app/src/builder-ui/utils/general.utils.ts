@@ -394,3 +394,11 @@ export async function renderDropdown(targetElm: HTMLElement, dropdownElm: HTMLEl
   dropdownElm.classList.remove('invisible');
   dropdownElm.classList.add('visible');
 }
+
+export const safe = (fn: () => void, name: string) => {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[${name}] failed:`, err);
+  }
+};

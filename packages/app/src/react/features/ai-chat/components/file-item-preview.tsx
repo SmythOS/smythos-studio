@@ -31,6 +31,7 @@ const FILE_ICONS = {
   docx: <FaRegFileWord {...commonProps} />,
   xls: <FaRegFileExcel {...commonProps} />,
   xlsx: <FaRegFileExcel {...commonProps} />,
+  csv: <FaRegFileExcel {...commonProps} />,
   mp3: <FaRegFileAudio {...commonProps} />,
   wav: <FaRegFileAudio {...commonProps} />,
   ogg: <FaRegFileAudio {...commonProps} />,

@@ -76,10 +76,8 @@ export const useFileUpload = (): UseFileUploadReturn => {
       const validFiles = validatedFiles.filter((item) => !item.error);
       const invalidFiles = validatedFiles.filter((item) => item.error);
 
-      if (
-        invalidFiles.length > 0 &&
-        validFiles.length + files.length < FILE_LIMITS.MAX_ATTACHED_FILES
-      ) {
+      // Always surface an error if any invalid files were included
+      if (invalidFiles.length > 0) {
         setUploadError({
           show: true,
           message: invalidFiles[0].error || 'Failed to upload file',
@@ -88,6 +86,13 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       if (validFiles.length > 0) {
         const filesToUpload = validFiles.slice(0, remainingSlots);
+
+        if (validFiles.length > remainingSlots) {
+          setUploadError({
+            show: true,
+            message: `You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files. Extra files were ignored.`,
+          });
+        }
 
         // Add files to uploadingFiles set using unique IDs
         const newFileIds = new Set(filesToUpload.map((f) => f.id));

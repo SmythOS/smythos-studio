@@ -18,6 +18,7 @@ type Props = {
   cancelBtnClasses?: string;
   children?: ReactNode;
   isLoading?: boolean;
+  width?: string;
 };
 
 const ConfirmModal = (props: Props) => {
@@ -29,7 +30,10 @@ const ConfirmModal = (props: Props) => {
       onClick={props.onClose}
     >
       <div
-        className="relative w-full max-w-2xl p-4 bg-white rounded-lg shadow dark:bg-gray-800"
+        className={classNames(
+          'relative max-w-2xl p-4 bg-white rounded-lg shadow dark:bg-gray-800',
+          props.width || 'max-w-2xl',
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
