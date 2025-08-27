@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import path from 'path';
 import config from '../config';
 
 export const kebabToCapitalize = (input) => {
@@ -97,4 +98,15 @@ export const isDevEnv = (): boolean => {
 
 export const isProdEnv = (): boolean => {
   return config.env.NODE_ENV === 'PROD';
+};
+
+export const posixPath = (...paths: string[]): string => {
+  // use path.posix.join to ensure forward slashes
+  return path.posix.join(...paths);
+};
+
+export const md5Hash = (data: string | Buffer): string => {
+  const hash = crypto.createHash('md5');
+  hash.update(data);
+  return hash.digest('hex');
 };

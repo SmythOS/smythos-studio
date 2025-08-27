@@ -194,93 +194,6 @@
         </div>
       </div>
 
-      <div class="relative group internal-templates-btn">
-        <button
-          id="left-sidebar-template-btn"
-          class="relative w-full flex items-center h-10 justify-center hidden"
-          @click="setSidebarTab('templateTab')"
-          data-tooltip-target="tooltip-internal-templates"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'templateTab' && isSidebarOpen}"
-          >
-            <svg
-              width="20"
-              fill="none"
-              height="20"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>path]:!stroke-white': currentSidebarTab === 'templateTab' && isSidebarOpen}"
-            >
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 2.973958 13.161458 C 2.973958 11.690104 4.135417 9.859375 7.479167 9.859375 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 10.359375 4.877604 C 10.359375 6.466146 9.070312 7.755208 7.481771 7.755208 C 5.893229 7.755208 4.604167 6.466146 4.604167 4.877604 C 4.604167 3.289062 5.893229 2 7.481771 2 C 9.070312 2 10.359375 3.289062 10.359375 4.877604 Z M 10.359375 4.877604 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 11.210938 13.132812 L 11.28125 12.942708 C 11.546875 12.223958 12.114583 11.65625 12.830729 11.390625 L 13.023438 11.320312 L 12.830729 11.25 C 12.114583 10.984375 11.546875 10.416667 11.28125 9.697917 L 11.210938 9.507812 L 11.140625 9.697917 C 10.875 10.416667 10.309896 10.984375 9.591146 11.25 L 9.401042 11.320312 L 9.591146 11.390625 C 10.309896 11.65625 10.875 12.223958 11.140625 12.942708 Z M 11.210938 13.132812 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 7.507812 14 C 7.627604 13.606771 7.934896 13.299479 8.328125 13.179688 C 7.934896 13.059896 7.627604 12.75 7.507812 12.356771 C 7.388021 12.75 7.080729 13.059896 6.6875 13.179688 C 7.080729 13.299479 7.388021 13.606771 7.507812 14 Z M 7.507812 14 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-            </svg>
-          </div>
-        </button>
-        <div
-          id="tooltip-internal-templates"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Template Editor (Internal)
-        </div>
-      </div>
-
       <!-- separator -->
       <div class="w-full h-[1px] bg-[#00000080] my-2"></div>
 
@@ -731,14 +644,6 @@
 
       <section x-show="(currentSidebarTab == 'buildTab')" class="buildTab pb-2 m-0 relative w-full">
         <%- include('left-sidebar-build', { menu: menu }); -%>
-      </section>
-
-      <section
-        x-show="(currentSidebarTab == 'templateTab')"
-        class="templateTab pb-4 m-0 relative w-full overflow-y-auto md:overflow-hidden md:hover:overflow-y-auto h-[100%] [&>*]:w-[calc(100%+5px)]"
-        style="scrollbar-gutter: stable"
-      >
-        <%- include('left-sidebar-template'); -%>
       </section>
 
       <section

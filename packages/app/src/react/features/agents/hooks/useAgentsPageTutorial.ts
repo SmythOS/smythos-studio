@@ -1,4 +1,6 @@
+import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { useGetUserSettings, useStoreUserSettings } from '@react/shared/hooks/useUserSettings';
+import { TUTORIAL_CUTOFF_DATE } from '@src/shared/constants/tutorial';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 import { userSettingKeys } from '@src/shared/userSettingKeys';
 import { useEffect, useRef } from 'react';
@@ -10,8 +12,8 @@ type UseAgentsPageTutorialOptions = {
 };
 
 /**
- * Triggers the in-app tutorial on the Agents page for first-time visitors.
- * Uses user settings to ensure it shows only once per user.
+ * Triggers the in-app tutorial on the Agents page for new users only.
+ * Uses user account creation timestamp to determine if user is new.
  */
 export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}): void {
   const {
@@ -23,14 +25,21 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
   const { data: tutorialSeen, isLoading } = useGetUserSettings(
     userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL,
   );
+
   const storeUserSettings = useStoreUserSettings(userSettingKeys.SEEN_AGENTS_PAGE_TUTORIAL);
+  const { userInfo } = useAuthCtx();
   const hasStartedRef = useRef(false);
+
+  // Check if user is new based on account creation date
+  const isNewUser = userInfo?.user?.createdAt
+    ? new Date(userInfo.user.createdAt) > TUTORIAL_CUTOFF_DATE
+    : false;
 
   useEffect(() => {
     if (!enabled || isLoading) return;
 
-    // Check if user has already seen the tutorial or if tutorial has already been started
-    if (tutorialSeen === 'true' || hasStartedRef.current) return;
+    // Check if user is new and hasn't seen the tutorial, or if tutorial has already been started
+    if (!isNewUser || tutorialSeen === 'true' || hasStartedRef.current) return;
 
     let attempts = 0;
 
@@ -131,5 +140,5 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
     return () => {
       if (interval) window.clearInterval(interval);
     };
-  }, [enabled, maxAttempts, intervalMs, tutorialSeen, storeUserSettings]);
+  }, [enabled, maxAttempts, intervalMs, tutorialSeen, storeUserSettings, isNewUser]);
 }

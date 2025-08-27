@@ -235,8 +235,8 @@ export class Note extends Component {
 
   protected async run(): Promise<any> {
     this.addEventListener('settingsSaved', (e) => {
-      this.data.content = this.settings.content.value;
-      this.data.formatting_mode = this.settings.formatting_mode.value;
+      // The data has already been updated by the general save mechanism
+      // We just need to update the UI to reflect the changes
       this.updateNoteContent();
       this.updateNoteStyles();
     });
