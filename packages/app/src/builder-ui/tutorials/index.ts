@@ -1,10 +1,21 @@
+import { authStore } from '@shared/state_stores/auth';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { getUserSettings, saveUserSettings } from '@src/react/shared/hooks/useUserSettings';
+import { TUTORIAL_CUTOFF_DATE } from '@src/shared/constants/tutorial';
 import { Analytics } from '@src/shared/posthog/services/analytics';
 
 export const builderPageTutorialWorkflow = async () => {
+  const userInfo = authStore.getState().userInfo;
+  const isNewUser = userInfo?.user?.createdAt
+    ? new Date(userInfo.user.createdAt) > TUTORIAL_CUTOFF_DATE
+    : false;
+
+  // Only show tutorial to new users
+  if (!isNewUser) return null;
+
   const tutorialSeen = await getUserSettings(userSettingKeys.SEEN_BUILDER_PAGE_TUTORIAL);
 
+  // Check if user has already seen the tutorial
   if (tutorialSeen === 'true') return null;
 
   const Tutorial = (window as any)?.Tutorial;
