@@ -1,132 +1,79 @@
 import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
   DeleteObjectCommand,
-  CreateBucketCommand,
-  HeadBucketCommand,
-  HeadObjectCommand,
-  GetObjectCommandInput,
-  GetObjectCommandOutput,
-  PutObjectCommandInput,
   DeleteObjectCommandInput,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  PutObjectCommandInput,
+  S3Client,
 } from '@aws-sdk/client-s3';
-import type { Readable } from 'stream';
-
+import multer from 'multer';
+import { Readable } from 'stream';
 import appConfig from '../../config';
-import type { S3StorageConfig } from '../../types';
+import { S3_DAILY_PURGE_LIFECYCLE_TAG } from '../../constants';
+import multerS3, { AUTO_CONTENT_TYPE } from '../../lib/multer-s3';
+import {
+  CreateUploadMwParams,
+  DeleteContentParams,
+  FileMetadata,
+  SaveContentParams,
+  StaticStorage,
+  StorageACL,
+} from './StaticStorage';
 
 const logger = console;
 
-interface Metadata {
-  [key: string]: string;
+interface AWSConfig {
+  bucket: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
 }
 
-/**
- * The S3Storage class provides a simplified interface for interacting with AWS S3 Storage.
- * It encapsulates the AWS S3 Client, providing methods for common operations on a specified S3 bucket.
- *
- * @class S3Storage
- *
- * @param {S3StorageConfig} config - Configuration for AWS S3, including access keys and region.
- * This configuration is used to instantiate the AWS S3 Client.
- *
- * @param {string} bucket - The name of the AWS S3 Bucket to be used for storage operations.
- * All operations performed using an instance of this class will target this bucket.
- *
- * This class is designed to abstract the underlying AWS SDK calls, providing a simpler and more intuitive way to interact with AWS S3.
- */
-
-export default class S3Storage {
+export default class S3Storage implements StaticStorage {
   protected client: S3Client;
+  protected bucket: string;
 
   constructor(
-    protected readonly bucket: string,
-    protected config?: Partial<S3StorageConfig>,
+    // protected readonly bucket: string,
+    // protected config?: Partial<S3StorageConfig>,
+    protected readonly accessControl: StorageACL,
   ) {
-    const region = config?.region || appConfig.env.AWS_S3_REGION;
-    const accessKeyId = config?.accessKeyId || appConfig.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = config?.secretAccessKey || appConfig.env.AWS_SECRET_ACCESS_KEY;
+    const privConfig: AWSConfig = {
+      bucket: appConfig.env.AWS_S3_BUCKET_NAME,
+      region: appConfig.env.AWS_S3_REGION,
+      accessKeyId: appConfig.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: appConfig.env.AWS_SECRET_ACCESS_KEY,
+    };
 
-    if (!region || !accessKeyId || !secretAccessKey) {
+    const pubConfig: AWSConfig = {
+      bucket: appConfig.env.AWS_S3_PUB_BUCKET_NAME,
+      region: appConfig.env.AWS_S3_PUB_REGION,
+      accessKeyId: appConfig.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: appConfig.env.AWS_SECRET_ACCESS_KEY,
+    };
+
+    const matchConfig: AWSConfig = accessControl === StorageACL.PublicRead ? pubConfig : privConfig;
+
+    if (!matchConfig.region || !matchConfig.accessKeyId || !matchConfig.secretAccessKey) {
       const msg = 'AWS S3 Region, Access Key ID, or Secret Access Key is missing';
 
       logger.error(msg);
-      throw new Error(msg);
+      // throw new Error(msg);
     }
 
-    this.client = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
-    this.bucket = bucket;
+    this.client = new S3Client({
+      region: matchConfig.region,
+      credentials: {
+        accessKeyId: matchConfig.accessKeyId,
+        secretAccessKey: matchConfig.secretAccessKey,
+      },
+    });
+
+    this.bucket = matchConfig.bucket;
   }
 
-  private async bucketExists(): Promise<boolean> {
-    try {
-      const command = new HeadBucketCommand({ Bucket: this.bucket });
-
-      await this.client.send(command);
-
-      return true;
-    } catch (error: any) {
-      if (
-        error.name === 'NotFound' ||
-        error.name === 'NoSuchBucket' ||
-        error.$metadata.httpStatusCode === 404
-      ) {
-        return false; // The bucket does not exist
-      }
-
-      logger.error(`Error checking if bucket (${this.bucket}) exists: `, error);
-      throw error;
-    }
-  }
-
-  private async createBucket(): Promise<any> {
-    try {
-      const command = new CreateBucketCommand({ Bucket: this.bucket });
-      const response = await this.client.send(command);
-
-      return response;
-    } catch (error) {
-      logger.error(`Error creating bucket (${this.bucket}): `, error);
-      throw error;
-    }
-  }
-
-  public async ensureBucketExists() {
-    try {
-      const exists = await this.bucketExists();
-
-      if (!exists) {
-        await this.createBucket();
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  public async getObject(
-    key: string,
-    otherParams: Partial<GetObjectCommandInput> = {},
-  ): Promise<GetObjectCommandOutput> {
-    if (!key || typeof key !== 'string') throw new Error('The key must be a non-empty string.');
-
-    const params = {
-      Bucket: this.bucket,
-      Key: key,
-      ...otherParams,
-    };
-
-    try {
-      const command = new GetObjectCommand(params);
-      const response = await this.client.send(command);
-      return response;
-    } catch (error) {
-      logger.error(`Error getting object with key ${key}: `, error);
-      throw error;
-    }
-  }
-
-  public async putObject(
+  private async putObject(
     key: string,
     body: string | Uint8Array | Buffer | Readable,
     otherParams: Partial<PutObjectCommandInput> = {},
@@ -152,7 +99,7 @@ export default class S3Storage {
     }
   }
 
-  public async deleteObject(
+  private async deleteObject(
     key: string,
     otherParams: Partial<DeleteObjectCommandInput> = {},
   ): Promise<any> {
@@ -175,27 +122,89 @@ export default class S3Storage {
     }
   }
 
-  public async getMetadata(
-    key: string,
-    otherParams: Partial<GetObjectCommandInput> = {},
-  ): Promise<Metadata | undefined> {
-    if (!key || typeof key !== 'string') throw new Error('The key must be a non-empty string.');
+  public createUploadMw(params: CreateUploadMwParams): multer.Multer {
+    const upload = multer({
+      storage: multerS3({
+        s3: this.client,
+        bucket: this.bucket,
+        acl: params.acl || undefined,
+        key: async (req, file, cb) => {
+          const keyStr = typeof params.key === 'function' ? params.key(req, file) : params.key;
+          cb(null, keyStr);
+        },
+        metadata: (req, file, cb) => {
+          const metadataContent =
+            typeof params.metadata === 'function' ? params.metadata(req, file) : params.metadata;
+          cb(null, metadataContent);
+        },
+        contentType: AUTO_CONTENT_TYPE,
+        tagging: params.purge === 'DAILY' ? S3_DAILY_PURGE_LIFECYCLE_TAG : undefined,
+      }),
+      limits: params.limits,
+      fileFilter: params.fileFilter,
+    });
 
-    const params = {
-      Bucket: this.bucket,
-      Key: key,
-      ...otherParams,
+    return upload;
+  }
+
+  public async saveContent({
+    key,
+    body,
+    contentType,
+    purge,
+    skipAclCheck,
+  }: SaveContentParams): Promise<any> {
+    let otherParams: Partial<PutObjectCommandInput> = {};
+
+    if (!skipAclCheck) {
+      const acl = this.accessControl === StorageACL.PublicRead ? 'public-read' : 'private';
+      otherParams.ACL = acl;
+    }
+
+    // set content type if provided
+    if (contentType) otherParams.ContentType = contentType;
+
+    // set lifecycle if cleanup provided
+    const purgeMap = {
+      DAILY: S3_DAILY_PURGE_LIFECYCLE_TAG,
     };
 
-    try {
-      // Fetch only Metadata with HeadObjectCommand
-      const command = new HeadObjectCommand(params);
-      const response = await this.client.send(command);
+    if (purgeMap[purge]) otherParams.Tagging = purgeMap[purge];
 
-      return response?.Metadata;
-    } catch (error: any) {
-      logger.error(`Error getting metadata with key ${key}: `, error);
-      throw error;
-    }
+    await this.putObject(key, body, otherParams);
+
+    return { success: true, url: this.getPublicUrl(key) };
+  }
+
+  public async deleteContent({ key }: DeleteContentParams): Promise<{ success: boolean }> {
+    await this.deleteObject(key);
+    return { success: true };
+  }
+
+  public getPublicUrl(key: string): string {
+    return `https://${appConfig.env.AWS_S3_PUB_BUCKET_NAME}/${key}`;
+  }
+
+  async stat(key: string): Promise<FileMetadata> {
+    const res = await this.client.send(new HeadObjectCommand({ Bucket: this.bucket, Key: key }));
+
+    return {
+      size: res.ContentLength ?? 0,
+      contentType: res.ContentType,
+      lastModified: res.LastModified,
+      etag: res.ETag,
+      metadata: res.Metadata,
+    };
+  }
+
+  async getStream(key: string, options?: { range?: string }) {
+    const res = await this.client.send(
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Range: options?.range,
+      }),
+    );
+    return res.Body as NodeJS.ReadableStream;
   }
 }

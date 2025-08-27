@@ -9,12 +9,12 @@ import {
   renderMobileHandler,
 } from '@src/builder-ui/ui/react-injects';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
+import { builderPageTutorialWorkflow } from '../../tutorials';
 import { popupValuesDialog } from '../../ui/tw-dialogs';
 import { delay } from '../../utils';
 import { registerCanvasContextMenu } from '../../workspace/CanvasContextMenu';
 import { setupAgentAuthScripts } from './agent-auth';
 import { setupAgentScripts } from './agent-settings';
-import { setupAgentTemplateScripts } from './agent-template';
 import { setupComponentsScripts } from './components-menu';
 import { handleBuilderReactInjects, setupModals } from './modals';
 import { preloadDataScripts } from './preload-data';
@@ -220,19 +220,16 @@ export default async function scripts() {
   setupAgentScripts(workspace).then(() => {
     renderAgentDeploymentSidebar({ rootID: 'agent-sidebar-root' });
     setupAgentAuthScripts(workspace);
-    setupAgentTemplateScripts(workspace);
 
     const matchedPlugins = plugins.getPluginsByTarget(
       PluginTarget.BuilderLoadScript,
       PluginType.Function,
     );
 
-    console.log('matchedPlugins:  d', matchedPlugins);
     matchedPlugins.forEach((plugin) => {
       (plugin as any).function(workspace);
     });
 
-    //load Chat Agent Builder
     setupModals(workspace);
   });
 
@@ -247,7 +244,11 @@ export default async function scripts() {
 
   workspace.addEventListener('AgentReady', async (e) => {
     console.log('AgentReady');
+
     dbg.init();
+
+    const tutorialWorkflow = await builderPageTutorialWorkflow();
+    if (tutorialWorkflow) tutorialWorkflow?.start();
   });
 
   // Render mobile handler

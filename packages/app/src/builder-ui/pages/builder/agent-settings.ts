@@ -605,7 +605,7 @@ async function loadAgentDomainsList() {
 }
 
 async function loadAgentTemplatesList() {
-  const result = await fetch('/api/page/builder/agent-templates', {
+  const result = await fetch('/api/enterprise/page/builder/agent-templates', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })

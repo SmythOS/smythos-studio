@@ -1,6 +1,5 @@
 import crypto, { randomUUID } from 'crypto';
 import express from 'express';
-import path from 'path';
 import config from '../../../config';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import { getAgentSetting, updateOrInsertAgentSetting } from '../../../services/agent-data.service';
@@ -13,7 +12,6 @@ import {
   smythAPI,
   smythAPIReq,
 } from '../../../utils/';
-import { refreshMenu } from '../../pages/builder-sidebar';
 import { getIntegrations } from '../../router.utils/templates.utils';
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -47,7 +45,7 @@ import { isCustomLLMAllowed } from '../../../utils/customLLM';
 import { customLLMHelper } from '../../router.helpers/customLLM.helper';
 import { serverlessCodeHelper } from '../../router.helpers/serverlessCode.helper';
 import { getKeyIdFromTemplateVar } from '../../router.helpers/vault.helper';
-import { countVaultKeys, getVaultKeys, readAgentTemplates, setVaultKey } from '../../router.utils';
+import { countVaultKeys, getVaultKeys, setVaultKey } from '../../router.utils';
 
 const smythFS = new SmythFS();
 
@@ -327,15 +325,6 @@ router.get('/me', includeTeamDetails, async (req, res) => {
   return res.send({ success: true, data: { email, countTeamVaultKeys: countKeys } });
 });
 
-router.get('/agent-templates', async (req, res) => {
-  try {
-    const templates = await readAgentTemplates(req);
-    return res.send({ success: true, data: templates });
-  } catch (error) {
-    return res.send({ success: true, data: {} });
-  }
-});
-
 router.get('/agent-auth/:agentId', async (req, res) => {
   const agentId = req.params.agentId;
   const token = req.user.accessToken;
@@ -370,74 +359,6 @@ router.put('/agent-auth/:agentId', async (req, res) => {
   }
 });
 
-// Keep only the 10 most recent agent template files
-async function keepRecentFiles(filePath: string) {
-  const maxFiles = 10;
-  const directory = path.dirname(filePath);
-  const filename = path.basename(filePath);
-
-  const files = await smythFS.readDirectory(directory);
-
-  // Match files with the same name but different timestamp
-  const matchedFiles = files.filter((file) => {
-    const parts = file.split('-');
-    parts.pop(); // Remove the timestamp
-    const nameWithoutTimestamp = parts.join('-');
-    return filename.startsWith(nameWithoutTimestamp);
-  });
-
-  // Extract timestamp from filename and sort files by timestamp in descending order
-  const sortedFiles = matchedFiles.sort((a, b) => {
-    const timestampA = Number(path.parse(a).name.split('-').pop());
-    const timestampB = Number(path.parse(b).name.split('-').pop());
-    return timestampB - timestampA;
-  });
-
-  // Remove all but the 10 most recent files
-  for (let i = maxFiles; i < sortedFiles.length; i++) {
-    try {
-      await smythFS.deleteFile(path.join(directory, sortedFiles[i]));
-    } catch (error) {
-      continue;
-    }
-  }
-}
-
-router.put('/agent-templates', async (req, res) => {
-  if (!isSmythStaff(req?._user)) {
-    return res
-      .status(403)
-      .send({ success: false, error: 'You are not authorized to save agent templates' });
-  }
-
-  const { templateInfo } = req.body;
-  const templatesPath = path.join(config.env.DATA_PATH, 'templates/agents');
-  const templateArchivePath = path.join(config.env.DATA_PATH, `templates/archive/agents`);
-  const filePath = path.join(templatesPath, `${templateInfo.id}.smyth`);
-
-  try {
-    const hasFile = await smythFS.hasFile(filePath);
-
-    if (hasFile) {
-      // TODO: remove the ensure directory logic after deploying it to production
-      // Make archive directory if not exists
-      await smythFS.ensureDirectory(templateArchivePath);
-
-      const newFilePath = path.join(templateArchivePath, `${templateInfo.id}-${Date.now()}.smyth`);
-      await smythFS.moveFile(filePath, newFilePath);
-
-      // Keep only the 10 most recent files [don't need 'await' for this]
-      keepRecentFiles(newFilePath);
-    }
-
-    await smythFS.writeJsonFile(filePath, req.body);
-
-    return res.send({ success: true, data: { id: templateInfo.id } });
-  } catch {
-    return res.status(500).send({ success: false, error: 'Error saving agent template' });
-  }
-});
-
 const componentsMWHandler = forwardToSmythM2MAPIMiddleware();
 
 router.get('/app-config/components', componentsMWHandler);
@@ -459,11 +380,9 @@ router.get('/integrations', async (req, res) => {
 });
 
 router.post('/app-config/components', (req, res) => {
-  setTimeout(() => refreshMenu(), 2000);
   return componentsMWHandler(req, res);
 });
 router.put('/app-config/components/:id', (req, res) => {
-  setTimeout(() => refreshMenu(), 2000);
   return componentsMWHandler(req, res);
 });
 

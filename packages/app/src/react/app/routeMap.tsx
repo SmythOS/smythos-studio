@@ -7,12 +7,9 @@ import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPag
 import AIChatPage from '../features/ai-chat/pages/ai-chat';
 
 
-import TemplatesPage from '../features/templates/pages/TemplatesPage';
 
 export const routeMap: IPageRoute[] = [
  
-
-  { path: '/templates', component: TemplatesPage, title: 'Templates' },
 
  
 

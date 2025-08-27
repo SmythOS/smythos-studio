@@ -66,7 +66,7 @@ export async function saveTemplate() {
     }
     const templateId = data?.templateInfo?.id;
 
-    await fetch('/api/page/builder/agent-templates', {
+    await fetch('/api/enterprise/page/builder/agent-templates', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
