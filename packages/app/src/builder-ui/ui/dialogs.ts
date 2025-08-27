@@ -114,7 +114,7 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
   const closeBtn: HTMLButtonElement = rightSidebar.querySelector('.close-btn');
   const saveBtn: HTMLButtonElement = rightSidebar.querySelector('.save-btn');
 
-  if (title) sidebarTitle.innerHTML = `<div class="inline-flex items-center gap-2 min-w-0 max-w-full">${title}</div>`;
+  if (title) sidebarTitle.innerText = title;
   // Ensure title container doesn't affect vertical alignment of adjacent actions
   (sidebarTitle as HTMLElement).style.display = 'inline-flex';
   (sidebarTitle as HTMLElement).style.alignItems = 'center';
