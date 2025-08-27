@@ -1,7 +1,12 @@
-import { TeamSubs, TeamSubsV2 } from '../../../react/shared/types/subscription';
-import { IMembershipTeam, User, UserOnBoarding } from '../../../react/shared/types/entities';
 import { apiResultsTypes } from '../../../react/shared/types';
+import { IMembershipTeam, User, UserOnBoarding } from '../../../react/shared/types/entities';
+import { TeamSubs, TeamSubsV2 } from '../../../react/shared/types/subscription';
 import { Slice } from '../index';
+
+export type PageACL = {
+  read: boolean;
+  write: boolean;
+};
 
 export interface AuthState {
   // User Info
@@ -37,8 +42,8 @@ export interface AuthState {
   refreshUserData: () => Promise<void>;
   isProtectedRoute: (route: string) => boolean;
   hasReadOnlyPageAccess: (route: string, useParentTeamRoles?: boolean) => boolean;
-  getPageAccess: (route: string, useParentTeamRoles?: boolean) => { read: boolean; write: boolean };
-  getPageAccessParentTeam: (route: string) => { read: boolean; write: boolean };
+  getPageAccess: (route: string, useParentTeamRoles?: boolean) => PageACL;
+  getPageAccessParentTeam: (route: string) => PageACL;
   hasReadOnlyAPIAccess: (route: string) => boolean;
   updateUserTeam: (teamId: string, teamData: Partial<IMembershipTeam>) => void;
 }

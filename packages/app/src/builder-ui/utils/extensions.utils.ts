@@ -3,7 +3,6 @@ import config, { EXTENSION_COMP_NAMES } from '../config';
 import { ExtensionCompNames } from '../types/component.types';
 import { confirm } from '../ui/dialogs';
 import { loadDynamicCompMenu } from './component.utils';
-// import noAuthGPTPlugins from '../data/no-auth-gpt-plugins.json';
 
 const uiServer = config.env.UI_SERVER;
 

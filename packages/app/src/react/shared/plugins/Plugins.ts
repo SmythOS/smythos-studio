@@ -4,6 +4,11 @@ export enum PluginTarget {
   Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
+  AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
+  AgentSettingsWidgets = 'agentSettings/widgets',
+  AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
+  BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
+  BuilderSREComponents = 'builder/sreComponents',
 }
 
 export enum PluginType {

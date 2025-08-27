@@ -12,24 +12,27 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/index.css';
 
+
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-export const ChatBubble: FC<IChatMessage> = (props) => {
-  const {
-    me,
-    type,
-    files,
-    avatar,
-    isError,
-    message,
-    isReplying,
-    isRetrying,
-    onRetryClick,
-    hideMessageBubble,
-    thinkingMessage,
-  } = props;
+// Re-export the interface for use in other components
+export type { IChatMessage };
 
+export const ChatBubble: FC<IChatMessage> = ({
+  me,
+  files,
+  avatar,
+  isLast,
+  message,
+  type,
+  isReplying,
+  isRetrying,
+  onRetryClick,
+  isError = false,
+  hideMessageBubble,
+  thinkingMessage,
+}) => {
   if (me) {
     return (
       <UserMessageBubble message={message} files={files} hideMessageBubble={hideMessageBubble} />
@@ -45,12 +48,12 @@ export const ChatBubble: FC<IChatMessage> = (props) => {
     <div className={me ? 'pl-[100px]' : ''}>
       {!hideMessageBubble && (
         <SystemMessageBubble
+          avatar={avatar}
           message={message}
           isError={isError}
           onRetryClick={onRetryClick}
           isRetrying={isRetrying}
           thinkingMessage={thinkingMessage}
-          avatar={avatar}
         />
       )}
     </div>
@@ -90,20 +93,20 @@ const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files, hideMessage
 
 interface ISystemMessageBubble {
   message: string;
+  avatar?: string;
   isError?: boolean;
   isRetrying?: boolean;
   onRetryClick?: () => void;
   thinkingMessage?: string;
-  avatar?: string;
 }
 
 const SystemMessageBubble: FC<ISystemMessageBubble> = ({
+  avatar,
   message,
   isError,
   isRetrying,
   onRetryClick,
   thinkingMessage,
-  avatar,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,7 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
                 p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
               }}
             />
+
             {/* Display thinking message inline if present */}
             {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
           </div>

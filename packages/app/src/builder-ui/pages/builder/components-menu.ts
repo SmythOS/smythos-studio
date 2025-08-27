@@ -1,5 +1,5 @@
 import { EXTENSION_COMP_NAMES } from '../../config';
-import { delay, deleteExtensionHandler, loadDynamicCompMenu, uid } from '../../utils';
+import { delay, deleteExtensionHandler, loadDynamicCompMenu, safe, uid } from '../../utils';
 import { Workspace } from '../../workspace/Workspace.class';
 
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
@@ -19,18 +19,18 @@ const uiServer = config.env.UI_SERVER;
 let workspace: Workspace;
 export function setupComponentsScripts(_workspace: Workspace) {
   workspace = _workspace;
-  handleWorkspaceEvents(workspace);
-  handleComponentSearch();
-  setupGPTExtension();
-  setupHuggingFaceExtension();
-  setupAgentsExtension();
-  setupZapierActionExtension(workspace?.agent);
-  setupCollapseAllButton();
-  setupPrettifyButton();
-  setupZoomInButton();
-  setupZoomOutButton();
-  setupComponentsCollapseAllButton();
-  setupBuilderMenuDragDrop();
+  safe(() => handleWorkspaceEvents(workspace), 'handleWorkspaceEvents');
+  safe(() => handleComponentSearch(), 'handleComponentSearch');
+  safe(() => setupGPTExtension(), 'setupGPTExtension');
+  safe(() => setupHuggingFaceExtension(), 'setupHuggingFaceExtension');
+  safe(() => setupAgentsExtension(), 'setupAgentsExtension');
+  safe(() => setupZapierActionExtension(workspace?.agent), 'setupZapierActionExtension');
+  safe(() => setupCollapseAllButton(), 'setupCollapseAllButton');
+  safe(() => setupPrettifyButton(), 'setupPrettifyButton');
+  safe(() => setupZoomInButton(), 'setupZoomInButton');
+  safe(() => setupZoomOutButton(), 'setupZoomOutButton');
+  safe(() => setupComponentsCollapseAllButton(), 'setupComponentsCollapseAllButton');
+  safe(() => setupBuilderMenuDragDrop(), 'setupBuilderMenuDragDrop');
 }
 
 function handleWorkspaceEvents(workspace: Workspace) {
@@ -379,7 +379,7 @@ interface SearchConfig {
  * Creates a generic search functionality for a list of items
  * @param config - Configuration object for the search functionality
  */
-function setupSearch(config: SearchConfig): void {
+export function setupSearch(config: SearchConfig): void {
   const {
     searchContainer,
     searchInput,
@@ -545,32 +545,6 @@ function handleComponentSearch() {
       });
     },
   });
-
-  // Setup search for integrations sidebar
-  setupSearch({
-    searchContainer: document.querySelector('.integration-search-container'),
-    searchInput: document.querySelector('#integrations-cpt-search'),
-    clearButton: document.querySelector('.integration-search-container .search-clear-btn'),
-    searchIcon: document.querySelector('.integration-search-container .search-glass-icon'),
-    itemContainers: document.querySelectorAll(
-      '#left-sidebar-integrations-menu .items-group-container',
-    ),
-    itemSelector: '[smt-component][data-label]',
-    searchableAttribute: 'data-label',
-    captionSelector: '.name',
-    alpine: {
-      enabled: true,
-      getStoredStateKey: (groupId) => `toggle${groupId}`,
-    },
-    onSearchStateChange: (isSearching) => {
-      const actionButtons = document.querySelectorAll(
-        '#left-sidebar-integrations-menu .btn-import, #left-sidebar-integrations-menu .expand-btn',
-      );
-      actionButtons.forEach((btn: HTMLElement) => {
-        if (!isSearching) btn.classList.remove('hidden');
-      });
-    },
-  });
 }
 
 /**
@@ -582,8 +556,8 @@ function isDroppedInCanvasArea(
   event: DragEvent | { dragEvent?: DragEvent; clientX?: number; clientY?: number },
 ): boolean {
   // Extract coordinates from either DragEvent or custom event object
-  const dropX = 'clientX' in event ? event.clientX : event.dragEvent?.clientX ?? 0;
-  const dropY = 'clientY' in event ? event.clientY : event.dragEvent?.clientY ?? 0;
+  const dropX = 'clientX' in event ? event.clientX : (event.dragEvent?.clientX ?? 0);
+  const dropY = 'clientY' in event ? event.clientY : (event.dragEvent?.clientY ?? 0);
 
   // Return false if coordinates are unavailable
   if (!dropX || !dropY) {
@@ -602,7 +576,7 @@ function isDroppedInCanvasArea(
 function setupBuilderMenuDragDrop() {
   // Initialize the dummy dragging div
   let dummyDiv = null;
-    interact(
+  interact(
     '#left-menu a[smt-component], #left-sidebar-integrations-menu a[smt-component]',
   ).draggable({
     // Create the dummy div when starting the drag
@@ -628,7 +602,9 @@ function setupBuilderMenuDragDrop() {
     onend: function (event) {
       if (workspace?.locked) return false;
 
-      dummyDiv.style.pointerEvents = 'none';
+      if (dummyDiv && dummyDiv.style) {
+        dummyDiv.style.pointerEvents = 'none';
+      }
 
       const droppedInCanvasArea = isDroppedInCanvasArea(event);
 

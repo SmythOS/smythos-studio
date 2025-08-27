@@ -8,7 +8,7 @@
     "build:backend": "rollup --config ./scripts/build/dev/rollup-be.config.mjs",
     "build:frontend:prod": "rollup --config ./scripts/build/prod/rollup-fe.config.mjs",
     "build:backend:prod": "rollup --config ./scripts/build/prod/rollup-be.config.mjs",
-    "build:css": "tailwindcss build -i src/builder-ui/styles/tailwind-v2.css -o static/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
+    "build:css": "tailwindcss build -i src/builder-ui/styles/tailwind-v2.css -o dist/assets/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
     "preview": "node ./dist/server/index.js",
     "bundle:prod": "pnpm run build:backend:prod && pnpm run build:css && pnpm run build:frontend:prod",
     "bundle:dev": "pnpm run build:backend && pnpm run build:css && pnpm run build:frontend",

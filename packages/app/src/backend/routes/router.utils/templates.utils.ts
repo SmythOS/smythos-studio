@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 
+import { cacheClient } from '@src/backend/services/cache.service';
 import config from '../../config';
 import SmythFS from '../../services/SmythFS.class';
 import { getM2MToken } from '../../services/logto-helper';
@@ -80,56 +81,79 @@ export async function readAgentTemplates(req) {
 }
 
 export async function getIntegrations() {
-  const integrations = [];
+  const CACHE_KEY = 'smythos-ui-components-integrations';
+  // TODO: cache this
   try {
+    const cached = await cacheClient.get(CACHE_KEY).catch(() => null);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const token = await getM2MToken();
     const result = await axios.get(`${config.api.SMYTH_M2M_API_URL}/app-config/collections`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const collections = result?.data?.collections || [];
 
-    for (const col of collections) {
+    // Fetch all components for each collection in parallel
+    const componentsPromises = collections.map((col) =>
+      axios
+        .get(`${config.api.SMYTH_M2M_API_URL}/app-config/collections/${col.id}/components`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => ({
+          collectionId: col.id,
+          components: response.data.components || [],
+        })),
+    );
+
+    const componentsResults = await Promise.all(componentsPromises);
+
+    // Transform the data into the expected format
+    const integrations = collections.map((col) => {
       const { id, name, color, icon } = col;
-      const collection = {
+      const collectionComponents =
+        componentsResults.find((r) => r.collectionId === id)?.components || [];
+
+      return {
         name,
         label: name,
         description: '',
         icon,
         color: color || '#000000',
-        children: [],
+        children: collectionComponents
+          .map((comp) => {
+            let data: any = {};
+            try {
+              data = JSON.parse(comp.data);
+            } catch (e) {
+              // Silent catch for invalid JSON
+            }
+
+            const tplColor = data.templateInfo?.color === '#000000' ? '' : data.templateInfo?.color;
+            return {
+              name: comp.name,
+              label: data.templateInfo?.name || data.name,
+              description: comp.templateInfo?.description || comp.description,
+              icon: data.templateInfo?.icon || icon,
+              color: tplColor || color || '#000000',
+              visible: comp.visible,
+              attributes: { 'smt-template-id': comp.id },
+            };
+          })
+          .filter((c) => c.visible), // REMOVE NON-VISIBLE COMPONENTS
       };
+    });
 
-      const componentsResult = await axios.get(
-        `${config.api.SMYTH_M2M_API_URL}/app-config/collections/${id}/components`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const components = componentsResult?.data?.components || [];
-      collection.children = components.map((comp) => {
-        let data: any = {};
-        try {
-          data = JSON.parse(comp.data);
-        } catch (e) {}
+    const preparedIntegrations = integrations
+      .filter((i) => i.children.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    // cache for 3 minutes
+    await cacheClient
+      .set(CACHE_KEY, JSON.stringify(preparedIntegrations), 'EX', '180')
+      .catch(() => null);
 
-        let tplColor = data.templateInfo?.color;
-        if (tplColor == '#000000') tplColor = '';
-        return {
-          name: comp.name,
-          label: data.templateInfo?.name || data.name,
-          description: comp.templateInfo?.description || comp.description,
-          icon: data.templateInfo?.icon || icon,
-          color: tplColor || color || '#000000',
-          visible: comp.visible,
-          attributes: { 'smt-template-id': comp.id },
-        };
-      });
-
-      integrations.push(collection);
-      //if (collection.children.length > 0) integrations.push(collection);
-    }
-
-    return integrations;
+    return preparedIntegrations;
   } catch (error) {
     console.log('error', error);
     return [];

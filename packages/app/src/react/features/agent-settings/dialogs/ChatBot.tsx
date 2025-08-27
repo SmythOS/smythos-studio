@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Fragment, Suspense, lazy, useEffect, useState } from 'react';
 
-import { saveAgentSettingByKey } from '@react/features/agent-settings/clients';
+import { saveAgentSettingByKey, saveEmbodiment } from '@react/features/agent-settings/clients';
 import {
   CHATBOT_DEFAULT_TEXTS,
   MODEL_DESCRIPTION_LIMIT,
@@ -153,44 +153,34 @@ const ChatBotDialog = ({
         },
       };
 
-      const requestOptions = {
-        method: currentData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-          currentData
-            ? { ...dataToSend, embodimentId: currentData?.id }
-            : { ...dataToSend, aiAgentId: agentId },
-        ),
-      };
-
       if (data?.introMessage) {
         saveAgentSettingByKey(SETTINGS_KEYS.introMessage, data.introMessage, agentId);
       }
-      fetch('/api/page/agents/embodiment', requestOptions)
-        .then((response) => {
-          response.json().then((data) => {
-            // Invalidate the agentEmbodiments query to ensure fresh data
-            queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
-            // Also invalidate the embodiments query used in deploy modal
-            queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
-            // Invalidate the agent_embodiments query used in OverviewWidgetsContainer
-            queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
-            // Invalidate the availableEmbodiments query
-            queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
-            refreshEmbodiments(agentId, currentData?.id);
-            successToast('Embodiment saved');
-            closeModal();
-          });
-        })
-        .catch((error) => {
-          errorToast(extractError(error) || 'Embodiment not saved. Please try again.');
-          console.log(error);
-        })
-        .finally(() => {
-          setIsSubmitting(false); // Reset the flag after submission is complete
-        });
+
+      try {
+        await saveEmbodiment(
+          currentData ? 'PUT' : 'POST',
+          currentData
+            ? { ...dataToSend, embodimentId: currentData?.id }
+            : { ...dataToSend, aiAgentId: agentId },
+        );
+        // Invalidate the agentEmbodiments query to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
+        // Also invalidate the embodiments query used in deploy modal
+        queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
+        // Invalidate the agent_embodiments query used in OverviewWidgetsContainer
+        queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
+        // Invalidate the availableEmbodiments query
+        queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
+
+        successToast('Embodiment saved');
+        closeModal();
+      } catch (error) {
+        errorToast(extractError(error) || 'Embodiment not saved. Please try again.');
+        console.log(error);
+      }
+
+      setIsSubmitting(false); // Reset the flag after submission is complete
     } catch (error) {
       console.error('Error:', error);
     }

@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 
 import * as userData from '../../../services/user-data.service';
 import { APIResponse } from '../../../types/';
-import { uid } from '../../../services/utils.service';
 
 import { generateKey } from '../../../utils';
 

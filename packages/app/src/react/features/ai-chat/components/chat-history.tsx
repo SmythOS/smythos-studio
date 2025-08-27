@@ -99,5 +99,5 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
 };
 
 const ErrorMessage: FC<{ avatar?: string }> = ({ avatar }) => (
-  <ChatBubble me={false} isError message={CHAT_ERROR_MESSAGE} avatar={avatar} />
+  <ChatBubble isError message={CHAT_ERROR_MESSAGE} avatar={avatar} me={false} />
 );
