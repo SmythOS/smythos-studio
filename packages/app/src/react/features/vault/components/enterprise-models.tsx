@@ -4,21 +4,22 @@ import type {
 } from '@react/features/vault/types/enterprise-model';
 import type { EnterpriseModel } from '@react/features/vault/types/types';
 import { enterpriseModelService } from '@react/features/vault/vault-business-logic';
-import IconToolTip from '@src/react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Button } from '@src/react/shared/components/ui/button';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
+import { Tooltip } from 'flowbite-react';
 import {
   Code,
   FileScan,
   FileText,
   Image,
+  Info,
   Pencil,
   PlusCircle,
   Sparkles,
   Trash2,
-  Video
+  Video,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -71,6 +72,19 @@ export function EnterpriseModels({ pageAccess }: { pageAccess: { write: boolean 
   const handleCreateModel = async (
     data: CreateEnterpriseModelStep1 & CreateEnterpriseModelStep2,
   ) => {
+    // Check for duplicate names (case-insensitive)
+    const existingModel = models.find(
+      (model) =>
+        model.name.toLowerCase() === data.name.toLowerCase() &&
+        // When editing, exclude the current model from duplicate check
+        (!editingModel || model.id !== editingModel.id),
+    );
+
+    if (existingModel) {
+      errorToast('A custom model with this name already exists. Please choose a different name.');
+      return;
+    }
+
     setIsProcessing(true);
     try {
       if (editingModel) {
@@ -127,9 +141,9 @@ export function EnterpriseModels({ pageAccess }: { pageAccess: { write: boolean 
       }
     } catch (error) {
       console.error('Error saving model:', error);
-      errorToast(editingModel
-        ? 'Failed to update enterprise model'
-        : 'Failed to create enterprise model');
+      errorToast(
+        editingModel ? 'Failed to update enterprise model' : 'Failed to create enterprise model',
+      );
       throw error;
     } finally {
       setIsProcessing(false);
@@ -171,12 +185,14 @@ export function EnterpriseModels({ pageAccess }: { pageAccess: { write: boolean 
 
   return (
     <div className="w-full p-6 rounded-lg border border-solid border-[#d9d9d9] flex-col justify-start items-start gap-3 flex">
-      <div className="self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
-        Enterprise Models{' '}
-        <IconToolTip
-          classes="w-72"
-          html="Enterprise models offer control over configurations, enterprise-grade security, and scalable performance for high-volume tasks."
-        />
+      <div className="flex items-center gap-2 self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
+        Enterprise Models
+        <Tooltip
+          className="w-72 text-center"
+          content="Enterprise models offer control over configurations, enterprise-grade security, and scalable performance for high-volume tasks."
+        >
+          <Info className="w-4 h-4" />
+        </Tooltip>
       </div>
       <div className="w-full space-y-4">
         {isLoading || isLoadingCanUseEnterpriseModels ? (
@@ -186,70 +202,77 @@ export function EnterpriseModels({ pageAccess }: { pageAccess: { write: boolean 
             {models.length === 0 ? (
               <div className="py-4 text-center text-gray-500">No enterprise models found</div>
             ) : (
-              models.map((model) => (
-                <div key={model.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-5 items-center rounded-md bg-[#F1C5FF] px-2 text-xs font-medium text-[#772590]">
-                      Enterprise
-                    </span>
-                    <span className="font-medium text-[#374151] max-w-[200px] truncate">
-                      {model.name}
-                    </span>
-                    {model.modelName && (
-                      <span className="inline-flex h-5 items-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]">
-                        {model.modelName}
-                      </span>
-                    )}
-                    {model.tags &&
-                      model.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex h-5 items-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]"
-                        >
-                          {tag}
+              <div className="overflow-x-auto">
+                <div className="min-w-[500px]">
+                  {models.map((model) => (
+                    <div key={model.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-5 items-center rounded-md bg-[#F1C5FF] px-2 text-xs font-medium text-[#772590]">
+                          Enterprise
                         </span>
-                      ))}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-[#6b7280]">
-                      {model.contextWindowSize
-                        ? `${enterpriseModelService.getTokenTag(model.contextWindowSize)} tokens`
-                        : ''}
-                    </span>
-                    {model.features &&
-                      model.features.map((feature, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f8f6ff] text-[#5f4cd9]"
-                          title={feature}
-                        >
-                          {getFeatureIcon(feature)}
+                        <span className="font-medium text-[#374151] max-w-[200px] truncate">
+                          {model.name}
                         </span>
-                      ))}
-                    {pageAccess?.write && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditButtonClick(model)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {pageAccess?.write && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteButtonClick(model)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Trash2 className="h-4 w-4 hover:text-red-500" />
-                      </Button>
-                    )}
-                  </div>
+                        {model.modelName && (
+                          <span className="inline-flex h-5 items-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280] whitespace-nowrap">
+                            {model.modelName}
+                          </span>
+                        )}
+                        {model.tags &&
+                          model.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280] whitespace-nowrap"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                      </div>
+                      <div className="flex items-center gap-2 ml-2">
+                        <span className="text-sm text-[#6b7280] whitespace-nowrap">
+                          {model.contextWindowSize
+                            ? `${enterpriseModelService.getTokenTag(
+                                model.contextWindowSize,
+                              )} tokens`
+                            : ''}
+                        </span>
+                        {model.features &&
+                          model.features.map((feature, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f8f6ff] text-[#5f4cd9]"
+                              title={feature}
+                            >
+                              {getFeatureIcon(feature)}
+                            </span>
+                          ))}
+                        {pageAccess?.write && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditButtonClick(model)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {pageAccess?.write && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteButtonClick(model)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Trash2 className="h-4 w-4 hover:text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))
+              </div>
             )}
+
             {pageAccess?.write && (
               <div className="w-full flex justify-center">
                 <CustomButton
@@ -289,7 +312,7 @@ export function EnterpriseModels({ pageAccess }: { pageAccess: { write: boolean 
               </span>
             </div>
             <div className="self-stretch rounded-lg bg-white mt-4">
-              <div className="flex items-center justify-between px-4 py-4">
+              <div className="flex items-center justify-center flex-col sm:flex-row sm:justify-between sm:px-4 sm:py-4">
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <svg

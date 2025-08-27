@@ -3,7 +3,7 @@ import { importRegex } from '../ui/form/custom-validator-functions';
 import { promptVaultInfo } from '../utils';
 
 export class ServerlessCode extends Component {
-  public templateSupport = true;
+  public templateSupport = false;
 
   protected async init() {
     const packagesImportsSample = `/*

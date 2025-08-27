@@ -1,20 +1,16 @@
 // src/components/sidebar/Sidebar.tsx
-import { FEATURE_FLAGS } from '@shared/constants/featureflags';
+import { useGetTeamSettings } from '@react/features/teams/hooks/useTeamSettings';
 import { teamSettingKeys } from '@shared/teamSettingKeys';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import ErrorFallback from '@src/react/features/error-pages/components/ErrorFallback';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
-import { useGetTeamSettings } from '@src/react/features/teams/hooks/useTeamSettings';
-import { bottomLinks, sidebarMenuItems, sidebarMenuItemsWithTeams } from '@src/react/shared/constants/navigation';
+import { bottomLinks, getSidebarMenuItems } from '@src/react/shared/constants/navigation';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { useScreenSize } from '@src/react/shared/hooks/useScreenSize';
 import { useGetUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { PluginComponents } from '../../plugins/PluginComponents';
-import { PluginTarget } from '../../plugins/Plugins';
-import { useFeatureVisibility } from '../featureFlags';
 import { CollapseIcon } from '../svgs';
 import { BottomMenuItem } from './BottomMenuItem';
 import { SidebarMenuItem } from './SidebarMenuItem';
@@ -32,8 +28,8 @@ export const Sidebar: React.FC = () => {
   });
 
   const { isCollapsed, toggleSidebar } = useScreenSize();
-  const { isStaffUser, userTeams, getPageAccess } = useAuthCtx();
-  const isTeamsUIEnabled = useFeatureVisibility(FEATURE_FLAGS.TEAMS_UI);
+  const { userTeams, getPageAccess } = useAuthCtx();
+  // const isTeamsUIEnabled = useFeatureVisibility(FEATURE_FLAGS.TEAMS_UI);
   const { data: userSettings, isLoading: isUserSettingsLoading } = useGetUserSettings(
     userSettingKeys.USER_TEAM,
   );
@@ -44,38 +40,43 @@ export const Sidebar: React.FC = () => {
   access['/domains'] = getPageAccess('/domains')?.read;
   access['/data/'] = getPageAccess('/data')?.read;
   access['/analytics'] = getPageAccess('/analytics')?.read;
-  access['/teams/settings'] = isTeamsUIEnabled && getPageAccess('/teams/members')?.read;
+  access['/teams/settings'] = getPageAccess('/teams/members')?.read;
 
   const currentTeam = userTeams?.find((team) => team.id === userSettings?.userSelectedTeam);
   const { data: companyLogo } = useGetTeamSettings(teamSettingKeys.COMPANY_LOGO);
   const showCustomLogo =
     currentTeam?.parentId && companyLogo?.url && getPageAccess('/teams/members')?.read;
 
-  // const isTeamsUIEnabled = false;
-  // featureFlagPayload === FEATURE_FLAG_PAYLOAD_RELEASE_TYPE.PUBLIC || isStaffUser;
-  let menuItems = sidebarMenuItemsWithTeams.filter((item) => access[item.url]);
-  // let menuItems = isTeamsUIEnabled ? sidebarMenuItemsWithTeams : sidebarMenuItems;
-  if (isTeamsUIEnabled && currentTeam) {
-    if (!currentTeam.parentId) {
-      // Create a new array based on sidebarMenuItems priority
-      menuItems = sidebarMenuItems.reduce(
-        (acc, item) => {
-          // Skip '/teams/settings'
-          if (item.url === '/teams/settings') {
-            return acc;
-          }
+  let menuItems = getSidebarMenuItems().filter((item) => {
+    const isVisible =
+      typeof item.visible === 'boolean'
+        ? item.visible
+        : typeof item.visible === 'function'
+          ? item.visible(currentTeam)
+          : true;
+    return access[item.url] && isVisible;
+  });
+  // if (currentTeam && currentTeam.parentId) {
+  //   // if it is SUBTEAM team, add subTeamsMenuItems to menuItems
+  //   // Create a new array based on sidebarMenuItems priority
+  //   // menuItems = sidebarMenuItems.reduce(
+  //   //   (acc, item) => {
+  //   //     // Skip '/teams/settings'
+  //   //     if (item.url === '/teams/settings') {
+  //   //       return acc;
+  //   //     }
 
-          // Include all other items
-          if (menuItems.some((menuItem) => menuItem.url === item.url)) {
-            acc.push(item);
-          }
+  //   //     // Include all other items
+  //   //     if (menuItems.some((menuItem) => menuItem.url === item.url)) {
+  //   //       acc.push(item);
+  //   //     }
 
-          return acc;
-        },
-        [] as typeof sidebarMenuItems,
-      );
-    }
-  }
+  //   //     return acc;
+  //   //   },
+  //   //   [] as typeof sidebarMenuItems,
+  //   // );
+  //   menuItems = [...menuItems, ...subTeamsMenuItems];
+  // }
 
   useEffect(() => {
     const currentPage = menuItems.find((page) => page.url === location.pathname);
@@ -113,6 +114,7 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="relative">
       <div
+        data-qa="navigation-sidebar"
         className={classNames(
           'z-50 left-0 min-w-[4rem] max-h-screen flex flex-col transition-all duration-300 sticky top-0 h-[100dvh] md:h-screen max-md:absolute',
           isCollapsed ? 'w-16' : 'w-64',
@@ -154,16 +156,26 @@ export const Sidebar: React.FC = () => {
                     })}
                     alt="SmythOS"
                   />
-                  {!isCollapsed && (
-                    <img src="/img/smythos-text.svg" alt="SmythOS" className="ml-3 h-6 w-auto" />
-                  )}
+                  <img
+                    src="/img/smythos-text.svg"
+                    alt="SmythOS"
+                    className={classNames(
+                      'ml-3 h-6 w-auto transition-all duration-300',
+                      isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto',
+                    )}
+                  />
                 </>
               )}
             </div>
           </Link>
         </div>
         <nav className="flex-grow relative overflow-y-auto">
-          <div className="h-full overflow-x-hidden">
+          <div
+            className={classNames('h-full', {
+              'overflow-x-hidden': !isCollapsed,
+              'flex flex-col items-center pt-0': isCollapsed,
+            })}
+          >
             {menuItems.map((page: any) => (
               <SidebarMenuItem
                 key={page.url}
@@ -175,7 +187,7 @@ export const Sidebar: React.FC = () => {
                 isActive={activePage === page.name}
               />
             ))}
-             <PluginComponents targetId={PluginTarget.TopMenuItem} />
+            {/* <PluginComponents targetId={PluginTarget.TopMenuItem} /> */}
           </div>
         </nav>
         <div className="mt-auto border-t border-gray-100 overflow-hidden">

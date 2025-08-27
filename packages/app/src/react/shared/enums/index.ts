@@ -12,6 +12,7 @@ export enum FRONTEND_USER_SETTINGS {
   HIDE_BACK_BUTTON_WELCOME_PAGE = 'hideBackButtonWelcomePage',
   ACCEPT_INVITE_LOGGED = 'acceptInviteLogged',
   WHAT_ARE_YOU_BUILDING = 'whatAreYouBuilding',
+  TEMPLATES_SORT_CRITERIA = 'templatesSortCriteria',
 }
 
 export enum EMBODIMENT_TYPE {
@@ -23,6 +24,7 @@ export enum EMBODIMENT_TYPE {
   FORM = 'form',
   LLM = 'llm', // Add this line
   ALEXA = 'alexa',
+  LOVABLE = 'lovable',
 }
 
 export enum DEFAULT_CHAT_COLORS {

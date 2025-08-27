@@ -44,7 +44,7 @@ const AvatarModal: React.FC<AvatarModalProps> = ({
           )}
           {isUploading && (
             <div className="w-[236px] h-[236px] rounded-full absolute top-0 left-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-              <FaCircleNotch className="w-10 h-10 animate-spin text-primary-100" />
+              <FaCircleNotch className="w-10 h-10 animate-spin text-v2-blue" />
             </div>
           )}
         </div>

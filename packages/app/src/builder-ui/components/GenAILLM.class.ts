@@ -1,4 +1,6 @@
+// TODO: Refactor this file (specially setting fields for different providers)
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
+import { REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
 import { createBadge } from '../ui/badges';
@@ -27,7 +29,9 @@ export class GenAILLM extends Component {
   private defaultModel: string;
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
+  private groqReasoningModels: string[];
   private searchModels: string[];
+  private gpt5ReasoningModels: string[];
 
   protected async prepare() {
     const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
@@ -50,7 +54,13 @@ export class GenAILLM extends Component {
     this.openaiReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'openai').map(
       (m) => m.entryId,
     );
+    this.groqReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'groq').map(
+      (m) => m.entryId,
+    );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+
+    // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
+    this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
 
     modelOptions.unshift('Echo');
     const model = this.data.model || this.defaultModel;
@@ -92,6 +102,7 @@ export class GenAILLM extends Component {
       'useContextWindow',
       'maxContextWindowLength',
 
+      // Generic web search fields (for providers like OpenAI, Perplexity, etc.)
       'useWebSearch',
       'webSearchContextSize',
       'webSearchCity',
@@ -99,11 +110,43 @@ export class GenAILLM extends Component {
       'webSearchRegion',
       'webSearchTimezone',
 
+      // xAI Live Search specific fields
+      'useSearch',
+      'searchMode',
+      'returnCitations',
+      'maxSearchResults',
+      'searchDataSources',
+      'searchCountry',
+      'excludedWebsites',
+      'allowedWebsites',
+      'includedXHandles',
+      'excludedXHandles',
+      'postFavoriteCount',
+      'postViewCount',
+      'rssLinks',
+      'safeSearch',
+      'fromDate',
+      'toDate',
+
       'useReasoning',
       'maxThinkingTokens',
+      'reasoningEffort',
+      'verbosity',
     ];
     for (let item of dataEntries) {
-      if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+      // Check if the field needs default value initialization
+      const isUndefined = typeof this.data[item] === 'undefined';
+
+      // Special handling for checkbox-group fields: these fields have array default values
+      // but often get initialized with empty arrays [] or null instead of undefined.
+      // We need to apply defaults when the data is empty, not just when it's undefined.
+      const isArrayFieldWithEmptyValue =
+        Array.isArray(this.settings[item].value) &&
+        (!this.data[item] || (Array.isArray(this.data[item]) && this.data[item].length === 0));
+
+      if (isUndefined || isArrayFieldWithEmptyValue) {
+        this.data[item] = this.settings[item].value;
+      }
     }
 
     // #region [ Output config ] ==================
@@ -177,6 +220,11 @@ export class GenAILLM extends Component {
     const useWebSearchElm = form?.querySelector('#useWebSearch') as HTMLInputElement;
     if (useWebSearchElm) {
       this.toggleWebSearchNestedFields(useWebSearchElm, form);
+    }
+
+    const useSearchElm = form?.querySelector('#useSearch') as HTMLInputElement;
+    if (useSearchElm) {
+      this.toggleSearchNestedFields(useSearchElm, form);
     }
 
     const useReasoningElm = form?.querySelector('#useReasoning') as HTMLInputElement;
@@ -286,12 +334,12 @@ export class GenAILLM extends Component {
         type: 'select',
         label: 'Select a Model',
         help: 'Choose an AI model to process the prompt.',
-        hintPosition: 'bottom',
+        hintPosition: 'after_label',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         value: this.defaultModel,
         options: this.modelOptions,
-        class: 'mt-1 mb-6',
+        class: 'mt-1',
         dropdownHeight: 350, // In pixels
         attributes: { 'data-supported-models': 'all' },
 
@@ -316,7 +364,26 @@ export class GenAILLM extends Component {
             const form = currentElement.closest('form');
             const useWebSearchElm = form?.querySelector('#useWebSearch') as HTMLInputElement;
 
-            this.toggleWebSearchNestedFields(useWebSearchElm, form);
+            if (useWebSearchElm) {
+              this.toggleWebSearchNestedFields(useWebSearchElm, form);
+            }
+            // #endregion
+
+            // #region Toggle search nested fields on model change
+            const useSearchElm = form?.querySelector('#useSearch') as HTMLInputElement;
+            if (useSearchElm) {
+              this.toggleSearchNestedFields(useSearchElm, form);
+            }
+            // #endregion
+
+            // #region Hide provider-specific fields when switching models
+            const provider = LLMRegistry.getModelProvider(currentElement.value);
+            if (provider.toLowerCase() !== 'xai') {
+              this.hideXAISpecificFields(form);
+            }
+            if (provider.toLowerCase() !== 'openai') {
+              this.hideOpenAIWebSearchFields(form);
+            }
             // #endregion
 
             // #region Toggle reasoning nested fields on model change
@@ -324,6 +391,10 @@ export class GenAILLM extends Component {
             if (useReasoningElm) {
               this.toggleReasoningNestedFields(useReasoningElm, form);
             }
+            // #endregion
+
+            // #region Update verbosity field visibility based on model
+            this.updateVerbosityFieldVisibility(currentElement.value, form);
             // #endregion
           },
         },
@@ -442,9 +513,8 @@ export class GenAILLM extends Component {
         },
         section: 'Advanced',
         help: 'The total context window size includes both the request prompt length and output completion length.',
-        // hintPosition: 'left',
         class: 'px-4 mb-0 bg-gray-50',
-        tooltipIconClasses: '-ml-2 float-none',
+        tooltipIconClasses: '-ml-1 -mt-1 float-none',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -454,12 +524,12 @@ export class GenAILLM extends Component {
           allowedWebSearchContextTokens ? allowedWebSearchContextTokens.toLocaleString() : 'Unknown'
         }</span> tokens</strong>`,
         attributes: {
-          'data-supported-models': this.searchModels.join(','),
+          'data-supported-models': [...this.searchModels].join(','),
         },
         section: 'Advanced',
         help: 'Web search is limited to a context window size of 128000',
         class: `px-4 bg-gray-50`,
-        tooltipIconClasses: '-ml-2 float-none',
+        tooltipIconClasses: '-ml-1 -mt-1 float-none',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -508,13 +578,14 @@ export class GenAILLM extends Component {
         value: '',
         attributes: {
           'data-supported-models':
-            'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,cohere',
+            'OpenAI,Anthropic,GoogleAI,Groq,TogetherAI,VertexAI,Bedrock,cohere',
         },
         section: 'Advanced',
         help: hint.stopSequences,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
-        additionalHint: 'Input a sequence and press Enter, Space, or Comma to add it to the list.',
+        hint: 'Input a sequence and press Enter, Space, or Comma to add it to the list.',
+        hintPosition: 'after_label',
       },
       topP: {
         type: 'range',
@@ -531,6 +602,7 @@ export class GenAILLM extends Component {
           'data-excluded-models': [
             ...this.anthropicThinkingModels,
             ...this.openaiReasoningModels,
+            ...this.groqReasoningModels,
           ].join(','),
         },
         section: 'Advanced',
@@ -585,6 +657,23 @@ export class GenAILLM extends Component {
         help: hint.presencePenalty,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
+      },
+      verbosity: {
+        type: 'select',
+        label: 'Verbosity',
+        value: 'medium',
+        options: [
+          { text: 'Low', value: 'low' },
+          { text: 'Medium', value: 'medium' },
+          { text: 'High', value: 'high' },
+        ],
+        attributes: {
+          'data-supported-models': this.gpt5ReasoningModels.join(','),
+        },
+        help: "Controls the verbosity of the model's response. Lower values result in more concise responses, while higher values result in more verbose responses. Currently supported by GPT-5 models.",
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
       },
       passthrough: {
         type: 'checkbox',
@@ -661,7 +750,10 @@ export class GenAILLM extends Component {
         label: 'Use Reasoning',
         value: false,
         attributes: {
-          'data-supported-models': this.anthropicThinkingModels.join(','),
+          'data-supported-models': [
+            ...this.anthropicThinkingModels,
+            ...this.groqReasoningModels,
+          ].join(','),
         },
         help: 'Enable thinking capabilities to allow the model to break down complex problems into steps and think through solutions methodically',
         tooltipClasses: 'w-56 ',
@@ -685,9 +777,9 @@ export class GenAILLM extends Component {
         max: allowedReasoningTokens,
         value: defaultThinkingTokens,
         step: 4,
-        // attributes: {
-        //   'data-supported-models': this.anthropicThinkingModels.join(','),
-        // },
+        attributes: {
+          'data-supported-models': this.anthropicThinkingModels.join(','),
+        },
         help: hint.maxThinkingTokens,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -695,16 +787,70 @@ export class GenAILLM extends Component {
         fieldsGroup: 'Max Thinking Tokens',
       },
 
+      reasoningEffort: {
+        type: 'select',
+        label: 'Reasoning Effort',
+        value: this.getDefaultReasoningEffortForModel(
+          this.data.model || this.defaultModel,
+          this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        ),
+        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        help: 'Controls the level of effort the model will put into reasoning. GPT-OSS models support low/medium/high levels, while Qwen models support none/default.',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
+        fieldsGroup: 'Reasoning Effort',
+      },
+
       ...(await this.getWebSearchFields()),
     };
+  }
+
+  /**
+   * Update verbosity field visibility based on the selected model
+   */
+  private updateVerbosityFieldVisibility(modelId: string, form: HTMLFormElement) {
+    if (!form) return;
+
+    const verbosityField = form.querySelector('[data-field-name="verbosity"]') as HTMLElement;
+    if (!verbosityField) return;
+
+    if (LLMRegistry.isGpt5ReasoningModels(modelId)) {
+      verbosityField.classList.remove('hidden');
+    } else {
+      verbosityField.classList.add('hidden');
+    }
   }
 
   private async getWebSearchFields() {
     const countryOptions = [{ text: 'Select a Country', value: '' }, ...isoCountryCodes];
     const timezoneOptions = [{ text: 'Select a Timezone', value: '' }, ...ianaTimezones];
 
+    // Include all search models, but exclude xAI for the generic useWebSearch field
+    const webSearchSupportedModels = [...this.searchModels].join(',');
+    const openAISearchModels = this.searchModels
+      .filter((model) => {
+        const provider = LLMRegistry.getModelProvider(model);
+        return provider.toLowerCase() !== 'xai';
+      })
+      .join(',');
+    const xAISearchModels = this.searchModels
+      .filter((model) => {
+        const provider = LLMRegistry.getModelProvider(model);
+        return provider.toLowerCase() === 'xai';
+      })
+      .join(',');
+
     const attributes = {
-      'data-supported-models': this.searchModels.join(','),
+      'data-supported-models': webSearchSupportedModels,
+    };
+
+    const openAIAttributes = {
+      'data-supported-models': openAISearchModels,
+    };
+
+    const xAIAttributes = {
+      'data-supported-models': xAISearchModels,
     };
 
     return {
@@ -712,7 +858,7 @@ export class GenAILLM extends Component {
         type: 'checkbox',
         label: 'Use Web Search',
         value: false,
-        attributes,
+        attributes: openAIAttributes,
         help: 'Allow models to search the web for the latest information before generating a response.',
         section: 'Advanced',
         events: {
@@ -728,7 +874,7 @@ export class GenAILLM extends Component {
         type: 'select',
         label: 'Web Search Context Size',
         value: 'medium',
-        attributes,
+        attributes: openAIAttributes,
         class: 'hidden',
         options: [
           {
@@ -752,7 +898,7 @@ export class GenAILLM extends Component {
         type: 'div',
         html: `<h3 class="font-bold text-md __fields_group_title">User Location</h3>`,
         value: '',
-        attributes,
+        attributes: openAIAttributes,
         class: 'mb-0 hidden',
         help: 'To refine search results based on geography, you can specify an approximate user location using country, city, region, and/or timezone.',
         section: 'Advanced',
@@ -762,7 +908,7 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'City',
         value: '',
-        attributes,
+        attributes: openAIAttributes,
         class: 'hidden',
         help: "The city: free text strings, like 'Minneapolis'.",
         validate: 'maxlength=100',
@@ -774,7 +920,7 @@ export class GenAILLM extends Component {
         type: 'select',
         label: 'Country',
         value: '',
-        attributes,
+        attributes: openAIAttributes,
         class: 'hidden',
         options: countryOptions,
         help: "Country: a two-letter ISO country code, like 'US'.",
@@ -785,7 +931,7 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'Region',
         value: '',
-        attributes,
+        attributes: openAIAttributes,
         class: 'hidden',
         help: "Region: free text strings, like 'Minnesota'.",
         validate: 'maxlength=100',
@@ -797,16 +943,289 @@ export class GenAILLM extends Component {
         type: 'select',
         label: 'Timezone',
         value: '',
-        attributes,
+        attributes: openAIAttributes,
         class: 'hidden',
         options: timezoneOptions,
         help: 'Timezone: an IANA timezone like America/Chicago.',
         section: 'Advanced',
         fieldsGroup: 'Location',
       },
+
+      // xAI Live Search specific fields
+      useSearch: {
+        type: 'checkbox',
+        label: 'Use Search',
+        value: false,
+        attributes: xAIAttributes,
+        help: 'Enable live search capabilities that allow the model to access real-time information from multiple data sources, including Web, X, News, and RSS feeds.',
+        section: 'Advanced',
+        events: {
+          change: (event) => {
+            const target = event.target as HTMLInputElement;
+            const form = target.closest('form');
+
+            this.toggleSearchNestedFields(target, form);
+          },
+        },
+      },
+      returnCitations: {
+        type: 'checkbox',
+        label: 'Return Citations',
+        value: false,
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Include citations and sources in the response for transparency and verification.',
+        section: 'Advanced',
+        fieldsGroup: 'Search Control',
+      },
+      searchMode: {
+        type: 'select',
+        label: 'Search Mode',
+        value: 'auto',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        options: [
+          {
+            text: 'Auto',
+            value: 'auto',
+          },
+          {
+            text: 'On',
+            value: 'on',
+          },
+          {
+            text: 'Off',
+            value: 'off',
+          },
+        ],
+        help: 'Controls when the model should perform web search. &quot;Auto&quot; lets the model decide, &quot;On&quot; forces search, &quot;Off&quot; disables search.',
+        section: 'Advanced',
+        fieldsGroup: 'Search Control',
+      },
+      fromDate: {
+        type: 'date',
+        label: 'From Date',
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Filter search results starting from this date. When only &quot;From Date&quot; is specified, data will be searched from the &quot;From Date&quot; to today.',
+        section: 'Advanced',
+        fieldsGroup: 'Date Filtering',
+      },
+      toDate: {
+        type: 'date',
+        label: 'To Date',
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Filter search results ending at this date. When only &quot;To Date&quot; is specified, all data up to the &quot;To Date&quot; will be searched.',
+        section: 'Advanced',
+        fieldsGroup: 'Date Filtering',
+      },
+      maxSearchResults: {
+        type: 'range',
+        label: 'Max Search Results',
+        min: 1,
+        max: 100,
+        value: 10,
+        step: 1,
+        validate: 'min=1 max=50',
+        validateMessage: 'Allowed range 1 to 50',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Maximum number of search results to retrieve from the web.',
+        section: 'Advanced',
+        fieldsGroup: 'Search Results',
+      },
+      searchDataSources: {
+        type: 'checkbox-group',
+        label: 'Data Sources',
+        value: ['web', 'x'],
+        attributes: xAIAttributes,
+        class: 'hidden',
+        options: [
+          {
+            text: 'Web',
+            value: 'web',
+          },
+          {
+            text: 'X Platform',
+            value: 'x',
+          },
+          {
+            text: 'News',
+            value: 'news',
+          },
+          {
+            text: 'RSS Feeds',
+            value: 'rss',
+          },
+        ],
+        help: 'Select which data sources to search. Leave empty to search all available sources.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+        events: {
+          change: (event) => {
+            const form = event.target.closest('form');
+            this.toggleCountryFieldBasedOnDataSources(form);
+            this.toggleWebsiteFieldsBasedOnDataSources(form);
+            this.toggleXHandlesFieldBasedOnDataSources(form);
+            this.toggleEngagementFieldsBasedOnDataSources(form);
+            this.toggleRSSFieldsBasedOnDataSources(form);
+            this.toggleSafeSearchFieldBasedOnDataSources(form);
+          },
+        },
+      },
+      safeSearch: {
+        type: 'checkbox',
+        label: 'Safe Search',
+        value: false,
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Enable safe search filtering to exclude explicit and potentially inappropriate content from web and news results.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+      },
+      searchCountry: {
+        type: 'select',
+        label: 'Country',
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        options: countryOptions,
+        help: 'Select a country to limit search results to.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+      },
+      excludedWebsites: {
+        type: 'tag',
+        label: 'Excluded Websites',
+        maxTags: 5,
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Specify up to 5 websites to exclude from search results (e.g., example.com, badsite.org). This cannot be used with &quot;Allowed Websites&quot;.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+        hint: 'Enter a website domain and press Enter, Space, or Comma to add it to the list.',
+        hintPosition: 'after_label',
+        events: {
+          change: (event) => {
+            const form = event.target.closest('form');
+            this.toggleWebsiteFieldsMutualExclusivity(form, 'excludedWebsites');
+          },
+        },
+      },
+      allowedWebsites: {
+        type: 'tag',
+        label: 'Allowed Websites',
+        maxTags: 5,
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Specify up to 5 websites to limit search results to (e.g., wikipedia.org, github.com). This cannot be used with &quot;Excluded Websites&quot;.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+        hint: 'Enter a website domain and press Enter, Space, or Comma to add it to the list.',
+        hintPosition: 'after_label',
+        events: {
+          change: (event) => {
+            const form = event.target.closest('form');
+            this.toggleWebsiteFieldsMutualExclusivity(form, 'allowedWebsites');
+          },
+        },
+      },
+      includedXHandles: {
+        type: 'tag',
+        label: 'Included X Handles',
+        maxTags: 10,
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Specify up to 10 X handles to include in search results (e.g., elonmusk, xai). This parameter cannot be set together with &quot;Excluded X Handles&quot; parameter.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+        hint: 'Enter X handle without @ symbol and press Enter, Space, or Comma to add it to the list. ',
+        hintPosition: 'after_label',
+        events: {
+          change: (event) => {
+            const form = event.target.closest('form');
+            this.toggleXHandlesMutualExclusivity(form, 'includedXHandles');
+          },
+        },
+      },
+      excludedXHandles: {
+        type: 'tag',
+        label: 'Excluded X Handles',
+        maxTags: 10,
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Specify up to 10 X handles to exclude from search results (e.g., spamaccount, botuser). This parameter cannot be set together with &quot;Included X Handles&quot; parameter.',
+        section: 'Advanced',
+        fieldsGroup: 'Data Sources',
+        hint: 'Enter X handle without @ symbol and press Enter, Space, or Comma to add it to the list.',
+        hintPosition: 'after_label',
+        events: {
+          change: (event) => {
+            const form = event.target.closest('form');
+            this.toggleXHandlesMutualExclusivity(form, 'excludedXHandles');
+          },
+        },
+      },
+      postFavoriteCount: {
+        type: 'number',
+        label: 'Min Post Favorites',
+        min: 0,
+        max: 1000000000,
+        value: 0,
+        step: 1,
+        validate: 'min=0 max=1000000000',
+        validateMessage: 'Must be between 0 and 1,000,000,000',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Minimum number of favorites/likes a post must have to be included in search results.',
+        section: 'Advanced',
+        fieldsGroup: 'Engagement Filtering',
+      },
+      postViewCount: {
+        type: 'number',
+        label: 'Min Post Views',
+        min: 0,
+        max: 1000000000,
+        value: 0,
+        step: 1,
+        validate: 'min=0 max=1000000000',
+        validateMessage: 'Must be between 0 and 1,000,000,000',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Minimum number of views a post must have to be included in search results.',
+        section: 'Advanced',
+        fieldsGroup: 'Engagement Filtering',
+      },
+      rssLinks: {
+        type: 'tag',
+        label: 'RSS Links',
+        maxTags: 10,
+        value: '',
+        attributes: xAIAttributes,
+        class: 'hidden',
+        help: 'Specify a specific RSS feed URL to search within. Leave empty to search all available RSS feeds.',
+        section: 'Advanced',
+        fieldsGroup: 'RSS Filtering',
+        placeholder: 'https://example.com/rss.xml',
+        hint: 'Enter a RSS feed URL and press Enter, Space, or Comma to add it to the list.',
+        hintPosition: 'after_label',
+      },
     };
   }
 
+  /**
+   * Generic function to toggle nested fields based on provider and parent field state
+   * @param parentField - The parent checkbox field (e.g., useWebSearch)
+   * @param form - The form element containing the fields
+   * @param fieldsToShow - Array of field names to show/hide
+   */
   private toggleNestedFields(
     parentField: HTMLInputElement,
     form: HTMLFormElement,
@@ -828,8 +1247,662 @@ export class GenAILLM extends Component {
     });
   }
 
+  /**
+   * Get the provider-specific fields based on the current model
+   * @param provider - The LLM provider (e.g., 'openai', 'xai')
+   * @returns Array of field names to show for the provider
+   */
+  private getProviderWebSearchFields(provider: string): string[] {
+    const providerFieldMap = {
+      openai: [
+        'webSearchContextSize',
+        'locationTitle',
+        'webSearchCity',
+        'webSearchCountry',
+        'webSearchRegion',
+        'webSearchTimezone',
+      ],
+      xai: [
+        'searchMode',
+        'returnCitations',
+        'maxSearchResults',
+        'searchDataSources',
+        'searchCountry',
+        'excludedWebsites',
+        'allowedWebsites',
+        'includedXHandles',
+        'excludedXHandles',
+        'postFavoriteCount',
+        'postViewCount',
+        'rssLinks',
+        'safeSearch',
+        'fromDate',
+        'toDate',
+      ],
+      // Add other providers as needed
+    };
+
+    return providerFieldMap[provider.toLowerCase()] || [];
+  }
+
+  /**
+   * Toggle web search nested fields based on the current model's provider
+   * @param parentField - The useWebSearch checkbox
+   * @param form - The form element
+   */
   private toggleWebSearchNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
+    // Get the current model from the form
+    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
+    const currentModel = modelSelect?.value;
+
+    // Determine the provider based on the model using LLMRegistry
+    const provider = LLMRegistry.getModelProvider(currentModel);
+
+    // Get provider-specific fields
+    const fieldsToShow = this.getProviderWebSearchFields(provider.toLowerCase());
+
+    // Toggle the appropriate fields
+    this.toggleNestedFields(parentField, form, fieldsToShow);
+  }
+
+  private toggleSearchNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
     const fieldsToShow = [
+      'searchMode',
+      'returnCitations',
+      'maxSearchResults',
+      'searchDataSources',
+      'searchCountry',
+      'excludedWebsites',
+      'allowedWebsites',
+      'includedXHandles',
+      'excludedXHandles',
+      'postFavoriteCount',
+      'postViewCount',
+      'rssLinks',
+      'safeSearch',
+      'fromDate',
+      'toDate',
+    ];
+    this.toggleNestedFields(parentField, form, fieldsToShow);
+
+    // Also toggle the country field, website fields, X handles, engagement fields, RSS fields, and safe search based on selected data sources
+    if (parentField.checked) {
+      this.toggleCountryFieldBasedOnDataSources(form);
+      this.toggleWebsiteFieldsBasedOnDataSources(form);
+      this.toggleXHandlesFieldBasedOnDataSources(form);
+      this.toggleEngagementFieldsBasedOnDataSources(form);
+      this.toggleRSSFieldsBasedOnDataSources(form);
+      this.toggleSafeSearchFieldBasedOnDataSources(form);
+    }
+  }
+
+  private toggleReasoningNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
+    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
+    const currentModel = modelSelect?.value || this.data.model;
+
+    const fieldsToShow: string[] = [];
+
+    // Only show maxThinkingTokens for Anthropic models
+    if (this.anthropicThinkingModels.includes(currentModel)) {
+      fieldsToShow.push('maxThinkingTokens');
+    }
+
+    // Handle reasoning effort field visibility
+    const reasoningEffortField = form?.querySelector(
+      '[data-field-name="reasoningEffort"]',
+    ) as HTMLElement;
+    const reasoningOptions = this.getReasoningEffortOptions(currentModel);
+
+    // Handle reasoning effort field visibility for both GPT-5 and Groq models
+    if (reasoningOptions.length > 0) {
+      if (this.gpt5ReasoningModels.includes(currentModel)) {
+        // For GPT-5 models: Always show reasoningEffort regardless of useReasoning state
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.remove('hidden');
+        }
+        // Update reasoning effort options
+        this.updateReasoningEffortOptions(currentModel);
+      } else if (this.groqReasoningModels.includes(currentModel)) {
+        // For Groq reasoning models: Only show when useReasoning is checked
+        if (reasoningEffortField) {
+          if (parentField.checked) {
+            reasoningEffortField.classList.remove('hidden');
+            // Update reasoning effort options when shown
+            this.updateReasoningEffortOptions(currentModel);
+          } else {
+            reasoningEffortField.classList.add('hidden');
+          }
+        }
+      } else {
+        // Hide for all other models (GPT-4, etc.)
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.add('hidden');
+        }
+      }
+    } else {
+      // If no reasoning options available, hide the field
+      if (reasoningEffortField) {
+        reasoningEffortField.classList.add('hidden');
+      }
+    }
+
+    // Handle other nested fields (maxThinkingTokens) with the standard toggle logic
+    this.toggleNestedFields(parentField, form, fieldsToShow);
+  }
+
+  /**
+   * Get reasoning effort options based on the current model
+   * Returns empty array for unsupported models to hide the field
+   */
+  private getReasoningEffortOptions(model: string): { text: string; value: string }[] {
+    if (!model) return [];
+
+    const modelLower = model.toLowerCase();
+
+    // Find matching model configuration
+    const modelConfig = REASONING_EFFORTS.find((config) => config.pattern.test(modelLower));
+
+    return modelConfig?.options || [];
+  }
+
+  /**
+   * Update reasoning effort field options based on the selected model
+   * Only updates options, visibility is handled by toggleReasoningNestedFields
+   */
+  private updateReasoningEffortOptions(model: string): void {
+    const field = document.getElementById('reasoningEffort') as HTMLSelectElement;
+    if (!field) return;
+
+    const selectElem = Metro.getPlugin(field, 'select');
+    if (!selectElem) return;
+
+    const options = this.getReasoningEffortOptions(model);
+
+    // Don't update if no options available - field should be hidden by toggleReasoningNestedFields
+    if (options.length === 0) return;
+
+    const currentValue = field.value || 'medium';
+
+    // Remove all existing options
+    if (selectElem.elem?.options) {
+      selectElem.removeOptions([...selectElem.elem.options].map((o: HTMLOptionElement) => o.value));
+    }
+
+    // Add new options
+    options.forEach((option) => {
+      selectElem.addOption(option.value, option.text, false); // Don't auto-select during addition
+    });
+
+    // Determine the best default value for the model type
+    const defaultValue = this.getDefaultReasoningEffortForModel(model, options);
+    const availableValues = options.map((opt) => opt.value);
+
+    // Set the appropriate value: current if valid, otherwise default
+    const valueToSet = availableValues.includes(currentValue) ? currentValue : defaultValue;
+    selectElem.val(valueToSet);
+  }
+
+  /**
+   * Get the appropriate default reasoning effort value for a given model
+   */
+  private getDefaultReasoningEffortForModel(
+    model: string,
+    options: { text: string; value: string }[],
+  ): string {
+    if (options.length === 0) return '';
+
+    const modelLower = model.toLowerCase();
+
+    // Default values for different model types
+    if (
+      modelLower.includes('gpt') ||
+      modelLower.includes('openai') ||
+      modelLower.includes('smythos/gpt')
+    ) {
+      // For GPT models, prefer 'medium' as a balanced default
+      return options.find((opt) => opt.value === 'medium')?.value || options[0].value;
+    } else if (modelLower.includes('qwen')) {
+      // For Qwen models, prefer 'default' over 'none'
+      return options.find((opt) => opt.value === 'default')?.value || options[0].value;
+    }
+
+    // For any other models, use the first available option
+    return options[0].value;
+  }
+
+  private toggleCountryFieldBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const countryField = form?.querySelector('[data-field-name="searchCountry"]');
+
+    if (!dataSourcesCheckboxes || !countryField) return;
+
+    let shouldShowCountry = false;
+
+    // Check if 'web' or 'news' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && (checkbox.value === 'web' || checkbox.value === 'news')) {
+        shouldShowCountry = true;
+      }
+    });
+
+    // Toggle the country field visibility
+    countryField.classList.toggle('hidden', !shouldShowCountry);
+  }
+
+  private toggleWebsiteFieldsBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const excludedWebsitesField = form?.querySelector('[data-field-name="excludedWebsites"]');
+    const allowedWebsitesField = form?.querySelector('[data-field-name="allowedWebsites"]');
+
+    if (!dataSourcesCheckboxes || !excludedWebsitesField || !allowedWebsitesField) return;
+
+    let shouldShowWebsiteFields = false;
+
+    // Check if 'web' or 'news' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && (checkbox.value === 'web' || checkbox.value === 'news')) {
+        shouldShowWebsiteFields = true;
+      }
+    });
+
+    // Toggle website fields visibility
+    excludedWebsitesField.classList.toggle('hidden', !shouldShowWebsiteFields);
+    allowedWebsitesField.classList.toggle('hidden', !shouldShowWebsiteFields);
+
+    // If hiding fields, clear their values
+    if (!shouldShowWebsiteFields) {
+      const excludedInput = excludedWebsitesField.querySelector('input');
+      const allowedInput = allowedWebsitesField.querySelector('input');
+      if (excludedInput) excludedInput.value = '';
+      if (allowedInput) allowedInput.value = '';
+    }
+  }
+
+  private toggleWebsiteFieldsMutualExclusivity(form: HTMLFormElement, activeField: string) {
+    const excludedWebsitesField = form?.querySelector('[data-field-name="excludedWebsites"]');
+    const allowedWebsitesField = form?.querySelector('[data-field-name="allowedWebsites"]');
+
+    if (!excludedWebsitesField || !allowedWebsitesField) {
+      return;
+    }
+
+    const excludedInput = excludedWebsitesField.querySelector('input') as HTMLInputElement;
+    const allowedInput = allowedWebsitesField.querySelector('input') as HTMLInputElement;
+
+    if (!excludedInput || !allowedInput) {
+      return;
+    }
+
+    // Helper function to get tag input values using MetroUI API
+    const getTagInputValue = (input: HTMLInputElement): string[] => {
+      try {
+        // Try to get MetroUI tag input component
+        const metroComponent = Metro.getPlugin(input, 'taginput');
+        if (metroComponent && metroComponent.val) {
+          const values = metroComponent.val();
+          return Array.isArray(values) ? values : values ? [values] : [];
+        }
+        // Fallback to input value if MetroUI component not available
+        return input.value
+          ? input.value
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [];
+      } catch (error) {
+        console.warn('Error getting tag input value:', error);
+        // Final fallback to input value
+        return input.value
+          ? input.value
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [];
+      }
+    };
+
+    // Helper function to clear tag input values using MetroUI API
+    const clearTagInput = (input: HTMLInputElement) => {
+      try {
+        const metroComponent = Metro.getPlugin(input, 'taginput');
+        if (metroComponent && metroComponent.clear) {
+          metroComponent.clear();
+        } else {
+          input.value = '';
+        }
+      } catch (error) {
+        console.warn('Error clearing tag input:', error);
+        input.value = '';
+      }
+    };
+
+    if (activeField === 'excludedWebsites') {
+      const excludedTags = getTagInputValue(excludedInput);
+
+      // If excluded websites has tags, disable allowed websites and show exclusion hint
+      if (excludedTags.length > 0) {
+        allowedInput.setAttribute('disabled', 'disabled');
+        clearTagInput(allowedInput);
+
+        // Add mutual exclusion hint
+        let exclusionHint = allowedWebsitesField.querySelector('.mutual-exclusion-hint');
+        if (!exclusionHint) {
+          exclusionHint = document.createElement('div');
+          exclusionHint.className = 'mutual-exclusion-hint field-hint text-orange-600 text-sm mt-1';
+          exclusionHint.innerHTML =
+            '⚠️ Disabled because "Excluded Websites" is in use. Clear excluded websites to enable this field.';
+          allowedWebsitesField.appendChild(exclusionHint);
+        }
+      } else {
+        // If excluded websites is empty, enable allowed websites and remove hint
+        allowedInput.removeAttribute('disabled');
+
+        // Remove mutual exclusion hint
+        const exclusionHint = allowedWebsitesField.querySelector('.mutual-exclusion-hint');
+        if (exclusionHint) {
+          exclusionHint.remove();
+        }
+      }
+    } else if (activeField === 'allowedWebsites') {
+      const allowedTags = getTagInputValue(allowedInput);
+
+      // If allowed websites has tags, disable excluded websites and show exclusion hint
+      if (allowedTags.length > 0) {
+        excludedInput.setAttribute('disabled', 'disabled');
+        clearTagInput(excludedInput);
+
+        // Add mutual exclusion hint
+        let exclusionHint = excludedWebsitesField.querySelector('.mutual-exclusion-hint');
+        if (!exclusionHint) {
+          exclusionHint = document.createElement('div');
+          exclusionHint.className = 'mutual-exclusion-hint field-hint text-orange-600 text-sm mt-1';
+          exclusionHint.innerHTML =
+            '⚠️ Disabled because "Allowed Websites" is in use. Clear allowed websites to enable this field.';
+          excludedWebsitesField.appendChild(exclusionHint);
+        }
+      } else {
+        // If allowed websites is empty, enable excluded websites and remove hint
+        excludedInput.removeAttribute('disabled');
+
+        // Remove mutual exclusion hint
+        const exclusionHint = excludedWebsitesField.querySelector('.mutual-exclusion-hint');
+        if (exclusionHint) {
+          exclusionHint.remove();
+        }
+      }
+    }
+  }
+
+  private toggleXHandlesFieldBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const includedXHandlesField = form?.querySelector('[data-field-name="includedXHandles"]');
+    const excludedXHandlesField = form?.querySelector('[data-field-name="excludedXHandles"]');
+
+    if (!dataSourcesCheckboxes || !includedXHandlesField || !excludedXHandlesField) return;
+
+    let shouldShowXHandles = false;
+
+    // Check if 'x' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && checkbox.value === 'x') {
+        shouldShowXHandles = true;
+      }
+    });
+
+    // Toggle X handles fields visibility
+    includedXHandlesField.classList.toggle('hidden', !shouldShowXHandles);
+    excludedXHandlesField.classList.toggle('hidden', !shouldShowXHandles);
+
+    // If hiding fields, clear their values
+    if (!shouldShowXHandles) {
+      const includedInput = includedXHandlesField.querySelector('input');
+      const excludedInput = excludedXHandlesField.querySelector('input');
+      if (includedInput) includedInput.value = '';
+      if (excludedInput) excludedInput.value = '';
+    }
+  }
+
+  private toggleEngagementFieldsBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const postFavoriteCountField = form?.querySelector('[data-field-name="postFavoriteCount"]');
+    const postViewCountField = form?.querySelector('[data-field-name="postViewCount"]');
+
+    if (!dataSourcesCheckboxes || !postFavoriteCountField || !postViewCountField) return;
+
+    let shouldShowEngagementFields = false;
+
+    // Check if 'x' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && checkbox.value === 'x') {
+        shouldShowEngagementFields = true;
+      }
+    });
+
+    // Toggle engagement fields visibility
+    postFavoriteCountField.classList.toggle('hidden', !shouldShowEngagementFields);
+    postViewCountField.classList.toggle('hidden', !shouldShowEngagementFields);
+
+    // If hiding fields, reset their values to defaults
+    if (!shouldShowEngagementFields) {
+      const postFavoriteCountInput = postFavoriteCountField.querySelector('input');
+      const postViewCountInput = postViewCountField.querySelector('input');
+      if (postFavoriteCountInput) postFavoriteCountInput.value = '0';
+      if (postViewCountInput) postViewCountInput.value = '0';
+    }
+  }
+
+  private toggleRSSFieldsBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const rssLinksField = form?.querySelector('[data-field-name="rssLinks"]');
+
+    if (!dataSourcesCheckboxes || !rssLinksField) return;
+
+    let shouldShowRSSFields = false;
+
+    // Check if 'rss' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && checkbox.value === 'rss') {
+        shouldShowRSSFields = true;
+      }
+    });
+
+    // Toggle RSS fields visibility
+    rssLinksField.classList.toggle('hidden', !shouldShowRSSFields);
+
+    // If hiding fields, clear their values
+    if (!shouldShowRSSFields) {
+      const rssLinksInput = rssLinksField.querySelector('textarea');
+      if (rssLinksInput) rssLinksInput.value = '';
+    }
+  }
+
+  private toggleSafeSearchFieldBasedOnDataSources(form: HTMLFormElement) {
+    const dataSourcesCheckboxes = form?.querySelectorAll(
+      '[data-field-name="searchDataSources"] input[type="checkbox"]',
+    );
+    const safeSearchField = form?.querySelector('[data-field-name="safeSearch"]');
+
+    if (!dataSourcesCheckboxes || !safeSearchField) return;
+
+    let shouldShowSafeSearchField = false;
+
+    // Check if 'web' or 'news' is selected
+    dataSourcesCheckboxes.forEach((checkbox: HTMLInputElement) => {
+      if (checkbox.checked && (checkbox.value === 'web' || checkbox.value === 'news')) {
+        shouldShowSafeSearchField = true;
+      }
+    });
+
+    // Toggle safe search field visibility
+    safeSearchField.classList.toggle('hidden', !shouldShowSafeSearchField);
+
+    // If hiding field, reset to default value
+    if (!shouldShowSafeSearchField) {
+      const safeSearchCheckbox = safeSearchField.querySelector(
+        'input[type="checkbox"]',
+      ) as HTMLInputElement;
+      if (safeSearchCheckbox) safeSearchCheckbox.checked = false;
+    }
+  }
+
+  private toggleXHandlesMutualExclusivity(form: HTMLFormElement, activeField: string) {
+    const includedXHandlesField = form?.querySelector('[data-field-name="includedXHandles"]');
+    const excludedXHandlesField = form?.querySelector('[data-field-name="excludedXHandles"]');
+
+    if (!includedXHandlesField || !excludedXHandlesField) return;
+
+    const includedInput = includedXHandlesField.querySelector('input') as HTMLInputElement;
+    const excludedInput = excludedXHandlesField.querySelector('input') as HTMLInputElement;
+
+    if (!includedInput || !excludedInput) return;
+
+    // Helper function to get tag input values using MetroUI API
+    const getTagInputValue = (input: HTMLInputElement): string[] => {
+      try {
+        // Try to get MetroUI tag input component
+        const metroComponent = Metro.getPlugin(input, 'taginput');
+        if (metroComponent && metroComponent.val) {
+          const values = metroComponent.val();
+          return Array.isArray(values) ? values : values ? [values] : [];
+        }
+        // Fallback to input value if MetroUI component not available
+        return input.value
+          ? input.value
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [];
+      } catch (error) {
+        console.warn('Error getting tag input value:', error);
+        // Final fallback to input value
+        return input.value
+          ? input.value
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [];
+      }
+    };
+
+    // Helper function to clear tag input values using MetroUI API
+    const clearTagInput = (input: HTMLInputElement) => {
+      try {
+        const metroComponent = Metro.getPlugin(input, 'taginput');
+        if (metroComponent && metroComponent.clear) {
+          metroComponent.clear();
+        } else {
+          input.value = '';
+        }
+      } catch (error) {
+        console.warn('Error clearing tag input:', error);
+        input.value = '';
+      }
+    };
+
+    if (activeField === 'includedXHandles') {
+      const includedTags = getTagInputValue(includedInput);
+
+      // If included X handles has tags, disable excluded X handles and show exclusion hint
+      if (includedTags.length > 0) {
+        excludedInput.setAttribute('disabled', 'disabled');
+        clearTagInput(excludedInput);
+
+        // Add mutual exclusion hint
+        let exclusionHint = excludedXHandlesField.querySelector('.mutual-exclusion-hint');
+        if (!exclusionHint) {
+          exclusionHint = document.createElement('div');
+          exclusionHint.className = 'mutual-exclusion-hint field-hint text-orange-600 text-sm mt-1';
+          exclusionHint.innerHTML =
+            '⚠️ Disabled because "Included X Handles" is in use. Clear included handles to enable this field.';
+          excludedXHandlesField.appendChild(exclusionHint);
+        }
+      } else {
+        // If included X handles is empty, enable excluded X handles and remove hint
+        excludedInput.removeAttribute('disabled');
+
+        // Remove mutual exclusion hint
+        const exclusionHint = excludedXHandlesField.querySelector('.mutual-exclusion-hint');
+        if (exclusionHint) {
+          exclusionHint.remove();
+        }
+      }
+    } else if (activeField === 'excludedXHandles') {
+      const excludedTags = getTagInputValue(excludedInput);
+
+      // If excluded X handles has tags, disable included X handles and show exclusion hint
+      if (excludedTags.length > 0) {
+        includedInput.setAttribute('disabled', 'disabled');
+        clearTagInput(includedInput);
+
+        // Add mutual exclusion hint
+        let exclusionHint = includedXHandlesField.querySelector('.mutual-exclusion-hint');
+        if (!exclusionHint) {
+          exclusionHint = document.createElement('div');
+          exclusionHint.className = 'mutual-exclusion-hint field-hint text-orange-600 text-sm mt-1';
+          exclusionHint.innerHTML =
+            '⚠️ Disabled because "Excluded X Handles" is in use. Clear excluded handles to enable this field.';
+          includedXHandlesField.appendChild(exclusionHint);
+        }
+      } else {
+        // If excluded X handles is empty, enable included X handles and remove hint
+        includedInput.removeAttribute('disabled');
+
+        // Remove mutual exclusion hint
+        const exclusionHint = includedXHandlesField.querySelector('.mutual-exclusion-hint');
+        if (exclusionHint) {
+          exclusionHint.remove();
+        }
+      }
+    }
+  }
+
+  /**
+   * Hide all xAI-specific fields when switching to non-xAI models
+   * @param form - The form element containing the fields
+   */
+  private hideXAISpecificFields(form: HTMLFormElement) {
+    const xaiFields = [
+      'searchMode',
+      'returnCitations',
+      'maxSearchResults',
+      'searchDataSources',
+      'searchCountry',
+      'excludedWebsites',
+      'allowedWebsites',
+      'includedXHandles',
+      'excludedXHandles',
+      'postFavoriteCount',
+      'postViewCount',
+      'rssLinks',
+      'safeSearch',
+      'fromDate',
+      'toDate',
+    ];
+
+    xaiFields.forEach((fieldName) => {
+      const field = form?.querySelector(`[data-field-name="${fieldName}"]`);
+      if (field) {
+        field.classList.add('hidden');
+      }
+    });
+  }
+
+  /**
+   * Hide all OpenAI-specific web search fields when switching to non-OpenAI models
+   * @param form - The form element containing the fields
+   */
+  private hideOpenAIWebSearchFields(form: HTMLFormElement) {
+    const openAIFields = [
       'webSearchContextSize',
       'locationTitle',
       'webSearchCity',
@@ -838,12 +1911,11 @@ export class GenAILLM extends Component {
       'webSearchTimezone',
     ];
 
-    this.toggleNestedFields(parentField, form, fieldsToShow);
-  }
-
-  private toggleReasoningNestedFields(parentField: HTMLInputElement, form: HTMLFormElement) {
-    const fieldsToShow = ['maxThinkingTokens'];
-
-    this.toggleNestedFields(parentField, form, fieldsToShow);
+    openAIFields.forEach((fieldName) => {
+      const field = form?.querySelector(`[data-field-name="${fieldName}"]`);
+      if (field) {
+        field.classList.add('hidden');
+      }
+    });
   }
 }

@@ -14,6 +14,7 @@ interface IRootLayoutProps {
     container?: boolean;
     noScroll?: boolean;
     useFullWidthLayout?: boolean;
+    background?: 'white' | 'agentsGradient';
   };
   isWelcomePage?: boolean;
   isAcceptInvitationPage?: boolean;
@@ -26,7 +27,14 @@ export const RootLayout = ({
   isAcceptInvitationPage,
 }: React.PropsWithChildren & IRootLayoutProps) => {
   const { isOnboardingCompleted, toggleOnboardingCompleted } = useOnboarding();
-  const { sidebar = true, topMenu = true, container = true, noScroll = false, useFullWidthLayout = false } = layoutOptions;
+  const {
+    sidebar = true,
+    topMenu = true,
+    container = true,
+    noScroll = false,
+    useFullWidthLayout = false,
+    background = 'white',
+  } = layoutOptions;
   const { loading } = useAuthCtx();
   const [hasScrollbar, setHasScrollbar] = useState<boolean>(false);
 
@@ -107,9 +115,7 @@ export const RootLayout = ({
   }, []);
 
   return (
-    <div
-      className={classNames('flex flex-col h-screen overflow-hidden')}
-    >
+    <div className={classNames('flex flex-col h-screen overflow-hidden')}>
       <div className="flex flex-1 min-h-0 bg-[#F5F5F5]">
         {sidebar && <SidebarWithErrorBoundary />}
         <main
@@ -117,11 +123,26 @@ export const RootLayout = ({
             'relative flex flex-1 flex-col min-w-0 transition-all duration-300 mt-2.5 ml-0 mb-0',
           )}
         >
-          {
-          useFullWidthLayout ? (
-            <div className="absolute top-[-12px] left-0 h-[calc(100%+3rem)] w-[100%] bg-white"></div>
+          {useFullWidthLayout ? (
+            <div
+              className={classNames(
+                'absolute top-[-12px] left-0 h-[calc(100%+3rem)] w-[100%] rounded-none',
+                {
+                  'bg-white': background === 'white',
+                  'bg-agents-gradient': background === 'agentsGradient',
+                },
+              )}
+            ></div>
           ) : (
-            <div className="absolute top-1 h-full ml-16 md:ml-auto w-[calc(100%-4.5rem)] md:w-[calc(100%-0.75rem)] bg-white rounded-t-lg border border-solid border-[#D1D1D1]"></div>
+            <div
+              className={classNames(
+                'absolute top-1 h-full ml-16 md:ml-auto w-[calc(100%-4.5rem)] md:w-[calc(100%-0.75rem)] rounded-t-lg border border-solid border-[#D1D1D1]',
+                {
+                  'bg-white': background === 'white',
+                  'bg-agents-gradient': background === 'agentsGradient',
+                },
+              )}
+            ></div>
           )}
           <Suspense
             fallback={
@@ -140,6 +161,9 @@ export const RootLayout = ({
                 'bg-with-lines': isWelcomePage || isAcceptInvitationPage,
                 'overflow-y-hidden': false,
               })}
+              style={{
+                scrollbarGutter: 'stable',
+              }}
             >
               <div className="max-w-[1224px] mx-auto h-full">{children}</div>
             </div>

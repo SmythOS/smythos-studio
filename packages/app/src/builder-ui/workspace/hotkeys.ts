@@ -1,5 +1,6 @@
 import hotkeys from 'hotkeys-js';
 import { Component } from '../components/Component.class';
+import { CanvasSearchHelper } from '../helpers/canvasSearch.helper';
 import { confirm, runUIEnterKey } from '../ui/dialogs';
 import { delay } from '../utils';
 import { sortAgent } from './ComponentSort';
@@ -21,10 +22,42 @@ export function registerHotkeys(workspace: Workspace) {
     export: isMac ? 'command+shift+e' : 'ctrl+shift+e',
     componentPriorityUp: isMac ? 'command+shift+]' : 'ctrl+shift+]',
     componentPriorityDown: isMac ? 'command+shift+[' : 'ctrl+shift+[',
+    search: isMac ? 'command+p' : 'ctrl+p',
   };
   const hotkey: any = hotkeys.noConflict();
   const deleteHotkeys = 'del, backspace';
   let deleteConfirmationActive = false; // Flag to prevent multiple modals
+
+  // Initialize search functionality
+  const searchHelper = CanvasSearchHelper.getInstance();
+  try {
+    searchHelper.initialize(workspace);
+  } catch (error) {
+    console.error('Failed to initialize canvas search:', error);
+  }
+
+  // Add canvas search hotkey
+  hotkey(keys.search, (event, handler) => {
+    if (workspace.locked) return false;
+
+    // Don't trigger search when in input fields
+    if (
+      workspace.hoveredElement.tagName === 'TEXTAREA' ||
+      workspace.hoveredElement.tagName === 'INPUT' ||
+      workspace.hoveredElement.classList.contains('dbg') ||
+      workspace.hoveredElement.closest('.dbg')
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    searchHelper.openSearch(workspace);
+    return false;
+  });
+
   hotkey(deleteHotkeys, async (event, handler) => {
     if (workspace.locked) return false;
     if (deleteConfirmationActive) return false; // Prevent additional modals
@@ -58,8 +91,8 @@ export function registerHotkeys(workspace: Workspace) {
       `Are you sure you want to delete selected ${confirmText}?`,
       {
         icon: '',
-        btnNoLabel: 'No, Cancel',
-        btnYesLabel: "Yes, I'm sure",
+        btnNoLabel: 'Cancel',
+        btnYesLabel: `Delete ${confirmText}`,
         btnYesClass: 'bg-smyth-red-500 border-smyth-red-500',
       },
     );

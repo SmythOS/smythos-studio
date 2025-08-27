@@ -55,6 +55,7 @@
   "api": {
     "/user": { "access": "", "name": "User API" },
     "/api": { "access": "", "name": "API" },
+    "/api/enterprise": { "access": "", "name": "Enterprise API" },
     "/app": { "access": "r", "name": "App" }
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "smyth-builder",
-  "version": "1.54.153",
-  "description": "Smytpn UI",
+  "version": "1.54.185",
+  "description": "SmytOS UI",
   "scripts": {
     "build:vanilla": "cross-env NODE_OPTIONS='--max-old-space-size=4096' rollup --config ./scripts/build/dev/rollup-vanilla.config.mjs",
     "build:frontend": "cross-env NODE_OPTIONS='--max-old-space-size=4096' rollup --config ./scripts/build/dev/rollup-fe.config.mjs",
@@ -19,12 +19,13 @@
     "type-check": "tsc --noEmit --skipLibCheck",
     "type-check:all": "tsc --noEmit --skipLibCheck && tsc --noEmit --skipLibCheck ",
     "dev:react": "cd src/react && pnpm run dev",
-    "dev": "concurrently -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
+    "dev": "concurrently --kill-others-on-fail -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
   },
   "type": "module",
   "author": "Alaa-eddine KADDOURI",
   "license": "",
   "dependencies": {
+    "@ag-grid-community/styles": "^32.3.8",
     "@aws-sdk/client-iam": "^3.664.0",
     "@aws-sdk/client-lambda": "^3.662.0",
     "@aws-sdk/client-s3": "^3.414.0",
@@ -39,6 +40,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@panzoom/panzoom": "^4.5.1",
     "@radix-ui/react-checkbox": "1.3.2",
+    "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-icons": "^1.3.2",
@@ -91,6 +93,7 @@
     "markdown-it-attrs": "^4.3.1",
     "multer": "^1.4.5-lts.1",
     "multer-s3": "^3.0.1",
+    "node-cache": "^5.1.2",
     "oauth": "^0.10.0",
     "oauth-1.0a": "^2.2.6",
     "openai": "^3.3.0",

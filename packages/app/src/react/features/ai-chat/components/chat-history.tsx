@@ -2,11 +2,12 @@ import { debounce } from 'lodash-es';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { ChatBubble, IChatMessage } from '@react/features/ai-chat/components';
+import { ChatBubble } from '@react/features/ai-chat/components';
 import { CHAT_ERROR_MESSAGE } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { useChatMessagesSuspendedQuery } from '@react/features/ai-chat/hooks';
 import { AgentDetails } from '@react/shared/types/agent-data.types';
+import { IChatMessage } from '@react/shared/types/chat.types';
 
 interface ChatHistoryProps {
   chatId: string;
@@ -45,8 +46,9 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
         setPage((prevPage) => prevPage + 1);
       }
     }
-  }, [isFetching, hasMore, isLoadingMore, hasError]);
+  }, [isFetching, hasMore, isLoadingMore, hasError]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedLoadMoreMessages = useCallback(debounce(loadMoreMessages, 300), [
     loadMoreMessages,
   ]);
@@ -68,7 +70,7 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
         className="flex-1 h-screen overflow-y-auto scrollbar-hide pb-4 flex flex-col items-center w-full"
         ref={messagesContainer}
       >
-        <div className="flex flex-col gap-4 max-w-3xl w-full">
+        <div className="flex flex-col gap-6 max-w-4xl w-full">
           {hasError && <ErrorMessage avatar={avatar} />}
           {chatHistoryMessages.map((message, index) => (
             <div key={index}>
@@ -81,6 +83,9 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
                     : undefined
                 }
                 isRetrying={contextIsRetrying && index === chatHistoryMessages.length - 1}
+                // Handle error messages as normal responses with error styling
+                isError={message.isError}
+                errorType={message.errorType}
               />
               {index === chatHistoryMessages.length - 1 && contextIsRetrying && (
                 <button onClick={retryLastMessage}>Retry</button>
@@ -94,5 +99,5 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, chatId, messages }) =
 };
 
 const ErrorMessage: FC<{ avatar?: string }> = ({ avatar }) => (
-  <ChatBubble isError message={CHAT_ERROR_MESSAGE} avatar={avatar} />
+  <ChatBubble me={false} isError message={CHAT_ERROR_MESSAGE} avatar={avatar} />
 );

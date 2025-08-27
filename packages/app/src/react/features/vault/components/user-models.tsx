@@ -1,5 +1,5 @@
 import { UserModel } from '@react/features/vault/types/types';
-import { copyTextToClipboard } from '@react/shared/utils/general';
+import { cn, copyTextToClipboard } from '@react/shared/utils/general';
 import { Button } from '@src/react/shared/components/ui/button';
 import {
   Dialog,
@@ -93,9 +93,9 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
         }
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-xl text-[#1E1E1E]">
             {isEdit ? 'Update API Key for' : 'Setup API Key for'} {model.name}
           </DialogTitle>
         </DialogHeader>
@@ -103,6 +103,7 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
           <div className="flex flex-col gap-4">
             <TextArea
               label="API Key"
+              labelClassName={'text-base font-normal text-[#1E1E1E] mb-2'}
               id="apiKey"
               value={apiKey}
               placeholder="Enter your API key"
@@ -122,8 +123,8 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
           <CustomButton
             handleClick={handleSubmit}
             disabled={isSaveDisabled}
-            variant="tertiary"
-            label={isLoading ? 'Saving...' : 'Save changes'}
+            label={isLoading ? 'Saving...' : 'Save'}
+            className={cn('w-[100px] h-[48px] rounded-lg')}
           />
         </DialogFooter>
       </DialogContent>
@@ -177,16 +178,13 @@ const DeleteUserModelKeyDialog = ({
         </div>
         <DialogFooter className="gap-2">
           <CustomButton
-            handleClick={onClose}
-            disabled={isLoading}
-            variant="secondary"
-            label="Cancel"
-          />
-          <CustomButton
+            className="ml-auto h-[48px] rounded-lg"
             handleClick={handleDelete}
+            label={isLoading ? 'Deleting...' : 'Delete'}
+            addIcon
+            Icon={<img className="mr-2" src="/img/icons/Delete-White.svg" />}
             disabled={isLoading}
             isDelete
-            label={isLoading ? 'Deleting...' : 'Delete'}
           />
         </DialogFooter>
       </DialogContent>
@@ -256,96 +254,98 @@ export function UserModels({ pageAccess }: { pageAccess: { write: boolean } }) {
           </a>
           .
         </p>
-        <div className="space-y-4">
-          {Object.entries(GLOBAL_VAULT_KEYS).map(([key, value]) => {
-            const model = models.find((m) => m.id.toLowerCase().includes(key.toLowerCase()));
-            const hasKey = Boolean(model?.apiKey);
+        <div className="overflow-x-auto">
+          <div className="space-y-4 min-w-[350px]">
+            {Object.entries(GLOBAL_VAULT_KEYS).map(([key, value]) => {
+              const model = models.find((m) => m.id.toLowerCase().includes(key.toLowerCase()));
+              const hasKey = Boolean(model?.apiKey);
 
-            return (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-5 items-center rounded-md bg-[#c0daff] px-2 text-xs font-medium text-[#235192]">
-                    Personal
-                  </span>
-                  <img
-                    src={`/img/provider_${key.toLowerCase()}.svg`}
-                    alt={`${value?.['name']} icon`}
-                    className="h-5 w-5"
-                  />
-                  <span>{value?.['name']}</span>
-                </div>
-                {hasKey ? (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopy(model?.apiKey || '')}
-                    >
-                      {copiedKeyId === model?.apiKey ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                    {pageAccess?.write && (
+              return (
+                <div key={key} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-5 items-center rounded-md bg-[#c0daff] px-2 text-xs font-medium text-[#235192]">
+                      Personal
+                    </span>
+                    <img
+                      src={`/img/provider_${key.toLowerCase()}.svg`}
+                      alt={`${value?.['name']} icon`}
+                      className="h-5 w-5"
+                    />
+                    <span>{value?.['name']}</span>
+                  </div>
+                  {hasKey ? (
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() =>
+                        onClick={() => handleCopy(model?.apiKey || '')}
+                      >
+                        {copiedKeyId === model?.apiKey ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                      {pageAccess?.write && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setModalState({
+                              type: 'edit',
+                              model: {
+                                id: key,
+                                apiKey: model?.apiKey || '',
+                                icon: key.toLowerCase(),
+                                name: value?.['name'],
+                              },
+                            })
+                          }
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {pageAccess?.write && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setModalState({
+                              type: 'delete',
+                              model,
+                            })
+                          }
+                        >
+                          <Trash2 className="h-4 w-4 hover:text-red-500" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    pageAccess?.write && (
+                      <CustomButton
+                        variant="secondary"
+                        handleClick={() =>
                           setModalState({
-                            type: 'edit',
+                            type: pageAccess?.write ? 'setup' : 'upgrade',
                             model: {
                               id: key,
-                              apiKey: model?.apiKey || '',
+                              apiKey: '',
                               icon: key.toLowerCase(),
                               name: value?.['name'],
                             },
                           })
                         }
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {pageAccess?.write && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setModalState({
-                            type: 'delete',
-                            model,
-                          })
-                        }
-                      >
-                        <Trash2 className="h-4 w-4 hover:text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  pageAccess?.write && (
-                    <CustomButton
-                      variant="secondary"
-                      handleClick={() =>
-                        setModalState({
-                          type: pageAccess?.write ? 'setup' : 'upgrade',
-                          model: {
-                            id: key,
-                            apiKey: '',
-                            icon: key.toLowerCase(),
-                            name: value?.['name'],
-                          },
-                        })
-                      }
-                      label={pageAccess?.write ? 'Setup' : 'Upgrade Plan'}
-                      dataAttributes={{
-                        'data-qa': pageAccess?.write ? `${key}-setup-own-model-button` : '',
-                      }}
-                    />
-                  )
-                )}
-              </div>
-            );
-          })}
+                        label={pageAccess?.write ? 'Setup' : 'Upgrade Plan'}
+                        dataAttributes={{
+                          'data-qa': pageAccess?.write ? `${key}-setup-own-model-button` : '',
+                        }}
+                      />
+                    )
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

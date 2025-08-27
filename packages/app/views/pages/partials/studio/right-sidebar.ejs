@@ -1,8 +1,7 @@
 <div
-  class="z-10 right-sidebar border border-solid border-gray-300/80 rounded-lg h-full"
-  x-data="{ width: '350px' }"
-  x-init="width = localStorage.getItem('right-sidebar-width') || '350px'"
-  :style="'width:' + width"
+  class="z-10 right-sidebar border border-solid border-gray-300/80 rounded-lg h-full hidden"
+  x-data="rightSidebar()"
+  x-bind:style="'width: ' + width"
   id="right-sidebar"
 >
   <div class="container flex flex-col h-full">
@@ -78,3 +77,28 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('rightSidebar', () => ({
+      width: '350px',
+      init() {
+        this.checkWidth();
+        window.addEventListener('sidebarStateChanged', () => {
+          const sidebarEl = document.getElementById('right-sidebar');
+          if (sidebarEl && sidebarEl.offsetParent !== null) {
+            this.checkWidth();
+          }
+        });
+      },
+      checkWidth() {
+        let storedWidth = localStorage.getItem('right-sidebar-width') || '350px';
+        if (parseInt(storedWidth) > window.innerWidth / 2) {
+          storedWidth = '350px';
+          localStorage.setItem('right-sidebar-width', storedWidth);
+        }
+        this.width = storedWidth;
+      },
+    }));
+  });
+</script>

@@ -1,4 +1,4 @@
-import 'flowbite/dist/flowbite.js';
+// import 'flowbite/dist/flowbite.js';
 import { TEAM_ID_HEADER } from '../backend/constants';
 import { FRONTEND_USER_SETTINGS } from '../react/shared/enums';
 import { authStore } from '../shared/state_stores/auth';

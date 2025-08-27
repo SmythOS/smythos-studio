@@ -3,14 +3,12 @@ import * as path from 'path';
 import 'source-map-support/register.js';
 //import oauth2Router from './routes/oauth2/router';
 import config from './config';
-import { apiACLCheck, appACLCheck, pageACLCheck } from './middlewares/acl.mw';
+import { apiACLCheck, pageACLCheck } from './middlewares/acl.mw';
 import { apiAuth, includeTeamDetails, pageAuth } from './middlewares/auth.mw';
 import { errorHandler } from './middlewares/error.mw';
 import { sessionCheck } from './middlewares/sessionCheck.mw';
 import apiRouter from './routes/api/router';
-import appRouter from './routes/app/router';
 import dbgRouter from './routes/dbg/router';
-import grafana from './routes/grafana/router';
 import oauthRouter from './routes/oauth/router';
 import pagesRouter from './routes/pages/router';
 import publicRouter from './routes/public/router';
@@ -23,14 +21,13 @@ import session from 'express-session';
 //import FileStoreLib from 'session-file-store';
 import compression from 'compression';
 import RedisStore from 'connect-redis';
-import cors from 'cors';
-import Redis from 'ioredis';
 import passport from 'passport';
 import { version } from '../../package.json';
 import { createAdminServer } from './adminServer';
 import { maintenanceCheckMiddleware } from './middlewares/maintainceCheck.mw';
 import { initializePassport } from './routes/oauth/helper/passportSetup';
 import { ModelsPollingService } from './services/ModelsPolling.service';
+import { cacheClient } from './services/cache.service';
 
 const PORT = config.env.PORT || 4000;
 const app = express();
@@ -41,15 +38,15 @@ app.disable('x-powered-by');
 app.use(maintenanceCheckMiddleware);
 
 // Allow smythos.com to access the docs
-const corsOptions = {
-  origin: ['http://smythos.com', 'https://smythos.com'],
-  optionsSuccessStatus: 200,
-};
+// const corsOptions = {
+//   origin: ['http://smythos.com', 'https://smythos.com'],
+//   optionsSuccessStatus: 200,
+// };
 
 // Serve static files
 app.use(compression());
 app.use('/', express.static('static'));
-app.use('/doc', cors(corsOptions), express.static('docs'));
+// app.use('/doc', cors(corsOptions), express.static('docs'));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({
@@ -60,23 +57,17 @@ app.get('/health', (_, res) => {
 
 app.use(cookieParser());
 
-// Redis Store configuration
-const redisClient = new Redis({
-  sentinels: config.env.REDIS_SENTINEL_HOSTS.split(',').map((host) => {
-    const [hostname, port] = host.split(':');
-    return { host: hostname, port: parseInt(port) };
-  }),
-  name: config.env.REDIS_MASTER_NAME,
-  password: config.env.REDIS_PASSWORD,
-});
-const redisStore = new RedisStore({ client: redisClient, prefix: 'smyth_ui_backend:' });
+const redisStore = new RedisStore({ client: cacheClient.client, prefix: 'smyth_ui_backend:' });
 const cookieDays = 30;
-//app.use(session({ secret: config.env.SESSION_SECRET, cookie: { maxAge: cookieDays * 24 * 60 * 60 * 1000 } }));
-// Configure session
+
+if (!config.env.SESSION_SECRET) {
+  console.warn('SESSION_SECRET is not set, using default secret for sessions');
+}
+
 app.use(
   session({
-    store: redisStore,
-    secret: config.env.SESSION_SECRET,
+    store: config.flags.useRedis ? redisStore : undefined,
+    secret: config.env.SESSION_SECRET || 'secret123',
     cookie: { maxAge: cookieDays * 24 * 60 * 60 * 1000 },
     saveUninitialized: false,
     resave: false,
@@ -106,8 +97,7 @@ const logtoClientConfig = {
 
 app.use(handleAuthRoutes(logtoClientConfig));
 app.use(withLogto(logtoClientConfig));
-//////////////////////////////////////////////
-app.use('/grafana', [pageAuth, includeTeamDetails], grafana); // this need to appear before express.json()
+
 app.use(
   express.json({
     limit: '10mb',
@@ -121,11 +111,8 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 //app.use('/oauth2', apiAuth, oauth2Router);
 app.use('/api', [apiAuth, apiACLCheck], apiRouter);
-app.use('/app', [apiAuth, appACLCheck], appRouter);
 app.use('/dbg', [apiAuth], dbgRouter);
 app.use('/oauth', oauthRouter);
-
-//app.use('/grafana', grafana);
 
 app.use('/', publicRouter);
 

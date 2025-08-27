@@ -11,8 +11,10 @@ import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { validateURL } from '@react/shared/utils/utils';
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { Fragment, useEffect, useState } from 'react';
+import { IoClose } from 'react-icons/io5';
 
 interface IFormValues {
   humanName: string;
@@ -49,13 +51,13 @@ const ChatGptDialog = ({
 }: IChatGptDialogProps) => {
   const [activeData, setActiveData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const properties = currentData?.properties;
     const _activeData = mapGptEmbodimentProperties(properties, activeAgent);
     setActiveData(_activeData);
   }, [currentData, activeAgent]);
-  
 
   const submitForm = async (data) => {
     if (isSubmitting) {
@@ -92,6 +94,11 @@ const ChatGptDialog = ({
       fetch('/api/page/agents/embodiment', requestOptions)
         .then((response) => {
           response.json().then((data) => {
+            // Invalidate all embodiment-related queries to ensure fresh data
+            queryClient.invalidateQueries({ queryKey: ['agentEmbodiments', agentId] });
+            queryClient.invalidateQueries({ queryKey: ['embodiments', agentId] });
+            queryClient.invalidateQueries({ queryKey: ['agent_embodiments', agentId] });
+            queryClient.invalidateQueries({ queryKey: ['availableEmbodiments', agentId] });
             refreshEmbodiments(agentId, currentData?.id);
             successToast('Embodiment saved');
             closeModal();
@@ -149,12 +156,10 @@ const ChatGptDialog = ({
               leaveTo="opacity-0 scale-95"
             >
               <div className="w-[70%] min-w-[600px] max-w-[1200px]">
-                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-bold text-center leading-6 text-gray-900 "
-                  >
-                    ChatGPT Configurations
+                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
+                    <span>ChatGPT Configurations</span>
+                    <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
                   </Dialog.Title>
                   <Formik
                     initialValues={activeData}
@@ -171,7 +176,7 @@ const ChatGptDialog = ({
                             <div className="flex-1 mb-4">
                               <label
                                 htmlFor="humanName"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Name for Human:
                               </label>
@@ -203,7 +208,7 @@ const ChatGptDialog = ({
                             <div className="flex-1 mb-4">
                               <label
                                 htmlFor="modelName"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Name for Model:
                               </label>
@@ -237,7 +242,7 @@ const ChatGptDialog = ({
                             <div className="flex-1 mb-2">
                               <label
                                 htmlFor="humanDescription"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Description for Human:
                               </label>
@@ -292,7 +297,7 @@ const ChatGptDialog = ({
                             <div className="flex-1 mb-2">
                               <label
                                 htmlFor="modelDescription"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Description for Model:
                               </label>
@@ -345,10 +350,10 @@ const ChatGptDialog = ({
                               </div>
                             </div>
                           </div>
-                          <div>
+                          <div className="mb-4">
                             <label
                               htmlFor="logoUrl"
-                              className="block text-gray-700 mb-1 text-sm font-normal"
+                              className="block text-[#1E1E1E] mb-1 text-base font-normal"
                             >
                               Logo Url:
                             </label>
@@ -400,11 +405,11 @@ const ChatGptDialog = ({
                             />
                           </div>
 
-                          <div className="flex gap-5 justify-between items-center mt-2">
+                          <div className="flex gap-5 justify-between items-center mb-4">
                             <div className="flex-1">
                               <label
                                 htmlFor="contactEmail"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Email:
                               </label>
@@ -436,7 +441,7 @@ const ChatGptDialog = ({
                             <div className="flex-1">
                               <label
                                 htmlFor="legalInfoUrl"
-                                className="block text-gray-700 mb-1 text-sm font-normal"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
                               >
                                 Legal Info Url:
                               </label>
@@ -472,22 +477,15 @@ const ChatGptDialog = ({
                             </div>
                           </div>
 
-                          <div className="mt-4 flex gap-5">
+                          <div className="mt-8 flex justify-end w-full">
                             <Button
-                              variant="primary"
+                              className="w-[100px] h-[48px] rounded-lg"
                               handleClick={() => submitForm(props.values)}
-                              label="Save Configurations"
+                              label="Save"
                               addIcon={isSubmitting}
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                            />
-
-                            <Button
-                              variant="secondary"
-                              handleClick={() => closeModal()}
-                              label="Cancel"
-                              disabled={isSubmitting}
                             />
                           </div>
                         </Form>

@@ -19,6 +19,10 @@
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/**/*", "node_modules/@types", "eslint.config.js"],
+  "include": [
+    "src/**/*",
+    "node_modules/@types",
+    "eslint.config.js",
+    ],
   "exclude": ["node_modules"]
 }

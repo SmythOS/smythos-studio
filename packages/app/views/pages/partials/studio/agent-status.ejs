@@ -1,4 +1,12 @@
-<div class="flex flex-col" id="agent-status">
+<div
+  x-data="sidebarState()"
+  class="flex flex-col absolute top-[34px]"
+  id="agent-status"
+  :class="{
+    '-right-[60px]': isSidebarOpen,
+    '-right-[44px]': !isSidebarOpen
+  }"
+>
   <div class="flex">
     <div id="agent-top-bar-status">
       <div class="text-xs flex gap-1 items-center h-full">

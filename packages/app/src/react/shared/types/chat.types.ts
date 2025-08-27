@@ -15,10 +15,15 @@ export interface FileWithMetadata {
 export interface IChatMessage {
   me: boolean;
   message: string;
+  type?: 'user' | 'system' | 'thinking';
   avatar?: string;
   isReplying?: boolean;
   isError?: boolean;
   isFirstMessage?: boolean;
   files?: FileWithMetadata[];
   hideMessageBubble?: boolean;
+  thinkingMessage?: string;
+  isLast?: boolean;
+  isRetrying?: boolean;
+  onRetryClick?: () => void;
 }

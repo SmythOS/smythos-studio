@@ -1,7 +1,6 @@
 import { ApiKey } from '@react/features/vault/types/types';
 import { cn, copyTextToClipboard } from '@react/shared/utils/general';
 import { scopeOptions } from '@src/react/features/vault/helpers/vault.helper';
-import IconToolTip from '@src/react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Button } from '@src/react/shared/components/ui/button';
 import { Checkbox } from '@src/react/shared/components/ui/checkbox';
 import {
@@ -17,7 +16,8 @@ import { Button as CustomButton } from '@src/react/shared/components/ui/newDesig
 import { Textarea } from '@src/react/shared/components/ui/textarea';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import classNames from 'classnames';
-import { Check, Copy, Pencil, Trash2 } from 'lucide-react';
+import { Tooltip } from 'flowbite-react';
+import { Check, Copy, Info, Pencil, Trash2 } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { FaCircleExclamation } from 'react-icons/fa6';
@@ -59,22 +59,19 @@ export const DeleteApiKeyDialog: FC<DeleteApiKeyDialogProps> = ({ isOpen, apiKey
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-2">
           <p className="text-sm text-muted-foreground">
             This action cannot be undone. This will permanently delete the API key.
           </p>
         </div>
         <DialogFooter className="gap-2">
           <CustomButton
-            variant="secondary"
-            handleClick={onClose}
-            disabled={isLoading}
-            label={'Cancel'}
-          />
-          <CustomButton
+            className="ml-auto h-[48px] rounded-lg"
             handleClick={handleDelete}
-            disabled={isLoading}
             label={isLoading ? 'Deleting...' : 'Delete'}
+            addIcon
+            Icon={<img className="mr-2" src="/img/icons/Delete-White.svg" />}
+            disabled={isLoading}
             isDelete
           />
         </DialogFooter>
@@ -192,8 +189,8 @@ export const UpdateApiKeyDialog: FC<UpdateApiKeyDialogProps> = ({
       successToast('The API key has been updated successfully');
       onClose();
     },
-    () => {
-      errorToast('Failed to update API key');
+    (error) => {
+      errorToast(error.message || 'Failed to update API key');
     },
   );
 
@@ -274,91 +271,91 @@ export const UpdateApiKeyDialog: FC<UpdateApiKeyDialogProps> = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{mode === 'edit' ? 'Edit API Key' : 'Add API Key'}</DialogTitle>
+          <DialogTitle className="text-xl text-[#1E1E1E]">
+            {mode === 'edit' ? 'Edit API Key' : 'Add API Key'}
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="grid gap-4 pb-4">
+          <div>
             <Label
               htmlFor="name"
-              className="text-left  mb-1 text-sm font-normal min-w-[50px] max-w-[50px]"
+              className="text-left text-base font-normal min-w-[50px] max-w-[50px] text-[#1E1E1E]"
             >
               Name <span className="text-red-500">*</span>
             </Label>
-            <div className="flex-1">
-              <Input
-                id="keyName"
-                value={formData.keyName}
-                onChange={(e) => handleInputChange('keyName', e.target.value)}
-                fullWidth
-                error={!!errors.keyName}
-                errorMessage={errors.keyName}
-              />
-            </div>
+            <Input
+              id="keyName"
+              value={formData.keyName}
+              onChange={(e) => handleInputChange('keyName', e.target.value)}
+              fullWidth
+              error={!!errors.keyName}
+              errorMessage={errors.keyName}
+              placeholder="API Key Name"
+              className="mt-2"
+            />
           </div>
-          <div className="flex items-center gap-4">
+          <div>
             <Label
               htmlFor="key"
-              className="text-left  mb-1 text-sm font-normal min-w-[50px] max-w-[50px]"
+              className="text-left mb-2 text-base font-normal min-w-[50px] max-w-[50px] text-[#1E1E1E]"
             >
               Key <span className="text-red-500">*</span>
             </Label>
-            <div className="flex-1">
-              <Textarea
-                id="key"
-                value={formData.key}
-                onChange={(e) => handleInputChange('key', e.target.value)}
-                className={cn('min-h-[60px]')}
-                error={!!errors.key}
-                errorMessage={errors.key}
-                fullWidth
-              />
-            </div>
+
+            <Textarea
+              id="key"
+              value={formData.key}
+              onChange={(e) => handleInputChange('key', e.target.value)}
+              className={cn('min-h-[60px]', 'mt-2')}
+              error={!!errors.key}
+              errorMessage={errors.key}
+              fullWidth
+              placeholder="Add Key"
+            />
           </div>
-          <div className="flex items-center gap-4">
-            {/* <Label className="text-left text-gray-700 mb-1 text-sm font-normal min-w-[50px] max-w-[50px]">
+          <div>
+            <Label className="text-left text-base font-normal text-[#1E1E1E]">
               Scope <span className="text-red-500">*</span>
-            </Label> */}
-            <div className="flex flex-col gap-4">
-              <Label className="text-left mb-1 text-sm font-normal">
-                Scope <span className="text-red-500">*</span>
-              </Label>
-              <div className="grid grid-cols-2 gap-4">
-                {scopeOptions.map((scope) => (
-                  <div
-                    key={scope.value}
-                    className={classNames('flex items-center space-x-2')}
-                    style={{
-                      order:
-                        scope.value == 'APICall'
-                          ? 3
-                          : scope.value == 'HuggingFace'
-                          ? 2
-                          : scope.value == 'ZapierAction'
-                          ? 4
-                          : 1,
-                    }}
+            </Label>
+            <div className="flex flex-col gap-4 mt-3 ml-2">
+              {scopeOptions.map((scope) => (
+                <div
+                  key={scope.value}
+                  className={classNames('flex items-center space-x-2')}
+                  style={{
+                    order:
+                      scope.value == 'APICall'
+                        ? 3
+                        : scope.value == 'HuggingFace'
+                        ? 2
+                        : scope.value == 'ZapierAction'
+                        ? 4
+                        : 1,
+                  }}
+                >
+                  <Checkbox
+                    id={`edit-${scope.value}`}
+                    checked={formData.scope.includes(scope.value)}
+                    onCheckedChange={(checked) =>
+                      handleScopeChange(scope.value, checked as boolean)
+                    }
+                    className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF] shadow-none"
+                  />
+                  <Label
+                    htmlFor={`edit-${scope.value}`}
+                    className={cn('text-[#1E1E1E]', 'font-normal')}
                   >
-                    <Checkbox
-                      id={`edit-${scope.value}`}
-                      checked={formData.scope.includes(scope.value)}
-                      onCheckedChange={(checked) =>
-                        handleScopeChange(scope.value, checked as boolean)
-                      }
-                      className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF]"
-                    />
-                    <Label htmlFor={`edit-${scope.value}`} className="text-[#0F172A]">
-                      {scope.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              {errors.scope && (
-                <div className="flex items-start mt-[2px]">
-                  <FaCircleExclamation className="text-red-500 mr-1 w-[10px] h-[10px] mt-[3px]" />
-                  <p className="text-[12px] text-red-500 font-normal">{errors.scope}</p>
+                    {scope.label}
+                  </Label>
                 </div>
-              )}
+              ))}
             </div>
+            {errors.scope && (
+              <div className="flex items-start mt-4">
+                <FaCircleExclamation className="text-red-500 mr-1 w-[10px] h-[10px] mt-[3px]" />
+                <p className="text-[12px] text-red-500 font-normal">{errors.scope}</p>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter className="gap-2">
@@ -372,7 +369,8 @@ export const UpdateApiKeyDialog: FC<UpdateApiKeyDialogProps> = ({
           <CustomButton
             handleClick={handleSubmit}
             disabled={isLoading || !isFormValid()}
-            label={isLoading ? 'Saving...' : mode === 'edit' ? 'Save changes' : 'Add Key'}
+            label={isLoading ? 'Saving...' : 'Save'}
+            className={cn('w-[100px] h-[48px]', 'rounded-lg')}
           />
         </DialogFooter>
       </DialogContent>
@@ -416,13 +414,15 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
   return (
     <div className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
       <div className="p-6">
-        <div className="flex items-center justify-between mb-4 pr-2">
-          <h2 className="text-lg font-semibold">
-            API Keys{' '}
-            <IconToolTip
-              classes="w-72"
-              html="Add API keys by providing a token (up to 10,000 characters), a unique name, and selecting a scope: All, API Call, Hugging Face, or Zapier Action."
-            />
+        <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            API Keys
+            <Tooltip
+              className="w-72 text-center"
+              content="Add API keys by providing a token (up to 10,000 characters), a unique name, and selecting a scope: All, API Call, Hugging Face, or Zapier Action."
+            >
+              <Info className="w-4 h-4" />
+            </Tooltip>
           </h2>
           {pageAccess?.write && (
             <CustomButton
@@ -434,11 +434,11 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
             />
           )}
         </div>
-        <div className="relative overflow-x-auto">
-          <table className="w-full text-sm text-left table-fixed">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[500px] text-sm text-left table-fixed">
             <thead className="text-xs text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 w-1/6">Name</th>
+                <th className="pr-4 py-2 w-1/6">Name</th>
                 <th className="px-4 py-2 w-1/6">Owner</th>
                 <th className="px-4 py-2 w-1/6">Scope</th>
                 <th className="px-4 py-2 w-1/6">Key</th>
@@ -449,7 +449,7 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
               {data?.keys?.length ? (
                 data.keys.map((key, index) => (
                   <tr key={index} className="border-t">
-                    <td className="px-4 py-2 truncate">{key.name}</td>
+                    <td className="pr-4 py-2 truncate">{key.name}</td>
                     <td className="px-4 py-2 truncate">{key.owner}</td>
                     <td className="px-4 py-2 truncate">{key.scope?.join(', ')}</td>
                     <td className="px-4 py-2 truncate">

@@ -1,4 +1,5 @@
 import {
+  AgentsBanner,
   AgentsGrid,
   AgentsHeader,
   GenerateAgentForm,
@@ -7,6 +8,7 @@ import {
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
 import { useAgentsData } from '@react/features/agents/hooks/useAgentsData';
+import { useAgentsPageTutorial } from '@react/features/agents/hooks/useAgentsPageTutorial';
 import {
   Learn,
   OnboardingTasks,
@@ -40,6 +42,7 @@ function AgentsPage() {
   const saveUserSettingsMutation = useMutateOnboardingData();
   const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   // Authentication and permissions
   const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
@@ -79,6 +82,9 @@ function AgentsPage() {
       refetchOnReconnect: false,
     },
   });
+
+  // Trigger first-visit tutorial
+  useAgentsPageTutorial();
 
   // Templates processing
   useEffect(() => {
@@ -189,8 +195,15 @@ function AgentsPage() {
       <main className="pl-12 md:pl-0">
         {/* Generate Agent Form Section */}
         <FeatureFlagged featureFlag={FEATURE_FLAGS.INITIATE_WEAVER_MESSAGE}>
-          <GenerateAgentForm onSubmit={handleGenerateAgentSubmit} canEditAgents={canEditAgents} />
+          <GenerateAgentForm
+            onSubmit={handleGenerateAgentSubmit}
+            canEditAgents={canEditAgents}
+            isBannerVisible={isBannerVisible}
+          />
         </FeatureFlagged>
+
+        {/* GPT-5 Promo Banner */}
+        {isBannerVisible && <AgentsBanner onClose={() => setIsBannerVisible(false)} />}
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}

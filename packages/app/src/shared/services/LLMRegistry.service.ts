@@ -24,6 +24,9 @@ export class LLMRegistry {
     'others',
   ];
 
+  // Single source of truth for determining GPT5 models (verbosity + reasoning effort support)
+  private static readonly GPT5_MODEL_PATTERN = /gpt-5/i;
+
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
     return models;
@@ -51,6 +54,21 @@ export class LLMRegistry {
   public static getMaxReasoningTokens(model: string) {
     const models = this.getModels();
     return models[model]?.maxReasoningTokens || 1024;
+  }
+
+  /**
+   * Gets the provider for a given model name
+   * @param model - The model name
+   * @returns The provider name (e.g., 'openai', 'xai', 'anthropic')
+   */
+  public static getModelProvider(model: string): string {
+    // 'Echo' is not included in the models list
+    if (model === 'Echo') return 'Echo';
+
+    const models = this.getModels();
+    const modelInfo = models[model];
+
+    return modelInfo?.provider || '';
   }
 
   /**
@@ -199,5 +217,30 @@ export class LLMRegistry {
       // If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
+  }
+
+  /**
+   * Get all GPT5 models that support both verbosity and reasoning effort parameters
+   *
+   * @returns Array of model IDs that are GPT5 models
+   */
+  public static getGpt5ReasoningModels(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isGpt5ReasoningModels(modelId));
+  }
+
+  /**
+   * Check if a model is a GPT5 model (supports both verbosity and reasoning effort).
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model is a GPT5 model
+   */
+  public static isGpt5ReasoningModels(modelId: string): boolean {
+    const models = this.getModels();
+    return Boolean(
+      modelId &&
+        this.GPT5_MODEL_PATTERN.test(modelId) &&
+        models?.[modelId]?.features?.includes('reasoning'),
+    );
   }
 }

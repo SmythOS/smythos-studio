@@ -6,8 +6,8 @@ import {
   SMYTH_LLM_PROVIDERS_SETTINGS_KEY,
 } from '../../../constants';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
+import { cacheClient } from '../../../services/cache.service';
 import { LLMService } from '../../../services/LLMHelper/LLMService.class';
-import { redisClient } from '../../../services/redis.service';
 import Vault from '../../../services/SmythVault.class';
 import {
   deleteTeamSettingsObj,
@@ -205,7 +205,7 @@ const handleCustomLLMSave = async (req, res) => {
     });
 
     // delete the custom LLM model cache
-    await redisClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -285,7 +285,7 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
     const deleteModel = await deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
     // delete the custom LLM model cache
-    await redisClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 

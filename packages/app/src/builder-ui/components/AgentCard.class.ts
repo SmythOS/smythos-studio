@@ -166,6 +166,37 @@ export class AgentCard extends EventEmitter {
   }
 
   /**
+   * Refresh skill connections for the agent card
+   * This method updates only the connections between the agent card and skills
+   * without redrawing the entire card - useful when agent properties change
+   */
+  public async repaintSkillConnections(): Promise<void> {
+    if (!this.workspace.agent?.data?.components) return;
+    
+    // Get skills once to avoid duplicate filtering
+    const skills = this.workspace.agent.data.components.filter((c) => c.name === 'APIEndpoint');
+    if (skills.length === 0) return;
+    
+    // Handle connections for all skills
+    for (const skill of skills) {
+      await this.handleCompConn(skill.id);
+    }
+    
+    // Single repaint operation for all affected elements
+    // This is more efficient than multiple individual repaints
+    const elementsToRepaint = [
+      this.domElement, // Agent card
+      ...skills.map(skill => document.querySelector(`#${skill.id}`)).filter(Boolean)
+    ];
+    
+    elementsToRepaint.forEach(element => {
+      if (element) {
+        this.workspace.jsPlumbInstance.repaint(element);
+      }
+    });
+  }
+
+  /**
    * Redraw the agent card
    */
   public async redraw(): Promise<void> {
@@ -212,9 +243,8 @@ export class AgentCard extends EventEmitter {
     // create a placeholder for the agent image (if no image found). the placeholder will be the first letter of the agent name. use tailwind
     const agentImagePlaceholder = document.createElement('div');
     agentImagePlaceholder.id = 'agent-card-avatar-placeholder';
-    agentImagePlaceholder.className = `h-full w-full flex items-center justify-center bg-uipink rounded-[7px]  w-8 h-8 flex items-center justify-center text-white font-medium truncate ${
-      agentAvatar ? 'hidden' : ''
-    }`;
+    agentImagePlaceholder.className = `h-full w-full flex items-center justify-center bg-uipink rounded-[7px]  w-8 h-8 flex items-center justify-center text-white font-medium truncate ${agentAvatar ? 'hidden' : ''
+      }`;
     agentImagePlaceholder.style.fontSize = '77px';
     setTimeout(() => {
       agentImagePlaceholder.textContent =
@@ -230,10 +260,11 @@ export class AgentCard extends EventEmitter {
 
     // Create agent header
     const agentHeader = document.createElement('div');
-    agentHeader.className = 'agent-header';
+    agentHeader.className = 'agent-header flex justify-between items-start';
 
     // Create agent name and description container
     const agentNameContainer = document.createElement('div');
+    agentNameContainer.className = 'flex-1 min-w-0';
 
     // Create and configure agent name
     const agentName = document.createElement('h2');
@@ -252,7 +283,7 @@ export class AgentCard extends EventEmitter {
     // Create menu button
     const menuButton = document.createElement('div');
     menuButton.className =
-      'p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer menu-button';
+      'px-1 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer menu-button';
     menuButton.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="1"></circle>
@@ -260,6 +291,12 @@ export class AgentCard extends EventEmitter {
         <circle cx="12" cy="19" r="1"></circle>
       </svg>
     `;
+
+    new TooltipV2(menuButton, {
+      text: 'Agent Setting',
+      position: 'top',
+      showWhen: 'hover',
+    });
 
     // Assemble agent header
     agentHeader.appendChild(agentNameContainer);
@@ -632,10 +669,12 @@ export class AgentCard extends EventEmitter {
       e.stopPropagation();
     });
 
-    this.workspace.addEventListener('AgentSaved', () => {
+    this.workspace.addEventListener('AgentSaved', async () => {
       if (agentNameElement && this.workspace.agent?.data?.name != agentNameElement.textContent) {
         agentNameElement.textContent = this.workspace.agent?.data?.name || '';
+        await this.repaintSkillConnections();
       }
+      
 
       // const topBarAgentAvatarElm: HTMLImageElement | null = document.querySelector('#agent-avatar');
 

@@ -6,15 +6,16 @@ import {
   getEmbodimentTitle,
 } from '@src/react/features/embodiments/embodiment-configs';
 import { useAgentEmbodimentSettings } from '@src/react/features/embodiments/embodiment-settings';
-import IconToolTip from '@src/react/shared/components/_legacy/ui/tooltip/IconToolTip';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { Switch } from '@src/react/shared/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/react/shared/components/ui/tabs';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { EMBODIMENT_TYPE } from '@src/react/shared/enums';
 import type { Embodiment } from '@src/react/shared/types/api-results.types';
+import { Tooltip } from 'flowbite-react';
+import { Info } from 'lucide-react';
 import { ComponentType, Fragment, useMemo, useState } from 'react';
-import { FaSliders } from 'react-icons/fa6';
+import { FaLock, FaSliders } from 'react-icons/fa6';
 
 interface AgentSetting {
   key: string;
@@ -77,6 +78,10 @@ interface Props {
    */
   onOpenMcpPanel: () => void;
   /**
+   * Called when the user requests to open the Lovable panel.
+   */
+  onOpenLovablePanel: () => void;
+  /**
    * If true, the card is visible; otherwise, hidden.
    */
   isVisible: boolean;
@@ -98,6 +103,7 @@ function PostDeploymentModal({
   onOpenChatbotPanel,
   onOpenApiPanel,
   onOpenMcpPanel,
+  onOpenLovablePanel,
   isVisible,
 }: Props) {
   const { workspace, allDeployments } = useDeploymentSidebarCtx();
@@ -167,6 +173,12 @@ function PostDeploymentModal({
     if (setting.isUpdating) {
       return; // Already updating
     }
+
+    // Check if user has access to embodiments
+    if (!state.canUseEmbodiments) {
+      return; // Don't allow toggle for free plan users
+    }
+
     updateEmbodimentStatus(setting.key, true);
   };
 
@@ -215,6 +227,30 @@ function PostDeploymentModal({
     return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
   };
 
+  /**
+   * Maps embodiment setting key to data-qa attribute value
+   * @param settingKey - The embodiment setting key
+   * @returns The data-qa attribute value
+   */
+  const getEmbodimentLocator = (settingKey: string): string => {
+    switch (settingKey.toLowerCase()) {
+      case 'chatgpt':
+        return 'chatgpt-embodiment';
+      case 'chatbot':
+        return 'chatbot-embodiment';
+      case 'llm':
+        return 'agentllm-embodiment';
+      case 'api':
+        return 'api-embodiment';
+      case 'mcp':
+        return 'mcp-embodiment';
+      case 'alexa':
+        return 'alexa-embodiment';
+      default:
+        return `${settingKey}-embodiment`;
+    }
+  };
+
   function getSettingsValues(item: string): {
     buttons: JSX.Element[];
     embodimentName: string;
@@ -246,12 +282,12 @@ function PostDeploymentModal({
         buttons.push(
           <button
             key={'configuration-' + EMBODIMENT_TYPE.CHAT_GPT}
-            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-gray-100 rounded"
+            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-smythos-blue-500 hover:text-white rounded"
             onClick={() => setting.openModal()}
             type="button"
             aria-label="Configuration"
           >
-            <FaSliders className="text-blue-600" />
+            <FaSliders />
           </button>,
         );
       }
@@ -273,12 +309,12 @@ function PostDeploymentModal({
         buttons.push(
           <button
             key={'configuration-' + EMBODIMENT_TYPE.CHAT_BOT}
-            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-gray-100 rounded"
+            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-smythos-blue-500 hover:text-white rounded"
             onClick={() => setting.openModal()}
             type="button"
             aria-label="Configuration"
           >
-            <FaSliders className="text-blue-600" />
+            <FaSliders />
           </button>,
         );
       }
@@ -363,6 +399,19 @@ function PostDeploymentModal({
         />,
       );
     }
+ else if (key === EMBODIMENT_TYPE.LOVABLE) {
+    buttons.push(
+      <Button
+        key={'get-endpoints-' + EMBODIMENT_TYPE.LOVABLE}
+        label="Get Code"
+        variant="tertiary"
+        className="px-3 py-1 h-8 text-xs"
+        handleClick={onOpenLovablePanel}
+        aria-label="Get Code"
+        type="button"
+      />,
+    );
+  }
     const embodimentName = capitalizeFirstLetter(
       key === EMBODIMENT_TYPE.CHAT_GPT ? 'Custom GPT' : setting.embTitle || 'Untitled Embodiment',
     );
@@ -388,11 +437,11 @@ function PostDeploymentModal({
       }}
     >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="embed" className="text-sm rounded-sm">
+        <TabsList className="grid w-full grid-cols-2 mb-6 h-auto">
+          <TabsTrigger value="embed" className="px-10 py-2.5 text-sm rounded-sm">
             Embed
           </TabsTrigger>
-          <TabsTrigger value="domains-keys" className="text-sm rounded-sm">
+          <TabsTrigger value="domains-keys" className="px-10 py-2.5 text-sm rounded-sm">
             Domains
           </TabsTrigger>
         </TabsList>
@@ -407,6 +456,7 @@ function PostDeploymentModal({
                 return (
                   <div
                     key={setting.key}
+                    data-qa={getEmbodimentLocator(setting.key)}
                     className={`flex items-center justify-between bg-white rounded-lg px-2 py-2 ${
                       !isSettingEnabled ? 'opacity-80' : ''
                     }`}
@@ -422,11 +472,13 @@ function PostDeploymentModal({
                           {embodimentName}
                         </span>
                         {setting.embDescription && (
-                          <IconToolTip
-                            html={setting.embDescription}
-                            classes="w-56"
-                            iconClassName="w-4 h-4 text-[#515151]"
-                          />
+                          <Tooltip
+                            content={setting.embDescription}
+                            placement="top"
+                            className="w-56 text-center"
+                          >
+                            <Info className="w-4 h-4 text-[#515151]" />
+                          </Tooltip>
                         )}
                       </div>
                     </div>
@@ -434,6 +486,10 @@ function PostDeploymentModal({
                       <div className="flex items-center gap-2">
                         <div className="circular-loader-blue w-4 h-4"></div>
                       </div>
+                    ) : !state.canUseEmbodiments ? (
+                      <Tooltip content="Premium Embodiment. Upgrade your plan" placement="top">
+                        <FaLock cursor={'pointer'} className="text-gray-400" />
+                      </Tooltip>
                     ) : isSettingEnabled ? (
                       <div className="flex items-center gap-2">{buttons}</div>
                     ) : (

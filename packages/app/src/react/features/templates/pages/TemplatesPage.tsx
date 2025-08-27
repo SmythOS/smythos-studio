@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import TemplateCard from '@src/react/features/templates/components/templateCard';
 import {
+  RECOMMENDED_TEMPLATE_ORDER,
   SORT_FIELDS_TEMPLATES,
   TEMPLATE_REQUEST_FORM,
 } from '@src/react/features/templates/constants';
@@ -15,6 +16,7 @@ import {
   FileIcon,
 } from '@src/react/shared/components/svgs';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
+import { FRONTEND_USER_SETTINGS } from '@src/react/shared/enums';
 import { navigateTo } from '@src/react/shared/utils/general';
 
 const CategoryPill = ({ category, handleCategoryClick, isActive }) => {
@@ -33,9 +35,12 @@ const CategoryPill = ({ category, handleCategoryClick, isActive }) => {
 const TemplatesPage = () => {
   const [agentTemplates, setAgentTemplates] = useState([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortCriteria, setSortCriteria] = useState<string>(
-    SORT_FIELDS_TEMPLATES.find((s) => s.isDefault)?.value ?? 'name',
-  );
+  const [sortCriteria, setSortCriteria] = useState<string>(() => {
+    // Load from localStorage to meet requirement: "If switched back, order should persist across sessions"
+    // Defaults to "Recommended" as specified: "Recommended should be the default order"
+    const saved = localStorage.getItem(FRONTEND_USER_SETTINGS.TEMPLATES_SORT_CRITERIA);
+    return (saved || SORT_FIELDS_TEMPLATES.find((s) => s.isDefault)?.value) ?? 'recommended';
+  });
   const [sortOrder, setSortOrder] = useState('asc');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -46,6 +51,28 @@ const TemplatesPage = () => {
   const { hasReadOnlyPageAccess } = useAuthCtx();
   const isReadOnlyAccess = hasReadOnlyPageAccess('/templates');
   const toggleSortOrder = () => setSortOrder((sortOrder) => (sortOrder === 'asc' ? 'desc' : 'asc'));
+
+  /**
+   * Handle sort criteria change with localStorage persistence
+   *
+   * We use localStorage to meet the requirement:
+   * "If switched back, order should persist across sessions"
+   *
+   * When user switches from default "Recommended" to "Name" sorting,
+   * their choice must persist when they close/reopen the browser.
+   * localStorage provides this cross-session persistence for the sorting preference.
+   */
+  const handleSortCriteriaChange = (newCriteria: string) => {
+    setSortCriteria(newCriteria);
+    localStorage.setItem(FRONTEND_USER_SETTINGS.TEMPLATES_SORT_CRITERIA, newCriteria);
+  };
+
+  /**
+   * Get recommended order for a template based on its ID
+   */
+  const getRecommendedOrder = (templateId: string): number => {
+    return RECOMMENDED_TEMPLATE_ORDER[templateId] ?? 9999; // Default to end if not found
+  };
 
   useEffect(() => {
     setIsLoadingAfterAction(true);
@@ -94,13 +121,23 @@ const TemplatesPage = () => {
 
     // Then apply sorting
     return filtered.sort((a, b) => {
-      const aValue = a[sortCriteria];
-      const bValue = b[sortCriteria];
+      if (sortCriteria === 'recommended') {
+        // For recommended sorting, use the predefined order
+        const aOrder = getRecommendedOrder(a.id);
+        const bOrder = getRecommendedOrder(b.id);
 
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        // Apply sort direction to recommended order
+        return sortOrder === 'asc' ? aOrder - bOrder : bOrder - aOrder;
+      } else {
+        // For other criteria (like name), use string comparison
+        const aValue = a[sortCriteria];
+        const bValue = b[sortCriteria];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+        return 0;
       }
-      return 0;
     });
   }, [agentTemplates, searchQuery, sortCriteria, sortOrder, activeCategory]);
 
@@ -160,7 +197,7 @@ const TemplatesPage = () => {
             <div className="flex items-center">
               <select
                 id="sorting"
-                onChange={(e) => setSortCriteria(e.target.value)}
+                onChange={(e) => handleSortCriteriaChange(e.target.value)}
                 value={sortCriteria}
                 className="bg-gray-50 w-36 border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block px-4 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               >

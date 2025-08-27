@@ -208,15 +208,15 @@ export function CreateEnterpriseModal({
             jsonCredentials: '',
           },
         });
+        setStep(1);
+        setSelectedProvider(null);
       }
-      setStep(1);
-      setSelectedProvider(null);
       loadProviders();
     }
-  }, [isOpen]);
+  }, [isOpen, editModel]);
 
   useEffect(() => {
-    if (editModel) {
+    if (editModel && isOpen) {
       step1Form.reset({
         name: editModel.name,
         provider: editModel.provider,
@@ -236,9 +236,10 @@ export function CreateEnterpriseModal({
         },
       });
 
+      setStep(1); // Always start at step 1 even when editing
       loadProviderOptions(editModel.provider);
     }
-  }, [editModel]);
+  }, [editModel, isOpen]);
 
   return (
     <Dialog
@@ -251,16 +252,18 @@ export function CreateEnterpriseModal({
     >
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editModel ? 'Edit Enterprise Model' : 'Add Enterprise Model'}</DialogTitle>
+          <DialogTitle className="text-xl text-[#1E1E1E]">
+            {editModel ? 'Edit Enterprise Model' : 'Add Enterprise Model'}
+          </DialogTitle>
         </DialogHeader>
 
         {step === 1 ? (
           <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-6">
             <div className="space-y-4">
               <div>
-                <div className="flex items-center gap-2 mb-2 w-full">
-                  <div className="flex items-center gap-1 min-w-[80px] shrink-0">
-                    <Label htmlFor="name" className="text-gray-700 text-sm font-normal">
+                <div className="w-full">
+                  <div className=" min-w-[80px] mb-2">
+                    <Label htmlFor="name" className="text-base font-normal mr-2 text-[#1E1E1E]">
                       Name <span className="text-red-500">*</span>
                     </Label>
                     <ToolTip
@@ -280,6 +283,7 @@ export function CreateEnterpriseModal({
                     error={!!step1Form.formState.errors.name}
                     className="w-full"
                     fullWidth
+                    placeholder="e.g. Custom Bedrock Model"
                   />
                 </div>
                 {step1Form.formState.errors.name && (
@@ -293,16 +297,15 @@ export function CreateEnterpriseModal({
               </div>
 
               <div>
-                <div className="flex items-center gap-2 mb-2 w-full">
-                  <div className="min-w-[80px] shrink-0">
-                    <Label htmlFor="provider" className="text-gray-700 text-sm font-normal">
+                <div className="w-full">
+                  <div className="gap-2 min-w-[80px] mb-2">
+                    <Label htmlFor="provider" className="text-base font-normal text-[#1E1E1E]">
                       Provider <span className="text-red-500">*</span>
                     </Label>
                   </div>
                   <Select
                     onValueChange={(value) => step1Form.setValue('provider', value)}
                     defaultValue={step1Form.getValues('provider')}
-                    className="w-full"
                   >
                     <SelectTrigger className="w-full border-gray-300 border-b-gray-500 border-gray-300 border-b-gray-500 focus:border-b-2 focus:outline-none focus:ring-0 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 ">
                       <SelectValue placeholder="Select a provider" />
@@ -323,16 +326,16 @@ export function CreateEnterpriseModal({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Features</Label>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label className="text-base font-normal text-[#1E1E1E]">Features</Label>
+                <div className="grid grid-cols-2 gap-4 ml-2">
                   {FEATURES.map((feature) => (
                     <div key={feature.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={feature.value}
                         disabled={true}
                         checked={feature.value === 'text'}
-                        className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF]"
+                        className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF] shadow-none"
                         onCheckedChange={(checked) => {
                           const features = step1Form.getValues('features');
                           if (checked) {
@@ -345,7 +348,9 @@ export function CreateEnterpriseModal({
                           }
                         }}
                       />
-                      <Label htmlFor={feature.value}>{feature.text}</Label>
+                      <Label htmlFor={feature.value} className="text-sm font-normal">
+                        {feature.text}
+                      </Label>
                     </div>
                   ))}
                 </div>
@@ -358,7 +363,12 @@ export function CreateEnterpriseModal({
             </div>
 
             <div className="flex justify-end">
-              <CustomButton variant="primary" type="submit" label="Next" className="px-8" />
+              <CustomButton
+                variant="primary"
+                type="submit"
+                label="Next"
+                className="w-[100px] h-[48px] rounded-lg"
+              />
             </div>
           </form>
         ) : (
@@ -389,7 +399,12 @@ export function CreateEnterpriseModal({
               <CustomButton
                 type="button"
                 variant="secondary"
-                handleClick={() => setStep(1)}
+                handleClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setStep(1);
+                  setSelectedProvider(null);
+                }}
                 className="flex-1"
                 label="Back"
               />
@@ -406,8 +421,8 @@ export function CreateEnterpriseModal({
                       ? 'Updating...'
                       : 'Creating...'
                     : editModel
-                    ? 'Update Model'
-                    : 'Create Model'
+                      ? 'Update Model'
+                      : 'Create Model'
                 }
               />
             </div>
@@ -631,16 +646,13 @@ export function DeleteEnterpriseModelModal({
         </div>
         <DialogFooter className="gap-2">
           <CustomButton
-            variant="secondary"
-            handleClick={onClose}
-            disabled={isProcessing}
-            label="Cancel"
-          />
-          <CustomButton
-            isDelete
+            className="ml-auto h-[48px] rounded-lg"
             handleClick={() => onConfirm(model)}
-            disabled={isProcessing}
             label={isProcessing ? 'Deleting...' : 'Delete'}
+            addIcon
+            Icon={<img className="mr-2" src="/img/icons/Delete-White.svg" />}
+            disabled={isProcessing}
+            isDelete
           />
         </DialogFooter>
       </DialogContent>

@@ -228,19 +228,27 @@ export const EnterpriseTierFrameV4: FC<Props> = ({ tierIndex }) => {
         body: JSON.stringify({
           newPriceIds: tier.stripePriceIds,
           isUserAcknowledged: true,
-          ...(!!promoCode.trim() ? { promoCode: promoCode.trim() } : {}),
+          ...(promoCode.trim() ? { promoCode: promoCode.trim() } : {}),
         }),
       });
 
-      await res.json();
+      const responseData = await res.json();
+
+      try {
+        let parsedMessage = JSON.parse(responseData?.message);
+        if (parsedMessage && parsedMessage.warnings && Array.isArray(parsedMessage.warnings)) {
+          toast.warning(parsedMessage.warnings.join('\n'));
+        } else {
+          toast.success('Your subscription has been updated.');
+        }
+      } catch {
+        // do nothing
+        toast.success('Your subscription has been updated.');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await refreshUserData();
-
-      // Add a small delay before redirect to ensure backend sync
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
+      setTimeout(() => navigateTo('/my-plan', false), 500);
       setShowConfirmationDialog(false);
-      toast.success('Your subscription has been updated.');
-      window.location.href = '/my-plan';
     } catch (error) {
       const errorMessage = extractError(error);
 

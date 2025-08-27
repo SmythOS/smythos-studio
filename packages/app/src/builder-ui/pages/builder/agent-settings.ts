@@ -9,6 +9,7 @@ import { PostHog } from '../../services/posthog';
 import {
   confirm,
   createEmbodimentSidebar,
+  getCurrentSidebarTab,
   hideOverlay,
   modalDialog,
   openEmbodimentSidebar,
@@ -111,8 +112,8 @@ function createAgent() {
           agentNameLength < 3
             ? 'Name should be at least 3 characters long.'
             : agentNameLength > 60
-            ? 'Name should not be more than 60 characters long.'
-            : '';
+              ? 'Name should not be more than 60 characters long.'
+              : '';
 
         agentNameError.classList.toggle('hidden', !isAgentNameInValid);
       }
@@ -289,7 +290,7 @@ async function loadAgent(agentId = null) {
           'You are not authorized to access this agent. Would you like to switch to the correct team?',
           {
             'Switch Team': {
-              class: 'text-white bg-smyth-emerald-400 z-50',
+              class: 'text-white bg-v2-blue z-50',
               handler: async () => {
                 //Switch Team and refresh page
                 const teamId = error?.errorData?.errKey?.split('DIFFERENT_TEAM_')[1];
@@ -327,7 +328,7 @@ async function loadAgent(agentId = null) {
           message,
           {
             'Request Access': {
-              class: 'text-white bg-smyth-emerald-400 z-50',
+              class: 'text-white bg-v2-blue z-50',
               handler: () => {
                 // Call requestAgentAccess when Request Access is clicked
                 requestAgentAccess(agentId, workspace?.userData?.email);
@@ -782,7 +783,8 @@ export async function openEmbodimentDialog(content, actions = {}, title, tooltip
       detail: {
         rightSidebarOpen: false,
         isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true', // Keep the left sidebar open, on embodiment toggle
-        currentSidebarTab: window?.localStorage?.getItem('currentSidebarTab'),
+        currentSidebarTab:
+          getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
       },
     }),
   );
@@ -825,20 +827,20 @@ export async function openChatGPTEmbodiment() {
         <p>In order to create a custom GPT using your agent</p>
         &nbsp;<br />
         <ul class="steps">
-            <li><a href="https://chat.openai.com/gpts/editor" target="_blank">Click Here</a> to Create a custom GPT from chatGPT interface.</li>
+            <li><a href="https://chatgpt.com/gpts" target="_blank">Click Here</a> to Create a custom GPT from chatGPT interface.</li>
             <li>Click on "Configure" tab</li>
             <li>Enter your Custom GPT information: We recommend to copy the content of SmythOS Agent behavior inside "Instructions" area in order to have a consistent behavior</li>
             <li>Scroll down and Click on "Create new action" button.<br />
             ${
               testDomain
                 ? '<li>- Click Import URL and enter the following URL if you want to use your test agent: ' +
-                  `<b>${scheme}://${testDomain}/api-docs/openapi-llm.json</b></li>`
+                  `<b>${scheme}://${testDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }
             ${
               prodDomain
                 ? '<li> - Click Import URL and enter the following URL if you want to use your production agent: ' +
-                  `<b>${scheme}://${prodDomain}/api-docs/openapi-llm.json</b></li>`
+                  `<b>${scheme}://${prodDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }
             </li>
@@ -884,19 +886,18 @@ export async function openPostmanEmbodiment() {
   const prodUrl = prodDomain ? `${scheme}://${prodDomain}/postman` : '';
 
   const testBtn = testUrl
-    ? `<div class="my-2"><a href="${testUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Test Endpoints</a></div>`
+    ? `<div><a href="${testUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Test Endpoints</a></div>`
     : '';
   const prodBtn = prodUrl
-    ? `<div class="my-2"><a href="${prodUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Prod Endpoints</a></div>`
+    ? `<div><a href="${prodUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Prod Endpoints</a></div>`
     : '';
 
   const content = `<div class="emb-instructions p-4 flex-row">
-        <div class="flex items-center gap-2 mb-4">
+        <div class="flex items-center gap-2 mb-5">
           <p class="text-gray-700">Test your agent using Postman or import Postman collections to your agent workspace. Includes tools for exporting and debugging API calls.</p>
         </div>
-        &nbsp;<br />
         <h2>Exporting Agent to Postman Collection</h2>
-        <div class="flex space-x-3 justify-between">
+        <div class="flex space-x-3 justify-between mt-5">
         ${testBtn}
 
         ${prodBtn}
@@ -998,7 +999,7 @@ export async function openAlexaEmbodiment() {
       }, 2000);
     }
   })()"
-    class="publish-btn px-4 py-2 text-sm text-white bg-smyth-emerald-400 rounded-md hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+    class="publish-btn px-4 py-2 text-sm text-white bg-v2-blue rounded-md hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
     Publish
   </button>`;
 
@@ -1471,7 +1472,7 @@ function openVideoTutorialDialog(videoLink: string) {
       handler: () => {},
     },
     'Open in new tab': {
-      class: 'text-white bg-smyth-emerald-400',
+      class: 'text-white bg-v2-blue',
       handler: () => {
         window.open(videoLink, '_blank');
       },
@@ -1512,7 +1513,9 @@ async function fetchRecentAgents() {
     const response = await fetch(`/api/page/agents/agents?${queryParams.toString()}`);
     const { agents } = await response.json();
 
-    return agents.filter((agent) => agent?.id !== workspace?.agent?.id);
+    return agents.filter(
+      (agent) => agent?.id !== workspace?.agent?.id && !agent?.id.startsWith('model-'),
+    );
   } catch (error) {
     console.error('Error fetching recent agents:', error);
     return [];

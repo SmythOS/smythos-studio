@@ -4,7 +4,25 @@
     <div
       class="bg-white rounded-xl shadow-lg max-w-[670px] w-full h-[390px] p-6 m-4 overflow-auto sm:h-auto"
     >
-      <h2 class="text-[24px] font-semibold text-[#1E1E1E] mb-2">Leave Feedback</h2>
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-[#1E1E1E] mb-2">Leave Feedback</h2>
+        <button class="__btnClose" id="cancelFeedback" aria-label="Close modal">
+          <svg
+            class="w-[20px] h-[20px]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
       <p class="text-[14px] leading-[20px] text-[#1E1E1E] mb-4">
         We'd love to hear what went well or how we can improve the product experience.
       </p>
@@ -99,16 +117,10 @@
       </div>
       <div class="flex justify-end gap-3">
         <button
-          id="cancelFeedback"
-          class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none bg-white text-smyth-dark border-gray-300 hover:border-smyth-light hover:bg-smyth-white"
-        >
-          Cancel
-        </button>
-        <button
           id="submitFeedback"
-          class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none bg-smythos-blue-500 text-white border-transparent hover:bg-smyth-blue"
+          class="flex items-center justify-center font-normal border border-solid text-base h-[48px] px-8 py-2 text-center rounded-lg transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none bg-smythos-blue-500 text-white border-transparent hover:bg-smyth-blue"
         >
-          <span>Submit</span>
+          <span>Send</span>
           <div id="submitLoader" class="hidden ml-2">
             <svg
               class="animate-spin h-4 w-4"
@@ -203,12 +215,12 @@
       if (submitBtn) submitBtn.disabled = true;
       if (cancelBtn) cancelBtn.disabled = true;
       submitLoader?.classList.remove('hidden');
-      if (submitText) submitText.textContent = 'Submitting...';
+      if (submitText) submitText.textContent = 'Sending...';
     } else {
       if (submitBtn) submitBtn.disabled = false;
       if (cancelBtn) cancelBtn.disabled = false;
       submitLoader?.classList.add('hidden');
-      if (submitText) submitText.textContent = 'Submit';
+      if (submitText) submitText.textContent = 'Send';
     }
   }
 

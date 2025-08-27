@@ -47,7 +47,7 @@ const menu: Menu = {
   Advanced: [
     { name: 'FSleep', label: 'Sleep', description: '' },
     { name: 'LLMAssistant', description: 'LLM Assistant', label: 'LLM Assistant', icon: '' },
-    { name: 'APICall', label: 'Call API' },
+    { name: 'APICall', label: 'APICall' },
     { name: 'Code', description: 'Code', label: 'Code', icon: '' },
     { name: 'FileStore', label: 'File Store', description: '', icon: 'Memory' },
     { name: 'JSONFilter', label: 'JSON Filter', description: '' },
@@ -195,10 +195,10 @@ const menu: Menu = {
 };
 if (config.env.NODE_ENV === 'PROD') {
   // Hide Serverless Code in PROD
-  const fileStoreIndex = (menu.Advanced as any[]).findIndex((p) => p.name === 'FileStore');
-  if (fileStoreIndex > -1) {
-    (menu.Advanced as any[]).splice(fileStoreIndex, 1);
-  }
+  // const fileStoreIndex = (menu.Advanced as any[]).findIndex((p) => p.name === 'FileStore');
+  // if (fileStoreIndex > -1) {
+  //   (menu.Advanced as any[]).splice(fileStoreIndex, 1);
+  // }
 
   // const webSearchIndex = (menu.Tools as any[]).findIndex((p) => p.name === 'WebSearch');
   // if (webSearchIndex > -1) {

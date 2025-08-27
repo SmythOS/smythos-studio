@@ -140,7 +140,7 @@ const ResponseView = () => {
         <div className="py-4 text-gray-500">
           Something went wrong? try{' '}
           <span
-            className="font-semibold border-b border-gray-500 border-solid pb-0.5 cursor-pointer"
+            className="font-semibold border-b border-solid pb-0.5 cursor-pointer text-blue-500 border-blue-500"
             onClick={() => {
               //Toggle debug bar
               const debugSwitcher = document.querySelector('.debug-switcher');

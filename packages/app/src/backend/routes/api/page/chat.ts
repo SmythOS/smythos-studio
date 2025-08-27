@@ -71,6 +71,7 @@ router.post('/stream', async (req, res) => {
   const token = req.user.accessToken;
   const agentId = req.headers['x-agent-id'];
   const conversationId = req.headers['x-conversation-id'];
+  const isAgentChat = req.headers['x-ai-agent'] === 'true';
   const filePublicUrls = fileKeys.map((key) => staticStorage.getPublicUrl(key));
 
   if (filePublicUrls.length > 0) {
@@ -93,6 +94,7 @@ router.post('/stream', async (req, res) => {
           'x-agent-id': agentId,
           'x-conversation-id': conversationId,
           'x-smyth-team-id': teamId,
+          'x-ai-agent': isAgentChat,
         },
         responseType: 'stream',
       },

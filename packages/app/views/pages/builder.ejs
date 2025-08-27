@@ -1,6 +1,6 @@
 <div x-data="setup()" id="studio">
   <div
-    class="studio-child flex antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light w-full overflow-hidden max-w-[100vw] max-h-screen"
+    class="studio-child flex antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light w-full overflow-hidden max-w-[100vw] h-screen relative"
   >
     <!-- Left Sidebar -->
     <%- include('partials/studio/left-sidebar', { agentId: agentId, isSidebarOpen: 'isSidebarOpen',
@@ -10,11 +10,19 @@
     <div class="flex-1 flex flex-col py-3 pr-3">
       <!-- Main Content -->
       <div
-        class="flex-1 h-full w-full border border-solid border-gray-300 rounded-lg relative"
+        class="flex-1 h-full w-full border border-solid border-gray-300 rounded-lg relative left-[6px] md:left-[64px] md:w-[calc(100%-64px)]"
         id="builder-container"
       >
+        <%- include('partials/studio/builder-menu.ejs', { agentId: agentId }); -%> <%-
+        include('partials/studio/workspace'); -%>
+      </div>
+
+      <div
+        id="bottom-controls-container"
+        class="absolute z-2 flex flex-col w-full left-[64px] p-4 bottom-3 pointer-events-none"
+      >
         <div
-          class="absolute bottom-14 right-4 overflow-hidden hidden md:block z-10"
+          class="overflow-hidden hidden md:block z-10 ml-auto pointer-events-auto"
           x-data="myComponent()"
           :class="mapDimensions"
         >
@@ -43,20 +51,69 @@
             </div>
           </div>
         </div>
-        <%- include('partials/studio/builder-menu.ejs', { agentId: agentId }); -%> <%-
-        include('partials/studio/workspace'); -%>
-      </div>
 
-      <div
-        id="bottom-bar"
-        class="z-2 hidden border border-solid border-gray-300 rounded-lg mt-3 overflow-hidden"
-        style="height: 400px"
-      >
-        <div id="debug-log-container-root" class="h-full"></div>
+        <div
+          id="bottom-toolbar"
+          class="hidden md:flex items-center justify-between max-w-full z-10 w-full pointer-events-none"
+        >
+          <div class="flex items-end gap-2 pointer-events-auto -mt-8">
+            <div
+              class="border border-solid border-gray-200 rounded-lg overflow-hidden h-full bg-white flex flex-col items-center text-sm"
+            >
+              <button id="cmp-zoom-in-btn" type="button" class="hover:opacity-80 px-3 py-2 text-gray-900 hover:bg-smythos-blue-500 hover:text-white hover:border-v2-blue">
+                <%- include('partials/studio/icons/zoom-in.ejs'); -%>
+              </button>
+              <button id="cmp-zoom-out-btn" type="button" class="hover:opacity-80 px-3 py-2 text-gray-900 hover:bg-smythos-blue-500 hover:text-white hover:border-v2-blue">
+                <%- include('partials/studio/icons/zoom-out.ejs'); -%>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pointer-events-auto">
+            <button
+              id="cmp-collapse-btn"
+              class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:fill-white"
+              type="button"
+            >
+              <%- include('partials/studio/icons/collapse.ejs'); -%>
+              <span class="text text-xs">Expand</span>
+            </button>
+            <button
+              id="cmp-prettify-btn"
+              class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:stroke-white"
+              type="button"
+            >
+              <%- include('partials/studio/icons/prettify.ejs'); -%>
+              <span class="text-xs">Prettify</span>
+            </button>
+            <button
+              id="cmp-inspect-btn"
+              class="border border-solid border-gray-200 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm text-gray-900 stroke-[#111827] [&.active]:bg-smythos-blue-500 [&.active]:text-white [&.active]:stroke-white [&.active]:hover:bg-smyth-blue [&.active]:hover:border-smyth-blue hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:stroke-white"
+              type="button"
+            >
+              <%- include('partials/studio/icons/inspect.ejs'); -%>
+              <span class="text-xs">Inspect</span>
+            </button>
+            <div id="view-only-mode" class="hidden opacity opacity-0">
+              <div class="text-xs flex gap-1 items-center ml-3 h-full" style="min-width: 64px">
+                <span class="text-grey-200 font-bold pr-1 pointer-events-none opacity-50"
+                  >Viewer Mode</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          id="bottom-bar"
+          class="z-2 hidden border border-solid border-gray-300 rounded-lg overflow-hidden pointer-events-auto mt-2"
+          style="height: 400px"
+        >
+          <div id="debug-log-container-root" class="h-full"></div>
+        </div>
       </div>
     </div>
     <div
-      class="sidebar-container hidden [&.open]:flex flex-row z-[2] h-screen transition-transform py-3 pr-3"
+      class="sidebar-container hidden [&.open]:flex flex-row h-[calc(100vh-82px)] transition-transform py-3 pr-3 absolute right-4 top-[66px] z-10"
       id="right-container"
     >
       <div class="h-full">
@@ -232,5 +289,139 @@ include('partials/studio/feedback-modal') -%>
         localStorage.setItem('minimapOpen', this.minimapOpen);
       },
     }));
+  });
+</script>
+
+<script>
+  /**
+   * @file This script manages the responsive layout of the builder UI, including the
+   * sidebars and bottom controls. It uses a ResizeObserver to efficiently react to
+   * size changes in the workspace and sidebars, ensuring a fluid user experience
+   * without the performance overhead of traditional window resize event listeners.
+   */
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Element Selection ---
+    const rightSidebar = document.getElementById('right-container');
+    const bottomControls = document.getElementById('bottom-controls-container');
+    const workspaceContainer = document.getElementById('workspace-container');
+    const leftSidebar = document.getElementById('left-sidebar-container');
+    const rightSidebars = document.querySelectorAll(
+      '#right-sidebar, #embodiment-sidebar, #agent-settings-sidebar',
+    );
+
+    // --- Initial Validation ---
+    if (!rightSidebar || !bottomControls || !workspaceContainer || !leftSidebar) {
+      console.warn('Builder layout elements not found for dynamic resizing.');
+      return;
+    }
+
+    // --- Layout Constants ---
+    const MIN_CANVAS_WIDTH = 420; // Minimum width for the workspace canvas before controls are hidden.
+    const MIN_SIDEBAR_WIDTH = 280; // Minimum width for the resizable sidebars.
+    const SIDEBAR_NAVIGATION_WIDTH = 64; // The fixed width of the main left navigation bar.
+    const GAP_WIDTH = 16; // The gap between the left sidebar and the main content.
+    const MARGIN_WIDTH = 12; // A margin used in width calculations to prevent overlap.
+
+    /**
+     * @function updateBottomControlsLayout
+     * @description Adjusts the width and position of the bottom controls container.
+     * @param {number} workspaceWidth - The current width of the workspace.
+     * @param {number} rightSidebarWidth - The current width of the right sidebar.
+     * @param {number} leftSidebarWidth - The current width of the left sidebar.
+     * @param {boolean} isRightSidebarOpen - Whether the right sidebar is open.
+     * @param {boolean} isLeftSidebarOpen - Whether the left sidebar is open.
+     */
+    const updateBottomControlsLayout = (
+      workspaceWidth,
+      rightSidebarWidth,
+      leftSidebarWidth,
+      isRightSidebarOpen,
+      isLeftSidebarOpen,
+    ) => {
+      const bottomContainerWidth =
+        workspaceWidth -
+        (isRightSidebarOpen ? rightSidebarWidth : 0) -
+        (isLeftSidebarOpen ? leftSidebarWidth : 0) -
+        (isLeftSidebarOpen ? GAP_WIDTH : 0);
+
+      bottomControls.style.setProperty('width', `${bottomContainerWidth}px`, 'important');
+      bottomControls.style.setProperty(
+        'left',
+        `${SIDEBAR_NAVIGATION_WIDTH + (isLeftSidebarOpen ? leftSidebarWidth + GAP_WIDTH : 0)}px`,
+        'important',
+      );
+      bottomControls.style.setProperty(
+        'display',
+        bottomContainerWidth < MIN_CANVAS_WIDTH ? 'none' : 'flex',
+        'important',
+      );
+    };
+
+    /**
+     * @function updateRightSidebarLayout
+     * @description Manages the width of the right sidebar.
+     * @param {number} workspaceWidth - The current width of the workspace.
+     * @param {boolean} isRightSidebarOpen - Whether the right sidebar is open.
+     * @param {boolean} isLeftSidebarOpen - Whether the left sidebar is open.
+     */
+    const updateRightSidebarLayout = (workspaceWidth, isRightSidebarOpen, isLeftSidebarOpen) => {
+      rightSidebars.forEach((sidebar) => {
+        if (
+          sidebar instanceof HTMLElement &&
+          !sidebar.classList.contains('hidden') &&
+          isRightSidebarOpen
+        ) {
+          const sidebarRect = sidebar.getBoundingClientRect();
+          if (sidebarRect.left <= SIDEBAR_NAVIGATION_WIDTH) {
+            sidebar.style.width = `${workspaceWidth - MARGIN_WIDTH}px`;
+          } else if (
+            isLeftSidebarOpen &&
+            sidebarRect.left <= leftSidebar.getBoundingClientRect().right + MARGIN_WIDTH
+          ) {
+            const newWidth = Math.max(
+              sidebarRect.right - leftSidebar.getBoundingClientRect().right,
+              MIN_SIDEBAR_WIDTH,
+            );
+            sidebar.style.width = `${newWidth}px`;
+          }
+          window.localStorage.setItem(`${sidebar.id}-width`, sidebar.style.width);
+        }
+      });
+    };
+
+    /**
+     * @function updateLayout
+     * @description Recalculates and applies the layout for the bottom controls and sidebars.
+     * This function is the core of the responsive layout management, triggered by the ResizeObserver.
+     */
+    const updateLayout = () => {
+      const rightSidebarWidth = rightSidebar.offsetWidth;
+      const leftSidebarWidth = leftSidebar.offsetWidth;
+      const workspaceWidth = workspaceContainer.offsetWidth;
+      const isLeftSidebarOpen = leftSidebar.style.display !== 'none';
+      const isRightSidebarOpen = rightSidebar.classList.contains('open');
+
+      updateBottomControlsLayout(
+        workspaceWidth,
+        rightSidebarWidth,
+        leftSidebarWidth,
+        isRightSidebarOpen,
+        isLeftSidebarOpen,
+      );
+      updateRightSidebarLayout(workspaceWidth, isRightSidebarOpen, isLeftSidebarOpen);
+    };
+
+    // --- ResizeObserver Setup ---
+    // Creates a new ResizeObserver that calls the updateLayout function when observed elements resize.
+    const layoutObserver = new ResizeObserver(updateLayout);
+
+    // Observes the main layout containers for size changes.
+    layoutObserver.observe(workspaceContainer);
+    layoutObserver.observe(leftSidebar);
+    layoutObserver.observe(rightSidebar);
+
+    // --- Initial Layout Update ---
+    // Calls updateLayout once on load to set the initial layout.
+    updateLayout();
   });
 </script>

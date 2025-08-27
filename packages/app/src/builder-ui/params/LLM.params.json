@@ -278,5 +278,33 @@
       "presencePenalty": "A multiplicative penalty greater than 0. Values greater than 1.0 penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. A value of 1.0 means no penalty. Incompatible with presence_penalty.",
       "maxThinkingTokens": ""
     }
+  },
+  "xai": {
+    "defaultTemperature": 0.2,
+    "maxTemperature": 2,
+    "minMaxTokens": 4,
+    "defaultMaxTokens": 8192,
+    "defaultThinkingTokens": 4096,
+    "defaultTopP": 0.9,
+    "minTopP": 0,
+    "maxTopP": 1,
+    "defaultTopK": 0,
+    "minTopK": 0,
+    "maxTopK": 2048,
+    "defaultFrequencyPenalty": 0,
+    "defaultPresencePenalty": 0,
+    "maxFrequencyPenalty": 2,
+    "maxPresencePenalty": 2,
+    "maxStopSequences": 0,
+    "hint": {
+      "temperature": "Controls randomness in the response. Higher values make the output more creative and random, while lower values make it more focused and deterministic.",
+      "maxTokens": "The maximum number of tokens to generate as output. The exact limit will be based on the model's total capacity and varies by model. (One token is roughly 4 characters of English text)",
+      "stopSequences": "",
+      "topP": "Controls diversity via nucleus sampling. Lower values make the output more focused, while higher values make it more diverse.",
+      "topK": "Limits the number of token choices for each step. Setting to 0 disables top-k filtering.",
+      "frequencyPenalty": "",
+      "presencePenalty": "",
+      "maxThinkingTokens": ""
+    }
   }
 }

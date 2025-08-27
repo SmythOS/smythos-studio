@@ -100,7 +100,8 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
       detail: {
         rightSidebarOpen: false,
         isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true', // Keep the left sidebar open, on right sidebar toggle except for agent settings
-        currentSidebarTab: window?.localStorage?.getItem('currentSidebarTab'),
+        currentSidebarTab:
+          getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
       },
     }),
   );
@@ -244,7 +245,8 @@ export async function closeRightSidebar() {
       detail: {
         rightSidebarOpen: false,
         isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true', // Keep the left sidebar open, on right sidebar toggle except for agent settings
-        currentSidebarTab: window?.localStorage?.getItem('currentSidebarTab'),
+        currentSidebarTab:
+          getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
       },
     }),
   );
@@ -686,7 +688,8 @@ export function openEmbodimentSidebar() {
       detail: {
         rightSidebarOpen: false,
         isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true', // Keep the left sidebar open, on right sidebar toggle except for agent settings
-        currentSidebarTab: window?.localStorage?.getItem('currentSidebarTab'),
+        currentSidebarTab:
+          getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
       },
     }),
   );
@@ -735,7 +738,11 @@ export function showRefreshAuthPopup() {
 
       //setup an event listener to resolve the auth event after returning back to the app
       const authEventListener = (event) => {
-        document.querySelectorAll('div[id*="confirmModal"]').forEach((d) => d.remove());
+        // Changed selector from [id*="confirmModal"] to [id^="confirmModal-"] to remove only cloned confirm modals
+        // (those with generated IDs like confirmModal-random), while preserving the original #confirmModal template.
+        // This ensures the template remains in the DOM for future confirm dialogs after reauthentication,
+        // preventing fallback to native window.confirm and maintaining custom modal functionality.
+        document.querySelectorAll('div[id^="confirmModal-"]').forEach((d) => d.remove());
         resolve(true);
         window.removeEventListener('focus', authEventListener);
       };
@@ -903,7 +910,7 @@ export function editValues({
     const dialogElm: HTMLElement = document.querySelector(dialogSelector);
 
     /* set dialog title */
-    const titleElm = dialogElm.querySelector('.dialog-title');
+    const titleElm = dialogElm.querySelector('.dialog-title-text');
     titleElm.innerHTML = title;
     if (!title) {
       titleElm.classList.add('hidden');
@@ -960,9 +967,7 @@ export function editValues({
 
     /* === dialog actions handler === */
 
-    /* handle cancel action */
-    const cancelBtnElm = dialogElm.querySelector('.btn-cancel');
-    cancelBtnElm.addEventListener('click', async () => {
+    const handleCancel = () => {
       // as we are using Metro UI built-in overlay for secondary dialog
       hideOverlay(secondary);
 
@@ -978,7 +983,14 @@ export function editValues({
       contentElm.innerHTML = '';
 
       resolve(null);
-    });
+    };
+
+    /* handle cancel action */
+    const closeBtnElm = dialogElm.querySelector('.btn-close');
+    const cancelBtnElm = dialogElm.querySelector('.btn-cancel');
+
+    if (cancelBtnElm) cancelBtnElm.addEventListener('click', handleCancel);
+    if (closeBtnElm) closeBtnElm.addEventListener('click', handleCancel);
 
     /* handle submit action */
     const submitBtnElm: HTMLButtonElement = dialogElm.querySelector('.btn-submit');
@@ -1094,7 +1106,7 @@ export function sidebarEditValues({
     // Remove the 'open' class temporarily to prevent premature width animation
     sidebar.closest('.sidebar-container').classList.remove('open');
     $(container).css('opacity', 0);
-    
+
     // Set content immediately without delay
     sidebar.querySelector('.title').innerHTML = title || '';
     const sidebarContent = sidebar.querySelector('.content');
@@ -1223,6 +1235,8 @@ export function sidebarEditValues({
             {
               btnNoLabel: 'Discard Changes',
               btnYesLabel: 'Continue Editing',
+              btnNoClass: 'h-[48px] rounded-lg px-8',
+              btnYesClass: 'h-[48px] rounded-lg px-8',
             },
           );
           saveBeforeCloseState = !saveBeforeClose ? 1 : 2;
@@ -1989,6 +2003,9 @@ export function openAgentSettingsRightSidebar(state = undefined) {
     new CustomEvent('sidebarStateChanged', {
       detail: {
         rightSidebarOpen: !isOpen,
+        isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true',
+        currentSidebarTab:
+          getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
       },
     }),
   );
@@ -2055,6 +2072,9 @@ export function openAgentSettingsRightSidebar(state = undefined) {
           new CustomEvent('sidebarStateChanged', {
             detail: {
               rightSidebarOpen: false,
+              isSidebarOpen: window?.localStorage?.getItem('sidebarOpen') === 'true',
+              currentSidebarTab:
+                getCurrentSidebarTab() || window?.localStorage?.getItem('currentSidebarTab'),
             },
           }),
         );
@@ -2070,6 +2090,30 @@ export function openAgentSettingsRightSidebar(state = undefined) {
   }
 
   return agentSettingsSidebar;
+}
+
+/**
+ * Gets the current sidebar tab from the left sidebar using Alpine.js data stack
+ * @returns The current sidebar tab
+ */
+export function getCurrentSidebarTab() {
+  const leftSidebarEl = document.getElementById('left-sidebar');
+  // Note: _x_dataStack[1] accesses the second Alpine.js data context
+  // This may break if Alpine.js internal structure changes
+  let currentSidebarTab: string | null = null;
+
+  try {
+    const dataStack = (leftSidebarEl as any)?._x_dataStack;
+    const alpineData = Array.isArray(dataStack) && dataStack.length > 1 ? dataStack[1] : null;
+
+    if (alpineData && typeof alpineData.currentSidebarTab === 'string') {
+      currentSidebarTab = alpineData.currentSidebarTab;
+    }
+  } catch (error) {
+    console.warn('Failed to access Alpine.js sidebar data:', error);
+  }
+
+  return currentSidebarTab || '';
 }
 
 /**

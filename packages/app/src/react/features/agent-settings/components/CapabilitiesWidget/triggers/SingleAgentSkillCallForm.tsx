@@ -117,14 +117,14 @@ const SingleAgentSkillCallForm = ({ component }: Props) => {
             </span>
           )}
 
-          <div className="flex gap-3 mt-4 ">
+          <div className="flex justify-end gap-3 mt-4 ">
             <Button
               type="submit"
               disabled={isSubmitting || callSkillMutation.isLoading || !isValid}
               label={'Call Endpoint'}
               loading={callSkillMutation.isLoading}
               variant="primary"
-              fullWidth
+              className="h-[48px] px-8 rounded-lg"
             />
           </div>
         </Form>

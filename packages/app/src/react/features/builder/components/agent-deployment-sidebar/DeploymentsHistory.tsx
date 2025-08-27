@@ -17,7 +17,7 @@ const DeploymentsHistory = () => {
     try {
       const response = await fetch(`/api/page/builder/ai-agent/deployments/${deploymentId}`);
       const result = await response.json();
-      let restoreData = result.deployment.aiAgentData;
+      const restoreData = result.deployment.aiAgentData;
       await importSmythFile(workspace, restoreData, true);
     } catch (error) {
       console.error('Failed to restore version:', error);

@@ -1,7 +1,7 @@
 import { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 
 export const baseStyle = {
-  background: '#f1f3f4',
+  background: '#ffffff',
   color: '#696969',
 };
 export function UnitSelector({
@@ -22,8 +22,11 @@ export function UnitSelector({
         {...htmlSelectRestProps}
         value={unit}
         onChange={(e) => handleUnitChange(e.target.value)}
-        style={baseStyle}
-        className="appearance-none block border-none rounded pr-8 leading-tight focus:outline-none focus:bg-gray focus:border-gray-500 text-sm"
+        className="py-2 px-3 border text-gray-900 rounded block w-full outline-none
+          focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+          text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+          border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500
+          appearance-none pr-8"
       >
         {unitOptions.map((option) => (
           <option key={option.value} value={option.value}>
@@ -31,20 +34,6 @@ export function UnitSelector({
           </option>
         ))}
       </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 7 4"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3.48846 3.99268L0.467366 0.468627L6.50956 0.468628L3.48846 3.99268Z"
-            fill="#696969"
-          />
-        </svg>
-      </div>
     </div>
   );
 }
@@ -73,8 +62,11 @@ export function UnitNumberInput({
           Number.isNaN(parseInt(e.target.value)) ? min : Math.min(max, parseInt(e.target.value)),
         )
       }
-      style={baseStyle}
-      className="input-no-spinners appearance-none block w-16 border-none rounded leading-tight focus:outline-none focus:bg-gray text-sm"
+      className="py-2 px-3 border text-gray-900 rounded block w-16 outline-none
+        focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
+        text-sm font-normal placeholder:text-sm placeholder:font-normal box-border mb-[1px] focus:mb-0
+        border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500
+        input-no-spinners appearance-none"
     />
   );
 }
@@ -102,6 +94,7 @@ export function DaySelector({
             justifyContent: 'center',
             borderRadius: '50%',
             cursor: 'pointer',
+            border: selectedDaysIndices.includes(index) ? '1px solid #1A73E8' : '1px solid #E0E0E0',
             backgroundColor: selectedDaysIndices.includes(index) ? '#1A73E8' : baseStyle.background,
             color: selectedDaysIndices.includes(index) ? '#FFFFFF' : baseStyle.color,
           }}

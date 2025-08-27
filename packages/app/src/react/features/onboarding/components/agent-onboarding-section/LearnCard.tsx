@@ -3,10 +3,10 @@ import { LearnCardProps } from '@src/react/shared/types/onboard.types';
 import { FC } from 'react';
 import { FaArrowRight } from 'react-icons/fa6';
 
-export const LearnCard: FC<LearnCardProps> = ({ image, title, description, link }) => {
+export const LearnCard: FC<LearnCardProps> = ({ image, title, description, link, external }) => {
   return (
-    <div className="border border-solid border-gray-300 rounded-lg p-3 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.33%-11px)] h-[162px] max-md:w-full relative">
-      <div className="flex h-full gap-5">
+    <div className="border border-solid border-gray-300 rounded-lg p-3 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.33%-11px)] md:h-[162px] max-md:w-full relative">
+      <div className="flex flex-col md:flex-row h-full gap-5">
         {/* Left section - Image */}
         <div className="flex items-center">
           <img src={image} alt={title} className="w-18 h-18" />
@@ -23,7 +23,8 @@ export const LearnCard: FC<LearnCardProps> = ({ image, title, description, link 
             Icon={<FaArrowRight className="inline-block ml-1" />}
             linkTo={link}
             iconPosition="right"
-            className="self-end w-max mt-auto"
+            className="self-end w-max mt-2 md:mt-auto"
+            external={external}
           />
         </div>
       </div>

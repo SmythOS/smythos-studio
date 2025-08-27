@@ -5,9 +5,15 @@ import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import ChatbotCodeSnippetModal from '../agent-settings/modals/chatbotCode.modal';
 
-import { AlexaIcon, ChatGptIcon, MCPIcon } from '../../shared/components/svgs';
+import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
 
-export const AlwaysAvailableEmbodiments = ['API', EMBODIMENT_TYPE.MCP, EMBODIMENT_TYPE.ALEXA];
+export const AlwaysAvailableEmbodiments = [
+  'API',
+  EMBODIMENT_TYPE.MCP,
+  EMBODIMENT_TYPE.ALEXA,
+  // TODO: Uncomment this when Ingrid provides the updated prompt for integration
+  // EMBODIMENT_TYPE.LOVABLE,
+];
 
 export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Element => {
   switch (embodimentType.toLowerCase()) {
@@ -24,9 +30,11 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
     case EMBODIMENT_TYPE.FORM:
       return <FaIdCard className={classes} />;
     case EMBODIMENT_TYPE.LLM:
-      return <FaRobot className={classes} />;
+      return <FaRobot className={classes} style={{ marginTop: '-3px' }} />;
     case EMBODIMENT_TYPE.ALEXA:
       return <AlexaIcon className={classes} />;
+    case EMBODIMENT_TYPE.LOVABLE:
+      return <LovableIcon className={classes} />;
     default:
       return <></>;
   }
@@ -57,6 +65,8 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
       return 'Enable Alexa to communicate with your agent.';
     case EMBODIMENT_TYPE.LLM:
       return 'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.';
+    case EMBODIMENT_TYPE.LOVABLE:
+      return 'Get step-by-step instructions to connect this agent or workflow to Lovable.';
     default:
       return '';
   }
@@ -76,6 +86,8 @@ export const getEmbodimentDataAttribute = (embodimentType: string): string => {
       return 'alexa-embodiment-card';
     case EMBODIMENT_TYPE.LLM:
       return 'agentllm-embodiment-card';
+    case EMBODIMENT_TYPE.LOVABLE:
+      return 'lovable-embodiment-card';
     default:
       return '';
   }
