@@ -205,7 +205,7 @@ const FormPreviewDialog = ({
                                 >
                                   Allowed Domains{' '}
                                   <Tooltip
-                                    className="w-52 text-center"
+                                    className="w-60 text-center"
                                     content={
                                       <div>
                                         Restrict form preview to specific domains.
