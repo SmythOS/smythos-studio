@@ -927,13 +927,28 @@ function getFormattedContent(content, compName?) {
     previewBtn = `<div class="text-center"><a href="#" class="w-[100px] px-3 py-1 text-xs font-medium text-center text-white bg-blue-700 rounded-md hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 btn-file-preview" data-is-image-generator="${isImageGenerator}">${'Preview'}</a></div>`;
   }
 
+  // SECURITY FIX: Escape HTML content to prevent XSS attacks
+  // This ensures that HTML tags are displayed as plain text, never rendered
+  const escapeHtml = (text: string): string => {
+    if (typeof text !== 'string') return text;
+
+    // Replace HTML special characters with their entity equivalents
+    return text
+      .replace(/&/g, '&amp;') // Must be first to avoid double-encoding
+      .replace(/</g, '&lt;') // Escape less-than signs
+      .replace(/>/g, '&gt;') // Escape greater-than signs
+      .replace(/"/g, '&quot;') // Escape double quotes
+      .replace(/'/g, '&#39;'); // Escape single quotes
+  };
+
   //convert escaped newlines to real newlines
   let rawContent = typeof content != 'string' ? JSON.stringify(content, null, 2) : content;
   rawContent = rawContent.replace(/\\n/g, '\n');
 
-  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${
-    rawContent === '' ? '[empty string]' : rawContent
-  }</textarea>${previewBtn}`;
+  // SECURITY: Escape the content before displaying it to prevent XSS
+  const escapedContent = escapeHtml(rawContent === '' ? '[empty string]' : rawContent);
+
+  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${escapedContent}</textarea>${previewBtn}`;
 
   return content;
 }
@@ -2540,15 +2555,14 @@ export function createDebugInjectDialog(
 
   /**
    * Handles the first-time debug session logic for showing the inspector bar
-  * Scope: global per user. If dismissed once for any agent (in any team),
-  * it won't auto-pop for other agents or teams for that user.
+   * Scope: global per user. If dismissed once for any agent (in any team),
+   * it won't auto-pop for other agents or teams for that user.
    */
   function handleFirstDebugSession() {
     const userEmail = workspace?.userData?.email;
     // Global per user (across teams and agents)
     if (userEmail) {
       const debugSessionKey = `first-debug-session-${userEmail}`;
-
 
       const isFirstDebugSession = localStorage.getItem(debugSessionKey) === null;
 
