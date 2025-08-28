@@ -114,7 +114,12 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
   const closeBtn: HTMLButtonElement = rightSidebar.querySelector('.close-btn');
   const saveBtn: HTMLButtonElement = rightSidebar.querySelector('.action-save');
 
-  if (title) sidebarTitle.innerHTML = title;
+  if (title) sidebarTitle.innerText = title;
+  // Ensure title container doesn't affect vertical alignment of adjacent actions
+  (sidebarTitle as HTMLElement).style.display = 'inline-flex';
+  (sidebarTitle as HTMLElement).style.alignItems = 'center';
+  (sidebarTitle as HTMLElement).style.minWidth = '0px';
+  (sidebarTitle as HTMLElement).style.maxWidth = '100%';
   if (content) sidebarContent.innerHTML = content;
   if (closeBtn) {
     closeBtn.onclick = async () => {
@@ -1108,7 +1113,11 @@ export function sidebarEditValues({
     $(container).css('opacity', 0);
 
     // Set content immediately without delay
-    sidebar.querySelector('.title').innerHTML = title || '';
+    const sidebarTitleEl = sidebar.querySelector('.title') as HTMLElement;
+    sidebarTitleEl.innerHTML = title || '';
+    // Ensure tooltip inside title is not clipped by container overflow from truncate
+    sidebarTitleEl.classList.remove('truncate');
+    sidebarTitleEl.style.overflow = 'visible';
     const sidebarContent = sidebar.querySelector('.content');
     const sidebarActions = sidebar.querySelector('.actions .action-content');
     sidebarContent.innerHTML = '';
