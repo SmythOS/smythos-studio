@@ -20,6 +20,14 @@ export function isInteractionContextOK(): boolean {
   return !!active.closest('[data-context-menu="true"]');
 }
 
+export function isOverDebugOutput(): boolean {
+  const active = document.activeElement as HTMLElement | null;
+  if (!active) return true; // safety
+  if (active === document.body) return true; // same as before
+  // check if focus is inside our debug output consider
+  return !!active.closest('.dbg-element .dbg-textarea');
+}
+
 export function hasSelectedText(): boolean {
   const text = window.getSelection()?.toString();
   return !!text;
@@ -50,6 +58,8 @@ export function hasComponentSelection(): boolean {
 
 export function canCopy(workspace: Workspace): boolean {
   if (workspace.locked) return false;
+  // If text is selected in the debug output, allow copying
+  if (isOverDebugOutput() && hasSelectedText()) return true;
 
   if (!isInteractionContextOK()) return false;
   if (isEditableHover(workspace)) return false;
@@ -59,6 +69,19 @@ export function canCopy(workspace: Workspace): boolean {
 }
 
 export function copySelection(workspace: Workspace): void {
+  // If text is selected in the debug output, copy it to the clipboard
+  if (isOverDebugOutput() && hasSelectedText()) {
+    // Copy selected text to clipboard
+    const selectedText = window.getSelection()?.toString();
+    if (selectedText) {
+      navigator.clipboard.writeText(selectedText).catch((err) => {
+        console.error('Failed to copy text to clipboard:', err);
+      });
+    }
+    return;
+  }
+
+  // Fall back to component copying
   const data = workspace.clipboard.copySelection();
   if (data) workspace.clipboard.write(data);
 }
