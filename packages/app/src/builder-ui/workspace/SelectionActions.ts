@@ -115,8 +115,8 @@ export async function deleteSelectionWithConfirm(workspace: Workspace): Promise<
       {
         btnYesLabel: 'Delete',
         btnNoLabel: 'Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
         btnNoClass: 'hidden',
+        btnYesType: 'danger',
       },
     );
     if (!shouldDelete) return false;

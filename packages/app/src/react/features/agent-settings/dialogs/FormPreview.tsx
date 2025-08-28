@@ -138,7 +138,7 @@ const FormPreviewDialog = ({
               leaveTo="opacity-0 scale-95"
             >
               <div className="w-[80vw] max-w-[1000px]">
-                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>Form Preview Configuration</span>
                     <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
@@ -287,7 +287,7 @@ const FormPreviewDialog = ({
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                              className="px-8 h-[48px] rounded-lg"
+                              className="px-8 rounded-lg"
                             />
                           </div>
                         </Form>

@@ -357,10 +357,9 @@ export async function closeSettings(component: Component, force = false) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
     if (!discard) return;
@@ -437,10 +436,9 @@ export async function editSettings(component: Component) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
 

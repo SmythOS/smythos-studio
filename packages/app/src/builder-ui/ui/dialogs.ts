@@ -1364,6 +1364,7 @@ export function confirm(
     btnYesLabel = 'Ok',
     btnNoLabel = 'Cancel',
     btnYesClass = '',
+    btnYesType = '',
     btnNoClass = '',
     btnYesCallback = (btnYes) => {},
   } = {},
@@ -1388,6 +1389,15 @@ export function confirm(
     if (btnYesLabel) {
       btnYes.innerHTML = btnYesLabel;
       btnYes.className += ` ${btnYesClass}`;
+
+      if (btnYesType === 'danger') {
+        btnYes.className += ` bg-smyth-red-500 border-smyth-red-500 rounded-lg px-8 hover:bg-red-600`;
+        btnYes.classList.remove(
+          'bg-smythos-blue-500',
+          'border-smythos-blue-500',
+          'hover:bg-smythos-blue-600',
+        );
+      }
     }
     if (btnNoLabel && btnNoLabel !== null) {
       btnNo.innerHTML = btnNoLabel;

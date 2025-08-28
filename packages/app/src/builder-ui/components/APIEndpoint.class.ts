@@ -193,7 +193,7 @@ export class APIEndpoint extends Component {
                 btnNoLabel: 'Cancel',
                 btnYesLabel: 'Enable',
                 btnNoClass: 'hidden',
-                btnYesClass: 'h-[48px] rounded-lg px-8',
+                btnYesClass: 'rounded-lg px-8',
               },
             );
             if (saveBeforeClose) {
