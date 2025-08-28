@@ -1,0 +1,21 @@
+{
+    "summary": "{{summary}}",
+    "operationId": "{{operationId}}",
+    "x-openai-isConsequential": false,
+    "requestBody": {
+        "required": true,
+        "content": {}
+    },
+    "responses": {
+        "200": {
+            "description": "response",
+            "content": {
+                "text/plain": {
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

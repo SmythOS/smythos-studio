@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "preserveSymlinks": true,
+    "baseUrl": "./src",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    //"noImplicitAny": false,
+    //"ignoreDeprecations": "5.0",
+    //"suppressImplicitAnyIndexErrors": true,
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@/*": ["*"],
+      "@core/*": ["core/*"],
+      "@debugger/*": ["modules/debugger/*"],
+      "@agent-runner/*": ["modules/agent-runner/*"],
+      "@embodiment/*": ["modules/embodiment/*"],
+      "@static/*": ["../static/*"],
+      // added this for pkce-challenge to resolve since we experienced issues with bundling it in commonjs env.
+      // should be revised if we went with esm
+      "pkce-challenge": ["../node_modules/pkce-challenge/dist/index.node.cjs"]
+    }
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
+}

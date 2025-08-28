@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Chatbot</title>
+        <style>
+            .human-chatbox-bubble {
+                background: none !important;
+                background-color: #eb0a1e !important;
+                color: #fff !important;
+            }
+            .bot-chatbox-bubble {
+                background-color: #f0f0f0 !important;
+                color: #eb0a1e;
+            }
+        </style>
+    </head>
+
+    <body>
+        <script src="chatbot-v2.js"></script>
+        <script>
+            ChatBot.init({
+                // logo: 'https://brand.toyota.com/etc.clientlibs/brandhub/clientlibs/clientlib-site/resources/images/icon.png',
+                // humanBubbleClass: 'human-chatbox-bubble',
+                // botBubbleClass: 'bot-chatbox-bubble',
+                name: '',
+                introMessage: 'Happy to see you, how can I be of assistance today?',
+                // domain: '',
+                colors: {
+                    botBubbleColors: {
+                        textColor: '#4A4A4A',
+                        backgroundColorStart: '#a8a8ff',
+                        backgroundColorEnd: '#E6E6FA',
+                    },
+                    humanBubbleColors: {
+                        textColor: '#FAFAFA',
+                        backgroundColorStart: '#0078D7',
+                        backgroundColorEnd: '#46acff',
+                    },
+                    chatWindowColors: {
+                        backgroundColor: '#FFFFFF',
+                        headerBackgroundColor: '#F3F3F3',
+                        footerBackgroundColor: '#F3F3F3',
+                    },
+                    chatTogglerColors: {
+                        backgroundColor: '#0078D7',
+                        textColor: '#FFFFFF',
+                    },
+                    sendButtonColors: {
+                        backgroundColor: '#32CD32',
+                        textColor: '#FFFFFF',
+                    },
+                },
+            });
+        </script>
+    </body>
+</html>

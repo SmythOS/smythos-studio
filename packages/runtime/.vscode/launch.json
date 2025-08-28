@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Runtime Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/dist/runtime-server.dev.cjs",
+      "preLaunchTask": "npm: build:dev",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch Runtime Server (No Build)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/dist/runtime-server.dev.cjs",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    }
+  ]
+}
