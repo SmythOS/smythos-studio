@@ -48,10 +48,6 @@ async function onComponentLoad(sidebar) {
   // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
 
   component.emit('settingsOpened', sidebar, this);
-  if (this.loadingIcon) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    this.loadingIcon?.classList?.add('hidden');
-  }
 }
 
 function onTemplateCreateLoad(sidebar) {
@@ -361,10 +357,9 @@ export async function closeSettings(component: Component, force = false) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
     if (!discard) return;
@@ -441,10 +436,9 @@ export async function editSettings(component: Component) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
 
@@ -1186,11 +1180,20 @@ function generateSidebarTitleHTML(component: Component): string {
 
   // Combine the generated icon HTML (if any) and the title text into the final sidebar title structure
   const sidebarTitleHTML = `
-    <div class="flex items-center gap-2">
-      ${iconHTML}
-      <span class="truncate">${templateName}</span>
+    <div class="inline-flex items-center gap-2 max-w-full min-w-0">
+      <span class="shrink-0 inline-flex items-center">${iconHTML}</span>
+      <span class="relative min-w-0 max-w-full flex-1">
+        <span class="truncate block min-w-0 max-w-full leading-tight">${templateName}</span>
+        <div
+          role="tooltip"
+          class="absolute left-0 top-full mt-1 z-50 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible tooltip whitespace-normal break-words text-left max-w-full pointer-events-none"
+        >
+          ${templateName}
+        </div>
+      </span>
     </div>
   `;
 
   return sidebarTitleHTML;
 }
+

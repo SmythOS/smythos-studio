@@ -28,14 +28,14 @@ export function AgentDeleteConfirmationModal({
       isOpen={isOpen}
       onClose={handleClose}
       applyMaxWidth={false}
-      panelWidthClasses="max-w-[540px] w-[calc(100vw_-_-20px)]"
+      panelWidthClasses="max-w-[600px] w-[calc(100vw_-_-20px)]"
       title="Are you sure you want to delete this agent?"
     >
       <div className="mt-6 space-y-6">
-        <div className="px-2 pt-4">
+        <div className="pt-4">
           <div className="flex justify-end items-center flex-row gap-2">
             <CustomButton
-              className="ml-auto h-[48px] rounded-lg"
+              className="ml-auto rounded-lg"
               handleClick={onConfirm}
               label={isDeleting ? 'Deleting...' : 'Delete'}
               addIcon
