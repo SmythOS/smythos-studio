@@ -68,7 +68,7 @@ const Modal = ({
               <div className={panelWrapperClasses}>
                 <Dialog.Panel
                   className={classNames(
-                    'transform rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all',
+                    'transform rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all',
                     !panelWidthClasses ? (applyMaxWidth ? 'max-w-md' : 'max-w-full') : '',
                     panelClasses,
                     panelWidthClasses ? panelWidthClasses : 'w-full',
