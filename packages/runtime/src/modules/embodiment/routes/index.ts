@@ -1,3 +1,7 @@
+import { Router } from "express";
+
+import swaggerUi from "swagger-ui-express";
+
 import config from "@core/config";
 import { agentChatRouter } from "@embodiment/modules/agentChat/routes/router";
 import { alexaRouter } from "@embodiment/modules/alexa/routes/router";
@@ -9,7 +13,6 @@ import { mcpRouter } from "@embodiment/modules/mcp/routes/router";
 import { openaiRouter } from "@embodiment/modules/openai/routes";
 import { postmanRouter } from "@embodiment/modules/postman/routes/router";
 import { swaggerRouter } from "@embodiment/modules/swagger/routes/router";
-import { Router } from "express";
 
 const mainRouter = Router();
 
@@ -30,11 +33,16 @@ const defaultRoutes: Route[] = [
     route: postmanRouter,
   },
 
+  // #region Swagger, we need both
   {
-    // match /swagger and /swagger/
+    rootPath: ["/swagger", "/emb/swagger"],
+    route: swaggerUi.serve,
+  },
+  {
     rootPath: ["/swagger", "/emb/swagger"],
     route: swaggerRouter,
   },
+  // #endregion
 
   {
     rootPath: ["/", "/emb/api"],
@@ -45,7 +53,7 @@ const defaultRoutes: Route[] = [
     route: chatGPTRouter,
   },
   {
-    rootPath: ["/chatbot", "/emb/chatbot"],
+    rootPath: ["/chatbot", "chatBot", "/emb/chatbot"],
     route: chatBotRouter,
   },
   {

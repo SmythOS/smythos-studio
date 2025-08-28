@@ -8,7 +8,7 @@ const corsOptions: cors.CorsOptions = {
       : true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Conversation-Id", "X-Auth-Token", "X-Parent-Cookie", "X-Monitor-Id"],
 };
 
 export default cors(corsOptions);

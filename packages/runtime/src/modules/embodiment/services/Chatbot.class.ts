@@ -86,34 +86,16 @@ export default class Chatbot {
       ) ||
       this.model;
 
-    // ! DEPRECATED: LLMRegistry and CustomLLMRegistry is not available anymore, if we need to set the maxOutputTokens then we need to find out a different way to do it
-    // const isStandardLLM = LLMRegistry.isStandardLLM(this.model);
-    // const team = AccessCandidate.team(this.teamId);
-    // let llmRegistry = isStandardLLM ? LLMRegistry : await CustomLLMRegistry.getInstance(team);
+    // Initialize basic modelInfo since LLMRegistry is deprecated
+    // SRE will handle the actual token limits and model validation
+    this.modelInfo = {
+      modelId: this.model,
+      tokens: this.contextWindow,
+      completionTokens: this.maxOutputTokens
+    };
 
-    // if (typeof llmRegistry?.getModelInfo !== 'function') {
-    //     const error = new Error(`The chatbot model '${this.model}' is not supported.`);
-    //     error['errKey'] = 'MODEL_NOT_SUPPORTED';
-    //     throw error;
-    // }
-
-    // this.modelInfo = await llmRegistry.getModelInfo(this.model);
-
-    // if (this.modelInfo.tokens == this.modelInfo.completionTokens) {
-    //     this.contextWindow = Math.round(this.modelInfo.tokens * 0.5);
-    //     this.maxOutputTokens = Math.round(this.modelInfo.tokens * 0.5);
-    // } else if (this.modelInfo.tokens > this.modelInfo.completionTokens) {
-    //     this.contextWindow = this.modelInfo.tokens - this.modelInfo.completionTokens;
-    //     this.maxOutputTokens = this.modelInfo.completionTokens;
-    // } else {
-    //     this.contextWindow = this.modelInfo.tokens;
-    //     this.maxOutputTokens = this.modelInfo.completionTokens;
-    // }
-
-    // this.maxOutputTokens = Math.min(this.maxOutputTokens, 8192); //limit the max output tokens to 8192
-
-    //tokens limits are now handled by SRE
-    this.model = this.modelInfo.modelId;
+    // Keep original model ID
+    // this.model stays as is since SRE handles model resolution
 
     console.log("modelInfo", this.model, this.modelInfo);
   }

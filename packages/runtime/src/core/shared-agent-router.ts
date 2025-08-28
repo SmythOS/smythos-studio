@@ -64,7 +64,7 @@ export function createAgentRouter(config: AgentRouterConfig): express.Router {
  * Factory function to create debugger-specific router
  */
 export function createDebuggerRouter(
-  agentLoader: express.RequestHandler,
+  middlewares: express.RequestHandler[],
   processAgentRequest: (agentId: string, req: express.Request) => Promise<any>,
   additionalServices?: {
     getDebugSession: (id: string) => any;
@@ -73,10 +73,12 @@ export function createDebuggerRouter(
 ): express.Router {
   return createAgentRouter({
     mode: "debugger",
-    middlewares: [agentLoader],
+    middlewares,
     processAgentRequest,
     loggerPrefix: "[Debugger] Router: Agent",
     additionalRoutes: (router) => {
+      // Additional routes are now mounted directly in router-config.ts
+
       if (additionalServices) {
         // Debug session route
         router.get("/agent/:id/debugSession", (req, res) => {
@@ -117,5 +119,8 @@ export function createAgentRunnerRouter(
     middlewares,
     processAgentRequest,
     loggerPrefix: "(Agent Runner) Router: Agent",
+    additionalRoutes: (router) => {
+      // Additional routes are now mounted directly in router-config.ts
+    },
   });
 }

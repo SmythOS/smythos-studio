@@ -23,6 +23,12 @@ import agentRunnerAgentLoader from "@agent-runner/middlewares/agentLoader.mw";
 import { processAgentRequest as agentRunnerProcessAgentRequest } from "@agent-runner/services/agent-request-handler";
 import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 
+// Route imports for service-specific endpoints
+import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
+
+// Common route imports - available for all server configurations
+import modelsRouter from "@debugger/routes/models/router";
+
 /**
  * Configures and mounts agent routers based on runtime configuration
  * Designed for future server extraction without code changes
@@ -53,6 +59,10 @@ export function configureAgentRouters(
     embodiment: config.services.embodiment.enabled,
     routing: config.routing.strategy,
   });
+
+  // Mount common routes that should be available in all server configurations
+  console.log("Mounting /models route (available for all server types)");
+  app.use("/models", modelsRouter);
 
   // Configure based on routing strategy and enabled services
   const debuggerEnabled = config.services.debugger.enabled;
@@ -99,7 +109,7 @@ export function configureAgentRouters(
     if (debuggerEnabled) {
       console.log("Mounting debugger router");
       const debuggerRouter = createDebuggerRouter(
-        debuggerAgentLoader,
+        [uploadHandler, debuggerAgentLoader],
         debuggerProcessAgentRequest,
         {
           getDebugSession: debuggerGetDebugSession,
@@ -116,6 +126,10 @@ export function configureAgentRouters(
         agentRunnerProcessAgentRequest
       );
       app.use("/", agentRunnerRouter);
+
+      // Mount agent-runner-specific routes
+      console.log("Mounting /oauth route for agent-runner");
+      app.use("/oauth", agentRunnerOauthRouter);
     }
 
     // Note: Embodiment router will be mounted here when embodimentEnabled is true

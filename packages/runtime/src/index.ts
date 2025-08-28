@@ -8,10 +8,11 @@ import {
 } from "@smythos/sre";
 import compression from "compression";
 import cookieParser from "cookie-parser";
+import crypto from "crypto";
 import express from "express";
+import session from "express-session";
 import { Server } from "http";
 import path from "path";
-import swaggerUi from "swagger-ui-express";
 import url from "url";
 
 // Core imports
@@ -28,11 +29,7 @@ import { SmythOSSAgentDataConnector } from "@core/connectors/SmythOSSAgentDataCo
 import { SmythOSSManagedVault } from "@core/connectors/SmythOSSManagedVault.class";
 import { SmythOSSVault } from "@core/connectors/SmythOSSVault.class";
 
-// Debugger Imports
-import modelsRouter from "@debugger/routes/models/router";
-
-// Agent-runner imports
-import oauthRouter from "@agent-runner/routes/_oauth/router";
+// Routes are handled by configureAgentRouters
 
 // Shared router configuration
 import {
@@ -329,6 +326,12 @@ const __dirname = path.dirname(__filename);
 
 const console = Logger("runtime-server");
 
+// Helper function for session ID generation
+function getCurrentFormattedDate() {
+  const now = new Date();
+  return now.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
@@ -350,6 +353,33 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
+
+// Session middleware for chatbot functionality
+app.use(
+  session({
+    name: "smythos_runtime_session",
+    secret: process.env.SESSION_SECRET || "default-session-secret-for-dev",
+    cookie: {
+      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+      sameSite: config.env.NODE_ENV === "development" ? "lax" : "none",
+      secure: config.env.NODE_ENV !== "development",
+    },
+    resave: false,
+    saveUninitialized: true,
+    genid: (req) => {
+      if (req.sessionID && req.session) {
+        return req.sessionID;
+      }
+      const domain = req.hostname;
+      const isTestDomain = domain.includes(`.${config.env.AGENT_DOMAIN}`);
+      const prefix = isTestDomain ? "test-" : "";
+      const formattedDate = getCurrentFormattedDate();
+      const randomString = crypto.randomBytes(8).toString("hex");
+      return `${prefix}${formattedDate}-${randomString}`;
+    },
+  })
+);
+
 app.use(uploadHandler);
 app.use(RateLimiter);
 app.use(express.json({ limit: "10mb" }));
@@ -381,10 +411,6 @@ app.get("/", (req: any, res) => {
 configureAgentRouters(app, createCombinedServerConfig());
 
 app.use("/", embodimentRoutes);
-
-app.use("/models", modelsRouter);
-app.use("/oauth", oauthRouter);
-app.use("/swagger", swaggerUi.serve);
 
 // 404 handler - must come before error handler
 app.use(notFoundHandler);

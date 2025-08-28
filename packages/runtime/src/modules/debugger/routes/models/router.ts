@@ -7,7 +7,7 @@ import {
 } from "@smythos/sre";
 import { createHash } from "crypto";
 
-const console = Logger("[Debugger] Router: Models");
+const console = Logger("[Builder] Router: Models");
 const router = express.Router();
 
 // Constants
