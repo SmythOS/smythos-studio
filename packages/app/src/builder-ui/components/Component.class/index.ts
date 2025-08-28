@@ -2422,8 +2422,6 @@ export class Component extends EventEmitter {
         }
       }
 
-      if (!this.settingsOpen && this.loadingIcon) this.loadingIcon?.classList?.remove('hidden');
-
       if (this.settingsOpen) {
         this.closeSettings();
       } else {
