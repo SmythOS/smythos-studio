@@ -230,18 +230,25 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
     setShowVaultKeys(null);
   };
 
-  const handleAddKeyClick = () => {
+  const handleAddKeyClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     setShowAddKeyModal(true);
     setNewKey({ name: '', key: '' });
     setKeyErrors({});
     setShowVaultKeys(null);
 
+    // Focus on the first input field instead of scrolling the modal into view
     const timeout = setTimeout(() => {
-      if (addKeyModalRef.current)
-        addKeyModalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+      if (addKeyModalRef.current) {
+        const firstInput = addKeyModalRef.current.querySelector('input') as HTMLInputElement;
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
       clearTimeout(timeout);
-    }, 0);
+    }, 100);
   };
 
   const validateNewKey = (): boolean => {
