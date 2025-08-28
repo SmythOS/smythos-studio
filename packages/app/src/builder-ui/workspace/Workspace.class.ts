@@ -1083,7 +1083,9 @@ export class Workspace extends EventEmitter {
   public async preloadComponentsTemplates() {
     let url = '/api/page/builder/app-config/components';
 
-    const result = await fetch(url).then((res) => res.json());
+    const result = await fetch(url)
+      .then((res) => res.json())
+      .catch((e) => []);
 
     const components = result?.components || [];
 

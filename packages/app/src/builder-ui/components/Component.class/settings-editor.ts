@@ -1008,7 +1008,9 @@ let collectionsCache;
 async function getComponentsCollections() {
   if (collectionsCache) return collectionsCache;
   console.log('getComponentsCollections');
-  const result = await fetch('/api/page/builder/app-config/collections').then((res) => res.json());
+  const result = await fetch('/api/page/builder/app-config/collections')
+    .then((res) => res.json())
+    .catch((err) => []); // for backward compatibility with CE
   if (result.error) {
     errorToast('Error fetching collections');
     return [];
@@ -1196,4 +1198,3 @@ function generateSidebarTitleHTML(component: Component): string {
 
   return sidebarTitleHTML;
 }
-
