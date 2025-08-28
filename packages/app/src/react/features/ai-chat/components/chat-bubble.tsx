@@ -1,4 +1,4 @@
-/* eslint-disable max-len, no-unused-vars, @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 import { Tooltip } from 'flowbite-react';
 import { FC, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
@@ -223,6 +223,11 @@ const ErrorMessageBubble: FC<{
   onRetryClick: () => void;
   isRetrying?: boolean;
 }> = ({ message, onRetryClick, isRetrying }) => {
+  // Check if this is a 401 API key error
+  const isApiKeyError =
+    message.includes('Incorrect API key provided') ||
+    (message.includes('401') && message.toLowerCase().includes('api key'));
+
   return (
     <div className="flex flex-col items-start">
       <div className="rounded-lg bg-pink-50 border border-pink-200 p-4 max-w-screen-md flex justify-between items-center gap-5">
@@ -247,6 +252,22 @@ const ErrorMessageBubble: FC<{
           </div>
 
           <div className="flex-1 text-red-700 text-sm leading-relaxed">
+            {isApiKeyError && (
+              <>
+                <h6 className="font-bold">Invalid API Key</h6>
+                <p>
+                  The API key you provided is not valid. Please set a valid key to continue:&nbsp;
+                  <a
+                    href="/vault"
+                    target="_blank"
+                    className="text-red-700 hover:text-red-900 font-semibold"
+                  >
+                    Set API Key
+                  </a>
+                </p>
+                <h6 className="font-semibold pt-1">Error details:</h6>
+              </>
+            )}
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
           </div>
         </div>
