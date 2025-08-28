@@ -126,7 +126,7 @@ export class APICall extends Component {
         section: 'OAuth',
         sectionHelp:
           'SmythOS supports OAuth 2.0 with OpenID Connect (OIDC) for secure user authentication and authorization.',
-        sectionTooltipClasses: 'w-64 ml-12',
+        sectionTooltipClasses: 'w-64',
         sectionArrowClasses: '-ml-11',
         options: [
           'None',
