@@ -1,17 +1,16 @@
-import config from "../config";
+import { ConnectorService } from "@smythos/sre";
+
+import { DEFAULT_FILE_PARSING_ENDPOINT } from "@agent-runner/constants";
+import config from "@core/config";
+
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
-} from "../services/agent-helper";
+} from "@core/helpers/agent.helper";
+import { Logger } from "@smythos/sre";
 
-import { ConnectorService } from "@smythos/sre";
-import { DEFAULT_FILE_PARSING_ENDPOINT } from "../constants";
-import { createLogger } from "../services/logger";
-
-import { refreshBillingCache } from "../services/billing-service";
-
-const console = createLogger("___FILENAME___");
+const console = Logger("(Agent Runner) Middleware: Agent Loader");
 
 export default async function agentLoader(req, res, next) {
   console.log("agentLoader", req.path);
@@ -115,15 +114,6 @@ export default async function agentLoader(req, res, next) {
 
     req._agent.usingTestDomain = isTestDomain;
     req._agent.domain = agentDomain || (await getAgentDomainById(agentId));
-    //req._agent.version = version;
-    //req._data1 = 1;
-
-    // Pre-fetch billing data to ensure cached data is readily available for usage limit validation
-    // To avoid an additional network call in this middleware, we pass teamId to refreshBillingCache
-    // The parentTeamId is then derived from the teamId within refreshBillingCache.
-    const parentTeamId = agentData.data?.parentTeamId;
-    const teamId = agentData.data?.teamId;
-    refreshBillingCache(parentTeamId, teamId);
 
     console.log(
       `Loaded Agent:${agentId} v=${version} path=${path} isTestDomain=${isTestDomain} domain=${agentDomain}`

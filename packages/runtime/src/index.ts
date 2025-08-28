@@ -29,12 +29,16 @@ import { SmythOSSManagedVault } from "@core/connectors/SmythOSSManagedVault.clas
 import { SmythOSSVault } from "@core/connectors/SmythOSSVault.class";
 
 // Debugger Imports
-import agentRouter from "@debugger/routes/agent/routes";
 import modelsRouter from "@debugger/routes/models/router";
 
 // Agent-runner imports
-// import agentRouter from "@agent-runner/routes/agent/router";
-// import oauthRouter from "@agent-runner/routes/_oauth/router";
+import oauthRouter from "@agent-runner/routes/_oauth/router";
+
+// Shared router configuration
+import {
+  configureAgentRouters,
+  createCombinedServerConfig,
+} from "@core/router-config";
 
 // Embodiment imports
 import { routes as embodimentRoutes } from "@embodiment/routes";
@@ -373,11 +377,14 @@ app.get("/", (req: any, res) => {
   res.send(`SmythOS Runtime Server`);
 });
 
-app.use("/", agentRouter);
-app.use("/models", modelsRouter);
-// app.use("/oauth", oauthRouter);
-app.use("/swagger", swaggerUi.serve);
+// Configure agent routers using shared implementation
+configureAgentRouters(app, createCombinedServerConfig());
+
 app.use("/", embodimentRoutes);
+
+app.use("/models", modelsRouter);
+app.use("/oauth", oauthRouter);
+app.use("/swagger", swaggerUi.serve);
 
 // 404 handler - must come before error handler
 app.use(notFoundHandler);

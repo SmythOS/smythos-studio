@@ -22,6 +22,7 @@
     "@types/express-http-proxy": "^1.6.6",
     "@types/node": "^22.9.0",
     "@types/swagger-ui-express": "^4.1.7",
+    "@types/uuid": "^9.0.8",
     "cross-env": "^7.0.3",
     "pkg": "^5.8.1",
     "rollup": "^2.79.2",
@@ -31,6 +32,8 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript-paths": "^1.5.0",
     "rollup-plugin-typescript2": "^0.36.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
     "vite-tsconfig-paths": "^5.1.2",
     "vitest": "^2.1.4"
   },
@@ -55,9 +58,11 @@
     "openai": "^4.72.0",
     "openapi-to-postmanv2": "^4.24.0",
     "pkce-challenge": "^5.0.0",
+    "qs": "^6.14.0",
     "rate-limiter-flexible": "^5.0.4",
     "swagger-ui-dist": "^5.18.2",
     "swagger-ui-express": "^5.0.0",
+    "uuid": "^9.0.1",
     "winston": "^3.17.0"
   }
 }

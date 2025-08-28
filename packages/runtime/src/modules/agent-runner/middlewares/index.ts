@@ -1,11 +1,13 @@
 import { NextFunction, Response } from "express";
-import BearerMWFactory from "./bearer";
-import OIDCMWFactory from "./oidc";
 
-import { getAgentAuthData } from "../../../core/helpers/agent.helper";
-import { createLogger } from "../../../core/services/logger";
+import { Logger } from "@smythos/sre";
 
-const console = createLogger("___FILENAME___");
+import { getAgentAuthData } from "@core/helpers/agent.helper";
+
+import BearerMWFactory from "./agent-oauth.mw/bearer";
+import OIDCMWFactory from "./agent-oauth.mw/oidc";
+
+const console = Logger("(Agent Runner) Middleware: Index");
 
 //this maps to agent.auth.provider entry, the selected provider is stored in agent.auth.method
 const providers = {
