@@ -239,16 +239,17 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
     setKeyErrors({});
     setShowVaultKeys(null);
 
-    // Focus on the first input field instead of scrolling the modal into view
     const timeout = setTimeout(() => {
       if (addKeyModalRef.current) {
-        const firstInput = addKeyModalRef.current.querySelector('input') as HTMLInputElement;
-        if (firstInput) {
-          firstInput.focus();
-        }
+        // Use scrollIntoView with more controlled options to prevent jumping to top
+        addKeyModalRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest', // Changed from 'center' to 'nearest'
+          inline: 'nearest', // Added inline positioning
+        });
       }
       clearTimeout(timeout);
-    }, 100);
+    }, 0);
   };
 
   const validateNewKey = (): boolean => {
