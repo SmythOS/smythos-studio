@@ -48,10 +48,6 @@ async function onComponentLoad(sidebar) {
   // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
 
   component.emit('settingsOpened', sidebar, this);
-  if (this.loadingIcon) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    this.loadingIcon?.classList?.add('hidden');
-  }
 }
 
 function onTemplateCreateLoad(sidebar) {
