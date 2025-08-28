@@ -7,13 +7,11 @@ import collection from './collection';
 import logs from './logs';
 import { onboardRouter } from './onboard';
 import teams from './teams';
-import templates from './templates';
 import user from './user';
 import vault from './vault';
 
 const routers = {
   agents,
-  templates,
   teams,
   user,
   builder,
