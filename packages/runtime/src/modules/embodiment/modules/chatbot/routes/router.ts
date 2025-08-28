@@ -1,15 +1,15 @@
-import config from "@embodiment/config";
-import { EMBODIMENT_TYPES } from "@embodiment/constants";
+import config from "@core/config";
+import { EMBODIMENT_TYPES } from "@core/constants";
+import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
+import { AccessCandidate, Agent, BinaryInput } from "@smythos/sre";
+import axios from "axios";
+import express from "express";
+
 import { readAgentOAuthConfig } from "@embodiment/helpers/agent.helper";
 import { getChatGPTManifest } from "@embodiment/helpers/chatgpt.helper";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
 import ChatbotLoader from "@embodiment/middlewares/ChatbotLoader.mw";
-import cors from "@embodiment/middlewares/cors.mw";
-import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import { buildConversationId } from "@embodiment/utils/chat.utils";
-import axios from "axios";
-import express from "express";
-import { AccessCandidate, Agent, BinaryInput } from "@smythos/sre";
 
 // Import ChatbotResponse type for proper typing
 type ChatbotResponse = {
@@ -29,7 +29,7 @@ const MAX_TTL_CHATBOT_FILE_UPLOAD = 60 * 60 * 24 * 1; // 1 day
 
 let localAgentAuthorizations = {};
 
-const middleweares = [agentLoader, ChatbotLoader, cors];
+const middleweares = [agentLoader, ChatbotLoader];
 router.use(middleweares);
 
 router.get("/", async (req, res) => {

@@ -1,13 +1,12 @@
-import express from "express";
-import { Agent } from "@smythos/sre";
-import agentLoader from "@embodiment/middlewares/agentLoader.mw";
-import cors from "@embodiment/middlewares/cors.mw";
-import config from "@embodiment/config";
+import config from "@core/config";
 import { callSkill } from "@embodiment/helpers/formPreview.helper";
+import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import { Agent } from "@smythos/sre";
+import express from "express";
 
 const router = express.Router();
 
-const middlewares = [agentLoader, cors];
+const middlewares = [agentLoader];
 router.use(middlewares);
 
 router.get("/", async (req, res) => {

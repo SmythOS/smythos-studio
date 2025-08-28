@@ -1,14 +1,13 @@
-import { AgentDataConnector } from "@smythos/sre";
+import config from "@/core/config";
 import {
-  getAgentIdByDomain,
+  addDefaultComponentsAndConnections,
   getAgentDataById,
-} from "@embodiment/helpers/agent.helper";
-import { addDefaultComponentsAndConnections } from "@core/services/agent-helper";
-import config from "@embodiment/config";
-import { Logger } from "@smythos/sre";
-import type { AgentData, OpenAPISpec } from "@embodiment/types/openapi.types";
+  getAgentIdByDomain,
+} from "@core/helpers/agent.helper";
+import type { AgentData, OpenAPISpec } from "@core/types/openapi.types";
+import { AgentDataConnector, Logger } from "@smythos/sre";
 
-const console = Logger("[Embodiment] Helper: OpenAPI Adapter");
+const console = Logger("openapi-adapter.helper.ts");
 
 /**
  * AgentDataConnector implementation for sre-embodiment-server
@@ -201,6 +200,6 @@ export async function getOpenAPIJSONForAI(
 
 // Export utility functions for backward compatibility
 export {
-  getAgentIdByDomain,
   getAgentDataById,
-} from "@embodiment/helpers/agent.helper";
+  getAgentIdByDomain,
+} from "@core/helpers/agent.helper";

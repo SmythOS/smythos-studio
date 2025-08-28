@@ -1,16 +1,19 @@
-import express from "express";
-import agentLoader from "@embodiment/middlewares/agentLoader.mw";
 import { Agent } from "@smythos/sre";
+import express from "express";
+
+import {
+  DEFAULT_AGENT_MODEL,
+  DEFAULT_AGENT_MODEL_SETTINGS_KEY,
+} from "@core/constants";
+
+import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+
 import {
   createAlexaSkill,
   handleAlexaRequest,
   isAlexaEnabled,
+  parseAlexaRequest,
 } from "../services/alexa.service";
-import { parseAlexaRequest } from "../services/alexa.service";
-import {
-  DEFAULT_AGENT_MODEL,
-  DEFAULT_AGENT_MODEL_SETTINGS_KEY,
-} from "@embodiment/constants";
 const router = express.Router();
 
 router.post("/", agentLoader, async (req: any, res) => {

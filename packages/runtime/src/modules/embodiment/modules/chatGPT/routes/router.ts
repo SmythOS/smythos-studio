@@ -1,7 +1,7 @@
-import express from "express";
 import { getChatGPTManifest } from "@embodiment/helpers/chatgpt.helper";
 import { getOpenAPIJSON } from "@embodiment/helpers/openapi-adapter.helper";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import express from "express";
 
 const router = express.Router();
 

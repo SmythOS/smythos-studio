@@ -1,13 +1,13 @@
+import config from "../config";
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
 } from "../services/agent-helper";
-import config from "../config";
 
-import { createLogger } from "../services/logger";
-import { ConnectorService } from "smyth-runtime";
+import { ConnectorService } from "@smythos/sre";
 import { DEFAULT_FILE_PARSING_ENDPOINT } from "../constants";
+import { createLogger } from "../services/logger";
 
 import { refreshBillingCache } from "../services/billing-service";
 
@@ -35,15 +35,17 @@ export default async function agentLoader(req, res, next) {
 
     try {
       const result = agentDataConnector?.getAgentIdByDomain?.(domain);
-      if (result && typeof result.catch === 'function') {
+      if (result && typeof result.catch === "function") {
         agentId = await result.catch((error) => {
           console.error(error);
         });
       } else {
-        console.error('getAgentIdByDomain method is not available or does not return a promise');
+        console.error(
+          "getAgentIdByDomain method is not available or does not return a promise"
+        );
       }
     } catch (error) {
-      console.error('Error calling getAgentIdByDomain:', error);
+      console.error("Error calling getAgentIdByDomain:", error);
     }
     agentDomain = domain;
     if (agentId && domain.includes(config.env.AGENT_DOMAIN)) {
@@ -65,17 +67,19 @@ export default async function agentLoader(req, res, next) {
     let agentData;
     try {
       const result = agentDataConnector?.getAgentData?.(agentId, version);
-      if (result && typeof result.catch === 'function') {
+      if (result && typeof result.catch === "function") {
         agentData = await result.catch((error) => {
           console.error(error);
           return { error: error.message };
         });
       } else {
-        console.error('getAgentData method is not available or does not return a promise');
-        agentData = { error: 'getAgentData method is not available' };
+        console.error(
+          "getAgentData method is not available or does not return a promise"
+        );
+        agentData = { error: "getAgentData method is not available" };
       }
     } catch (error) {
-      console.error('Error calling getAgentData:', error);
+      console.error("Error calling getAgentData:", error);
       agentData = { error: error.message };
     }
     if (agentData?.error) {

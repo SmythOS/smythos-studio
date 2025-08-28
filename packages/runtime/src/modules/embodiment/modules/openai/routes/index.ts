@@ -1,17 +1,17 @@
-import OpenAI from "openai";
-import { Readable } from "stream";
-import { Router, Request, Response } from "express";
-import ApiError from "@core/utils/apiError";
-import { Logger } from "@smythos/sre";
-import { extractBearerToken } from "@core/services/smythAPIReq";
-import { validate } from "@core/middlewares/validate.mw";
-import { chatService } from "@embodiment/modules/openai/services/chat.service";
-import { chatValidations } from "@embodiment/modules/openai/validations/openai.validation";
 import {
   DEFAULT_AGENT_MODEL,
   DEFAULT_AGENT_MODEL_SETTINGS_KEY,
-} from "@embodiment/constants";
+} from "@core/constants";
+import { validate } from "@core/middlewares/validate.mw";
+import { extractBearerToken } from "@core/services/smythAPIReq";
+import ApiError from "@core/utils/apiError";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import { chatService } from "@embodiment/modules/openai/services/chat.service";
+import { chatValidations } from "@embodiment/modules/openai/validations/openai.validation";
+import { Logger } from "@smythos/sre";
+import { Request, Response, Router } from "express";
+import OpenAI from "openai";
+import { Readable } from "stream";
 const router = Router();
 const console = Logger("[Embodiment] Router: OpenAI");
 

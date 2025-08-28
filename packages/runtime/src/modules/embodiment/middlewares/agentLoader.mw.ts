@@ -1,21 +1,18 @@
+import config from "@core/config";
 import {
   extractAgentVerionsAndPath,
   getAgentDomainById,
   getAgentIdAndVersion,
 } from "../helpers/agent.helper";
-import config from "../config";
 
+import { addDefaultComponentsAndConnections } from "@/core/helpers/agent.helper";
 import {
+  Agent,
+  AgentRequest,
+  AgentSettings,
   ConnectorService,
   Logger,
-  Agent,
-  AgentSettings,
-  AgentRequest,
 } from "@smythos/sre";
-import { addDefaultComponentsAndConnections } from "@core/services/agent-helper";
-
-import { refreshBillingCache } from "../services/billing-service";
-import { requestContext } from "../services/request-context";
 
 const console = Logger("[Embodiment] Middleware: Agent Loader");
 
@@ -51,15 +48,17 @@ export default async function agentLoader(req, res, next) {
 
     try {
       const result = agentDataConnector?.getAgentIdByDomain?.(domain);
-      if (result && typeof result.catch === 'function') {
+      if (result && typeof result.catch === "function") {
         agentId = await result.catch((error) => {
           console.error(error);
         });
       } else {
-        console.error('getAgentIdByDomain method is not available or does not return a promise');
+        console.error(
+          "getAgentIdByDomain method is not available or does not return a promise"
+        );
       }
     } catch (error) {
-      console.error('Error calling getAgentIdByDomain:', error);
+      console.error("Error calling getAgentIdByDomain:", error);
     }
     agentDomain = domain;
     if (agentId && domain.includes(config.env.AGENT_DOMAIN)) {
@@ -80,17 +79,19 @@ export default async function agentLoader(req, res, next) {
     let agentData;
     try {
       const result = agentDataConnector?.getAgentData?.(agentId, version);
-      if (result && typeof result.catch === 'function') {
+      if (result && typeof result.catch === "function") {
         agentData = await result.catch((error) => {
           console.error(error);
           return { error: error.message };
         });
       } else {
-        console.error('getAgentData method is not available or does not return a promise');
-        agentData = { error: 'getAgentData method is not available' };
+        console.error(
+          "getAgentData method is not available or does not return a promise"
+        );
+        agentData = { error: "getAgentData method is not available" };
       }
     } catch (error) {
-      console.error('Error calling getAgentData:', error);
+      console.error("Error calling getAgentData:", error);
       agentData = { error: error.message };
     }
 
@@ -122,17 +123,6 @@ export default async function agentLoader(req, res, next) {
       maxLatency: 100,
     };
 
-    const parentTeamId = agentData.data?.parentTeamId;
-    const teamId = agentData.data?.teamId;
-
-    // Store team info in request context (for use by hook services like Conversation.prompt)
-    // TODO: This is a temporary workaround to provide team information to the hook services. The ideal solution is to pass all necessary data through the hook service arguments.
-    requestContext.set(`team_info:${agentId}`, {
-      planInfo: req._plan,
-      parentTeamId,
-      teamId,
-    });
-
     req.socket.on("close", () => {
       // console.log('Client socket closed, killing agent');
       // Handle the cancellation logic
@@ -157,11 +147,6 @@ export default async function agentLoader(req, res, next) {
     // req._agent.version = version;
     req._agentVersion = version;
     //req._data1 = 1;
-
-    // Pre-fetch billing data to ensure cached data is readily available for usage limit validation
-    // To avoid an additional network call in this middleware, we pass teamId to refreshBillingCache
-    // The parentTeamId is then derived from the teamId within refreshBillingCache.
-    refreshBillingCache(parentTeamId, teamId);
 
     console.log(
       `Loaded Agent:${agentId} v=${version} path=${path} isTestDomain=${isTestDomain} domain=${agentDomain}`

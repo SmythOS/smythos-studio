@@ -1,10 +1,10 @@
 import express from "express";
-
-import { getOpenAPIJSON } from "@embodiment/helpers/openapi-adapter.helper";
 import swaggerUi from "swagger-ui-express";
-import { Agent } from "@smythos/sre";
-import config from "@embodiment/config";
+
+import config from "@core/config";
+import { getOpenAPIJSON } from "@embodiment/helpers/openapi-adapter.helper";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import { Agent } from "@smythos/sre";
 
 const router = express.Router();
 

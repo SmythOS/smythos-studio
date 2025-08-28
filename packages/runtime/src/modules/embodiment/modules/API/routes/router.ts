@@ -1,6 +1,7 @@
-import express from "express";
-import { getOpenAPIJSON } from "../../../helpers/openapi-adapter.helper";
 import { Agent } from "@smythos/sre";
+import express from "express";
+
+import { getOpenAPIJSON } from "@embodiment/helpers/openapi-adapter.helper";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
 
 const router = express.Router();

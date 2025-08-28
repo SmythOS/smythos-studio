@@ -1,10 +1,8 @@
-import express from "express";
-import axios from "axios";
-import querystring from "querystring";
-import config from "@core/config";
+import { readAgentOAuthConfig } from "@/core/helpers/agent.helper";
 import agentLoader from "@core/middlewares/agentLoader.mw";
-import { readAgentOAuthConfig } from "@core/services/agent-helper";
-import { Request, Response } from "express";
+import axios from "axios";
+import express, { Request, Response } from "express";
+import querystring from "querystring";
 
 const router = express.Router();
 

@@ -1,16 +1,16 @@
+import ApiError from "@core/utils/apiError";
+import { adaptModel } from "@core/utils/llm.utils";
+import { getAgentIdAndVersion } from "@embodiment/helpers/agent.helper";
+import {
+  AccessCandidate,
+  Agent,
+  ConnectorService,
+  Conversation,
+  Logger,
+} from "@smythos/sre";
 import crypto from "crypto";
 import { OpenAI } from "openai";
 import { Readable } from "stream";
-import ApiError from "@core/utils/apiError";
-import { getAgentIdAndVersion } from "@embodiment/helpers/agent.helper";
-import {
-  ConnectorService,
-  AccessCandidate,
-  Logger,
-  Conversation,
-  Agent,
-} from "@smythos/sre";
-import { adaptModel } from "@core/utils/llm.utils";
 
 const console = Logger("[Embodiment] Service: OpenAI Chat");
 

@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
-import OIDCMWFactory from "./oidc";
 import BearerMWFactory from "./bearer";
+import OIDCMWFactory from "./oidc";
 
+import { getAgentAuthData } from "../../../../core/helpers/agent.helper";
 import { createLogger } from "../../../../core/services/logger";
-import { getAgentAuthData } from "../../../../core/services/agent-helper";
 
 const console = createLogger("___FILENAME___");
 

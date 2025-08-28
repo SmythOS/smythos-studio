@@ -1,17 +1,17 @@
 import express from "express";
+import Joi from "joi";
 
 import config from "@core/config";
 import { getM2MToken } from "@core/helpers/logto.helper";
-import agentLoader from "@core/middlewares/agentLoader.mw";
-import ChatbotLoader from "@core/middlewares/ChatbotLoader.mw";
-import cors from "@embodiment/middlewares/cors.mw";
 import UserAgentAccessCheck from "@core/middlewares/userAgentAccessCheck.mw";
 import { validate } from "@core/middlewares/validate.mw";
-import Chatbot from "@embodiment/modules/chatbot/services/Chatbot.class";
 import { requestContext } from "@core/services/request-context";
 import { includeAuth, mwSysAPI } from "@core/services/smythAPIReq";
+
+import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import ChatbotLoader from "@embodiment/middlewares/ChatbotLoader.mw";
+import Chatbot from "@embodiment/modules/chatbot/services/Chatbot.class";
 import { buildConversationId } from "@embodiment/utils/chat.utils";
-import Joi from "joi";
 
 // Import ChatbotResponse type for proper typing
 type ChatbotResponse = {
@@ -29,7 +29,7 @@ type ChatbotResponse = {
 
 const router = express.Router();
 
-const middlewares = [UserAgentAccessCheck, agentLoader, ChatbotLoader, cors];
+const middlewares = [UserAgentAccessCheck, agentLoader, ChatbotLoader];
 router.use(middlewares);
 
 let localAgentAuthorizations = {

@@ -1,17 +1,17 @@
+import { getM2MToken } from "@/core/helpers/logto.helper";
 import {
-  ConnectorService,
-  Logger,
-  VaultConnector,
-  OAuthConfig,
   AccessRequest,
-  SecureConnector,
+  ACL,
+  ConnectorService,
   IAccessCandidate,
+  Logger,
+  OAuthConfig,
+  SecureConnector,
   TAccessLevel,
   TAccessRole,
-  ACL,
+  VaultConnector,
 } from "@smythos/sre";
 import axios, { AxiosInstance } from "axios";
-import { getM2MToken } from "@core/services/logto-helper";
 
 export type SmythVaultConfig = {
   vaultAPIBaseUrl: string;

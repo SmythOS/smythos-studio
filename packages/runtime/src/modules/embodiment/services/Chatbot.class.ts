@@ -3,13 +3,12 @@ import { Request } from "express";
 
 import config from "@core/config";
 import { EMBODIMENT_TYPES } from "@core/constants";
-import { delay } from "@core/utils/date-time.utils";
-import { adaptModel } from "@core/utils/llm.utils";
 
-import { getOpenAPIJSONForAI } from "@embodiment/helpers/openapi-adapter.helper";
-import { ChatConversationsEnv } from "@embodiment/utils/chat.utils";
-
-import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
+import { getOpenAPIJSONForAI } from "../helpers/openapi-adapter.helper";
+import { FsChatbotContextStore } from "../services/FsChatbotContextStore.class";
+import { ChatConversationsEnv } from "../utils/chat.utils";
+import { delay } from "../utils/date-time.utils";
+import { adaptModel } from "../utils/llm.utils";
 import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 
 type Headers = {
@@ -59,7 +58,7 @@ export default class Chatbot {
   private isAgentChat = false;
 
   constructor(req: Request | any) {
-    this.agentId = req._agent.id; //from agentLoader middleware
+    this.agentId = req._agent.id; //from AgentLoader middleware
     this.sessionID = req.sessionID;
     this.conversationID = req.headers["x-conversation-id"] || req.sessionID;
     this.domain = req._agent.domain; //req.hostname;

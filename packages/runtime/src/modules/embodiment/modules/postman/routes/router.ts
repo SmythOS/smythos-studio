@@ -1,7 +1,7 @@
-import express from "express";
 import { getOpenAPIJSON } from "@embodiment/helpers/openapi-adapter.helper";
-import Converter from "openapi-to-postmanv2";
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
+import express from "express";
+import Converter from "openapi-to-postmanv2";
 
 const router = express.Router();
 

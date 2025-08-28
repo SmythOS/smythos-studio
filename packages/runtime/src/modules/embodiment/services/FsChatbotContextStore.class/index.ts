@@ -1,8 +1,11 @@
-import { EStorageTypes } from "@/modules/embodiment/types/fileStorage.types";
-import { fsExists } from "@core/utils/general.utils";
-import type { ILLMContextStore } from "@smythos/sre";
 import fs from "fs";
 import path from "path";
+
+import type { ILLMContextStore } from "@smythos/sre";
+
+import { EStorageTypes } from "@embodiment/types/fileStorage.types";
+import { fsExists } from "@embodiment/utils/general.utils";
+
 import { FsChatbotContextExporter } from "./FsChatbotContextExporter.class";
 
 export class FsChatbotContextStore implements ILLMContextStore {
@@ -72,7 +75,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
   }
 
   public async getMessage(message_id: string): Promise<any> {
-    return [];
+    return {};
   }
 
   private async getConversationById(

@@ -1,3 +1,5 @@
+import { getM2MToken } from "@/core/helpers/logto.helper";
+import { SmythConfigs } from "@core/types/general.types";
 import {
   ACL,
   AccessRequest,
@@ -11,8 +13,6 @@ import {
   TAccessRole,
 } from "@smythos/sre";
 import axios, { AxiosInstance } from "axios";
-import { SmythConfigs } from "@core/types/general.types";
-import { getM2MToken } from "@core/services/logto-helper";
 const console = Logger("SmythOSSManagedVault");
 export class SmythOSSManagedVault extends ManagedVaultConnector {
   public name: string = "SmythOSSManagedVault";

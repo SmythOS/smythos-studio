@@ -41,3 +41,4 @@ export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 export const MAX_FILE_COUNT = 5;
 
 export const AGENT_AUTH_SETTINGS_KEY = "agentAuth";
+export const MOCK_DATA_SETTINGS_KEY = "agent-mock-data";

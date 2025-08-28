@@ -1,7 +1,7 @@
+import { getM2MToken } from "@/core/helpers/logto.helper";
+import { SmythConfigs } from "@core/types/general.types";
 import { AgentDataConnector, OAuthConfig } from "@smythos/sre";
 import axios, { AxiosInstance } from "axios";
-import { SmythConfigs } from "@core/types/general.types";
-import { getM2MToken } from "@core/services/logto-helper";
 export class SmythOSSAgentDataConnector extends AgentDataConnector {
   public name: string = "SmythOSSAgentData";
   private oAuthAppId: string;

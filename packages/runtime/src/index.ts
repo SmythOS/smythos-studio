@@ -1,32 +1,32 @@
-import url from "url";
-import path from "path";
+import {
+  ConnectorService,
+  JSONModelsProvider,
+  Logger,
+  SmythRuntime,
+  TConnectorService,
+  version,
+} from "@smythos/sre";
+import compression from "compression";
+import cookieParser from "cookie-parser";
 import express from "express";
 import { Server } from "http";
-import cookieParser from "cookie-parser";
-import compression from "compression";
+import path from "path";
 import swaggerUi from "swagger-ui-express";
-import {
-  SmythRuntime,
-  Logger,
-  version,
-  ConnectorService,
-  TConnectorService,
-  JSONModelsProvider,
-} from "@smythos/sre";
+import url from "url";
 
 // Core imports
-import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import config from "@core/config";
 import { startServers } from "@core/management-router";
-import { errorHandler, notFoundHandler } from "@core/middlewares/error.mw";
 import cors from "@core/middlewares/cors.mw";
+import { errorHandler, notFoundHandler } from "@core/middlewares/error.mw";
 import RateLimiter from "@core/middlewares/rateLimiter.mw";
+import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import { requestContext } from "@core/services/request-context";
 
-import { SmythOSSAgentDataConnector } from "@core/connectors/SmythOSSAgentDataConnector.class";
-import { SmythOSSVault } from "@core/connectors/SmythOSSVault.class";
-import { SmythOSSManagedVault } from "@core/connectors/SmythOSSManagedVault.class";
 import { SmythOSSAccount } from "@core/connectors/SmythOSSAccount.class";
+import { SmythOSSAgentDataConnector } from "@core/connectors/SmythOSSAgentDataConnector.class";
+import { SmythOSSManagedVault } from "@core/connectors/SmythOSSManagedVault.class";
+import { SmythOSSVault } from "@core/connectors/SmythOSSVault.class";
 
 // Debugger Imports
 import agentRouter from "@debugger/routes/agent/routes";
@@ -37,11 +37,12 @@ import modelsRouter from "@debugger/routes/models/router";
 // import oauthRouter from "@agent-runner/routes/_oauth/router";
 
 // Embodiment imports
-// import { routes as embodimentRoutes } from "@embodiment/routes";
+import { routes as embodimentRoutes } from "@embodiment/routes";
 
 const app = express();
 const port = parseInt(process.env.PORT || "5000");
 
+// TODO [Runtime]: move all connection registration in different place
 ConnectorService.register(
   TConnectorService.AgentData,
   "SmythOSS",
@@ -123,6 +124,7 @@ const sre = SmythRuntime.Instance.init({
   ModelsProvider: {
     Connector: "SmythModelsProvider",
     Settings: {
+      // TODO [Runtime]: Move all the models list in different place to keep the index.ts clean
       models: {
         "gpt-5": {
           label: "GPT 5",
@@ -374,8 +376,8 @@ app.get("/", (req: any, res) => {
 app.use("/", agentRouter);
 app.use("/models", modelsRouter);
 // app.use("/oauth", oauthRouter);
-// app.use("/emb/swagger", swaggerUi.serve);
-// app.use("/", embodimentRoutes);
+app.use("/swagger", swaggerUi.serve);
+app.use("/", embodimentRoutes);
 
 // 404 handler - must come before error handler
 app.use(notFoundHandler);
