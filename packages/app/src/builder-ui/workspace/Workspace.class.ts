@@ -2216,10 +2216,6 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  public async saveTemplate() {
-    return workspaceHelper.saveTemplate.call(this);
-  }
-
   public async exportTemplate() {
     return workspaceHelper.exportTemplate.call(this);
   }

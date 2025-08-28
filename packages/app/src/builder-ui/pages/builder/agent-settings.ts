@@ -1,4 +1,5 @@
 import { PRIMARY_BUTTON_STYLE } from '@src/react/shared/constants/style';
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { EMBODIMENT_DESCRIPTIONS, SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
 import { EmbodimentRPCManager } from '../../../shared/services/embodiment_rpc_manager';
@@ -605,28 +606,22 @@ async function loadAgentDomainsList() {
 }
 
 async function loadAgentTemplatesList() {
-  const result = await fetch('/api/enterprise/page/builder/agent-templates', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        //throw new Error('Something went wrong');
-        return { error: 'Failed to load templates' };
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+  const pluginMenuItems = plugins.getPluginsByTarget(
+    PluginTarget.BuilderLoadAgentTemplates,
+    PluginType.Function,
+  ) as {
+    function: () => Promise<any>;
+  }[];
 
-  if (!result.data) {
-    console.log('Error reading agents templates');
-    return {};
-  }
-  const templates = result.data;
-  return templates;
+  const templatesPromises = pluginMenuItems.map((item) => item.function());
+  // a teamplate plugin will output = {"key": "value{any}""}
+  const templateOutputs = await Promise.all(templatesPromises);
+  const mergedTemplates = templateOutputs.reduce((acc, curr) => {
+    return { ...acc, ...curr };
+  }, {});
+
+  console.log('mergedTemplates', mergedTemplates);
+  return mergedTemplates;
 }
 
 function updateWorkspaceEmbodiments(agent) {

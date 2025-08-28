@@ -1,5 +1,6 @@
 export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
+  BuilderLoadAgentTemplates = 'builder/LoadAgentTemplates',
   TopMenuItem = 'topMenuItem',
   Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
