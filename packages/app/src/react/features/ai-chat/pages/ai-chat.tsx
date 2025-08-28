@@ -27,7 +27,7 @@ import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
 
 const CHAT_WARNING_INFO =
-  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
+  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work.";
 
 interface AIChatProps {
   givenAgent?: string;
