@@ -11,7 +11,6 @@ import apiRouter from './routes/api/router';
 import dbgRouter from './routes/dbg/router';
 import oauthRouter from './routes/oauth/router';
 import pagesRouter from './routes/pages/router';
-import publicRouter from './routes/public/router';
 
 //import { handleAuthRoutes, withLogto } from '@logto/express';
 import { handleAuthRoutes, withLogto } from './logtoHelper';
@@ -45,6 +44,7 @@ app.use(maintenanceCheckMiddleware);
 app.use(compression());
 app.use('/', express.static('dist/static'));
 app.use('/assets', express.static('dist/assets'));
+app.use('/uploads', express.static('uploads'));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({
@@ -111,8 +111,6 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use('/api', [apiAuth, apiACLCheck], apiRouter);
 app.use('/dbg', [apiAuth], dbgRouter);
 app.use('/oauth', oauthRouter);
-
-app.use('/', publicRouter);
 
 app.use([pageAuth, pageACLCheck, includeTeamDetails]);
 

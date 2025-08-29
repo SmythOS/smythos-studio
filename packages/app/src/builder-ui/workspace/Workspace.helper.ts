@@ -45,44 +45,6 @@ export function getTemplateInfo() {
   return templateInfo;
 }
 
-// Save a template from the agent
-export async function saveTemplate() {
-  if (this.locked) return false;
-
-  // When the agent is not loaded, we can't save
-  if (!this.agent.id) return false;
-
-  console.log('Template saving...');
-
-  try {
-    const data = await this.export();
-
-    // we don't want to save the debugSessionEnabled flag in template file
-    delete data.debugSessionEnabled;
-
-    if (!data?.templateInfo) {
-      const templateInfo = this.getTemplateInfo();
-      data.templateInfo = templateInfo;
-    }
-    const templateId = data?.templateInfo?.id;
-
-    await fetch('/api/page/builder/agent-templates', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    // Save the templateInfo to the agent
-    await this.saveAgent(this.agent?.name, this.agent?.domain, data);
-
-    return templateId;
-  } catch (error) {
-    throw error;
-  }
-}
-
 // Export the template only, so we don't need to save the agent
 export async function exportTemplate() {
   if (this.locked) return false;

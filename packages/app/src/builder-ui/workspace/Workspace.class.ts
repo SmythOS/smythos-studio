@@ -1165,7 +1165,9 @@ export class Workspace extends EventEmitter {
   public async preloadComponentsTemplates() {
     let url = '/api/page/builder/app-config/components';
 
-    const result = await fetch(url).then((res) => res.json());
+    const result = await fetch(url)
+      .then((res) => res.json())
+      .catch((e) => []);
 
     const components = result?.components || [];
 
@@ -2296,10 +2298,6 @@ export class Workspace extends EventEmitter {
       //const nextCpt = nextElt.component;
       this.recursiveSetChildTag(nextElt, tagName, tag);
     }
-  }
-
-  public async saveTemplate() {
-    return workspaceHelper.saveTemplate.call(this);
   }
 
   public async exportTemplate() {

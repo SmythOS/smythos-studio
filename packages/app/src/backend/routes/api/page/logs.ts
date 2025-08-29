@@ -1,16 +1,9 @@
+// TODO: move to enterprise app
+
+import { privateStorage } from '@src/backend/services/storage';
 import express from 'express';
-import path from 'path';
-import fs from 'fs';
-import config from '../../../config';
-import { authHeaders, includeAxiosAuth, smythAPI } from '../../../utils';
-import { AxiosError } from 'axios';
-import {
-  checkObjectOwnership,
-  extractObjectKeyFromUrl,
-  getObjectDataByKey,
-  isStorageFile,
-} from '../../../utils/storage.utils';
-import { Team } from '../../../types';
+import { authHeaders, smythAPI } from '../../../utils';
+import { checkObjectOwnership } from '../../../utils/storage.utils';
 const router = express.Router();
 
 router.get('/:agentId', async (req, res) => {
@@ -156,6 +149,52 @@ async function getSessions(req, agentId, token, page = 1, limit = 10) {
   } catch (error) {
     return { error: error.response?.data };
   }
+}
+
+async function getObjectDataByKey(key: string) {
+  // return new Promise(async (resolve, reject) => {
+  //   try {
+  //     const response: any = await abstractedS3Client.getObject({
+  //       Bucket: config.env.AWS_S3_BUCKET_NAME,
+  //       Key: key,
+  //     });
+  //     const request = response.Body;
+  //     let dataChunks = [];
+
+  //     // Listen for data events to collect the chunks
+  //     request.on('data', (chunk) => {
+  //       dataChunks.push(chunk);
+  //     });
+
+  //     // Handle the end of the stream and convert the chunks to a string
+  //     request.on('end', () => {
+  //       const completeData = Buffer.concat(dataChunks);
+  //       const bodyContent = completeData.toString('utf-8');
+  //       resolve(bodyContent);
+  //     });
+
+  //     // Error handling for the stream
+  //     request.on('error', (error) => {
+  //       console.error('Error reading the S3 object stream:', error);
+  //       reject(error);
+  //     });
+  //   } catch (error) {
+  //     reject(error);
+  //   }
+  // });
+
+  const stream = await privateStorage.getStream(key);
+
+  return new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    stream.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('error', (error) => {
+      console.error('Error reading the Log verbose content object stream:', error);
+      reject('Error reading the Log verbose content object stream');
+    });
+  });
 }
 
 export default router;

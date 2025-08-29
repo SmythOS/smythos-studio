@@ -1,6 +1,6 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { BookIcon, DiscordIcon, GridIcon, HomeIcon, KeyIcon } from '../components/svgs';
+import { BookIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
@@ -15,7 +15,7 @@ export type SidebarMenuItem = {
 };
 
 export const getSidebarMenuItems = (): SidebarMenuItem[] => {
-  let pluginItems = (
+  const pluginItems = (
     plugins.getPluginsByTarget(PluginTarget.SidebarMenuItems, PluginType.Config) as {
       config: SidebarMenuItem;
     }[]
@@ -24,7 +24,6 @@ export const getSidebarMenuItems = (): SidebarMenuItem[] => {
   return [
     { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
     { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
-    { url: '/templates', name: 'Templates', icon: GridIcon, visible: true, order: 6 },
     ...pluginItems,
   ].sort((a, b) => (a.order || 0) - (b.order || 0));
 };
