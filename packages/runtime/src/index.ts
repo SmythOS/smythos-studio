@@ -1,11 +1,4 @@
-import {
-  ConnectorService,
-  JSONModelsProvider,
-  Logger,
-  SmythRuntime,
-  TConnectorService,
-  version,
-} from "@smythos/sre";
+import { Logger, SmythRuntime, version } from "@smythos/sre";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
@@ -17,6 +10,7 @@ import url from "url";
 
 // Core imports
 import config from "@core/config";
+import { modelsConfig } from "@core/config/models.config";
 import { startServers } from "@core/management-router";
 import cors from "@core/middlewares/cors.mw";
 import { errorHandler, notFoundHandler } from "@core/middlewares/error.mw";
@@ -24,10 +18,7 @@ import RateLimiter from "@core/middlewares/rateLimiter.mw";
 import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import { requestContext } from "@core/services/request-context";
 
-import { SmythOSSAccount } from "@core/connectors/SmythOSSAccount.class";
-import { SmythOSSAgentDataConnector } from "@core/connectors/SmythOSSAgentDataConnector.class";
-import { SmythOSSManagedVault } from "@core/connectors/SmythOSSManagedVault.class";
-import { SmythOSSVault } from "@core/connectors/SmythOSSVault.class";
+import { registerConnectors } from "@core/connectors/ConnectorRegistry";
 
 // Routes are handled by configureAgentRouters
 
@@ -43,43 +34,10 @@ import { routes as embodimentRoutes } from "@embodiment/routes";
 const app = express();
 const port = parseInt(process.env.PORT || "5000");
 
-// TODO [Runtime]: move all connection registration in different place
-ConnectorService.register(
-  TConnectorService.AgentData,
-  "SmythOSS",
-  SmythOSSAgentDataConnector
-);
-ConnectorService.register(
-  TConnectorService.Account,
-  "SmythOSSAccount",
-  SmythOSSAccount
-);
-ConnectorService.register(
-  TConnectorService.Vault,
-  "SmythOSSVault",
-  SmythOSSVault
-);
-ConnectorService.register(
-  TConnectorService.ManagedVault,
-  "SmythOSSManagedVault",
-  SmythOSSManagedVault
-);
-ConnectorService.register(
-  TConnectorService.ModelsProvider,
-  "SmythModelsProvider",
-  JSONModelsProvider
-);
+// Register all connectors
+registerConnectors();
 
 const sre = SmythRuntime.Instance.init({
-  Storage: {
-    Connector: "S3",
-    Settings: {
-      bucket: process.env.AWS_S3_BUCKET_NAME || "",
-      region: process.env.AWS_S3_REGION || "",
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-    },
-  },
   Cache: {
     Connector: "RAM",
     Settings: {},
@@ -106,162 +64,13 @@ const sre = SmythRuntime.Instance.init({
       vaultAPIBaseUrl: process.env.SMYTH_VAULT_API_BASE_URL,
     },
   },
-  ManagedVault: {
-    Connector: "SmythOSSManagedVault",
-    Id: "oauth",
-    Settings: {
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
-      oAuthScope: "",
-      smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
-      vaultName: "oauth",
-    },
-  },
   Component: {
     Connector: "LocalComponent",
   },
   ModelsProvider: {
     Connector: "SmythModelsProvider",
     Settings: {
-      // TODO [Runtime]: Move all the models list in different place to keep the index.ts clean
-      models: {
-        "gpt-5": {
-          label: "GPT 5",
-          modelId: "gpt-5",
-          provider: "OpenAI",
-          features: ["text", "tools", "image", "reasoning", "search"],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 400000,
-            completionTokens: 128000,
-            enabled: true,
-          },
-          credentials: "vault",
-          interface: "responses",
-        },
-        "gpt-5-mini": {
-          label: "GPT 5 mini",
-          modelId: "gpt-5-mini",
-          provider: "OpenAI",
-          features: ["text", "tools", "image", "reasoning", "search"],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 400000,
-            completionTokens: 128000,
-            enabled: true,
-          },
-          credentials: "vault",
-          interface: "responses",
-          default: true,
-        },
-        "gpt-5-nano": {
-          label: "GPT 5 nano",
-          modelId: "gpt-5-nano",
-          provider: "OpenAI",
-          features: ["text", "tools", "image", "reasoning"],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 400000,
-            completionTokens: 128000,
-            enabled: true,
-          },
-          credentials: "vault",
-          interface: "responses",
-        },
-        "gpt-5-chat": {
-          label: "GPT 5 Chat",
-          modelId: "gpt-5-chat-latest",
-          provider: "OpenAI",
-          features: ["text", "image"],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 400000,
-            completionTokens: 128000,
-            enabled: true,
-          },
-          credentials: "vault",
-          interface: "responses",
-        },
-        "claude-opus-4-1": {
-          label: "Claude Opus 4.1",
-          modelId: "claude-opus-4-1",
-          provider: "Anthropic",
-          features: ["text", "image", "tools", "reasoning"],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 200000,
-            completionTokens: 32000,
-            maxReasoningTokens: 32000,
-            enabled: true,
-          },
-          credentials: "vault",
-        },
-        "gemini-2.5-pro": {
-          label: "Gemini 2.5 Pro",
-          modelId: "gemini-2.5-pro",
-          provider: "GoogleAI",
-          features: [
-            "text",
-            "image",
-            "audio",
-            "video",
-            "document",
-            "tools",
-            "reasoning",
-          ],
-          tags: ["Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 1048576,
-            completionTokens: 65536,
-            enabled: true,
-          },
-          credentials: "vault",
-        },
-        "gemini-2.5-flash": {
-          label: "Gemini 2.5 Flash",
-          modelId: "gemini-2.5-flash",
-          provider: "GoogleAI",
-          features: [
-            "text",
-            "image",
-            "audio",
-            "video",
-            "document",
-            "tools",
-            "reasoning",
-          ],
-          tags: ["New", "Personal"],
-          tokens: 0,
-          completionTokens: 0,
-          enabled: false,
-          keyOptions: {
-            tokens: 1048576,
-            completionTokens: 65536,
-            enabled: true,
-          },
-          credentials: "vault",
-        },
-      },
+      models: modelsConfig,
     },
   },
   AgentData: {
@@ -275,22 +84,6 @@ const sre = SmythRuntime.Instance.init({
       oAuthResource: process.env.LOGTO_API_RESOURCE,
       oAuthScope: "",
       smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
-    },
-  },
-  // NKV: {
-  //   Connector: "Redis",
-  //   Settings: {},
-  // },
-  VectorDB: {
-    Connector: "SmythManaged",
-    Settings: {
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
-      oAuthScope: "",
-      smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
-      openaiApiKey: process.env.OPENAI_API_KEY || "",
     },
   },
   Router: {
