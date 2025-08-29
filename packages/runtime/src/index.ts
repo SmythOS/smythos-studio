@@ -74,7 +74,7 @@ const sre = SmythRuntime.Instance.init({
     },
   },
   AgentData: {
-    Connector: "SmythOSS",
+    Connector: "SmythOSSAgentData",
     Settings: {
       agentStageDomain: config.env.AGENT_DOMAIN || "",
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || "",
