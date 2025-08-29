@@ -13,12 +13,12 @@ import {
   mapInternalToServiceName,
   mapServiceNameToInternal
 } from '@src/shared/utils/oauth.utils';
+import { builderStore } from '../../shared/state_stores/builder/store';
 import { COMP_NAMES } from '../config';
 import {
   generateOAuthModalHTML
 } from '../helpers/oauth-modal.helper';
 import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
-import { toast } from '../ui/dialogs';
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
 import { closeTwDialog, twEditValuesWithCallback } from '../ui/tw-dialogs';
 import { delay, getVaultData, handleKvFieldEditBtn, handleKvFieldEditBtnForParams } from '../utils';
@@ -62,7 +62,7 @@ export class APICall extends Component {
       // console.log('[APICall.prepare] Getting OAuth connections from workspace cache...');
 
       // Get OAuth connections from workspace cache
-      const oauthConnectionsData = await this.workspace.getOAuthConnections();
+      const oauthConnectionsData = await builderStore.getState().getOAuthConnections();
       // console.log('[APICall.prepare] OAuth connections retrieved from cache:', oauthConnectionsData);
 
       this.oauthConnections = oauthConnectionsData || {};
@@ -553,13 +553,13 @@ export class APICall extends Component {
   private async collectAndConsoleOAuthValues(event) {
     const selectedConnectionId = this.data.oauth_con_id;
     if (selectedConnectionId === 'None' || !selectedConnectionId) {
-      toast('Please select a valid OAuth Connection first', 'Error', 'alert');
+      errorToast('Please select a valid OAuth Connection first', 'Error', 'alert');
       return;
     }
 
     // Ensure connections are loaded (they should be by the time this is clicked)
     if (!this.oauthConnections) {
-      toast('OAuth connections not loaded. Please wait or refresh.', 'Error', 'alert');
+      errorToast('OAuth connections not loaded. Please wait or refresh.', 'Error', 'alert');
       console.error('OAuth connections not loaded.');
       return;
     }
@@ -572,7 +572,7 @@ export class APICall extends Component {
     // console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
 
     if (!selectedConnection || !synthesizedOauthInfo) {
-      toast('Selected OAuth connection details not found.', 'Error', 'alert');
+      errorToast('Selected OAuth connection details not found.', 'Error', 'alert');
       console.error(
         'Selected connection or its oauth_info not found for ID:',
         selectedConnectionId,
@@ -585,7 +585,7 @@ export class APICall extends Component {
     // Validate that required fields are present
     if (!synthesizedOauthInfo.service) {
       console.error('[OAuth Auth] Missing service field in oauth_info:', synthesizedOauthInfo);
-      toast('OAuth connection is missing required service information. Please edit and save the connection again.', 'Error', 'alert');
+      errorToast('OAuth connection is missing required service information. Please edit and save the connection again.', 'Error', 'alert');
       return;
     }
 
@@ -689,7 +689,7 @@ export class APICall extends Component {
     }
 
     if (!isValid) {
-      toast(
+      errorToast(
         `Selected connection is missing required fields: ${missingFields.join(', ')}`,
         'Error',
         'alert',
@@ -731,7 +731,7 @@ export class APICall extends Component {
         window.addEventListener('message', this.boundHandleAuthMessage, false);
       } else if ('success' in data) {
         // Direct success/failure (e.g., client credentials)
-        toast(data.message, data.success ? '' : 'Error', data.success ? '' : 'alert');
+        successToast(data.message, data.success ? '' : 'Error', data.success ? '' : 'alert');
         if (data.success) {
           // Manually update the local state for the connection to reflect success
           if (this.oauthConnections[selectedConnectionId]) {
@@ -795,7 +795,7 @@ export class APICall extends Component {
         throw new Error('Unexpected response from authentication server.');
       }
     } catch (error) {
-      toast(`Authentication Failed: ${error?.message || error}`, 'Error', 'alert');
+      errorToast(`Authentication Failed: ${error?.message || error}`, 'Error', 'alert');
       console.error('Error during OAuth initiation:', error);
       // Update local state to reflect failure
       if (this.oauthConnections[selectedConnectionId]) {
@@ -870,7 +870,7 @@ export class APICall extends Component {
       case 'error':
         // Only handle errors that come with a data.message property (from OAuth router)
         if (event.data?.data?.message) {
-          toast(
+          errorToast(
             `Authentication failed. Recheck your configuration. ${event?.data?.data?.message}`,
             'Error',
             'alert',
@@ -1421,7 +1421,7 @@ export class APICall extends Component {
 
         // Show success message
         if (data.message && data.message !== '') {
-          toast(`${data.message}`);
+          successToast(`${data.message}`);
         }
 
         // Force refresh the sidebar to ensure all states are updated
@@ -1439,10 +1439,10 @@ export class APICall extends Component {
           oauth_button.innerHTML = 'Sign Out';
           oauth_button.disabled = false;
         }
-        toast(`${data.error}`, 'Error', 'alert');
+        errorToast(`${data.error}`, 'Error', 'alert');
       }
     } catch (error) {
-      toast(`Error during sign out: ${error.message}`, 'Error', 'alert');
+      errorToast(`Error during sign out: ${error.message}`, 'Error', 'alert');
       console.error('Error during sign out:', error);
 
       // Reset button state on error
@@ -1560,11 +1560,11 @@ export class APICall extends Component {
     if (!isNone) {
       try {
         // console.log('[OAuth Edit] Getting OAuth connections from workspace cache for editing...');
-        this.oauthConnections = await this.workspace.getOAuthConnections();
+        this.oauthConnections = await builderStore.getState().getOAuthConnections();
         // console.log('[OAuth Edit] Retrieved connections for editing:', this.oauthConnections);
       } catch (error) {
         console.error('Error fetching OAuth connections:', error);
-        toast('Error fetching connections. Please try again.', 'Error', 'alert');
+        errorToast('Error fetching connections. Please try again.', 'Error', 'alert');
         return;
       }
     } else {
@@ -1774,15 +1774,15 @@ export class APICall extends Component {
 
               // --- Basic Validation --- 
               if (!formData.name || formData.name.trim() === '') {
-                toast('Name field is required.', 'Error', 'alert');
+                errorToast('Name field is required.', 'Error', 'alert');
                 throw new Error('Validation failed: Name is required.'); // Throw to prevent dialog closing
               }
               if (!formData.platform || formData.platform.trim() === '') {
-                toast('Platform field is required.', 'Error', 'alert');
+                errorToast('Platform field is required.', 'Error', 'alert');
                 throw new Error('Validation failed: Platform is required.');
               }
               if (!formData.oauthService || formData.oauthService === 'None') {
-                toast('Auth Service must be selected.', 'Error', 'alert');
+                errorToast('Auth Service must be selected.', 'Error', 'alert');
                 throw new Error('Validation failed: Auth Service is required.');
               }
               // ------------------------
@@ -1841,7 +1841,7 @@ export class APICall extends Component {
                 //console.log('[APICall Save] Saving connection settings:', JSON.stringify(authSettingsToSave, null, 2));
                 await saveOAuthConnection(connectionId, authSettingsToSave);
                 closeTwDialog(dialogElm); // Manually close dialog on success
-                toast(
+                successToast(
                   isNone ? 'Connection created successfully' : 'Connection updated successfully',
                 );
 
@@ -1849,7 +1849,7 @@ export class APICall extends Component {
                 this.authCheckPromises.delete(connectionId);
 
                 // Invalidate workspace cache and update connection options
-                this.workspace.invalidateOAuthConnectionsCache();
+                builderStore.getState().invalidateOAuthConnectionsCache();
                 await this.updateOAuthConnectionOptions();
 
                 // Update component data and refresh UI elements
@@ -1860,7 +1860,7 @@ export class APICall extends Component {
                 await this.updateAuthenticationButtonState();
               } catch (error) {
                 console.error('Error saving OAuth connection:', error);
-                toast(`Error: ${error.message}`, 'Error', 'alert');
+                errorToast(`Error: ${error.message}`, 'Error', 'alert');
                 throw error; // Do not close the dialog, throw error to signal failure
               }
             },
@@ -1961,7 +1961,7 @@ export class APICall extends Component {
   private async updateOAuthConnectionOptions() {
     try {
       // Force refresh to get latest connections
-      this.oauthConnections = await this.workspace.getOAuthConnections(true);
+      this.oauthConnections = await builderStore.getState().getOAuthConnections();
 
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 

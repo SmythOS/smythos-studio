@@ -1,5 +1,6 @@
 import { lsCache } from '../../../shared/Cache.class';
 import { MOCK_DATA_CACHE_KEY, VAULT_DATA_CACHE_KEY } from '../../../shared/constants/general';
+import { builderStore } from '../../../shared/state_stores/builder/store';
 import { Workspace } from '../../workspace/Workspace.class';
 
 export async function preloadDataScripts(workspace: Workspace) {
@@ -15,7 +16,7 @@ export async function preloadDataScripts(workspace: Workspace) {
     //#endregion
 
     //#region preload OAuth connections
-    workspace.getOAuthConnections()
+    builderStore.getState().getOAuthConnections()
       .then(() => {
         // console.log('[PreloadData] OAuth connections preloaded successfully');
       })

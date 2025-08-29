@@ -1,6 +1,6 @@
 // src/webappv2/pages/vault/oauth-connections.tsx
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
-import { useToast } from '@src/react/shared/hooks/useToast';
+import { errorToast, successToast } from '@src/shared/components/toast';
 import {
   extractPlatformFromUrl,
   getBackendOrigin,
@@ -33,7 +33,6 @@ export function OAuthConnections() {
   const [connectionToDelete, setConnectionToDelete] = useState<OAuthConnection | undefined>();
   const [isProcessing, setIsProcessing] = useState(false); // General processing state
 
-  const { toast } = useToast();
   const queryClient = useQueryClient(); // Get query client instance
 
   // --- React Query Hooks ---
@@ -83,22 +82,20 @@ export function OAuthConnections() {
 
       if (type === 'oauth' || type === 'oauth2') {
         // console.log('[handleAuthMessage] Authentication successful for type:', type);
-        toast({ title: 'Success', description: 'Authentication successful!' });
+        successToast('Authentication successful!');
         // Invalidate the query cache to refetch data AFTER successful auth
         // console.log('[handleAuthMessage] Invalidating OAuth queries to refetch data');
         queryClient.invalidateQueries({ queryKey: OAUTH_QUERY_KEY });
       } else if (type === 'error') {
         // console.log('[handleAuthMessage] Authentication error:', data);
-        toast({
-          title: 'Authentication Error',
-          description: data?.message || 'An unknown error occurred during authentication.',
-          variant: 'destructive',
-        });
+        errorToast(
+          `Authentication Error: ${data?.message || 'An unknown error occurred during authentication.'}`,
+        );
       }
       // Keep the listener persistent so multiple auth attempts are handled
       // If you need per-attempt correlation, include a state param and filter here.
     },
-    [toast, queryClient], // Add queryClient to dependencies
+    [queryClient], // Add queryClient to dependencies
   );
 
   // Effect to add/remove the global message listener
@@ -156,12 +153,12 @@ export function OAuthConnections() {
           connectionId: editingConnection.id,
           updatedFields: formData,
         });
-        toast({ title: 'Success', description: 'OAuth connection updated.' });
+        successToast('OAuth connection updated.');
       } else {
         // Create new connection
         // console.log('[OAuthConnections] Creating new connection');
         await createMutation.mutateAsync(formData);
-        toast({ title: 'Success', description: 'OAuth connection created.' });
+        successToast('OAuth connection created.');
         // After creating, proactively initiate auth for oauth/oauth2 (not client creds)
         const service = formData.oauthService;
         if (service && service !== 'OAuth2 Client Credentials') {
@@ -191,13 +188,9 @@ export function OAuthConnections() {
       setEditingConnection(undefined);
     } catch (err: any) {
       console.error('Error saving connection:', err);
-      toast({
-        title: 'Error',
-        description: `Failed to ${editingConnection ? 'update' : 'create'} connection: ${
-          err.message || 'Unknown error'
-        }`,
-        variant: 'destructive',
-      });
+      errorToast(
+        `Failed to ${editingConnection ? 'update' : 'create'} connection: ${err.message || 'Unknown error'}`,
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -222,17 +215,13 @@ export function OAuthConnections() {
     setIsProcessing(true);
     try {
       await deleteMutation.mutateAsync({ connectionId: connection.id });
-      toast({ title: 'Success', description: 'OAuth connection deleted.' });
+      successToast('OAuth connection deleted.');
       // Close modal and clear state *after* successful deletion
       setIsDeleteModalOpen(false);
       setConnectionToDelete(undefined);
     } catch (err: any) {
       console.error('Error deleting connection:', err);
-      toast({
-        title: 'Error',
-        description: `Failed to delete connection: ${err.message || 'Unknown error'}`,
-        variant: 'destructive',
-      });
+      errorToast(`Failed to delete connection: ${err.message || 'Unknown error'}`);
       // Keep modal open on error? Or close? For now, we only close on success.
     } finally {
       // console.log('Finished handleDeleteConfirm.');
@@ -249,14 +238,10 @@ export function OAuthConnections() {
     setIsProcessing(true);
     try {
       await duplicateMutation.mutateAsync({ connectionToDuplicate: connection });
-      toast({ title: 'Success', description: `Connection "${connection.name}" duplicated.` });
+      successToast(`Connection "${connection.name}" duplicated.`);
     } catch (err: any) {
       console.error('Error duplicating connection:', err);
-      toast({
-        title: 'Error',
-        description: `Failed to duplicate connection: ${err.message || 'Unknown error'}`,
-        variant: 'destructive',
-      });
+      errorToast(`Failed to duplicate connection: ${err.message || 'Unknown error'}`);
     } finally {
       // console.log('Finished handleDuplicateClick.');
       setIsProcessing(false);
@@ -281,10 +266,7 @@ export function OAuthConnections() {
         //   connection.name,
         // );
         await authenticateClientCredsMutation.mutateAsync(connection.oauth_info);
-        toast({
-          title: 'Authenticated!',
-          description: 'Client Credentials authentication was successful.',
-        });
+        successToast('Authenticated! Client Credentials authentication was successful.');
         // Reflect status in UI immediately
         queryClient.invalidateQueries({ queryKey: OAUTH_QUERY_KEY });
       } else {
@@ -293,11 +275,7 @@ export function OAuthConnections() {
       }
     } catch (err: any) {
       console.error('Error initiating authentication:', err);
-      toast({
-        title: 'Authentication Error',
-        description: `Could not start authentication: ${err.message || 'Unknown error'}`,
-        variant: 'destructive',
-      });
+      errorToast(`Could not start authentication: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -312,15 +290,11 @@ export function OAuthConnections() {
       await signOutMutation.mutateAsync({
         connectionId: connection.id,
       });
-      toast({ title: 'Success', description: 'Successfully signed out.' });
+      successToast('Successfully signed out.');
       // No need to manually close modal or clear state here as it's an inline action
     } catch (err: any) {
       console.error('Error signing out:', err);
-      toast({
-        title: 'Error',
-        description: `Failed to sign out: ${err.message || 'Unknown error'}`,
-        variant: 'destructive',
-      });
+      errorToast(`Failed to sign out: ${err.message || 'Unknown error'}`);
     } finally {
       // console.log('Finished handleSignOutClick.');
       setIsProcessing(false);

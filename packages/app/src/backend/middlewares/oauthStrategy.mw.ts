@@ -2,7 +2,7 @@ import passport from 'passport';
 import { strategyConfig } from '../routes/oauth/helper/strategyConfig';
 import { replaceTemplateVariablesOptimized } from '../routes/oauth/helper/oauthHelper';
 
-export const dynamicStrategyInitialization = async (req, res, next) => {
+export const oauthStrategyInitialization = async (req, res, next) => {
   const { service, scope } = req.body;
   //console.log(service,callbackURL)
   if (!service) {

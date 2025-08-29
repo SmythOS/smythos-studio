@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import express from 'express';
 import passport from 'passport';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
-import { dynamicStrategyInitialization } from '../../middlewares/dynamicStrategy.mw';
+import { oauthStrategyInitialization } from '../../middlewares/oauthStrategy.mw';
 import { getTeamSettingsObj, saveTeamSettingsObj } from '../../services/team-data.service';
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
 const router = express.Router();
@@ -98,7 +98,7 @@ router.post('/checkAuth', includeTeamDetails, async (req, res) => {
   }
 });
 
-router.post('/init', includeTeamDetails, dynamicStrategyInitialization, async (req, res) => {
+router.post('/init', includeTeamDetails, oauthStrategyInitialization, async (req, res) => {
   // Store the frontend origin from the referer or origin header
   const referer = req.headers.referer || req.headers.referrer || req.headers.origin;
   if (referer && typeof referer === 'string') {
