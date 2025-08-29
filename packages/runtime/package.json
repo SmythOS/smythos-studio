@@ -5,9 +5,9 @@
   "main": "rollup.config.js",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:dev && node ./dist/runtime-server.dev.cjs",
+    "dev": "npm run build:dev && node ./dist/index.cjs",
     "build:dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' BUILD=dev FORMAT=cjs rollup -c ./rollup.config.js",
-    "start": "node ./dist/runtime-server.dev.cjs",
+    "start": "node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",
     "prepare:staging": "npm version patch --no-git-tag-version",
     "prepare:production": "npm version minor -f",
@@ -64,5 +64,7 @@
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
     "winston": "^3.17.0"
-  }
+  },
+  "keywords": [],
+  "license": "ISC"
 }

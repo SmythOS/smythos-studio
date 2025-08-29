@@ -1,14 +1,14 @@
+import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
+import resolve from "@rollup/plugin-node-resolve";
 import { createFilter } from "@rollup/pluginutils";
 import path from "path";
+import copy from "rollup-plugin-copy";
 import esbuild from "rollup-plugin-esbuild";
 import sourcemaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
 import typescriptPaths from "rollup-plugin-typescript-paths";
-import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
 import pkg from "./package.json";
-import copy from "rollup-plugin-copy";
 
 const isProduction = process.env.BUILD === "prod";
 const format = process.env.FORMAT || "es";
@@ -22,7 +22,7 @@ const banner = `/**
 const devCJSConfig = {
   input: "./src/index.ts",
   output: {
-    file: "./dist/runtime-server.dev.cjs", // CommonJS output
+    file: "./dist/index.cjs", // CommonJS output
     format: "cjs", // Specify the CommonJS format
     sourcemap: true,
     inlineDynamicImports: true, // Inline all dynamic imports into one file
@@ -73,7 +73,7 @@ const devESBundleConfig = {
     //file: 'distributions/agent-builder/dist/agent-builder.dev.js',
     dir: "dist",
     inlineDynamicImports: true,
-    entryFileNames: "runtime-server.dev-bundle.js",
+    entryFileNames: "index.bundle.js",
     banner,
   },
   plugins: [
@@ -121,7 +121,7 @@ const devESConfig = {
     sourcemap: true,
 
     //Comment this line and uncomment the following lines if you need ES bundle
-    file: "./dist/runtime-server.dev.js",
+    file: "./dist/index.js",
     banner,
   },
   plugins: [
@@ -159,7 +159,7 @@ const devESConfig = {
 const prodESConfig = {
   input: "./src/index.ts",
   output: {
-    file: "./dist/runtime-server.prod.js",
+    file: "./dist/index.js",
     format: "es",
     sourcemap: true,
     banner,
@@ -199,7 +199,7 @@ const prodESConfig = {
 const prodCJSConfig = {
   input: "./src/index.ts",
   output: {
-    file: "./dist/runtime-server.prod.cjs",
+    file: "./dist/index.cjs",
     format: "cjs",
     sourcemap: true,
     inlineDynamicImports: true,
