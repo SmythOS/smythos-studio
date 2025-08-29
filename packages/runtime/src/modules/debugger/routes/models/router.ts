@@ -1,11 +1,14 @@
+import { createHash } from "crypto";
 import express, { Response } from "express";
+
 import {
   AccessCandidate,
   ConnectorService,
-  ModelsProviderConnector,
   Logger,
+  ModelsProviderConnector,
 } from "@smythos/sre";
-import { createHash } from "crypto";
+
+import { teamAccessCheck } from "@debugger/middlewares/teamAccessCheck.mw";
 
 const console = Logger("[Builder] Router: Models");
 const router = express.Router();
@@ -48,15 +51,31 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// TODO: Properly implement custom models to fetch data from the `/custom/:teamId` endpoint.
-// * Currently, this endpoint returns an empty array as a placeholder for UI requests.
-router.get("/custom/:teamId", async (req, res, next) => {
+router.get("/custom/:teamId", teamAccessCheck, async (req, res, next) => {
   try {
-    res.status(200).send([]);
+    const teamId = req.params.teamId;
+
+    if (!teamId) {
+      return res.status(400).send({ error: "Team ID is required" });
+    }
+
+    const models = await getCustomModels(teamId);
+
+    res.status(200).send(models || {});
   } catch (error) {
     handleError(error, res);
   }
 });
+
+async function getCustomModels(teamId: string): Promise<Record<string, any>> {
+  const modelsProviderConnector: ModelsProviderConnector =
+    ConnectorService.getModelsProviderConnector();
+  const modelProviderCandidate = modelsProviderConnector.requester(
+    AccessCandidate.team(teamId)
+  );
+  const models = await modelProviderCandidate.getCustomModels();
+  return models;
+}
 
 // Helper functions
 
