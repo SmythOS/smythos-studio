@@ -1,17 +1,18 @@
 // builderStore.ts
-import { create, StoreApi } from 'zustand';
-import { ServerStatusSlice, serverStatusSlice } from './slices/server_status.slice';
+import { devtools } from 'zustand/middleware';
 import { createAppStore } from '..';
 import { BaseSlice, baseSlice } from './slices/base.slice';
-import { devtools } from 'zustand/middleware';
+import { OAuthSlice, oauthSlice } from './slices/oauth.slice';
+import { ServerStatusSlice, serverStatusSlice } from './slices/server_status.slice';
 
 export type BuilderStore = ServerStatusSlice &
-  BaseSlice & {
+  BaseSlice &
+  OAuthSlice & {
     init: () => Promise<void>;
   };
 
 export const builderStore = createAppStore<BuilderStore>({
   name: 'builder',
-  slices: [serverStatusSlice, baseSlice],
+  slices: [serverStatusSlice, baseSlice, oauthSlice],
   middlewares: [devtools],
 });

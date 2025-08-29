@@ -1,5 +1,4 @@
 import { getTeamSettingsObj } from '../../../services/team-data.service';
-import { getVaultKeys } from '../../router.utils';
 
 export const isKeyTemplateVariable = (str: string): boolean => {
   if (!str) return false;
@@ -36,8 +35,7 @@ export const replaceTemplateVariablesOptimized = async (req) => {
   const reqBody = req.body;
 
   // Fetch all team settings
-  // const allKeys = await getTeamSettingsObj(req, 'vault'); // ! Newly added keys are not accessible using this approach.
-  const allKeys = await getVaultKeys(req);
+  const allKeys = await getTeamSettingsObj(req, 'vault');
 
   // Fetch template variables and their corresponding values
   const templateValues = fetchTemplateValues(reqBody, allKeys, keysToCheck, req._team?.id);
