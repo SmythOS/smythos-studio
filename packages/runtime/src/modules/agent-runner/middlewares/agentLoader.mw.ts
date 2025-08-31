@@ -1,14 +1,13 @@
-import { ConnectorService } from "@smythos/sre";
-
-import { DEFAULT_FILE_PARSING_ENDPOINT } from "@agent-runner/constants";
-import config from "@core/config";
+import { ConnectorService, Logger } from "@smythos/sre";
 
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
 } from "@core/helpers/agent.helper";
-import { Logger } from "@smythos/sre";
+import config from "@core/config";
+
+import { DEFAULT_FILE_PARSING_ENDPOINT } from "@agent-runner/constants";
 
 const console = Logger("(Agent Runner) Middleware: Agent Loader");
 

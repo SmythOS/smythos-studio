@@ -1,4 +1,19 @@
 import { Express } from "express";
+
+import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
+
+import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
+import agentRunnerAgentLoader from "@agent-runner/middlewares/agentLoader.mw";
+import { processAgentRequest as agentRunnerProcessAgentRequest } from "@agent-runner/services/agent-request-handler";
+
+import debuggerAgentLoader from "@debugger/middlewares/agentLoader.mw";
+import modelsRouter from "@debugger/routes/models/router";
+import {
+  createSseConnection as debuggerCreateSseConnection,
+  getDebugSession as debuggerGetDebugSession,
+  processAgentRequest as debuggerProcessAgentRequest,
+} from "@debugger/services/agent-request-handler";
+
 import {
   RuntimeConfig,
   loadRuntimeConfig,
@@ -9,25 +24,6 @@ import {
   createDebuggerRouter,
 } from "./shared-agent-router";
 import { createConfiguredSmartRouter } from "./smart-agent-router";
-
-// Debugger imports
-import debuggerAgentLoader from "@debugger/middlewares/agentLoader.mw";
-import {
-  createSseConnection as debuggerCreateSseConnection,
-  getDebugSession as debuggerGetDebugSession,
-  processAgentRequest as debuggerProcessAgentRequest,
-} from "@debugger/services/agent-request-handler";
-
-// Agent-runner imports
-import agentRunnerAgentLoader from "@agent-runner/middlewares/agentLoader.mw";
-import { processAgentRequest as agentRunnerProcessAgentRequest } from "@agent-runner/services/agent-request-handler";
-import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
-
-// Route imports for service-specific endpoints
-import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
-
-// Common route imports - available for all server configurations
-import modelsRouter from "@debugger/routes/models/router";
 
 /**
  * Configures and mounts agent routers based on runtime configuration

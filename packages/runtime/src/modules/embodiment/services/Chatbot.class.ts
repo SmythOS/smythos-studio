@@ -1,15 +1,16 @@
-import { Agent, AgentLogger, Conversation } from "@smythos/sre";
 import { Request } from "express";
+
+import { Agent, AgentLogger, Conversation } from "@smythos/sre";
 
 import config from "@core/config";
 import { EMBODIMENT_TYPES } from "@core/constants";
 
 import { getOpenAPIJSONForAI } from "../helpers/openapi-adapter.helper";
-import { FsChatbotContextStore } from "../services/FsChatbotContextStore.class";
+import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
+import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 import { ChatConversationsEnv } from "../utils/chat.utils";
 import { delay } from "../utils/date-time.utils";
 import { adaptModel } from "../utils/llm.utils";
-import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 
 type Headers = {
   "x-conversation-id": string;
@@ -91,7 +92,7 @@ export default class Chatbot {
     this.modelInfo = {
       modelId: this.model,
       tokens: this.contextWindow,
-      completionTokens: this.maxOutputTokens
+      completionTokens: this.maxOutputTokens,
     };
 
     // Keep original model ID

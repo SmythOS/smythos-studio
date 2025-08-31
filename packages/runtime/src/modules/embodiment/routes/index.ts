@@ -1,8 +1,8 @@
 import { Router } from "express";
-
 import swaggerUi from "swagger-ui-express";
 
 import config from "@core/config";
+
 import { agentChatRouter } from "@embodiment/modules/agentChat/routes/router";
 import { alexaRouter } from "@embodiment/modules/alexa/routes/router";
 import { apiRouter } from "@embodiment/modules/API/routes/router";

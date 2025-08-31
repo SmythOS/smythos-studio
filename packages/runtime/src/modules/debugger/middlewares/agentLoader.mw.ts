@@ -1,11 +1,11 @@
 import { ConnectorService, Logger } from "@smythos/sre";
 
+import config from "@core/config";
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
-} from "@/core/helpers/agent.helper";
-import config from "@core/config";
+} from "@core/helpers/agent.helper";
 
 const console = Logger("[Debugger] Middleware: agentLoader");
 

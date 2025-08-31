@@ -1,8 +1,11 @@
-import { EStorageTypes } from "@/modules/embodiment/types/fileStorage.types";
-import { fsExists } from "@core/utils/general.utils";
-import type { ILLMContextStore } from "@smythos/sre";
 import fs from "fs";
 import path from "path";
+
+import type { ILLMContextStore } from "@smythos/sre";
+
+import { fsExists } from "@core/utils/general.utils";
+
+import { EStorageTypes } from "@/modules/embodiment/types/fileStorage.types";
 import { FsChatbotContextExporter } from "./FsChatbotContextExporter.class";
 
 export class FsChatbotContextStore implements ILLMContextStore {

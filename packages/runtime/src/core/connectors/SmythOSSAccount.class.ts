@@ -1,5 +1,5 @@
-import { getM2MToken } from "@/core/helpers/logto.helper";
-import { SmythConfigs } from "@core/types/general.types";
+import axios, { AxiosInstance } from "axios";
+
 import {
   AccessRequest,
   AccountConnector,
@@ -12,7 +12,9 @@ import {
   TAccessLevel,
   TAccessRole,
 } from "@smythos/sre";
-import axios, { AxiosInstance } from "axios";
+
+import { getM2MToken } from "@core/helpers/logto.helper";
+import { SmythConfigs } from "@core/types/general.types";
 
 const console = Logger("SmythOSSAccount");
 export class SmythOSSAccount extends AccountConnector {

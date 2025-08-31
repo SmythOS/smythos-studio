@@ -1,7 +1,8 @@
 import multer from "multer";
 
-import Chatbot from "@embodiment/modules/chatbot/services/Chatbot.class";
 import { Agent } from "@smythos/sre";
+
+import Chatbot from "@embodiment/modules/chatbot/services/Chatbot.class";
 
 declare global {
   namespace Express {

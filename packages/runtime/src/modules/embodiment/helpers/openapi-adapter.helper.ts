@@ -1,11 +1,12 @@
-import config from "@/core/config";
+import { AgentDataConnector, Logger } from "@smythos/sre";
+
+import config from "@core/config";
 import {
   addDefaultComponentsAndConnections,
   getAgentDataById,
   getAgentIdByDomain,
 } from "@core/helpers/agent.helper";
 import type { AgentData, OpenAPISpec } from "@core/types/openapi.types";
-import { AgentDataConnector, Logger } from "@smythos/sre";
 
 const console = Logger("openapi-adapter.helper.ts");
 

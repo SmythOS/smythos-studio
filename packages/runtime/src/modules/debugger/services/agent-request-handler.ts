@@ -1,10 +1,9 @@
 import axios from "axios";
 import { Request } from "express";
 
-import { Logger } from "@smythos/sre";
+import { AgentProcess, Logger } from "@smythos/sre";
 
-import { getMockData } from "@/core/helpers/agent.helper";
-import { AgentProcess } from "@smythos/sre";
+import { getMockData } from "@core/helpers/agent.helper";
 
 const console = Logger("Service: Agent Request Handler");
 

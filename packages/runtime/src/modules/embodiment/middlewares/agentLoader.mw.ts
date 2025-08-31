@@ -1,11 +1,3 @@
-import config from "@core/config";
-import {
-  extractAgentVerionsAndPath,
-  getAgentDomainById,
-  getAgentIdAndVersion,
-} from "../helpers/agent.helper";
-
-import { addDefaultComponentsAndConnections } from "@/core/helpers/agent.helper";
 import {
   Agent,
   AgentRequest,
@@ -13,6 +5,15 @@ import {
   ConnectorService,
   Logger,
 } from "@smythos/sre";
+
+import config from "@core/config";
+import { addDefaultComponentsAndConnections } from "@core/helpers/agent.helper";
+
+import {
+  extractAgentVerionsAndPath,
+  getAgentDomainById,
+  getAgentIdAndVersion,
+} from "@embodiment/helpers/agent.helper";
 
 const console = Logger("[Embodiment] Middleware: Agent Loader");
 
