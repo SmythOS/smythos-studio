@@ -10,7 +10,6 @@ import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
 import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 import { ChatConversationsEnv } from "../utils/chat.utils";
 import { delay } from "../utils/date-time.utils";
-import { adaptModel } from "../utils/llm.utils";
 
 type Headers = {
   "x-conversation-id": string;
@@ -204,8 +203,7 @@ export default class Chatbot {
       );
 
       // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
-      const adaptedModel = adaptModel(this.model, this.agent?.planInfo || {});
-      const conversation = new Conversation(adaptedModel, spec, {
+      const conversation = new Conversation(this.model, spec, {
         maxContextSize: this.contextWindow,
         maxOutputTokens: this.maxOutputTokens,
         agentId: this.agentId,

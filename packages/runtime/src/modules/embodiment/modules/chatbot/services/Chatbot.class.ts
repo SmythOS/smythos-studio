@@ -4,7 +4,6 @@ import { Request } from "express";
 import config from "@core/config";
 import { EMBODIMENT_TYPES } from "@core/constants";
 import { delay } from "@core/utils/date-time.utils";
-import { adaptModel } from "@core/utils/llm.utils";
 
 import { getOpenAPIJSONForAI } from "@embodiment/helpers/openapi-adapter.helper";
 import { ChatConversationsEnv } from "@embodiment/utils/chat.utils";
@@ -222,8 +221,7 @@ export default class Chatbot {
       );
 
       // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
-      const adaptedModel = adaptModel(this.model, this.agent?.planInfo || {});
-      const conversation = new Conversation(adaptedModel, spec, {
+      const conversation = new Conversation(this.model, spec, {
         maxContextSize: this.contextWindow,
         maxOutputTokens: this.maxOutputTokens,
         agentId: this.agentId,

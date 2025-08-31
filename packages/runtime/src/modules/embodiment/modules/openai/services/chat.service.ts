@@ -1,5 +1,4 @@
 import ApiError from "@core/utils/apiError";
-import { adaptModel } from "@core/utils/llm.utils";
 import { getAgentIdAndVersion } from "@embodiment/helpers/agent.helper";
 import {
   AccessCandidate,
@@ -62,8 +61,7 @@ class OpenAIChatService {
       .join("\n");
 
     // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
-    const adaptedModel = adaptModel(modelId, agent?.planInfo || {});
-    const conv = new Conversation(adaptedModel, agentId, { agentVersion });
+    const conv = new Conversation(modelId, agentId, { agentVersion });
     await conv.ready;
     if (systemPrompt.trim()?.length) {
       conv.systemPrompt += `\n\n######\n\n${systemPrompt}`;

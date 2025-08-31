@@ -1,4 +1,3 @@
-import { adaptModel } from "@core/utils/llm.utils";
 import { getOpenAPIJSONForAI } from "@embodiment/helpers/openapi-adapter.helper";
 import { Agent, Conversation } from "@smythos/sre";
 import axios from "axios";
@@ -223,8 +222,7 @@ export function processAlexaSearchQuery(
     );
 
     // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
-    const adaptedModel = adaptModel(model, agent?.planInfo || {});
-    const conversation = new Conversation(adaptedModel, spec, {
+    const conversation = new Conversation(model, spec, {
       agentId: agent.id,
     });
     conversation.on("error", (error) => {
