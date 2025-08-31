@@ -1,14 +1,16 @@
 import fs from "fs";
 import path from "path";
 
-import { ChatGPTManifest } from "@/modules/embodiment/types/chatgpt.types";
-import { EMBODIMENT_TYPES } from "@core/constants";
+import { JSONContentHelper, TemplateStringHelper } from "@smythos/sre";
+
 import {
   getAgentDataById,
   getAgentEmbodiments,
   getAgentIdByDomain,
-} from "@embodiment/helpers/agent.helper";
-import { JSONContentHelper, TemplateStringHelper } from "@smythos/sre";
+} from "@core/helpers/agent.helper";
+
+import { ChatGPTManifest } from "@/modules/embodiment/types/chatgpt.types";
+import { EMBODIMENT_TYPES } from "@embodiment/constants";
 
 let chatGPTDataPath = "./data/chatGPT";
 

@@ -3,7 +3,8 @@ import { Request } from "express";
 import { Agent, AgentLogger, Conversation } from "@smythos/sre";
 
 import config from "@core/config";
-import { EMBODIMENT_TYPES } from "@core/constants";
+
+import { EMBODIMENT_TYPES } from "@embodiment/constants";
 
 import { getOpenAPIJSONForAI } from "../helpers/openapi-adapter.helper";
 import { FsChatbotContextStore } from "./FsChatbotContextStore.class";

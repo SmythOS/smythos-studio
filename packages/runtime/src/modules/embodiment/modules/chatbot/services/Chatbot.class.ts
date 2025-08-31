@@ -2,9 +2,9 @@ import { Agent, AgentLogger, Conversation } from "@smythos/sre";
 import { Request } from "express";
 
 import config from "@core/config";
-import { EMBODIMENT_TYPES } from "@core/constants";
 import { delay } from "@core/utils/date-time.utils";
 
+import { EMBODIMENT_TYPES } from "@embodiment/constants";
 import { getOpenAPIJSONForAI } from "@embodiment/helpers/openapi-adapter.helper";
 import { ChatConversationsEnv } from "@embodiment/utils/chat.utils";
 
