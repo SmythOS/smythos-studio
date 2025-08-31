@@ -98,18 +98,7 @@ export default async function agentLoader(req, res, next) {
     // clean up agent data
     cleanAgentData(agentData);
 
-    req._plan = agentData.data.planInfo;
-
     req._agent = agentData.data;
-    req._agent.planInfo = req._plan || {
-      planId: undefined,
-      planName: undefined,
-      isFreePlan: true,
-      tasksQuota: 0,
-      usedTasks: 0,
-      remainingTasks: 0,
-      maxLatency: 100,
-    };
 
     req._agent.usingTestDomain = isTestDomain;
     req._agent.domain = agentDomain || (await getAgentDomainById(agentId));

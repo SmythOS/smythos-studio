@@ -107,22 +107,11 @@ export default async function agentLoader(req, res, next) {
     // clean up agent data
     cleanAgentData(agentData);
 
-    req._plan = agentData.data.planInfo;
-
     // req._agent = agentData.data;
     const agentSettings = new AgentSettings(agentId);
     const agentRequest = new AgentRequest(req);
     req._agent = new Agent(agentId, agentData, agentSettings, agentRequest);
     req._rawAgent = agentData;
-    req._agent.planInfo = req._plan || {
-      planId: undefined,
-      planName: undefined,
-      isFreePlan: true,
-      tasksQuota: 0,
-      usedTasks: 0,
-      remainingTasks: 0,
-      maxLatency: 100,
-    };
 
     req.socket.on("close", () => {
       // console.log('Client socket closed, killing agent');

@@ -112,9 +112,6 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       agentObj.data = this.migrateAgentData(agentObj.data);
 
-      // add plan info to the agent data
-      agentObj.data.planInfo = this.parsePlanData(agentObj);
-
       return agentObj;
     } catch (error: any) {
       console.error(error.response?.data, error.message);
@@ -314,50 +311,5 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
     }
 
     return data;
-  }
-
-  private parsePlanData(agentData) {
-    // free plans cannot register a domain
-    //FIXME : this check is probably weak, we need to make sure that it's always accurate or implement a better way to check.
-    const planId = agentData?.team?.subscription?.plan?.id;
-    const planName = agentData?.team?.subscription?.plan?.name;
-    const isFreePlan = agentData?.team?.subscription?.plan?.isDefaultPlan;
-    let tasksQuota =
-      (agentData?.team?.subscription?.properties?.tasks || 0) +
-      (agentData?.team?.subscription?.properties?.bonusTasks || 0);
-    //exception for early adopters
-    tasksQuota =
-      agentData?.team?.subscription?.plan?.name == "Early Adopters"
-        ? Infinity
-        : tasksQuota;
-
-    let usedTasks = agentData.taskData.tasks;
-    let remainingTasks = Math.max(tasksQuota - usedTasks, 0);
-    // apply latency to free plans with no paid tasks in order to preserve resources
-    const maxLatency =
-      isFreePlan && remainingTasks <= 0
-        ? process.env.MAX_LATENCY_FREE_USER || 100
-        : process.env.MAX_LATENCY_PAID_USER || 10;
-    const maxParellelRequests =
-      isFreePlan && remainingTasks <= 0 ? 1 : Infinity;
-
-    const flags = agentData?.team?.subscription?.plan?.properties?.flags || {};
-    const properties = agentData?.team?.subscription?.properties || {};
-    const isDefaultPlan =
-      agentData?.team?.subscription?.plan?.isDefaultPlan || false;
-
-    return {
-      planId,
-      planName,
-      isFreePlan,
-      tasksQuota,
-      usedTasks,
-      remainingTasks,
-      maxLatency,
-      maxParellelRequests,
-      flags,
-      properties,
-      isDefaultPlan,
-    };
   }
 }
