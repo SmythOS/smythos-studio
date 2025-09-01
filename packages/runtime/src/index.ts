@@ -32,6 +32,9 @@ import {
 // Embodiment imports
 import { routes as embodimentRoutes } from "@embodiment/routes";
 
+// Code sandbox service
+import { CodeSandboxService } from "./services/code-sandbox.service";
+
 const app = express();
 const port = parseInt(process.env.PORT || "5000");
 
@@ -195,12 +198,36 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 let server: Server | null = null;
+const codeSandboxService = CodeSandboxService.getInstance();
+
 (async () => {
   try {
+    console.info("🚀 Starting SmythOS Runtime Services...");
+    console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // Start the code sandbox service
+    console.info("📦 Starting Code Sandbox Service...");
+    await codeSandboxService.start();
+    console.info(`✅ Code Sandbox Service running on http://localhost:5055`);
+
+    // Start the main servers (runtime + management)
+    console.info("⚡ Starting Main Runtime Services...");
     server = startServers();
-    console.info(`Server started on port ${port}`);
+
+    // Log all running services
+    console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.info("🎯 All Services Running:");
+    console.info(
+      `   • Management Server: http://localhost:${
+        process.env.ADMIN_PORT || "8080"
+      }`
+    );
+    console.info(`   • Runtime Server:    http://localhost:${port}`);
+    console.info(`   • Code Sandbox:      http://localhost:5055`);
+    console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.info("✨ SmythOS Runtime is ready!");
   } catch (error) {
-    console.error(error);
+    console.error("❌ Failed to start services:", error);
   }
 })();
 
@@ -208,5 +235,31 @@ process.on("uncaughtException", (err) => {
   console.error("An uncaught error occurred!");
   console.error(err.stack);
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+  console.info(`Received ${signal}, shutting down gracefully`);
+
+  try {
+    // Stop code sandbox service
+    await codeSandboxService.stop();
+
+    // Close HTTP server if it exists
+    if (server) {
+      server.close(() => {
+        console.info("HTTP server closed");
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error("Error during shutdown:", error);
+    process.exit(1);
+  }
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 export { app };
