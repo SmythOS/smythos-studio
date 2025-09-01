@@ -12,6 +12,7 @@ import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { jsonrepair } from 'jsonrepair';
+import { isEqual } from 'lodash-es';
 import { TooltipV2 } from '../../../react/shared/components/_legacy/ui/tooltip/tooltipV2';
 import config, { COMP_NAMES } from '../../config';
 import { BINARY_INPUT_TYPES } from '../../constants';
@@ -25,6 +26,7 @@ import {
   updateDebugControls,
   updateDebugControlsOnSelection,
 } from '../../utils/debugger.utils';
+import { destroyMenu as destroyCanvasContextMenu } from '../../workspace/CanvasContextMenu';
 import {
   addMockDataToggleButton,
   MockDataToggleButtonState,
@@ -1074,8 +1076,8 @@ export class Component extends EventEmitter {
       return (await confirm('Deleting Output. Are you sure ?', '', {
         btnYesLabel: 'Delete',
         btnNoLabel: 'Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
         btnNoClass: 'hidden',
+        btnYesType: 'danger',
       }))
         ? this.deleteEndpoint(outputDiv)
         : false;
@@ -1518,8 +1520,8 @@ export class Component extends EventEmitter {
       const _confirm = await confirm('Deleting Input. Are you sure ?', '', {
         btnYesLabel: 'Delete',
         btnNoLabel: 'Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
         btnNoClass: 'hidden',
+        btnYesType: 'danger',
       });
 
       if (_confirm) {
@@ -1723,8 +1725,8 @@ export class Component extends EventEmitter {
         'Settings Changed',
         'You have unsaved changes. Are you sure you want to discard your changes?',
         {
-          btnNoLabel: 'Discard Changes',
           btnYesLabel: 'Save Changes',
+          btnNoClass: 'hidden',
         },
       );
       if (saveBeforeClose) {
@@ -1758,6 +1760,7 @@ export class Component extends EventEmitter {
         console.log('new settings', values);
 
         this.emit('settingsSaved', values);
+        successToast('Settings saved');
         return true;
       }
     }
@@ -1770,16 +1773,29 @@ export class Component extends EventEmitter {
     const form = document.querySelector(`#right-sidebar form.Settings`);
     if (!form) return false;
     const values = readFormValues(form, entries);
-    console.log('settingsChanged()', values, entries);
 
     if (this.properties.template) {
       const templateData = this.data._templateVars;
       for (let name in entries) {
-        if (templateData[name] !== undefined && templateData[name] != values[name]) return true;
+        if (
+          Object.prototype.hasOwnProperty.call(templateData, name) &&
+          !isEqual(templateData[name], values[name])
+        )
+          return true;
+
+        if (
+          Object.prototype.hasOwnProperty.call(entries, name) &&
+          !isEqual(entries[name]?.value, values[name])
+        )
+          return true;
       }
     } else {
       for (let name in entries) {
-        if (this.data[name] !== undefined && this.data[name] != values[name]) return true;
+        if (
+          Object.prototype.hasOwnProperty.call(this.data, name) &&
+          !isEqual(this.data[name], values[name])
+        )
+          return true;
       }
     }
   }
@@ -2364,6 +2380,7 @@ export class Component extends EventEmitter {
     overlay.style.display = 'none';
 
     const openSettingsSidebar = async (event) => {
+      destroyCanvasContextMenu();
       //if (this.workspace?.locked) return false;
       if (this.domElement.classList.contains('dragging')) return;
       if (this.domElement.classList.contains('resizing')) return;
@@ -2387,11 +2404,23 @@ export class Component extends EventEmitter {
       ); // checkVisibility is not available in safari <= 17.3
       if (dbgElements.length > 0) return;
 
-      if (!this.settingsOpen && this.loadingIcon) this.loadingIcon?.classList?.remove('hidden');
-
       if (Component.curComponentSettings && Component.curComponentSettings !== this) {
-        await Component.curComponentSettings.confirmSaveSettings();
+        const hasChanges = Component.curComponentSettings.settingsChanged();
+        if (hasChanges) {
+          // If another component settings is open with changes, prompt to discard
+          const discard = await confirm(
+            'You have unsaved changes',
+            'Are you sure you want to close this without saving?',
+            {
+              btnYesLabel: 'Discard Changes',
+              btnYesClass: 'rounded-lg px-8',
+              btnNoClass: 'hidden',
+            },
+          );
+          if (!discard) return;
+        }
       }
+
       if (this.settingsOpen) {
         this.closeSettings();
       } else {
@@ -2603,7 +2632,8 @@ export class Component extends EventEmitter {
         {
           btnYesLabel: 'Delete',
           btnNoLabel: 'Cancel',
-          btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
+          // btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 rounded-lg px-8',
+          btnYesType: 'danger',
           btnNoClass: 'hidden',
         },
       ));

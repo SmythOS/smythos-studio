@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "SmythOS UI Backend",
       "skipFiles": ["<node_internals>/**"],
-      "preLaunchTask": "cd ${workspaceFolder}/packages/app && npm run bundle:backend",
+      "preLaunchTask": "cd ${workspaceFolder}/packages/app && pnpm run bundle:backend",
       "program": "${workspaceFolder}/packages/app/dist/server/index.js",
       "outFiles": ["${workspaceFolder}/packages/app/dist/server/**/*.js"],
       "sourceMap": true,

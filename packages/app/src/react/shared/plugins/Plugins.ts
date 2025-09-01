@@ -1,9 +1,16 @@
 export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
+  BuilderLoadAgentTemplates = 'builder/LoadAgentTemplates',
   TopMenuItem = 'topMenuItem',
   Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
+  AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
+  AgentSettingsWidgets = 'agentSettings/widgets',
+  AgentSettingsSkillsWidgetSkillButton = 'agentSettings/skillsWidget/skillButton',
+  BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
+  BuilderSREComponents = 'builder/sreComponents',
+  AgentsPageSection = 'agentsPage/section',
 }
 
 export enum PluginType {

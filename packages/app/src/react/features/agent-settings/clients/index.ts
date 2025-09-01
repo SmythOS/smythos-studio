@@ -1,4 +1,4 @@
-import { Agent } from "@react/shared/types/agent-data.types";
+import { Agent } from '@react/shared/types/agent-data.types';
 
 export const getAgent = async (id: string): Promise<Agent> => {
   const res = await fetch(`/api/agent/${id}`);
@@ -49,4 +49,17 @@ export const saveAgentSettingByKey = async (key: string, value: string, agentId:
   if (!response.ok) {
     throw new Error('Failed to save setting');
   }
+};
+
+export const saveEmbodiment = async (method: 'PUT' | 'POST', body: any) => {
+  const requestOptions = {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  };
+
+  const response = await fetch('/api/page/agents/embodiment', requestOptions);
+  return response.json();
 };

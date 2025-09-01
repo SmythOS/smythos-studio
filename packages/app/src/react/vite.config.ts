@@ -1,24 +1,20 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import path from 'path';
 import dotenv from 'dotenv';
+import path from 'path';
+import { defineConfig } from 'vite';
 
 dotenv.config({ path: '../../.env' });
 // https://vite.dev/config/
-let EXPRESS_SERVER_PORT = parseInt(process.env.PORT || '4000');
+const EXPRESS_SERVER_PORT = parseInt(process.env.PORT || '4000');
 
-const proxyRoutes = ['/api', '/app', '/js', '/css', '/metroui'];
+const proxyRoutes = ['/api', '/app', '/js', '/css', '/metroui', '/img', '/assets', '/oauth'];
 const redirectRoutes = ['/builder', '/logs', '/logto'];
 
 // Helper function to check if request should be proxied
 const shouldProxy = (pathname: string): boolean => {
   // Don't proxy requests for files with extensions (module resolution)
   // Handle both /file.tsx and /file.tsx?query=params
-  if (
-    pathname.match(
-      /\.(tsx?|jsx?|css|scss|sass|less|json|svg|png|jpg|jpeg|gif|woff2?|ttf|eot)(\?.*)?$/i,
-    )
-  ) {
+  if (pathname.match(/\.(tsx|jsx)(\?.*)?$/i)) {
     return false;
   }
 
@@ -65,7 +61,7 @@ export default defineConfig({
   publicDir: path.resolve(__dirname, '../../static'),
   build: {
     target: 'esnext',
-    outDir: 'static/js/build/react',
+    outDir: 'dist/assets',
     emptyOutDir: true,
     sourcemap: true,
     manifest: true,

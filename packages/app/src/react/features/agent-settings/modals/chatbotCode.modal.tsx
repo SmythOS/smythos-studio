@@ -118,7 +118,7 @@ const ChatbotCodeSnippetModal = (props: Props) => {
             label="Copy"
             addIcon={true}
             Icon={<FaCopy className="mr-2" />}
-            className="w-[100px] h-[48px] rounded-lg ml-auto"
+            className="w-[100px] rounded-lg ml-auto"
           />
         </div>
       </div>

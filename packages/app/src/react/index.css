@@ -5,20 +5,3 @@
 /* @import '~ag-grid-community/styles/ag-grid.css';
 @import '~ag-grid-community/styles/ag-theme-alpine.css'; */
 
-/* Agents page gradient background (pastel like ChatGPT home) */
-.bg-agents-gradient {
-  background:
-    /* soft white glow center */
-    radial-gradient(120% 120% at 50% 50%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%),
-    /* peach highlight top center */
-    radial-gradient(70% 55% at 50% 0%, rgba(255, 214, 137, 0.62) 0%, rgba(255, 214, 137, 0) 60%),
-    /* pink wash top-left */
-    radial-gradient(75% 60% at 8% 12%, rgba(255, 175, 189, 0.55) 0%, rgba(255, 175, 189, 0) 60%),
-    /* periwinkle top-right */
-    radial-gradient(75% 60% at 92% 10%, rgba(175, 195, 255, 0.55) 0%, rgba(175, 195, 255, 0) 60%),
-    /* light blue bottom-left */
-    radial-gradient(75% 60% at 12% 88%, rgba(189, 223, 255, 0.55) 0%, rgba(189, 223, 255, 0) 60%),
-    /* lavender bottom-right */
-    radial-gradient(70% 60% at 88% 92%, rgba(212, 189, 255, 0.5) 0%, rgba(212, 189, 255, 0) 60%),
-    #ffffff;
-}

@@ -37,8 +37,20 @@ button:hover .svg-icon {
 .svg-icon.info {
   background-image: url('/img/icons/Info.svg');
 }
+
+.del-btn .svg-icon.delete {
+  background-color: #707070;
+}
+
+.del-btn:hover .svg-icon.delete {
+  background-color: #d11a2a;
+}
+
 .svg-icon.delete {
-  background-image: url('/img/icons/delete_v2.svg');
+  mask: url(/img/icons/delete_v2.svg) no-repeat center;
+  mask-size: cover;
+  -webkit-mask: url(/img/icons/delete_v2.svg) no-repeat center;
+  -webkit-mask-size: cover;
 }
 
 .svg-icon.search {

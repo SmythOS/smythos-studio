@@ -1,15 +1,6 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import {
-  BinaryTreeIcon,
-  BookIcon,
-  DatabaseIcon,
-  DiscordIcon,
-  GridIcon,
-  HomeIcon,
-  KeyIcon,
-  LineChartIcon,
-} from '../components/svgs';
+import { BookIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
@@ -20,24 +11,21 @@ export type SidebarMenuItem = {
   name: string;
   icon: React.FC;
   visible: boolean | ((ctx: any) => boolean);
+  order?: number;
 };
 
 export const getSidebarMenuItems = (): SidebarMenuItem[] => {
-  let pluginItems = (
+  const pluginItems = (
     plugins.getPluginsByTarget(PluginTarget.SidebarMenuItems, PluginType.Config) as {
-      config: any;
+      config: SidebarMenuItem;
     }[]
   ).flatMap((item) => item.config);
 
   return [
-    { url: '/agents', name: 'Home', icon: HomeIcon, visible: true },
-    { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon, visible: true },
-    { url: '/data/', name: 'Data Pool', icon: DatabaseIcon, visible: true },
-    { url: '/analytics', name: 'Analytics', icon: LineChartIcon, visible: true },
-    { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true },
-    { url: '/templates', name: 'Templates', icon: GridIcon, visible: true },
+    { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
+    { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
     ...pluginItems,
-  ];
+  ].sort((a, b) => (a.order || 0) - (b.order || 0));
 };
 
 export const bottomLinks = [
@@ -62,6 +50,5 @@ export const profileDropdownItems = () => {
     // { url: '/teams/members', name: 'User Management' },
     ...pluginItems,
     { url: '/teams/settings', name: 'User Management' },
-    { url: '/my-plan', name: 'My Plan' },
   ];
 };

@@ -1,9 +1,7 @@
 import {
-  AgentsBanner,
   AgentsGrid,
   AgentsHeader,
-  GenerateAgentForm,
-  TemplatesSection,
+  GenerateAgentForm
 } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
@@ -13,10 +11,8 @@ import {
   Learn,
   OnboardingTasks,
 } from '@react/features/onboarding/components/agent-onboarding-section';
-import { getTemplatesForJobRole } from '@react/features/onboarding/data/onboarding-mappings';
 import { useGetOnboardingData } from '@react/features/onboarding/hooks/useGetUserOnboardingSettings';
 import useMutateOnboardingData from '@react/features/onboarding/hooks/useMutateOnboardingData';
-import { filterTemplates } from '@react/features/templates/utils';
 import { FeatureFlagged } from '@react/shared/components/featureFlags';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
@@ -24,11 +20,12 @@ import { FEATURE_FLAGS } from '@shared/constants/featureflags';
 import { V4_ALL_PLANS } from '@shared/constants/general';
 import { Analytics } from '@shared/posthog/services/analytics';
 import { UserSettingsKey } from '@src/backend/types/user-data';
-import { GenerateAgentFormData, Template } from '@src/react/features/agents/types/agents.types';
-import UpSellModal from '@src/react/features/subscriptions/components/paywalls/up-sell';
+import { GenerateAgentFormData } from '@src/react/features/agents/types/agents.types';
+import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
+import { plugins, PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useFetchTemplates } from '../../templates/hooks/useFetchTemplates';
+import UpSellModal from '../components/meta/up-sell';
 
 /**
  * Main agents page component with agent generation, listing, and template sections
@@ -37,12 +34,13 @@ function AgentsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const switchteamid = searchParams.get('switchteamid');
-  const [templates, setTemplates] = useState<Template[]>([]);
   const endOfPageRef = useRef<HTMLDivElement>(null);
   const saveUserSettingsMutation = useMutateOnboardingData();
   const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(true);
+
+  // console the plugins
+  console.log('plugins', plugins.getPluginsByTarget(PluginTarget.AgentsPageSection));
 
   // Authentication and permissions
   const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
@@ -69,10 +67,7 @@ function AgentsPage() {
     handleLoadMore,
   } = useAgentsData();
 
-  // API hooks
-  const { data: templatesData } = useFetchTemplates({
-    options: { refetchOnWindowFocus: false },
-  });
+  
 
   const { data: userSettings, isFetched: isUserSettingsFetched } = useGetOnboardingData({
     options: {
@@ -86,25 +81,7 @@ function AgentsPage() {
   // Trigger first-visit tutorial
   useAgentsPageTutorial();
 
-  // Templates processing
-  useEffect(() => {
-    if (!!templatesData && !!userSettings) {
-      const userJobRole = userSettings?.jobRoleLabel;
-
-      // First get all templates
-      const allTemplates = JSON.parse(JSON.stringify(templatesData));
-
-      // Then filter for marketing templates if needed
-      const marketingTemplates = userJobRole
-        ? getTemplatesForJobRole(userJobRole, allTemplates)?.relevantTemplates || templatesData
-        : templatesData;
-
-      // Apply the template filtering but don't add missing OUT_OF_BOX_TEMPLATES
-      const processedTemplates = filterTemplates(marketingTemplates, 'All', '', 'name', 'asc');
-
-      setTemplates(processedTemplates);
-    }
-  }, [templatesData, userSettings]);
+  
 
   // Scroll to bottom when agents are updated
   useLayoutEffect(() => {
@@ -198,12 +175,9 @@ function AgentsPage() {
           <GenerateAgentForm
             onSubmit={handleGenerateAgentSubmit}
             canEditAgents={canEditAgents}
-            isBannerVisible={isBannerVisible}
           />
         </FeatureFlagged>
 
-        {/* GPT-5 Promo Banner */}
-        {isBannerVisible && <AgentsBanner onClose={() => setIsBannerVisible(false)} />}
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
@@ -237,13 +211,10 @@ function AgentsPage() {
           <ModelAgentsSection />
         )}
 
-        {/* Templates Section */}
-        <TemplatesSection templates={templates} userJobRole={userSettings?.jobRoleLabel} />
+        <PluginComponents targetId={PluginTarget.AgentsPageSection} />
 
         {/* Learn Section */}
-        <div className="my-20 pb-3">
-          <Learn />
-        </div>
+        <Learn />
       </main>
 
       {/* Upsell Modal */}

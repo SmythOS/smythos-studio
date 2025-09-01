@@ -45,6 +45,7 @@ let globalModalManager = {
   activeInstanceId: null as string | null,
   activeModal: null as string | null,
   showCodeSnippet: false,
+  activeCodeSnippetKey: null as string | null,
   subscribers: new Set<string>(),
 
   registerInstance: (instanceId: string, agentId: string) => {
@@ -64,6 +65,7 @@ let globalModalManager = {
       globalModalManager.activeAgentId = null;
       globalModalManager.activeModal = null;
       globalModalManager.showCodeSnippet = false;
+      globalModalManager.activeCodeSnippetKey = null;
     }
   },
 
@@ -81,13 +83,15 @@ let globalModalManager = {
     }
   },
 
-  setCodeSnippet: (instanceId: string, agentId: string, show: boolean) => {
+  setCodeSnippet: (instanceId: string, agentId: string, show: boolean, key: string) => {
     if (show) {
       globalModalManager.activeInstanceId = instanceId;
       globalModalManager.activeAgentId = agentId;
       globalModalManager.showCodeSnippet = true;
+      globalModalManager.activeCodeSnippetKey = key;
     } else {
       globalModalManager.showCodeSnippet = false;
+      globalModalManager.activeCodeSnippetKey = null;
     }
     // Notify components of modal state change
     if (typeof window !== 'undefined') {
@@ -127,6 +131,7 @@ export const useAgentEmbodimentSettings = (
   // Local state for this instance
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
+  const [activeCodeSnippetKey, setActiveCodeSnippetKey] = useState<string | null>(null);
 
   const { hasReadOnlyPageAccess, userInfo, loading: userInfoLoading } = useAuthCtx();
   const planProperties = userInfo?.subs?.plan?.properties;
@@ -150,9 +155,11 @@ export const useAgentEmbodimentSettings = (
     if (globalModalManager.isActiveInstance(hookInstanceId)) {
       setActiveModal(globalModalManager.activeModal);
       setShowCodeSnippet(globalModalManager.showCodeSnippet);
+      setActiveCodeSnippetKey(globalModalManager.activeCodeSnippetKey);
     } else {
       setActiveModal(null);
       setShowCodeSnippet(false);
+      setActiveCodeSnippetKey(null);
     }
   }, [hookInstanceId]);
 
@@ -167,14 +174,16 @@ export const useAgentEmbodimentSettings = (
     setActiveModal(null);
   };
 
-  const openCodeSnippet = () => {
-    globalModalManager.setCodeSnippet(hookInstanceId, agentId, true);
+  const openCodeSnippet = (key: string) => {
+    globalModalManager.setCodeSnippet(hookInstanceId, agentId, true, key);
     setShowCodeSnippet(true);
+    setActiveCodeSnippetKey(key);
   };
 
   const closeCodeSnippet = () => {
-    globalModalManager.setCodeSnippet(hookInstanceId, agentId, false);
+    globalModalManager.setCodeSnippet(hookInstanceId, agentId, false, null);
     setShowCodeSnippet(false);
+    setActiveCodeSnippetKey(null);
   };
 
   // Use React Query helper for agent embodiments first
@@ -192,6 +201,7 @@ export const useAgentEmbodimentSettings = (
     showCodeSnippet,
     openCodeSnippet,
     closeCodeSnippet,
+    activeCodeSnippetKey,
     agent: agentQuery?.data,
     embodimentsData,
     refreshEmbodiments: () => refetchEmbodiments(),
@@ -248,7 +258,7 @@ export const useAgentEmbodimentSettings = (
       queryClient.setQueryData(['agentSettings', agentId], updatedSettings);
       callCallback();
     }
-  }, [activeModal, showCodeSnippet, embodimentsData, agentQuery?.data]);
+  }, [activeModal, showCodeSnippet, activeCodeSnippetKey, embodimentsData, agentQuery?.data]);
 
   const { data: availableEmbodiments = [] } = useQuery({
     queryKey: ['availableEmbodiments', agentId],
@@ -272,6 +282,7 @@ export const useAgentEmbodimentSettings = (
         openCodeSnippet,
         closeCodeSnippet,
         agent: agentQuery?.data,
+        activeCodeSnippetKey,
         embodimentsData,
         refreshEmbodiments: () => refetchEmbodiments(),
         isActiveInstance: globalModalManager.isActiveInstance(hookInstanceId),
@@ -368,6 +379,7 @@ export const useAgentEmbodimentSettings = (
       openModal,
       closeModal,
       showCodeSnippet,
+      activeCodeSnippetKey,
       openCodeSnippet,
       closeCodeSnippet,
       isActiveInstance: globalModalManager.isActiveInstance(hookInstanceId),

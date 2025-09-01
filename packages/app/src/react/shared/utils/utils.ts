@@ -64,23 +64,6 @@ export const validateDomains = (domains: string[]): boolean => {
   }
   return true;
 };
-export const calculateCompletionPercentage = (stats) => {
-  const completed = stats?.statusData?.sitemapStatus?.res?.status?.completed || 0;
-  const total = stats?.statusData?.sitemapStatus?.res?.status?.total || 0;
-  return Math.round((completed / total) * 100);
-};
-
-export const fetchStatusData = async (datasourceId) => {
-  const statusDataResponse = await fetch(`/api/page/vectors/datasourceStatus?id=${datasourceId}`);
-  const statusData = await statusDataResponse.json();
-  return statusData;
-};
-
-export const fetchSitemapStatus = async (datasourceID) => {
-  const sitemapStatusResponse = await fetch(`/api/page/vectors/sitemapStatus?id=${datasourceID}`);
-  const sitemapData = await sitemapStatusResponse.json();
-  return sitemapData;
-};
 
 export interface LocalStorageArrayRetriever {
   get: (childKey: string) => any;
@@ -131,4 +114,3 @@ export const createLocalStorageArrayRetriever = (parentKey: string): LocalStorag
 export function cn(...classes: any[]): string {
   return classes.filter(Boolean).join(' ');
 }
-

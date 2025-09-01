@@ -7,6 +7,7 @@ import { ComponentProperties, DrawSettingsType, Settings } from '../types/compon
 import { alert, openAgentSettingsRightSidebar } from '../ui/dialogs';
 import { renderAgentSettingsSidebar } from '../ui/react-injects';
 import { delay, uid } from '../utils';
+import { destroyMenu as destroyCanvasContextMenu } from '../workspace/CanvasContextMenu';
 import { Workspace } from '../workspace/Workspace.class';
 import { Component } from './Component.class';
 
@@ -166,6 +167,37 @@ export class AgentCard extends EventEmitter {
   }
 
   /**
+   * Refresh skill connections for the agent card
+   * This method updates only the connections between the agent card and skills
+   * without redrawing the entire card - useful when agent properties change
+   */
+  public async repaintSkillConnections(): Promise<void> {
+    if (!this.workspace.agent?.data?.components) return;
+
+    // Get skills once to avoid duplicate filtering
+    const skills = this.workspace.agent.data.components.filter((c) => c.name === 'APIEndpoint');
+    if (skills.length === 0) return;
+
+    // Handle connections for all skills
+    for (const skill of skills) {
+      await this.handleCompConn(skill.id);
+    }
+
+    // Single repaint operation for all affected elements
+    // This is more efficient than multiple individual repaints
+    const elementsToRepaint = [
+      this.domElement, // Agent card
+      ...skills.map((skill) => document.querySelector(`#${skill.id}`)).filter(Boolean),
+    ];
+
+    elementsToRepaint.forEach((element) => {
+      if (element) {
+        this.workspace.jsPlumbInstance.repaint(element);
+      }
+    });
+  }
+
+  /**
    * Redraw the agent card
    */
   public async redraw(): Promise<void> {
@@ -212,8 +244,9 @@ export class AgentCard extends EventEmitter {
     // create a placeholder for the agent image (if no image found). the placeholder will be the first letter of the agent name. use tailwind
     const agentImagePlaceholder = document.createElement('div');
     agentImagePlaceholder.id = 'agent-card-avatar-placeholder';
-    agentImagePlaceholder.className = `h-full w-full flex items-center justify-center bg-uipink rounded-[7px]  w-8 h-8 flex items-center justify-center text-white font-medium truncate ${agentAvatar ? 'hidden' : ''
-      }`;
+    agentImagePlaceholder.className = `h-full w-full flex items-center justify-center bg-uipink rounded-[7px]  w-8 h-8 flex items-center justify-center text-white font-medium truncate ${
+      agentAvatar ? 'hidden' : ''
+    }`;
     agentImagePlaceholder.style.fontSize = '77px';
     setTimeout(() => {
       agentImagePlaceholder.textContent =
@@ -500,6 +533,7 @@ export class AgentCard extends EventEmitter {
     const addSkillButton = this.domElement.querySelector('#add-skill-button');
     if (addSkillButton) {
       addSkillButton.addEventListener('click', async (e) => {
+        destroyCanvasContextMenu();
         e.stopPropagation();
         // console.log('Add skill button clicked');
         // Functionality will be added later
@@ -560,6 +594,7 @@ export class AgentCard extends EventEmitter {
     const agentSettingsButton = this.domElement.querySelector('.agent-settings-button');
     if (agentSettingsButton) {
       agentSettingsButton.addEventListener('click', (e) => {
+        destroyCanvasContextMenu();
         e.stopPropagation(); // Prevent the main card click handler from firing
 
         // Toggle React component mount state
@@ -576,6 +611,7 @@ export class AgentCard extends EventEmitter {
 
     // Add click handler to the entire card (now opens sidebar)
     this.domElement.addEventListener('click', (e) => {
+      destroyCanvasContextMenu();
       e.stopPropagation();
 
       // Check if clicked target is an HTMLElement before using closest()
@@ -600,6 +636,7 @@ export class AgentCard extends EventEmitter {
     const previewButton = this.domElement.querySelector('.preview-button');
     if (previewButton) {
       previewButton.addEventListener('click', (e) => {
+        destroyCanvasContextMenu();
         e.stopPropagation();
 
         PostHog.track('app_preview_as_chatbot_click');
@@ -638,9 +675,10 @@ export class AgentCard extends EventEmitter {
       e.stopPropagation();
     });
 
-    this.workspace.addEventListener('AgentSaved', () => {
+    this.workspace.addEventListener('AgentSaved', async () => {
       if (agentNameElement && this.workspace.agent?.data?.name != agentNameElement.textContent) {
         agentNameElement.textContent = this.workspace.agent?.data?.name || '';
+        await this.repaintSkillConnections();
       }
 
       // const topBarAgentAvatarElm: HTMLImageElement | null = document.querySelector('#agent-avatar');

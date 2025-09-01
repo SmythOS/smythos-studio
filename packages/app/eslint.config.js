@@ -34,6 +34,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 
+      'max-len': 'off',
+
       // General JS/TS Rules
       'no-unused-vars': 'warn',
       'no-console': 'warn',
@@ -58,7 +60,6 @@ export default tseslint.config(
       quotes: ['warn', 'single'],
       semi: ['warn', 'always'],
       'comma-dangle': ['warn', 'only-multiline'],
-      'max-len': ['warn', { code: 120 }],
       // '@typescript-eslint/no-unnecessary-condition': 'warn',
     },
   },

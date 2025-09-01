@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import dotenv from 'dotenv';
 import path from 'path';
-import Joi from 'joi';
-import { version, name } from '../package.json';
-import { LOGGER } from './logging';
+import { name, version } from '../package.json';
 import { getDirname } from '../src/utils/general';
 
 // const rootPath = require.main?.path;
@@ -20,7 +18,6 @@ export const config = {
   variables: {
     env: process.env.NODE_ENV,
     port: Number(process.env.PORT),
-    ADMIN_PORT: Number(process.env.ADMIN_PORT),
 
     LOGTO_API_DOMAIN: process.env.LOGTO_API_DOMAIN!,
     LOGTO_APP_ID: process.env.LOGTO_APP_ID!,

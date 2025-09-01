@@ -7,7 +7,7 @@ import { builderStore } from '../../shared/state_stores/builder/store';
 import { Agent } from '../Agent.class';
 import { AgentCard } from '../components/AgentCard.class';
 import { Component } from '../components/Component.class';
-import components from '../components/index';
+import { getBuilderComponents } from '../components/index';
 import { registerDbgMonitorUI } from '../debugger';
 import EventEmitter from '../EventEmitter.class';
 import { extendJsPlumb } from '../overrides/jsplumb.override';
@@ -96,6 +96,8 @@ export class Workspace extends EventEmitter {
   private pendingAddComponent: any = null;
   public deployments: any = {};
   public domainData: any = {};
+  public oauthConnections: any = null;
+  public oauthConnectionsPromise: Promise<any> | null = null;
 
   public componentTemplates: any = {};
   public ACL = {};
@@ -120,6 +122,12 @@ export class Workspace extends EventEmitter {
         this.getDeploymentInfo().then((result) => {
           this.emit('deploymentsUpdated', result);
         });
+      }
+
+      // Invalidate OAuth connections cache when they're updated from React
+      if (event.detail.queryKey.includes('oauthConnections')) {
+        // console.log('[Workspace] OAuth connections updated, invalidating cache');
+        this.invalidateOAuthConnectionsCache();
       }
     });
 
@@ -162,7 +170,7 @@ export class Workspace extends EventEmitter {
     });
 
     this.jsPlumbInstance.bind('beforeDrop', (info) => {
-      console.log('beforeDrop: ', info);
+      // console.log('beforeDrop: ', info);
       if (this.collapsed) return false;
       if (this.locked) return false;
       // Check if a connection already exists between the source and target
@@ -364,6 +372,80 @@ export class Workspace extends EventEmitter {
     return result;
   }
 
+  /**
+   * Fetches OAuth connections and caches them
+   * Returns cached data if already fetched
+   */
+  public async getOAuthConnections(forceRefresh: boolean = false): Promise<any> {
+    // If we're forcing a refresh, clear the cache
+    if (forceRefresh) {
+      this.oauthConnections = null;
+      this.oauthConnectionsPromise = null;
+    }
+
+    // Return cached data if available
+    if (this.oauthConnections !== null) {
+      return this.oauthConnections;
+    }
+
+    // If a fetch is already in progress, return that promise
+    if (this.oauthConnectionsPromise !== null) {
+      return this.oauthConnectionsPromise;
+    }
+
+    // Fetch OAuth connections
+    this.oauthConnectionsPromise = fetch(`${this.server}/api/page/vault/oauth-connections`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        credentials: 'include',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.error('[Workspace.getOAuthConnections] Error fetching OAuth connections:', response.status);
+          throw new Error(`Failed to fetch OAuth connections: ${response.status}`);
+        }
+        const data = await response.json();
+        this.oauthConnections = data || {};
+
+        // Normalize: parse string values
+        Object.keys(this.oauthConnections).forEach((id) => {
+          const value = this.oauthConnections[id];
+          if (typeof value === 'string') {
+            try {
+              this.oauthConnections[id] = JSON.parse(value);
+            } catch (e) {
+              console.warn(
+                `[Workspace.getOAuthConnections] Could not parse stringified connection for id=${id}:`,
+                e,
+              );
+            }
+          }
+        });
+
+        // console.log('[Workspace.getOAuthConnections] OAuth connections cached:', this.oauthConnections);
+        return this.oauthConnections;
+      })
+      .catch((error) => {
+        console.error('[Workspace.getOAuthConnections] Failed to fetch OAuth connections:', error);
+        this.oauthConnectionsPromise = null; // Reset promise on error
+        throw error;
+      });
+
+    return this.oauthConnectionsPromise;
+  }
+
+  /**
+   * Invalidates the OAuth connections cache
+   * Call this when OAuth connections are updated
+   */
+  public invalidateOAuthConnectionsCache(): void {
+    // console.log('[Workspace] Invalidating OAuth connections cache');
+    this.oauthConnections = null;
+    this.oauthConnectionsPromise = null;
+  }
+
   private _suspendConnectionRestyle = false;
   public updateConnectionStyle(_connection) {
     if (this._suspendConnectionRestyle) return;
@@ -376,7 +458,7 @@ export class Workspace extends EventEmitter {
     if (!_sourceComponent || !_targetComponent) return;
 
     _connection.removeAllOverlays();
-    
+
     const sourceBR = _source.getBoundingClientRect();
     const targetBR = _target.getBoundingClientRect();
     const sourceComponentBR = _sourceComponent.getBoundingClientRect();
@@ -385,7 +467,7 @@ export class Workspace extends EventEmitter {
     if (sourceBR.right > targetBR.left) {
       const cornerRadius =
         sourceComponentBR.left - targetComponentBR.left > 100 &&
-        sourceComponentBR.top - targetComponentBR.bottom > 100
+          sourceComponentBR.top - targetComponentBR.bottom > 100
           ? 80
           : 30;
 
@@ -609,7 +691,7 @@ export class Workspace extends EventEmitter {
         scheme: scheme,
       },
     });
-    console.log('Populated shared state');
+    // console.log('Populated shared state');
   }
 
   async loadUserSubscription() {
@@ -747,7 +829,7 @@ export class Workspace extends EventEmitter {
 
     try {
       const result = await this.agent.delete(id);
-      console.log('Agent Delete result', result);
+      // console.log('Agent Delete result', result);
       if (result.error || !result?.success) {
         return false;
       } else {
@@ -862,6 +944,7 @@ export class Workspace extends EventEmitter {
           if (properties.sender) {
             properties.sender.classList.remove('active');
           }
+          const components = getBuilderComponents();
           const Component = components[name] || components['Component'];
 
           const component = new Component(this, { ...properties }, triggerSettings);
@@ -885,7 +968,7 @@ export class Workspace extends EventEmitter {
         smoothScroll: true,
         duration: 300,
         easing: 'ease-out',
-        handleStartEvent(e) {},
+        handleStartEvent(e) { },
       });
 
       const parent = zoom.parentElement;
@@ -1012,6 +1095,8 @@ export class Workspace extends EventEmitter {
     let selectionRectangle = null;
 
     document.getElementById('workspace-container').addEventListener('mousedown', (event) => {
+      const isContextMenu = !!(event.target as HTMLElement).closest('[data-context-menu="true"]');
+      if (isContextMenu) return;
       document
         .querySelectorAll('#workspace-container .component')
         .forEach((e) => e.classList.remove('selected', 'unselected'));
@@ -1080,14 +1165,16 @@ export class Workspace extends EventEmitter {
   public async preloadComponentsTemplates() {
     let url = '/api/page/builder/app-config/components';
 
-    const result = await fetch(url).then((res) => res.json());
+    const result = await fetch(url)
+      .then((res) => res.json())
+      .catch((e) => []);
 
     const components = result?.components || [];
 
     components.forEach((component) => {
       try {
         this.componentTemplates[component.id] = JSON.parse(component.data);
-      } catch (error) {}
+      } catch (error) { }
     });
   }
   private async initServerData() {
@@ -1211,6 +1298,7 @@ export class Workspace extends EventEmitter {
         };
       }
 
+      const components = getBuilderComponents();
       const Component = components[name] || components['Component'];
 
       const component = new Component(this, { ...properties }, triggerSettings);
@@ -1231,7 +1319,7 @@ export class Workspace extends EventEmitter {
     targetComponentId: string | HTMLElement,
     sourceEndpointID: string | number,
     targetEndpointID: string | number,
-    repaint = true
+    repaint = true,
   ) {
     const sourceComponent =
       typeof sourceComponentId === 'string'
@@ -1292,12 +1380,12 @@ export class Workspace extends EventEmitter {
 
     //Repaint the source and target components after a delay to ensure the connection is properly rendered
     if (repaint) {
-    setTimeout(() => {
-      this.jsPlumbInstance.repaint(sourceComponent);
+      setTimeout(() => {
+        this.jsPlumbInstance.repaint(sourceComponent);
         this.jsPlumbInstance.repaint(targetComponent);
       }, 300);
     }
-  
+
     return con;
   }
 
@@ -1605,19 +1693,15 @@ export class Workspace extends EventEmitter {
 
       showOverlay('Connecting Components ...');
 
-
       // Load the connections after a delay to ensure endpoints are registered properly
       await delay(300);
 
       const connections = {};
 
-      
-
       const sTime = Date.now();
       //(jsPlumb as any).batch(() =>{
       this._suspendConnectionRestyle = true;
       configuration.connections.forEach(async (connection) => {
-
         const conId = `${connection.sourceId}.${connection.sourceIndex}:${connection.targetId}.${connection.targetIndex}`;
         if (connections[conId]) return; //skip existing connections ==> avoid duplicate connections
 
@@ -1626,27 +1710,21 @@ export class Workspace extends EventEmitter {
           connection.targetId,
           connection.sourceIndex,
           connection.targetIndex,
-          false
+          false,
         );
         connections[conId] = con;
-        
-        
-        });
-      
-    //});
-    this._suspendConnectionRestyle = false;
+      });
 
+      //});
+      this._suspendConnectionRestyle = false;
 
-   
       for (const con of Object.values(connections)) {
         setImmediate(() => {
           this.updateConnectionStyle(con);
         });
       }
 
-      
-
-    console.log('time taken', Date.now() - sTime);
+      console.log('time taken', Date.now() - sTime);
 
       this.renderAgentCard(configuration);
 
@@ -1654,7 +1732,7 @@ export class Workspace extends EventEmitter {
 
       showOverlay('Almost Ready ...');
       await delay(200);
-      
+
       this.redraw();
       //await delay(500);
 
@@ -1702,7 +1780,7 @@ export class Workspace extends EventEmitter {
       properties.top = configuration.ui.agentCard.top;
     } else {
       const skills = configuration?.components?.filter((c) => c.name === 'APIEndpoint');
-      console.log('skills to compare', skills);
+      // console.log('skills to compare', skills);
 
       if (skills.length > 0) {
         // get the skill with the least Y and place the card above it to the left. x - agent_card_width, y - agent_card_height / 2
@@ -1760,7 +1838,7 @@ export class Workspace extends EventEmitter {
     });
   }
   public lock(options?: { showViewOnlyMsg?: boolean }) {
-    console.log('Locking Workspace');
+    // console.log('Locking Workspace');
     this.locked = true;
     document.querySelector('#builder-container')?.classList.remove('locked');
     if (options?.showViewOnlyMsg) this.toggleViewOnlyModeMsg(true);
@@ -1782,7 +1860,7 @@ export class Workspace extends EventEmitter {
   }
 
   public unlock() {
-    console.log('Unlocking Workspace');
+    // console.log('Unlocking Workspace');
     this.locked = false;
     document.querySelector('#builder-container')?.classList.remove('locked');
     this.toggleViewOnlyModeMsg(false);
@@ -1825,7 +1903,7 @@ export class Workspace extends EventEmitter {
       }
     });
     this.agent.addEventListener('lock', (prevStatus) => {
-      console.log('lock', prevStatus);
+      // console.log('lock', prevStatus);
       if (prevStatus?.startsWith('unlock') || !prevStatus) {
         this.lock({ showViewOnlyMsg: false });
       }
@@ -2222,10 +2300,6 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  public async saveTemplate() {
-    return workspaceHelper.saveTemplate.call(this);
-  }
-
   public async exportTemplate() {
     return workspaceHelper.exportTemplate.call(this);
   }
@@ -2238,7 +2312,7 @@ export class Workspace extends EventEmitter {
    * Initialize the monitor
    */
   private initMonitor(): void {
-    console.log('INIT MONITOR');
+    // console.log('INIT MONITOR');
 
     // Close existing monitor if any
     if (this.monitor) {

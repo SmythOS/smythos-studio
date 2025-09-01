@@ -1175,6 +1175,46 @@ html {
   pointer-events: none !important; /* Prevents tooltip from intercepting mouse events and breaking hover behavior */
 }
 
+.tooltip-trigger:hover::before,
+.tooltip-trigger:hover::after,
+.tooltip-trigger:focus-visible::before,
+.tooltip-trigger:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modifier: pill-style dark tooltip with soft shadow */
+.tooltip-pill.tooltip-trigger::before {
+  background: #000;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.tooltip-pill.tooltip-trigger::after {
+  display: none; /* Match Help style: no arrow notch */
+}
+
+.tooltip-pill.tooltip-trigger[data-tooltip-position='left']::after {
+  border-left-color: #000;
+}
+.tooltip-pill.tooltip-trigger[data-tooltip-position='right']::after {
+  border-right-color: #000;
+}
+.tooltip-pill.tooltip-trigger[data-tooltip-position='top']::after,
+.tooltip-pill.tooltip-trigger[data-tooltip-position='top-left']::after,
+.tooltip-pill.tooltip-trigger[data-tooltip-position='top-right']::after {
+  border-top-color: #000;
+}
+.tooltip-pill.tooltip-trigger[data-tooltip-position='bottom']::after,
+.tooltip-pill.tooltip-trigger[data-tooltip-position='bottom-left']::after,
+.tooltip-pill.tooltip-trigger[data-tooltip-position='bottom-right']::after {
+  border-bottom-color: #000;
+}
+
 .tooltip-trigger.tooltip-active::before,
 .tooltip-trigger.tooltip-active::after {
   opacity: 1;

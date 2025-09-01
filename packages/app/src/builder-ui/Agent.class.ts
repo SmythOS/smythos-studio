@@ -481,6 +481,7 @@ export class Agent extends EventEmitter {
       embodiments['chatgpt'] = {};
       embodiments['chatbot'] = {};
       embodiments['llm'] = {};
+      embodiments['form'] = {};
     }
 
     return embodiments;

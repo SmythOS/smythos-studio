@@ -367,7 +367,25 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   //formElement.setAttribute('data-prepend', entry.label || entry.name); //
 
   if (entry.readonly) formElement.setAttribute('readonly', '');
-  if (entry.validate) formElement.setAttribute('data-validate', entry.validate);
+  if (entry.validate) {
+    if (entry.doNotValidateOnLoad) {
+      // Store validation rules but don't apply them yet
+      formElement.setAttribute('data-validate-rules', entry.validate);
+      // Add validation after first user interaction
+      const enableValidation = () => {
+        formElement.setAttribute('data-validate', entry.validate);
+        formElement.removeAttribute('data-validate-rules');
+        formElement.removeEventListener('focus', enableValidation);
+        formElement.removeEventListener('input', enableValidation);
+        formElement.removeEventListener('change', enableValidation);
+      };
+      formElement.addEventListener('focus', enableValidation, { once: true });
+      formElement.addEventListener('input', enableValidation, { once: true });
+      formElement.addEventListener('change', enableValidation, { once: true });
+    } else {
+      formElement.setAttribute('data-validate', entry.validate);
+    }
+  }
 
   /*
     * "entry.smythValidate" allows custom validation using asynchronous functions. (Metro UI does not support asynchronous function.)
@@ -876,7 +894,7 @@ function applyTooltipConfig(actionBtn, action) {
   if (!action.tooltip) return;
 
   const defaultTooltipConfig = {
-    position: 'bottom',
+    position: 'top',
     classes:
       'bg-white shadow-lg text-black py-2 px-2 whitespace-nowrap max-w-[320px] -translate-x-[110px] rounded-lg',
     hideDelay: '500000',

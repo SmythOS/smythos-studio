@@ -1,8 +1,8 @@
 import express from 'express';
-import * as userData from '../../../services/user-data.service';
-import * as openai from '../../../services/openai-helper';
-import { autoGenerateAvatarForAgent } from '../../../services/falai-helper';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
+import { autoGenerateAvatarForAgent } from '../../../services/falai-helper';
+import * as openai from '../../../services/openai-helper';
+import * as userData from '../../../services/user-data.service';
 const router = express.Router();
 
 router.post('/', [includeTeamDetails], async (req, res) => {
@@ -23,6 +23,8 @@ router.post('/', [includeTeamDetails], async (req, res) => {
     return res.status(400).json({ success: false, error: result.error.message });
   }
 
+  const beforeAvatarGenerationTimestamp = Date.now();
+
   try {
     // #region TODO: move this responsibility to the caller
     const existingAvatar = await userData.getAgentSettings(req, result.id, 'avatar');
@@ -32,6 +34,11 @@ router.post('/', [includeTeamDetails], async (req, res) => {
   } catch (error) {
     console.error('Error handling avatar generation:', error);
   }
+
+  const afterAvatarGenerationTimestamp = Date.now();
+  console.log(
+    `Avatar generation took ${afterAvatarGenerationTimestamp - beforeAvatarGenerationTimestamp}ms`,
+  );
 
   return res.send({ success: true, id: result.id, name: result.name, avatar });
 });

@@ -282,7 +282,7 @@ export async function init() {
   }
   //updateServerStatus(false);
 
-  await workspace.waitUnlock();
+  await workspace.waitUnlock(120_000); // 120 seconds max wait time
   // if (workspace?.locked) {
   //     //retry in 3s
   //     setTimeout(init, 3000);
@@ -2540,14 +2540,15 @@ export function createDebugInjectDialog(
 
   /**
    * Handles the first-time debug session logic for showing the inspector bar
+   * Scope: global per user. If dismissed once for any agent (in any team),
+   * it won't auto-pop for other agents or teams for that user.
    */
   function handleFirstDebugSession() {
     const userEmail = workspace?.userData?.email;
-    const teamId = workspace?.teamData?.id;
-    const agentId = workspace?.agent?.id;
+    // Global per user (across teams and agents)
+    if (userEmail) {
+      const debugSessionKey = `first-debug-session-${userEmail}`;
 
-    if (userEmail && teamId && agentId) {
-      const debugSessionKey = `first-debug-session-${userEmail}-${teamId}-${agentId}`;
       const isFirstDebugSession = localStorage.getItem(debugSessionKey) === null;
 
       // Only show bottom bar if it's the first debug session
@@ -3175,9 +3176,9 @@ function resetComponentsState({
   });
 
   // Redraw workspace on next tick to ensure DOM updates are complete
-  requestAnimationFrame(() => {
-    workspace.redraw();
-  });
+  // requestAnimationFrame(() => {
+  //   workspace.redraw();
+  // });
 }
 
 /**

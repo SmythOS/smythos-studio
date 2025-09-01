@@ -17,7 +17,7 @@ const namespaces = (process.env.LOG_FILTER || '').split(',');
 // Create a Winston format that filters messages based on namespaces
 const namespaceFilter = winston.format(info => {
   // If DEBUG is not set, log everything
-  if (!process.env.LOG_FILTER || namespaces.some(ns => info.module?.includes(ns))) {
+  if (!process.env.LOG_FILTER || namespaces.some(ns => (info.module as string)?.includes(ns))) {
     return info;
   }
   return false; // Filter out messages that do not match the namespace
@@ -100,7 +100,8 @@ function createBaseLogger(memoryStore?: any[]) {
         format: winston.format.combine(
           winston.format.printf(info => {
             let message = info.message;
-            message = message?.length > MAX_LOG_MESSAGE_LENGTH ? `${message.substring(0, MAX_LOG_MESSAGE_LENGTH)}...` : message;
+            message =
+              (message as string)?.length > MAX_LOG_MESSAGE_LENGTH ? `${(message as string).substring(0, MAX_LOG_MESSAGE_LENGTH)}...` : message;
             return `${info.level}:${info.module || ''} ${message} ${info.stack || ''}`;
           }),
         ),
@@ -115,7 +116,8 @@ function createBaseLogger(memoryStore?: any[]) {
             const ns = winston.format.colorize().colorize(info.level, `${info.level}${module}`);
 
             let message = info.message;
-            message = message?.length > MAX_LOG_MESSAGE_LENGTH ? `${message.substring(0, MAX_LOG_MESSAGE_LENGTH)}...` : message;
+            message =
+              (message as string)?.length > MAX_LOG_MESSAGE_LENGTH ? `${(message as string).substring(0, MAX_LOG_MESSAGE_LENGTH)}...` : message;
 
             return `${ns} - ${message}`;
           }),

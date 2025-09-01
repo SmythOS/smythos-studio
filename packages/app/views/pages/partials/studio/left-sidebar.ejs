@@ -97,58 +97,7 @@
         </div>
       </div>
 
-      <div class="relative group integrations-btn">
-        <button
-          id="integrations-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          @click="setSidebarTab('integrationsTab')"
-          data-tooltip-target="tooltip-integrations"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>g>path]:!stroke-white': currentSidebarTab === 'integrationsTab' && isSidebarOpen}"
-            >
-              <mask
-                id="mask0_14426_43463"
-                style="mask-type: alpha"
-                maskUnits="userSpaceOnUse"
-                x="0"
-                y="0"
-                width="24"
-                height="24"
-              >
-                <rect width="24" height="24" fill="#D9D9D9" />
-              </mask>
-              <g mask="url(#mask0_14426_43463)">
-                <path
-                  d="M18 20.25H14.8862C14.7625 19.548 14.4586 18.9163 13.97 18.3733C13.3102 17.6402 12.4735 17.25 11.5 17.25C10.5265 17.25 9.68978 17.6402 9.03003 18.3733C8.54135 18.9163 8.23748 19.548 8.11382 20.25H5C4.65049 20.25 4.36997 20.1343 4.11783 19.8822C3.86569 19.63 3.75 19.3495 3.75 19V15.8842C4.42572 15.762 5.04171 15.4699 5.58481 15.0097C6.35225 14.3595 6.75 13.5048 6.75 12.5C6.75 11.4952 6.35225 10.6405 5.58481 9.99026C5.04171 9.53013 4.42572 9.23803 3.75 9.11583V6C3.75 5.65049 3.86569 5.36997 4.11783 5.11783C4.36997 4.86569 4.65049 4.75 5 4.75H9H9.75V4C9.75 3.49355 9.9164 3.09426 10.2553 2.75533C10.5943 2.4164 10.9935 2.25 11.5 2.25C12.0065 2.25 12.4057 2.4164 12.7447 2.75533C13.0836 3.09426 13.25 3.49354 13.25 4V4.75H14H18C18.3495 4.75 18.63 4.86569 18.8822 5.11783C19.1343 5.36997 19.25 5.65049 19.25 6V10V10.75H20C20.5065 10.75 20.9057 10.9164 21.2447 11.2553C21.5836 11.5943 21.75 11.9935 21.75 12.5C21.75 13.0065 21.5836 13.4057 21.2447 13.7447C20.9057 14.0836 20.5065 14.25 20 14.25H19.25V15V19C19.25 19.3495 19.1343 19.63 18.8822 19.8822C18.63 20.1343 18.3495 20.25 18 20.25Z"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-              </g>
-            </svg>
-          </div>
-        </button>
-        <div
-          id="tooltip-integrations"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Integrations
-        </div>
-      </div>
+      
 
       <!-- Deploy -->
       <div class="relative group deploy-btn">
@@ -242,93 +191,6 @@
           data-popper-placement="bottom"
         >
           Settings
-        </div>
-      </div>
-
-      <div class="relative group internal-templates-btn">
-        <button
-          id="left-sidebar-template-btn"
-          class="relative w-full flex items-center h-10 justify-center hidden"
-          @click="setSidebarTab('templateTab')"
-          data-tooltip-target="tooltip-internal-templates"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'templateTab' && isSidebarOpen}"
-          >
-            <svg
-              width="20"
-              fill="none"
-              height="20"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              :class="{'[&>path]:!stroke-white': currentSidebarTab === 'templateTab' && isSidebarOpen}"
-            >
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 2.973958 13.161458 C 2.973958 11.690104 4.135417 9.859375 7.479167 9.859375 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 10.359375 4.877604 C 10.359375 6.466146 9.070312 7.755208 7.481771 7.755208 C 5.893229 7.755208 4.604167 6.466146 4.604167 4.877604 C 4.604167 3.289062 5.893229 2 7.481771 2 C 9.070312 2 10.359375 3.289062 10.359375 4.877604 Z M 10.359375 4.877604 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 11.210938 13.132812 L 11.28125 12.942708 C 11.546875 12.223958 12.114583 11.65625 12.830729 11.390625 L 13.023438 11.320312 L 12.830729 11.25 C 12.114583 10.984375 11.546875 10.416667 11.28125 9.697917 L 11.210938 9.507812 L 11.140625 9.697917 C 10.875 10.416667 10.309896 10.984375 9.591146 11.25 L 9.401042 11.320312 L 9.591146 11.390625 C 10.309896 11.65625 10.875 12.223958 11.140625 12.942708 Z M 11.210938 13.132812 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-              <path
-                style="
-                  fill: none;
-                  stroke-width: 1;
-                  stroke-linecap: round;
-                  stroke-linejoin: round;
-                  stroke: rgb(3.529412%, 3.529412%, 4.313726%);
-                  stroke-opacity: 1;
-                  stroke-miterlimit: 4;
-                "
-                d="M 7.507812 14 C 7.627604 13.606771 7.934896 13.299479 8.328125 13.179688 C 7.934896 13.059896 7.627604 12.75 7.507812 12.356771 C 7.388021 12.75 7.080729 13.059896 6.6875 13.179688 C 7.080729 13.299479 7.388021 13.606771 7.507812 14 Z M 7.507812 14 "
-                transform="matrix(1.5,0,0,1.5,0,0)"
-              />
-            </svg>
-          </div>
-        </button>
-        <div
-          id="tooltip-internal-templates"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Template Editor (Internal)
         </div>
       </div>
 
@@ -785,14 +647,6 @@
       </section>
 
       <section
-        x-show="(currentSidebarTab == 'templateTab')"
-        class="templateTab pb-4 m-0 relative w-full overflow-y-auto md:overflow-hidden md:hover:overflow-y-auto h-[100%] [&>*]:w-[calc(100%+5px)]"
-        style="scrollbar-gutter: stable"
-      >
-        <%- include('left-sidebar-template'); -%>
-      </section>
-
-      <section
         x-show="(currentSidebarTab == 'deployTab')"
         class="deployTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%] [&>*]:w-[calc(100%+5px)]"
         style="scrollbar-gutter: stable"
@@ -802,12 +656,7 @@
 
       
 
-      <section
-        x-show="(currentSidebarTab == 'integrationsTab')"
-        class="integrationsTab pb-1 m-0 relative w-full overflow-hidden h-[100%]"
-      >
-        <%- include('left-sidebar-integrations'); -%>
-      </section>
+     
     </div>
   </div>
 
@@ -825,6 +674,8 @@
       <span class="text-gray-300"> Click</span>
     </div>
   </div>
+
+  <%- include('agent-status'); -%>
 </div>
 
 <script>

@@ -3,16 +3,14 @@ import * as path from 'path';
 import 'source-map-support/register.js';
 //import oauth2Router from './routes/oauth2/router';
 import config from './config';
-import { apiACLCheck, appACLCheck, pageACLCheck } from './middlewares/acl.mw';
+import { apiACLCheck, pageACLCheck } from './middlewares/acl.mw';
 import { apiAuth, includeTeamDetails, pageAuth } from './middlewares/auth.mw';
 import { errorHandler } from './middlewares/error.mw';
 import { sessionCheck } from './middlewares/sessionCheck.mw';
 import apiRouter from './routes/api/router';
-import appRouter from './routes/app/router';
 import dbgRouter from './routes/dbg/router';
 import oauthRouter from './routes/oauth/router';
 import pagesRouter from './routes/pages/router';
-import publicRouter from './routes/public/router';
 
 //import { handleAuthRoutes, withLogto } from '@logto/express';
 import { handleAuthRoutes, withLogto } from './logtoHelper';
@@ -24,7 +22,6 @@ import compression from 'compression';
 import RedisStore from 'connect-redis';
 import passport from 'passport';
 import { version } from '../../package.json';
-import { createAdminServer } from './adminServer';
 import { maintenanceCheckMiddleware } from './middlewares/maintainceCheck.mw';
 import { initializePassport } from './routes/oauth/helper/passportSetup';
 import { ModelsPollingService } from './services/ModelsPolling.service';
@@ -32,7 +29,6 @@ import { cacheClient } from './services/cache.service';
 
 const PORT = config.env.PORT || 4000;
 const app = express();
-const ADMIN_PORT = config.env.ADMIN_PORT || 4001;
 
 app.disable('x-powered-by');
 
@@ -46,8 +42,9 @@ app.use(maintenanceCheckMiddleware);
 
 // Serve static files
 app.use(compression());
-app.use('/', express.static('static'));
-// app.use('/doc', cors(corsOptions), express.static('docs'));
+app.use('/', express.static('dist/static'));
+app.use('/assets', express.static('dist/assets'));
+app.use('/uploads', express.static('uploads'));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({
@@ -112,11 +109,8 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 //app.use('/oauth2', apiAuth, oauth2Router);
 app.use('/api', [apiAuth, apiACLCheck], apiRouter);
-app.use('/app', [apiAuth, appACLCheck], appRouter);
 app.use('/dbg', [apiAuth], dbgRouter);
 app.use('/oauth', oauthRouter);
-
-app.use('/', publicRouter);
 
 app.use([pageAuth, pageACLCheck, includeTeamDetails]);
 
@@ -131,11 +125,9 @@ app.use('/', pagesRouter);
 //error handling middlewares
 app.use(errorHandler);
 
-let server = app.listen(PORT, () => {
+let server = app.listen(PORT, 'localhost', () => {
   console.log(`Listening on port ${PORT}`);
 });
-
-createAdminServer(server, PORT, ADMIN_PORT);
 
 process.on('uncaughtException', (err) => {
   console.error('An uncaught error occurred!');

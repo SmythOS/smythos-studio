@@ -1,13 +1,13 @@
+import { AiAgentSettings, AiAgentState } from '@prisma/client';
 import { Response } from 'express';
 import httpStatus from 'http-status';
 import { ExpressHandler, ExpressHandlerWithParams } from '../../../../types';
-import { agentDeploymentsService, aiAgentChatsService, aiAgentService, modelAgentService } from '../services';
-import { AiAgentSettings, AiAgentState } from '@prisma/client';
-import { checkAgentExistsOrThrow } from '../services/ai-agent.service';
-import { authExpressHelpers } from '../../auth/helpers/auth-express.helper';
 import ApiError from '../../../utils/apiError';
-import { teamService } from '../../team/services';
 import errKeys from '../../../utils/errorKeys';
+import { authExpressHelpers } from '../../auth/helpers/auth-express.helper';
+import { teamService } from '../../team/services';
+import { agentDeploymentsService, aiAgentChatsService, aiAgentService, modelAgentService } from '../services';
+import { checkAgentExistsOrThrow } from '../services/ai-agent.service';
 
 export const getModelAgents: ExpressHandler<null, any> = async (req, res: Response) => {
   const teamId = authExpressHelpers.getTeamId(res);
@@ -479,88 +479,6 @@ export const getLatestDeployment: ExpressHandlerWithParams<
     deployment,
   });
 };
-
-// #region AI AGENT call Logs
-
-export const getAgentCallLogs: ExpressHandlerWithParams<
-  {
-    agentId: string;
-  },
-  {},
-  {
-    logs: any[];
-
-    total: number;
-  }
-> = async (req, res) => {
-  const { sourceId, componentId, inputDateFrom, inputDateTo, outputDateFrom, outputDateTo, sessionID, workflowID, processID, tags } = req.query;
-  const { agentId } = req.params;
-
-  const { page, limit } = req.query;
-
-  const teamId = authExpressHelpers.getTeamId(res);
-
-  const { logs, total } = await aiAgentService.getAgentCallLogs({
-    teamId,
-    aiAgentId: agentId,
-    where: {
-      sourceId,
-      componentId,
-      inputDateFrom,
-      inputDateTo,
-      outputDateFrom,
-      outputDateTo,
-      sessionID,
-      workflowID,
-      processID,
-      tags,
-    },
-
-    pagination: {
-      page: page ? parseInt(page as string, 10) : undefined,
-      limit: limit ? parseInt(limit as string, 10) : undefined,
-    },
-  });
-
-  res.status(httpStatus.OK).json({
-    logs,
-    total,
-  });
-};
-
-export const getAgentCallLogsSessions: ExpressHandlerWithParams<
-  {
-    agentId: string;
-  },
-  {},
-  {
-    logs: any[];
-
-    total: number;
-  }
-> = async (req, res) => {
-  const { agentId } = req.params;
-
-  const { page, limit } = req.query;
-
-  const teamId = authExpressHelpers.getTeamId(res);
-
-  const { logs, total } = await aiAgentService.getAgentCallLogsSessions({
-    teamId,
-    aiAgentId: agentId,
-    pagination: {
-      page: page ? parseInt(page as string, 10) : undefined,
-      limit: limit ? parseInt(limit as string, 10) : undefined,
-    },
-  });
-
-  res.status(httpStatus.OK).json({
-    logs,
-    total,
-  });
-};
-
-// #endregion AI AGENT Logs
 
 // #region Agent Conversations
 export const getTeamConversations: ExpressHandler<
