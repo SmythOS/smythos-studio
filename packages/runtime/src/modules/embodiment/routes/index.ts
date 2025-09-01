@@ -10,7 +10,7 @@ import { chatBotRouter } from "@embodiment/modules/chatbot/routes/router";
 import { chatGPTRouter } from "@embodiment/modules/chatGPT/routes/router";
 import { formPreviewRouter } from "@embodiment/modules/formPreview/routes/router";
 import { mcpRouter } from "@embodiment/modules/mcp/routes/router";
-import { openaiRouter } from "@embodiment/modules/openai/routes";
+import { openaiRouter } from "@embodiment/modules/openai/routes/router";
 import { postmanRouter } from "@embodiment/modules/postman/routes/router";
 import { swaggerRouter } from "@embodiment/modules/swagger/routes/router";
 

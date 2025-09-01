@@ -1,6 +1,6 @@
 import {
-  DEFAULT_AGENT_MODEL,
   DEFAULT_AGENT_MODEL_SETTINGS_KEY,
+  DEFAULT_MODEL,
 } from "@core/constants";
 import { validate } from "@core/middlewares/validate.mw";
 import { extractBearerToken } from "@core/services/smythAPIReq";
@@ -42,7 +42,7 @@ router.post(
 
       const model =
         agent.agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) ||
-        DEFAULT_AGENT_MODEL;
+        DEFAULT_MODEL;
 
       const authHeader = req.headers["authorization"];
       const apiKey = extractBearerToken(authHeader);
