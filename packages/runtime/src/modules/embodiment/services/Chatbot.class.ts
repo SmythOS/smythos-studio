@@ -3,14 +3,15 @@ import { Request } from "express";
 import { Agent, AgentLogger, Conversation } from "@smythos/sre";
 
 import config from "@core/config";
+import { DEFAULT_MODEL } from "@core/constants";
 
 import { EMBODIMENT_TYPES } from "@embodiment/constants";
 
 import { getOpenAPIJSONForAI } from "../helpers/openapi-adapter.helper";
-import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
-import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 import { ChatConversationsEnv } from "../utils/chat.utils";
 import { delay } from "../utils/date-time.utils";
+import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
+import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
 
 type Headers = {
   "x-conversation-id": string;
@@ -46,7 +47,7 @@ export default class Chatbot {
 
   private agent: Agent;
   private systemMessage = "";
-  private model = "gpt-4o-mini";
+  private model = DEFAULT_MODEL;
   private modelInfo: any;
   private function_call_order = 0;
   private contextWindow = 1024 * 128;

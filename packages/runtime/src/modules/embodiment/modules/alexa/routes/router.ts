@@ -2,8 +2,8 @@ import { Agent } from "@smythos/sre";
 import express from "express";
 
 import {
-  DEFAULT_AGENT_MODEL,
   DEFAULT_AGENT_MODEL_SETTINGS_KEY,
+  DEFAULT_MODEL,
 } from "@core/constants";
 
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
@@ -27,7 +27,7 @@ router.post("/", agentLoader, async (req: any, res) => {
     const alexRequest = parseAlexaRequest(req.body);
     const model =
       agent.agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) ||
-      DEFAULT_AGENT_MODEL;
+      DEFAULT_MODEL;
 
     const response = await handleAlexaRequest(
       agent,
