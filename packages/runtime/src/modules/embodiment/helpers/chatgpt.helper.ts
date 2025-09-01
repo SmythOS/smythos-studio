@@ -9,8 +9,8 @@ import {
   getAgentIdByDomain,
 } from "@core/helpers/agent.helper";
 
-import { ChatGPTManifest } from "@/modules/embodiment/types/chatgpt.types";
 import { EMBODIMENT_TYPES } from "@embodiment/constants";
+import { ChatGPTManifest } from "@embodiment/types/chatgpt.types";
 
 let chatGPTDataPath = "./data/chatGPT";
 

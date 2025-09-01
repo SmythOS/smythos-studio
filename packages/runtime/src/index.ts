@@ -1,4 +1,4 @@
-import { Logger, SmythRuntime, version } from "@smythos/sre";
+import { Logger, SmythRuntime, SystemEvents, version } from "@smythos/sre";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
@@ -18,7 +18,8 @@ import RateLimiter from "@core/middlewares/rateLimiter.mw";
 import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import { requestContext } from "@core/services/request-context";
 
-import { registerConnectors } from "@core/connectors/ConnectorRegistry";
+import { registerComponents } from "@core/component/componentRegistry";
+import { registerConnectors } from "@core/connectors/connectorRegistry";
 
 // Routes are handled by configureAgentRouters
 
@@ -37,6 +38,10 @@ const port = parseInt(process.env.PORT || "5000");
 // Register all connectors
 registerConnectors();
 
+SystemEvents.on("SRE:Initialized", (SRE) => {
+  registerComponents();
+});
+
 const sre = SmythRuntime.Instance.init({
   Cache: {
     Connector: "RAM",
@@ -54,14 +59,10 @@ const sre = SmythRuntime.Instance.init({
     },
   },
   Vault: {
-    Connector: "SmythOSSVault",
+    Connector: "JSONFileVault",
     Settings: {
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
-      oAuthScope: "",
-      vaultAPIBaseUrl: process.env.SMYTH_VAULT_API_BASE_URL,
+      file: "./data/vault.json",
+      shared: "development",
     },
   },
   Component: {
@@ -86,31 +87,13 @@ const sre = SmythRuntime.Instance.init({
       smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
     },
   },
-  Router: {
-    Connector: "ExpressRouter",
-    Settings: {
-      router: app,
-      baseUrl: process.env.ROUTER_BASE_URL,
-    },
-  },
   Log: {
-    Connector: "SmythLog",
-    Settings: {
-      oAuthScope: "",
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
-      smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
-    },
+    Connector: "ConsoleLog",
+    Settings: {},
   },
   Code: {
-    Connector: "AWSLambda",
-    Settings: {
-      region: process.env.AWS_LAMBDA_REGION,
-      accessKeyId: process.env.AWS_LAMBDA_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_LAMBDA_SECRET_ACCESS_KEY,
-    },
+    Connector: "ECMASandbox",
+    Settings: {},
   },
 });
 

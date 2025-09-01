@@ -1,0 +1,14 @@
+{
+  "development": {
+    "echo": "",
+    "openai": "$env(OPENAI_API_KEY)",
+    "anthropic": "",
+    "googleai": "",
+    "groq": "",
+    "togetherai": "",
+    "xai": "",
+    "deepseek": "",
+    "tavily": "",
+    "scrapfly": ""
+  }
+}
