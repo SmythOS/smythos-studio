@@ -33,6 +33,8 @@ _output = {result, message};
         code: { mode: 'javascript', theme: 'chrome' },
         label: `Code`,
         help: 'Code to process inputs.',
+        tooltipClasses: 'w-44',
+        arrowClasses: '-ml-11',
         value: codeSample,
         validate: `maxlength=500000`,
         validateMessage: `The code length is limitted to 500,000 characters`,
