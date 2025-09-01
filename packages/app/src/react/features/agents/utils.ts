@@ -1,3 +1,4 @@
+
 export const accquireLock = async (id) => {
   const response = await fetch(`/api/page/agent_settings/lock`, {
     method: 'POST',
@@ -77,3 +78,4 @@ export function processAvatar(file: File): Promise<File> {
     reader.readAsDataURL(file);
   });
 }
+

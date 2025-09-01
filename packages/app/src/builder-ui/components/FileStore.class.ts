@@ -16,6 +16,8 @@ export class FileStore extends Component {
         type: 'select',
         label: 'TTL',
         help: 'Time to live',
+        tooltipClasses: 'w-28',
+        arrowClasses: '-ml-11',
         options: [
           {
             value: '86400',

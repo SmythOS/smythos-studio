@@ -59,7 +59,7 @@ export class Note extends Component {
         label: 'Content',
         value: this.data.content || '',
         help: "Add your note's text or markdown content.",
-        tooltipClasses: 'w-56 ',
+        tooltipClasses: 'w-40',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
         validate: `maxlength=5000`,

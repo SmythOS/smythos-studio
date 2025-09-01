@@ -894,7 +894,7 @@ function applyTooltipConfig(actionBtn, action) {
   if (!action.tooltip) return;
 
   const defaultTooltipConfig = {
-    position: 'bottom',
+    position: 'top',
     classes:
       'bg-white shadow-lg text-black py-2 px-2 whitespace-nowrap max-w-[320px] -translate-x-[110px] rounded-lg',
     hideDelay: '500000',
