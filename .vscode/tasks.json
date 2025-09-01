@@ -44,5 +44,6 @@
         "dependsOn": ["build-app-backend", "start-frontend-processes"]
       }
     ]
-  }
+}
+
   

@@ -25,6 +25,7 @@
       "outFiles": ["${workspaceFolder}/packages/middleware/dist/**/*.js"],
       "sourceMaps": true,
       "env": {},
+      
       "outputCapture": "std"
     },
     {
