@@ -5,9 +5,10 @@
  * from a JSON file for better maintainability.
  */
 
-import modelsData from "./models.json";
+import modelsData from "@data/models.json";
 
-export interface ModelConfig {
+// Base interface with all possible fields for non-Echo models
+interface BaseModelConfig {
   label: string;
   modelId: string;
   provider: string;
@@ -26,6 +27,14 @@ export interface ModelConfig {
   interface?: string;
   default?: boolean;
 }
+
+// Echo model configuration (only requires provider)
+interface EchoModelConfig {
+  provider: "Echo";
+}
+
+// Conditional type: if provider is "Echo", use EchoModelConfig, otherwise use BaseModelConfig
+export type ModelConfig = EchoModelConfig | BaseModelConfig;
 
 export type ModelsConfig = Record<string, ModelConfig>;
 
