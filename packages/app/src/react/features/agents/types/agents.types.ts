@@ -30,6 +30,7 @@ export interface Agent {
   isPublic?: boolean;
   userId?: string;
   teamId?: string;
+  isPinned?: boolean;
 }
 
 export interface Template {
