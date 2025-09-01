@@ -19,10 +19,11 @@
       "name": "SmythOS Middleware",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/packages/middleware/dist/index.js",
-      "preLaunchTask": "npm: build",
+      "preLaunchTask": "build-middleware",
       "outFiles": ["${workspaceFolder}/packages/middleware/dist/**/*.js"],
       "sourceMaps": true,
       "env": {},
+      
       "outputCapture": "std"
     },
     {
