@@ -1,17 +1,24 @@
 /* eslint-disable no-param-reassign */
-import { SubscriptionProperties, PlanProperties } from './interfaces';
+import { PlanProperties, SubscriptionProperties } from './interfaces';
 
 export const buildDefaultPlanProps: () => PlanProperties = () => {
   return {
     limits: {
-      prodAiAgents: null,
-      devAiAgents: null,
-      teamMembers: null,
+      prodAiAgents: 10000,
+      devAiAgents: 100000,
+      spaces: 500,
+      teamMembers: 1,
+      dataPoolUsageGB: 4000,
     },
     flags: {
-      embodimentsEnabled: false,
-      agentAuthSidebarEnabled: false,
-      domainRegistrationEnabled: false,
+      embodimentsEnabled: true,
+      agentAuthSidebarEnabled: true,
+      domainRegistrationEnabled: true,
+      distributionsEnabled: false,
+      hasBuiltinModels: true,
+      whitelabel: true,
+      customModelsEnabled: true,
+      modelCostMultiplier: 1,
     },
   };
 };
