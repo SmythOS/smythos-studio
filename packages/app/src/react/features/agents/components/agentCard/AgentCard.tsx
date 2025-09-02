@@ -19,7 +19,7 @@ import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 import { useFeatureFlagPayload } from 'posthog-js/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   FaCircleNotch,
   FaClockRotateLeft,
@@ -55,44 +55,6 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
   const [isContributorsModalOpen, setIsContributorsModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
 
-  // Listen for avatar updates
-  useEffect(() => {
-    const handleAvatarUpdate = (event: CustomEvent) => {
-      if (event.detail?.agentId === agent.id && event.detail?.avatarUrl) {
-        // Update the agent in place with the new avatar URL
-        const updatedAgent = {
-          ...agent,
-          aiAgentSettings:
-            agent.aiAgentSettings?.map((setting) =>
-              setting.key === 'AVATAR' ? { ...setting, value: event.detail.avatarUrl } : setting,
-            ) && agent.aiAgentSettings.length > 0
-              ? agent.aiAgentSettings.map((setting) =>
-                  setting.key === 'AVATAR'
-                    ? { ...setting, value: event.detail.avatarUrl }
-                    : setting,
-                )
-              : [
-                  {
-                    // Provide all required AgentSetting fields to satisfy type
-                    key: 'AVATAR',
-                    value: event.detail.avatarUrl,
-                    id: 0, // Placeholder, should be replaced with a valid id if available
-                    aiAgentId: agent.id,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  },
-                ],
-        };
-        updateAgentInPlace(updatedAgent);
-      }
-    };
-
-    window.addEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
-    };
-  }, [agent.id, agent.aiAgentSettings, updateAgentInPlace]);
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 
   // Custom hooks for state and data management
