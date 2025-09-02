@@ -798,7 +798,6 @@ export class Workspace extends EventEmitter {
   }
 
   private setAgentInfo(id, name, domain, data) {
-    const previousName = this.agent.name;
     this.agent.setData({ id, name, domain, data });
     const nameInput = document.getElementById('agent-name-input') as HTMLInputElement;
     const idInput = document.getElementById('agent-id-input') as HTMLInputElement;
@@ -815,13 +814,6 @@ export class Workspace extends EventEmitter {
 
     updateBuilderTopbarAgentName(name);
     updateBuilderTopbarAgentAvatar(name);
-
-    // If the agent name changed, generate a new avatar
-    if (previousName && previousName !== name && id) {
-      this.generateAgentAvatar(id).catch((error) => {
-        console.warn('Avatar generation failed after name change:', error);
-      });
-    }
 
     this.emit('agentUpdated', this.agent);
   }
