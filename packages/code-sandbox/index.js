@@ -1,6 +1,9 @@
 import express from "express";
 import https from "https";
-import vm from "vm";
+import "ses";
+
+// Call lockdown once at startup to secure the environment
+lockdown();
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -29,49 +32,39 @@ function fetchCodeFromCDN(url) {
   });
 }
 
-function createSafeContext() {
-  const context = {
-    console: {
-      log: (...args) => console.log("[Sandbox]", ...args),
-      error: (...args) => console.error("[Sandbox]", ...args),
-      warn: (...args) => console.warn("[Sandbox]", ...args),
-      info: (...args) => console.info("[Sandbox]", ...args),
+function createSafeCompartment() {
+  // Create a secure compartment with hardened globals
+  const compartment = new Compartment({
+    globals: {
+      console: harden({
+        log: (...args) => console.log("[Sandbox]", ...args),
+        error: (...args) => console.error("[Sandbox]", ...args),
+        warn: (...args) => console.warn("[Sandbox]", ...args),
+        info: (...args) => console.info("[Sandbox]", ...args),
+      }),
+      setTimeout: harden((fn, delay) => setTimeout(fn, Math.min(delay, 5000))),
+      clearTimeout: harden(clearTimeout),
+      Math: harden(Math),
+      Date: harden(Date),
+      JSON: harden(JSON),
+      String: harden(String),
+      Number: harden(Number),
+      Boolean: harden(Boolean),
+      Array: harden(Array),
+      Object: harden(Object),
+      RegExp: harden(RegExp),
+      Error: harden(Error),
+      Promise: harden(Promise),
+      ___internal: harden({
+        b64decode: (str) => Buffer.from(str, "base64").toString("utf8"),
+        b64encode: (str) => Buffer.from(str, "utf8").toString("base64"),
+      }),
+      _output: undefined,
     },
-    setTimeout: (fn, delay) => setTimeout(fn, Math.min(delay, 5000)), // Max 5s timeout
-    setInterval: () => {
-      throw new Error("setInterval is not allowed");
-    },
-    clearTimeout: clearTimeout,
-    Math: Math,
-    Date: Date,
-    JSON: JSON,
-    String: String,
-    Number: Number,
-    Boolean: Boolean,
-    Array: Array,
-    Object: Object,
-    RegExp: RegExp,
-    Error: Error,
-    ___internal: {
-      b64decode: (str) => Buffer.from(str, "base64").toString("utf8"),
-      b64encode: (str) => Buffer.from(str, "utf8").toString("base64"),
-    },
-    _output: undefined,
-    global: undefined,
-    globalThis: undefined,
-    process: undefined,
-    require: undefined,
-    module: undefined,
-    exports: undefined,
-    __filename: undefined,
-    __dirname: undefined,
-  };
+    __options__: true, // temporary migration affordance
+  });
 
-  // Make the context reference itself as global
-  context.global = context;
-  context.globalThis = context;
-
-  return vm.createContext(context);
+  return compartment;
 }
 
 app.post("/compile-js", async (req, res) => {
@@ -82,14 +75,10 @@ app.post("/compile-js", async (req, res) => {
   }
 
   try {
-    const context = createSafeContext();
+    const compartment = createSafeCompartment();
 
-    // Try to compile the script
-    const script = new vm.Script(code, {
-      filename: "user-code.js",
-      timeout: 5000,
-      displayErrors: true,
-    });
+    // Try to compile the code by evaluating it in the compartment
+    compartment.evaluate(code);
 
     return res.json({ result: "ok" });
   } catch (error) {
@@ -108,7 +97,7 @@ app.post("/run-js", async (req, res) => {
 
     if (!code.endsWith(";")) code += ";";
 
-    const context = createSafeContext();
+    const compartment = createSafeCompartment();
 
     // Handle remote URL fetching
     const remoteUrls = extractFetchUrls(code);
@@ -117,10 +106,7 @@ app.post("/run-js", async (req, res) => {
       console.log("Fetching", url);
       const remoteCode = await fetchCodeFromCDN(url);
       console.log("importing", url);
-      vm.runInContext(remoteCode, context, {
-        timeout: 5000,
-        displayErrors: true,
-      });
+      compartment.evaluate(remoteCode);
     }
 
     const randomId = Math.random().toString(36).substring(2, 15);
@@ -139,17 +125,7 @@ app.post("/run-js", async (req, res) => {
     console.log("----------");
 
     try {
-      const script = new vm.Script(scriptCode, {
-        filename: "user-code.js",
-        timeout: 5000,
-        displayErrors: true,
-      });
-
-      const rawResult = script.runInContext(context, {
-        timeout: 5000,
-        displayErrors: true,
-      });
-
+      const rawResult = compartment.evaluate(scriptCode);
       const Output = JSON.parse(rawResult);
       return res.json({ Output });
     } catch (compileError) {
@@ -173,16 +149,13 @@ app.post("/run-js/async", async (req, res) => {
 
     if (!code.endsWith(";")) code += ";";
 
-    const context = createSafeContext();
+    const compartment = createSafeCompartment();
 
     // Handle remote URL fetching
     const remoteUrls = extractFetchUrls(code);
     for (const url of remoteUrls) {
       const remoteCode = await fetchCodeFromCDN(url);
-      vm.runInContext(remoteCode, context, {
-        timeout: 5000,
-        displayErrors: true,
-      });
+      compartment.evaluate(remoteCode);
     }
 
     const randomId = Math.random().toString(36).substring(2, 15);
@@ -201,23 +174,8 @@ app.post("/run-js/async", async (req, res) => {
             })()
         `;
 
-    // For async, we'll use a Promise-based approach
-    const asyncScript = new vm.Script(
-      `
-            const asyncFunc = ${scriptCode};
-            asyncFunc;
-        `,
-      {
-        filename: "user-code-async.js",
-        timeout: 5000,
-        displayErrors: true,
-      }
-    );
-
-    const asyncFunction = asyncScript.runInContext(context, {
-      timeout: 5000,
-      displayErrors: true,
-    });
+    // Evaluate the async code in the compartment
+    const asyncFunction = compartment.evaluate(scriptCode);
 
     // Note: This is a simplified async handling - full Promise support would require more work
     const rawResult = await Promise.resolve(asyncFunction);
@@ -233,5 +191,5 @@ app.post("/run-js/async", async (req, res) => {
 const PORT = 5055;
 app.listen(PORT, () => {
   console.log(`Code Sandbox Server running on http://localhost:${PORT}`);
-  console.log("Using Node.js built-in VM for sandboxing");
+  console.log("Using SES (Secure EcmaScript) for secure sandboxing");
 });
