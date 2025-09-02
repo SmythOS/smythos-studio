@@ -19,12 +19,12 @@ export const config = {
     env: process.env.NODE_ENV,
     port: Number(process.env.PORT),
 
-    LOGTO_API_DOMAIN: process.env.LOGTO_API_DOMAIN!,
+    LOGTO_API_DOMAIN: process.env.LOGTO_SERVER!,
     LOGTO_APP_ID: process.env.LOGTO_APP_ID!,
     LOGTO_APP_SECRET: process.env.LOGTO_APP_SECRET!,
-    LOGTO_RESOURCE_INDICATOR: process.env.LOGTO_RESOURCE_INDICATOR!,
+    LOGTO_RESOURCE_INDICATOR: process.env.LOGTO_API_RESOURCE!,
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID!,
-    LOGTO_MACHINE_APP_SECRET: process.env.LOGTO_MACHINE_APP_SECRET!,
+    LOGTO_MACHINE_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET!,
     DATABASE_URL: process.env.DATABASE_URL || defaultSqliteUrl,
   },
 
