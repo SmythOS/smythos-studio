@@ -167,37 +167,6 @@ export class AgentCard extends EventEmitter {
   }
 
   /**
-   * Refresh skill connections for the agent card
-   * This method updates only the connections between the agent card and skills
-   * without redrawing the entire card - useful when agent properties change
-   */
-  public async repaintSkillConnections(): Promise<void> {
-    if (!this.workspace.agent?.data?.components) return;
-
-    // Get skills once to avoid duplicate filtering
-    const skills = this.workspace.agent.data.components.filter((c) => c.name === 'APIEndpoint');
-    if (skills.length === 0) return;
-
-    // Handle connections for all skills
-    for (const skill of skills) {
-      await this.handleCompConn(skill.id);
-    }
-
-    // Single repaint operation for all affected elements
-    // This is more efficient than multiple individual repaints
-    const elementsToRepaint = [
-      this.domElement, // Agent card
-      ...skills.map((skill) => document.querySelector(`#${skill.id}`)).filter(Boolean),
-    ];
-
-    elementsToRepaint.forEach((element) => {
-      if (element) {
-        this.workspace.jsPlumbInstance.repaint(element);
-      }
-    });
-  }
-
-  /**
    * Redraw the agent card
    */
   public async redraw(): Promise<void> {
@@ -675,10 +644,9 @@ export class AgentCard extends EventEmitter {
       e.stopPropagation();
     });
 
-    this.workspace.addEventListener('AgentSaved', async () => {
+    this.workspace.addEventListener('AgentSaved', () => {
       if (agentNameElement && this.workspace.agent?.data?.name != agentNameElement.textContent) {
         agentNameElement.textContent = this.workspace.agent?.data?.name || '';
-        await this.repaintSkillConnections();
       }
 
       // const topBarAgentAvatarElm: HTMLImageElement | null = document.querySelector('#agent-avatar');
@@ -700,11 +668,43 @@ export class AgentCard extends EventEmitter {
     });
 
     this.workspace.agent.addEventListener('AvatarUpdated', (url: string) => {
+      // Update agent card avatar
       const cardAgentAvatarElm: HTMLImageElement | null =
         document.querySelector('#agent-card-avatar');
       if (cardAgentAvatarElm) {
         cardAgentAvatarElm.src = url;
+        cardAgentAvatarElm.classList.remove('hidden');
       }
+
+      // Hide the placeholder when avatar is available
+      const agentImagePlaceholder: HTMLDivElement | null = document.querySelector(
+        '#agent-card-avatar-placeholder',
+      );
+      if (agentImagePlaceholder) {
+        agentImagePlaceholder.classList.add('hidden');
+      }
+
+      // Update builder topbar avatar
+      const topbarAvatarElm: HTMLImageElement | null = document.querySelector('#agent-avatar');
+      if (topbarAvatarElm) {
+        topbarAvatarElm.src = url;
+      }
+
+      // Update any other avatar elements in the builder
+      const allAvatarElements = document.querySelectorAll('[data-agent-avatar]');
+      allAvatarElements.forEach((element: HTMLImageElement) => {
+        element.src = url;
+      });
+
+      // Save to session storage for persistence
+      if (this.workspace.agent?.id) {
+        window.sessionStorage.setItem(`agent-avatar-${this.workspace.agent.id}`, url);
+      }
+
+      // Trigger a custom event for React components to listen to
+      window.dispatchEvent(new CustomEvent('agentAvatarUpdated', { 
+        detail: { agentId: this.workspace.agent?.id, avatarUrl: url } 
+      }));
     });
   }
 

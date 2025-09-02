@@ -39,12 +39,27 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
 
   useEffect(
     function syncAvatar() {
-      setCurrentAvatar(
-        settingsQuery?.data?.settings?.[EAgentSettings.AVATAR] ?? null,
-      );
+      setCurrentAvatar(settingsQuery?.data?.settings?.[EAgentSettings.AVATAR] ?? null);
     },
     [settingsQuery?.data],
   );
+
+  // Listen for avatar updates from the builder
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      if (event.detail?.agentId === agentId && event.detail?.avatarUrl) {
+        setCurrentAvatar(event.detail.avatarUrl);
+        // Invalidate the settings query to refresh the data
+        queryClient.invalidateQueries(['agentSettings', agentId]);
+      }
+    };
+
+    window.addEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
+    };
+  }, [agentId, queryClient]);
 
   // TODO: move these mutations to a separate file
   const uploadAvatar = useMutation({
@@ -193,7 +208,7 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
                 setCurrentAvatar(json.url);
                 updateSettingsCache(json.url);
 
-              if (window.workspace?.agent) {
+                if (window.workspace?.agent) {
                   window.workspace.agent.emit('AvatarUpdated', json.url);
                 }
               }
