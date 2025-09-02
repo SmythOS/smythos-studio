@@ -62,9 +62,26 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
         // Update the agent in place with the new avatar URL
         const updatedAgent = {
           ...agent,
-          aiAgentSettings: agent.aiAgentSettings?.map((setting) =>
-            setting.key === 'AVATAR' ? { ...setting, value: event.detail.avatarUrl } : setting,
-          ) || [{ key: 'AVATAR', value: event.detail.avatarUrl }],
+          aiAgentSettings:
+            agent.aiAgentSettings?.map((setting) =>
+              setting.key === 'AVATAR' ? { ...setting, value: event.detail.avatarUrl } : setting,
+            ) && agent.aiAgentSettings.length > 0
+              ? agent.aiAgentSettings.map((setting) =>
+                  setting.key === 'AVATAR'
+                    ? { ...setting, value: event.detail.avatarUrl }
+                    : setting,
+                )
+              : [
+                  {
+                    // Provide all required AgentSetting fields to satisfy type
+                    key: 'AVATAR',
+                    value: event.detail.avatarUrl,
+                    id: 0, // Placeholder, should be replaced with a valid id if available
+                    aiAgentId: agent.id,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                ],
         };
         updateAgentInPlace(updatedAgent);
       }
