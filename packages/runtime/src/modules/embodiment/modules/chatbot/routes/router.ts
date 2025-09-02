@@ -423,7 +423,9 @@ async function exchangeCodeForToken(
   authInfo: any
 ): Promise<any> {
   const isLocalAgent = domain.includes("localagent");
-  const baseUrl = isLocalAgent ? `http://${domain}:3000` : `https://${domain}`;
+  const baseUrl = isLocalAgent
+    ? `http://${domain}:${config.env.PORT}`
+    : `https://${domain}`;
   const tokenEndpoint = `${baseUrl}/oauth/token`;
   const redirectUri = `${baseUrl}/chatbot/callback`;
 

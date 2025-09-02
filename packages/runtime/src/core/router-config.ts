@@ -2,8 +2,8 @@ import { Express } from "express";
 
 import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 
-import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
 import agentRunnerAgentLoader from "@agent-runner/middlewares/agentLoader.mw";
+import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
 import { processAgentRequest as agentRunnerProcessAgentRequest } from "@agent-runner/services/agent-request-handler";
 
 import debuggerAgentLoader from "@debugger/middlewares/agentLoader.mw";
@@ -76,14 +76,13 @@ export function configureAgentRouters(
     const smartRouter = createConfiguredSmartRouter(
       {
         debugger: {
-          agentLoader: debuggerAgentLoader,
+          middlewares: [uploadHandler, debuggerAgentLoader],
           processAgentRequest: debuggerProcessAgentRequest,
           getDebugSession: debuggerGetDebugSession,
           createSseConnection: debuggerCreateSseConnection,
         },
         agentRunner: {
-          uploadHandler,
-          agentLoader: agentRunnerAgentLoader,
+          middlewares: [uploadHandler, agentRunnerAgentLoader],
           processAgentRequest: agentRunnerProcessAgentRequest,
         },
       },
@@ -170,7 +169,7 @@ export function createDebuggerServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5001"),
+      port: parseInt(process.env.PORT || "5053"),
       name: "smythos-debugger-server",
       healthCheck: true,
       metrics: true,
@@ -194,7 +193,7 @@ export function createAgentRunnerServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5002"),
+      port: parseInt(process.env.PORT || "5053"),
       name: "smythos-agent-runner-server",
       healthCheck: true,
       metrics: true,
@@ -218,7 +217,7 @@ export function createEmbodimentServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5003"),
+      port: parseInt(process.env.PORT || "5053"),
       name: "smythos-embodiment-server",
       healthCheck: true,
       metrics: true,
@@ -242,7 +241,7 @@ export function createCombinedServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "smart" },
     server: {
-      port: parseInt(process.env.PORT || "5000"),
+      port: parseInt(process.env.PORT || "5053"),
       name: "smythos-runtime-combined",
       healthCheck: true,
       metrics: true,

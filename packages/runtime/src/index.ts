@@ -36,7 +36,7 @@ import { routes as embodimentRoutes } from "@embodiment/routes";
 import { CodeSandboxService } from "./services/code-sandbox.service";
 
 const app = express();
-const port = parseInt(process.env.PORT || "5000");
+const port = parseInt(process.env.PORT || "5053");
 
 // Register all connectors
 registerConnectors();
@@ -58,7 +58,7 @@ const sre = SmythRuntime.Instance.init({
       oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
       oAuthResource: process.env.LOGTO_API_RESOURCE,
       oAuthScope: "",
-      smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
+      smythAPIBaseUrl: process.env.MIDDLEWARE_API_BASE_URL,
     },
   },
   Vault: {
@@ -87,7 +87,7 @@ const sre = SmythRuntime.Instance.init({
       oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
       oAuthResource: process.env.LOGTO_API_RESOURCE,
       oAuthScope: "",
-      smythAPIBaseUrl: process.env.SMYTH_API_BASE_URL,
+      smythAPIBaseUrl: process.env.MIDDLEWARE_API_BASE_URL,
     },
   },
   Log: {
@@ -219,7 +219,7 @@ const codeSandboxService = CodeSandboxService.getInstance();
     console.info("🎯 All Services Running:");
     console.info(
       `   • Management Server: http://localhost:${
-        process.env.ADMIN_PORT || "8080"
+        process.env.ADMIN_PORT || "5054"
       }`
     );
     console.info(`   • Runtime Server:    http://localhost:${port}`);

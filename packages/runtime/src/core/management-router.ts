@@ -3,8 +3,8 @@ import { app } from "../index.js";
 import { Server } from "http";
 import config from "./config";
 
-const ADMIN_PORT = parseInt(process.env.ADMIN_PORT || "8080");
-const PORT = parseInt(process.env.PORT || "3000");
+const ADMIN_PORT = parseInt(process.env.ADMIN_PORT || "5054");
+const PORT = parseInt(process.env.PORT || "5053");
 // eslint-disable-next-line import/no-mutable-exports
 
 export let server: Server;
@@ -33,7 +33,7 @@ function disableAppPort() {
   });
 }
 
-// Management app listening on port 8080
+// Management app listening on port 5054
 const managementApp = express();
 export { managementApp };
 

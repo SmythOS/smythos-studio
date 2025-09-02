@@ -107,7 +107,7 @@ export async function getAgentEmbodiments(agentID) {
   try {
     const token = (await getM2MToken("https://api.smyth.ai")) as string;
     const response = await axios.get(
-      `${config.env.SMYTH_API_BASE_URL}/_sysapi/v1/embodiments?aiAgentId=${agentID}`,
+      `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi/v1/embodiments?aiAgentId=${agentID}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

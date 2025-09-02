@@ -288,7 +288,7 @@ async function runAgentDebug(
     headers["X-DEBUG-RUN"] = "";
 
     //'X-DEBUG-RUN': '',
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 5053;
 
     let url = `http://localhost:${port}${req.path.replace("/debug", "/api")}`;
     //add query params

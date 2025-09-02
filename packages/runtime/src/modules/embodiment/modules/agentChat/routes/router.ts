@@ -10,7 +10,7 @@ import { includeAuth, mwSysAPI } from "@core/services/smythAPIReq";
 
 import agentLoader from "@embodiment/middlewares/agentLoader.mw";
 import ChatbotLoader from "@embodiment/middlewares/ChatbotLoader.mw";
-import Chatbot from "@embodiment/modules/chatbot/services/Chatbot.class";
+import Chatbot from "@embodiment/services/Chatbot.class";
 import { buildConversationId } from "@embodiment/utils/chat.utils";
 
 // Import ChatbotResponse type for proper typing
