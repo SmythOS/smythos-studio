@@ -1,10 +1,10 @@
+import logs from '../../../../../../../../src/server/routes/api/pages/logs';
 import account from './account';
 import agentSettings from './agent-settings';
 import agents from './agents';
 import builder from './builder';
 import { chatRouter } from './chat';
 import collection from './collection';
-import logs from './logs';
 import { onboardRouter } from './onboard';
 import teams from './teams';
 import user from './user';
