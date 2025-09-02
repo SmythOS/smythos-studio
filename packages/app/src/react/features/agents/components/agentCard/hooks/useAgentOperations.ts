@@ -1,6 +1,6 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
 import { accquireLock } from '@react/features/agents/utils';
-import { useAgent, useAgentMutations } from '@react/shared/hooks/agent';
+import { useAgentMutations } from '@react/shared/hooks/agent';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
@@ -43,24 +43,30 @@ export function useAgentOperations({
   onAgentDuplicated,
   onAgentPinned,
 }: UseAgentOperationsProps): UseAgentOperationsResult {
-  const { data: fullAgentData, isLoading: isLoadingAgent } = useAgent(agent.id, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
+  // Only fetch full agent data when actually needed for duplication
+  // This prevents unnecessary API calls for every agent card
   const { createAgent, saveAgent } = useAgentMutations();
 
   /**
    * Creates a duplicate of an existing agent with reset configurations
    */
   const createDuplicateAgent = useCallback(async (): Promise<DuplicateAgentResponse> => {
-    if (!fullAgentData) {
-      return {
-        success: false,
-        message: 'Unable to fetch agent details',
-      };
-    }
-
     try {
+      // Fetch full agent data only when duplication is actually triggered
+      const response = await fetch(`/api/agent/${agent.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch agent details');
+      }
+
+      const { agent: fullAgentData } = await response.json();
+
+      if (!fullAgentData) {
+        return {
+          success: false,
+          message: 'Unable to fetch agent details',
+        };
+      }
+
       const initialData = {
         description: fullAgentData.description || '',
         components: [],
@@ -98,7 +104,7 @@ export function useAgentOperations({
         message: 'Failed to duplicate agent',
       };
     }
-  }, [fullAgentData, createAgent]);
+  }, [agent.id, createAgent]);
 
   /**
    * Handles the duplication process and UI feedback
@@ -204,10 +210,9 @@ export function useAgentOperations({
       toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
       // Update the agent in place instead of reloading the entire list
       onAgentPinned?.(updatedAgent);
-
     } catch (error) {
       console.error('Failed to pin/unpin agent:', error);
-      
+
       // Check if error has a message, if not use generic error
       if (error && typeof error === 'object' && 'message' in error) {
         toast.error(error.message);
@@ -221,6 +226,6 @@ export function useAgentOperations({
     duplicateAgent,
     deleteAgent,
     pinAgent,
-    isLoading: isLoadingAgent,
+    isLoading: false,
   };
 }
