@@ -146,12 +146,8 @@ async function populateKeysList() {
             <p class="text-gray-700">Are you sure you want to revoke this API key? This action cannot be undone.</p>
           </div>
         `,
+        onCloseClick: function () {},
         actions: [
-          {
-            label: 'Cancel',
-            cssClass: SECONDARY_BUTTON_STYLE,
-            callback: () => {}, // Do nothing on cancel
-          },
           {
             label: 'Revoke Key',
             cssClass: PRIMARY_BUTTON_STYLE,
@@ -221,15 +217,10 @@ function attachCreateKeyBtn() {
             </div>
           </div>
         `,
+        onCloseClick: function (dialog) {
+          createKeyBtn.disabled = false;
+        },
         actions: [
-          {
-            label: 'Cancel',
-            cssClass: SECONDARY_BUTTON_STYLE,
-            callback: function (dialog) {
-              // Re-enable the create button
-              createKeyBtn.disabled = false;
-            },
-          },
           {
             label: 'Create',
             cssClass: PRIMARY_BUTTON_STYLE,

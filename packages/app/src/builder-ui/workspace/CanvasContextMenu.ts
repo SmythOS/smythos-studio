@@ -249,6 +249,15 @@ export function registerCanvasContextMenu(workspace: Workspace) {
     // Restrict to inside the workspace container
     if (!workspace.container.contains(e.target as Node)) return;
 
+    // Check if the target is inside a debug textarea
+    const target = e.target as Element;
+    const textareaElement = target.closest('.dbg-element .dbg-textarea');
+
+    // If clicking inside a debug textarea, allow default browser context menu
+    if (textareaElement) {
+      return; // Don't prevent default, let browser handle it
+    }
+
     e.preventDefault();
     e.stopPropagation();
     await createAndShowMenu(e, workspace);

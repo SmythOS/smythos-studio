@@ -61,6 +61,7 @@ function AgentsPage() {
     isLoadingAfterAction,
     setAgentsUpdated,
     loadAgents,
+    updateAgentInPlace,
     handleSearch,
     setSortCriteria,
     toggleSortOrder,
@@ -202,6 +203,7 @@ function AgentsPage() {
           isLoadingMore={isLoadingMore}
           onLoadMore={handleLoadMore}
           onRefreshAgents={() => loadAgents(1, true)}
+          updateAgentInPlace={updateAgentInPlace}
         />
 
         <div ref={endOfPageRef} />

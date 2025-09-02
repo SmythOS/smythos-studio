@@ -193,7 +193,7 @@ export class APIEndpoint extends Component {
                 btnNoLabel: 'Cancel',
                 btnYesLabel: 'Enable',
                 btnNoClass: 'hidden',
-                btnYesClass: 'h-[48px] rounded-lg px-8',
+                btnYesClass: 'rounded-lg px-8',
               },
             );
             if (saveBeforeClose) {
@@ -255,7 +255,50 @@ export class APIEndpoint extends Component {
     // if (this.isOnAdvancedMode) {
     this.properties.defaultOutputs = ['headers', 'body', 'query'];
 
+    // Listen for endpoint changes to sync default values between input and output
+    this.on('endpointChanged', (entry, inputDiv, oldValue, newValue) => {
+      if (entry === 'defaultVal' && !this.isOnAdvancedMode) {
+        this.syncDefaultValue(inputDiv._outputDivElement, newValue);
+      }
+    });
+
     this._ready = true;
+  }
+
+  private syncDefaultValue(outputDiv: HTMLElement, defaultValue: string) {
+    if (!outputDiv) return;
+
+    if (defaultValue) {
+      outputDiv.setAttribute('smt-defaultVal', defaultValue);
+      outputDiv.setAttribute('title', `Default: ${defaultValue}`);
+    } else {
+      outputDiv.removeAttribute('smt-defaultVal');
+      outputDiv.removeAttribute('title');
+    }
+  }
+
+  private syncAllDefaultValues() {
+    if (this.isOnAdvancedMode) {
+      // Remove default values from outputs in advanced mode
+      this.domElement?.querySelectorAll('.output-endpoint').forEach((outputDiv: HTMLElement) => {
+        this.syncDefaultValue(outputDiv, '');
+      });
+    } else {
+      // Sync default values from inputs to outputs in compact mode
+      this.domElement?.querySelectorAll('.input-endpoint[smt-defaultVal]:not([smt-defaultVal=""])')
+        .forEach((inputDiv: HTMLElement) => {
+          const inputName = inputDiv.getAttribute('smt-name');
+          if (!this.properties.defaultOutputs.includes(inputName)) {
+            const outputDiv = this.domElement?.querySelector(`.output-endpoint[smt-name="${inputName}"]`) as HTMLElement;
+            if (outputDiv) {
+              const defaultValue = inputDiv.getAttribute('smt-defaultVal');
+              this.syncDefaultValue(outputDiv, defaultValue);
+              (inputDiv as any)._outputDivElement = outputDiv;
+              (outputDiv as any)._inputDivElement = inputDiv;
+            }
+          }
+        });
+    }
   }
 
   private async exposeIAChangeHandler(e) {
@@ -420,6 +463,9 @@ export class APIEndpoint extends Component {
     const outputParent = parent.parentElement.querySelector('.output-container');
     const inputProps = this.properties.inputProps?.find((c) => c.name === name);
 
+    // Get the default value from input properties or existing attributes
+    const defaultValue = inputProperties?.defaultVal || inputDiv.getAttribute('smt-defaultVal') || '';
+
     const outputDiv: any = await super.addOutput(
       outputParent,
       name,
@@ -442,6 +488,9 @@ export class APIEndpoint extends Component {
         },
       },
     );
+
+    // Pass the default value to the output endpoint
+    this.syncDefaultValue(outputDiv, defaultValue);
 
     if (inputProperties?.optional) {
       outputDiv.classList.add('marked-optional');
@@ -511,13 +560,13 @@ export class APIEndpoint extends Component {
       );
       optionalOutputs.forEach((output) => output.classList.remove('marked-optional'));
       // this.settings.method.readonly = false;
+
     } else {
       advancedItems.forEach((item) => item.classList.add('hidden'));
       // In simple mode, restore optional visual state for outputs from optional inputs
       const outputContainer = document.querySelector(`#${this.uid} .output-container`);
       if (outputContainer) {
-        const outputEndpoints = outputContainer.querySelectorAll('.output-endpoint');
-        outputEndpoints.forEach((outputDiv: HTMLElement) => {
+        outputContainer.querySelectorAll('.output-endpoint').forEach((outputDiv: HTMLElement) => {
           const linkedInputDiv = outputDiv['_inputDivElement'];
           if (linkedInputDiv) {
             const inputProps = this.properties.inputProps?.find(
@@ -529,8 +578,11 @@ export class APIEndpoint extends Component {
           }
         });
       }
-      // this.settings.method.readonly = true;
     }
+
+    // Sync default values based on current mode
+    this.syncAllDefaultValues();
+    // this.settings.method.readonly = true;
 
     // Handle method setting visibility for both initial setup and toggle changes
     if (changeEvent) {
@@ -833,5 +885,8 @@ export class APIEndpoint extends Component {
     endpointBall.style.backgroundColor = 'rgb(60, 137, 249)';
 
     titleWrapper.appendChild(endpointBall);
+
+    // Sync default values after redraw
+    setTimeout(() => this.syncAllDefaultValues(), 100);
   }
 }

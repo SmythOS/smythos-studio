@@ -59,7 +59,7 @@ export class Note extends Component {
         label: 'Content',
         value: this.data.content || '',
         help: "Add your note's text or markdown content.",
-        tooltipClasses: 'w-56 ',
+        tooltipClasses: 'w-40',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
         validate: `maxlength=5000`,
@@ -235,8 +235,8 @@ export class Note extends Component {
 
   protected async run(): Promise<any> {
     this.addEventListener('settingsSaved', (e) => {
-      this.data.content = this.settings.content.value;
-      this.data.formatting_mode = this.settings.formatting_mode.value;
+      // The data has already been updated by the general save mechanism
+      // We just need to update the UI to reflect the changes
       this.updateNoteContent();
       this.updateNoteStyles();
     });
