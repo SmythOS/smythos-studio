@@ -115,10 +115,7 @@ export const rightSidebarTitle = (title: string, tooltipText: string) => {
           </div>
 
           <button class="close-btn p-0.5 rounded-full">
-            <svg class="w-6 h-6 text-[#757575]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
+            <CloseIcon width={24} height={24} />
           </button>
         </div>
       </div>

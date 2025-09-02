@@ -133,7 +133,7 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
       const button = document.createElement('button');
       button.setAttribute(
         'class',
-        `button btn-action h-10 action-${btn} items-center px-2 py-1 text-sm font-medium text-[#757575] bg-transparent focus:z-10 ` +
+        `button btn-action h-8 action-${btn} items-center px-2 py-1 text-sm font-medium text-[#757575] bg-transparent focus:z-10 ` +
           (action.cls || ''),
       );
       button.innerHTML = action.label || btn;
@@ -184,7 +184,7 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
         action.class ||
         action.cls ||
         'items-center px-2 py-2 text-sm font-medium text-[#757575] bg-transparent';
-      button.setAttribute('class', `button btn-action h-10 action-${btn}  ${cssClass}`);
+      button.setAttribute('class', `button btn-action h-8 action-${btn}  ${cssClass}`);
       button.innerHTML = action.label || btn;
       if (action.click) button.addEventListener('click', action.click);
 
