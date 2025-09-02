@@ -1,38 +1,11 @@
+import { useAgentEndpointComponents } from '@src/react/features/embodiments/hooks/use-agent-endpoint-components';
+import ModalHeaderEmbodiment from '@src/react/features/embodiments/modal-header-embodiment';
+import { Button } from '@src/react/shared/components/ui/newDesign/button';
+import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { ArrowRightIcon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '../../shared/components/ui/newDesign/button';
-import { Spinner } from '../../shared/components/ui/spinner';
-import ModalHeaderEmbodiment from './modal-header-embodiment';
+import { FC, useEffect, useRef, useState } from 'react';
 
 // Import the useAgent hook for fallback when workspace is not available
-import { useAgent } from '../../shared/hooks/agent';
-
-/**
- * Simple hook to get agent components data
- * Uses workspace if available, otherwise falls back to API
- */
-const useAgentComponentsData = (agentId?: string) => {
-  // Try to get data from workspace first (builder context)
-  const workspaceData = window.workspace?.agent?.data;
-
-  // Fallback to API if no workspace data and agentId provided
-  const { data: apiData, isLoading } = useAgent(agentId || '', {
-    enabled: !!agentId && !workspaceData,
-    refetchOnWindowFocus: false,
-  });
-
-  // Use workspace data if available, otherwise use API data
-  const agentData = workspaceData || apiData?.data;
-
-  return {
-    components:
-      agentData?.components?.filter(
-        (component: any) =>
-          component.inputs && component.inputs.length > 0 && component.data?.endpoint,
-      ) || [],
-    isLoading: !workspaceData && isLoading,
-  };
-};
 
 /**
  * Props for the FormEmbodimentModal component.
@@ -71,7 +44,7 @@ export interface FormEmbodimentModalProps {
  * @param {FormEmbodimentModalProps} props - The component props.
  * @returns {JSX.Element} The rendered modal.
  */
-const FormEmbodimentModal: React.FC<FormEmbodimentModalProps> = ({
+const FormEmbodimentModal: FC<FormEmbodimentModalProps> = ({
   onClose,
   domain = 'your-domain.com',
   isLoading = false,
@@ -83,7 +56,7 @@ const FormEmbodimentModal: React.FC<FormEmbodimentModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get agent components data (from workspace or API)
-  const { components, isLoading: isComponentsLoading } = useAgentComponentsData(propAgentId);
+  const { components, isLoading: isComponentsLoading } = useAgentEndpointComponents(propAgentId);
 
   if (typeof onClose !== 'function') {
     throw new Error('FormEmbodimentModal: onClose prop must be a function');
