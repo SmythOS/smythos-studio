@@ -188,10 +188,13 @@ export function createInfoButton(
   entryIndex = 0,
 ) {
   let estimatedWidth = text.length * 2 > 48 ? 48 : text.length * 2;
+  // TODO: This is a temporary fix to avoid the tooltip being cutoff in the sidebar and showing it on the top.
+  // if (entryIndex < 2) {
+  //   position = position || 'bottom';
+  // }
 
-  if (entryIndex < 2) {
-    position = position || 'bottom';
-  }
+  // Enforce consistent tooltip placement above to avoid cutoff in the sidebar
+  position = 'top';
 
   // Create a container for the React component
   const tooltipContainer = document.createElement('div');

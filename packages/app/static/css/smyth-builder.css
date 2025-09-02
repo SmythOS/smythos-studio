@@ -786,6 +786,56 @@ body.locked #agent-sidebar-root .restore-button {
   white-space: nowrap;
 }
 
+/* Default value badges for output endpoints (visible in compact mode) */
+.output-endpoint[smt-defaultval]:not([smt-defaultval=''])::before {
+  content: ' ';
+  display: block;
+  width: 40px;
+  border: 2px solid #bbb;
+  border-radius: 100px;
+  position: absolute;
+  bottom: 0px;
+  right: -38px;
+  height: 30px;
+  top: 10px;
+  z-index: 1;
+  clip-path: inset(0px -1px 11px 9px);
+}
+
+.output-endpoint[smt-defaultval]:not([smt-defaultval=''])::after {
+  content: attr(smt-defaultval);
+  background: #fff;
+  padding: 0px 5px;
+  border-radius: 10px;
+  max-width: 100px;
+  overflow: hidden;
+  position: absolute;
+  right: -20px;
+  font-weight: 700;
+  border: 2px solid #bbb;
+  font-size: 12px;
+  line-height: 14px;
+  color: #777;
+  top: 15px;
+  z-index: 2;
+  text-overflow: ellipsis;
+  transform: translateX(100%);
+  white-space: nowrap;
+}
+
+/* When output is connected, adjust the default value badge position */
+.output-endpoint.jtk-connected[smt-defaultval]:not([smt-defaultval=''])::after {
+  top: 5px;
+  right: unset;
+  border-width: 1px;
+  transform: translateX(-10px);
+  background-color: #eee;
+}
+
+.output-endpoint.jtk-connected[smt-defaultval]:not([smt-defaultval=''])::before {
+  display: none;
+}
+
 .input-endpoint:hover .ep {
   background: #ff9676;
 }
@@ -2289,6 +2339,7 @@ input[data-vault-exclusive='true']:disabled {
   margin: 0;
   color: #333;
   cursor: text;
+  word-break: break-all;
 }
 
 .menu-button {

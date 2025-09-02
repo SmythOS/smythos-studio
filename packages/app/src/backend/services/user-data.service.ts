@@ -1,9 +1,9 @@
 import axios from 'axios';
-import config from '../config';
 import { Request } from 'express';
+import config from '../config';
 import { APIResponse } from '../types/';
+import { authHeaders, headersWithToken, includeAxiosAuth, smythAPIReq } from '../utils/';
 import { getAgentShortDescription } from '../utils/agent.utils';
-import { smythAPIReq, includeAxiosAuth, headersWithToken, authHeaders } from '../utils/';
 
 //const DATA_DIR = config.env.DATA_PATH;
 //const AGENTS_DIR = `${DATA_DIR}/agents`;
@@ -36,7 +36,13 @@ export async function saveAgent({ req, id, name, lockId, data, userName, teamId 
   _data.description = data.shortDescription;
 
   try {
+    const beforeCreateAgentTimestamp = Date.now();
     const response = await smythAPIReq.post('/ai-agent', _data, await authHeaders(req));
+
+    const afterCreateAgentTimestamp = Date.now();
+    console.log(
+      `Agent MW API call agent creation took ${afterCreateAgentTimestamp - beforeCreateAgentTimestamp}ms`,
+    );
 
     return {
       success: true,

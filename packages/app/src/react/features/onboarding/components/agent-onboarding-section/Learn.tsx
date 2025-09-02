@@ -15,12 +15,21 @@ const learnCards: LearnCardProps[] = [
     title: 'Community Support',
     description: 'Join Discord for live support from our team and thousands of agent engineers.',
     link: 'https://discord.gg/smythos',
+    external: true,
+  },
+  {
+    image: '/img/onboard/academy.png',
+    title: 'Visit Academy',
+    description:
+      'Access free courses and certifications to master building AI agents and boost your skills.',
+    link: 'https://academy.smythos.com',
+    external: true,
   },
 ];
 
 export const Learn = () => {
   return (
-    <div>
+    <div className="my-10 pb-3">
       <h3 className="text-lg">Learn SmythOS</h3>
       <div className="mt-4 flex flex-wrap gap-4">
         {learnCards.map((card) => (

@@ -156,7 +156,7 @@ const ChatGptDialog = ({
               leaveTo="opacity-0 scale-95"
             >
               <div className="w-[70%] min-w-[600px] max-w-[1200px]">
-                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>ChatGPT Configurations</span>
                     <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
@@ -479,7 +479,7 @@ const ChatGptDialog = ({
 
                           <div className="mt-8 flex justify-end w-full">
                             <Button
-                              className="w-[100px] h-[48px] rounded-lg"
+                              className="w-[100px] rounded-lg"
                               handleClick={() => submitForm(props.values)}
                               label="Save"
                               addIcon={isSubmitting}

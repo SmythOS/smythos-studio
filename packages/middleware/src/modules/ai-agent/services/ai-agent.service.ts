@@ -1,15 +1,16 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unsafe-optional-chaining */
-import httpStatus from 'http-status';
-import { prisma } from '../../../../prisma/prisma-client';
-import ApiError from '../../../utils/apiError';
-import { PrismaTransaction } from '../../../../types';
-import { AiAgentSettings, AiAgentState, Prisma } from '@prisma/client';
+import { AiAgentSettings, AiAgentState } from '@prisma/client';
 import crypto from 'crypto';
-import { PRISMA_ERROR_CODES, includePagination } from '../../../utils/general';
-import errKeys from '../../../utils/errorKeys';
+import httpStatus from 'http-status';
+import _ from 'lodash';
 import { createLogger } from '../../../../config/logging-v2';
+import { prisma } from '../../../../prisma/prisma-client';
+import { PrismaTransaction } from '../../../../types';
+import ApiError from '../../../utils/apiError';
+import errKeys from '../../../utils/errorKeys';
+import { PRISMA_ERROR_CODES, includePagination } from '../../../utils/general';
 
 const logger = createLogger('ai-agent-service');
 
@@ -132,15 +133,6 @@ export const getAllAiAgents = async ({
         },
       }),
 
-      domain: {
-        select: {
-          name: true,
-          id: true,
-          verified: true,
-          lastStatus: true,
-        },
-      },
-
       lastLockBeat: true,
       lastLockSaveOperation: true,
       lockId: true,
@@ -152,6 +144,12 @@ export const getAllAiAgents = async ({
         },
       },
     },
+  });
+
+  // for backward compatibility, add to each agent in the list an empty domain object
+  agents = agents.map((agent: any) => {
+    agent.domain = [];
+    return agent;
   });
 
   const total = await _p.aiAgent.count({
@@ -194,16 +192,21 @@ export const saveAgent = async ({
   data: { name: string; json: { [key: string]: any }; description?: string; teamId?: string };
 }) => {
   if (data.json) {
-    data.json.teamId = teamId;
+    data.json.teamId = teamId; // sanity check to make sure teamId of the agent is the same as the teamId of the user
     data.json.parentTeamId = parentTeamId;
+    // data.json.id = aiAgentId;
   }
 
   if (!aiAgentId) {
+    // create new agent
+    // but before, delete any sensetive info from the data.json before creating to avoid an exploit where the
+    // user can create an agent using other's id
+    const { id, ...cleanJsonData } = data.json;
     const newAgent = await createNewAgent({
       userId,
       teamId,
       name: data.name,
-      data: data.json,
+      data: cleanJsonData,
       spaceId: spaceId ?? null,
       description: data.description,
     });
@@ -220,6 +223,7 @@ export const saveAgent = async ({
       select: {
         id: true,
         teamId: true,
+
         lockId: true,
       },
     });
@@ -232,6 +236,10 @@ export const saveAgent = async ({
       throw new ApiError(httpStatus.CONFLICT, 'Invalid lock id');
     }
 
+    // sanity check to make sure the data.json.id is the same as the aiAgentId
+    data.json.id = aiAgentId;
+
+    // update existing agent
     const updated = await tx.aiAgent.update({
       where: {
         id: aiAgentId,
@@ -239,13 +247,17 @@ export const saveAgent = async ({
       data: {
         name: data.name,
         description: data.description,
+
+        //* LOCKS updates
         lastLockSaveOperation: new Date(),
-        lastLockBeat: new Date(),
+        lastLockBeat: new Date(), // a save operation is considered a beat as well
+
         aiAgentData: {
           update: {
             data: data.json,
           },
         },
+
         contributors: {
           upsert: {
             where: {
@@ -265,6 +277,7 @@ export const saveAgent = async ({
           },
         },
       },
+
       select: {
         id: true,
         name: true,
@@ -274,7 +287,7 @@ export const saveAgent = async ({
     return updated;
   };
 
-  const updatedAgent = await prisma.$transaction(runOperations as unknown as Parameters<typeof prisma.$transaction>[0], {
+  const updatedAgent = await prisma.$transaction(runOperations, {
     timeout: 30_000,
   });
 
@@ -387,15 +400,6 @@ export const getAgentById = async (
       updatedAt: true,
       description: true,
 
-      domain: {
-        select: {
-          name: true,
-          id: true,
-          verified: true,
-          lastStatus: true,
-        },
-      },
-
       ...(options.include?.includes('team.subscription')
         ? {
             team: {
@@ -431,14 +435,20 @@ export const getAgentById = async (
     throw new ApiError(httpStatus.NOT_FOUND, 'Agent not found');
   }
 
-  const { name, updatedAt, aiAgentData, domain, lockId, lastLockBeat, lastLockSaveOperation, ...rest } = agent;
-  const isLocked = agentHasValidLock(agent.lastLockBeat, agent.lastLockSaveOperation, agent.lockId);
+  type ModifiedAgent = typeof agent & { domain: any[] };
+  const modifiedAgent: ModifiedAgent = _.cloneDeep(agent) as any;
+  // for backward compatibility, add to the agent an empty domain object
+  modifiedAgent.domain = [];
+
+  const { name, updatedAt, aiAgentData, domain, lockId, lastLockBeat, lastLockSaveOperation, ...rest } = modifiedAgent;
+
+  const isLocked = agentHasValidLock(modifiedAgent.lastLockBeat, modifiedAgent.lastLockSaveOperation, modifiedAgent.lockId);
 
   return {
     name,
     updatedAt,
     data: aiAgentData?.data,
-    domain: agent.domain,
+    domain: modifiedAgent.domain,
     isLocked,
     ...rest,
   };
@@ -850,27 +860,9 @@ export const checkAgentExistsOrThrow = async (
 
 // M2M call
 export const getAgentByDomain = async (domain: string) => {
-  const domainQuery = await prisma.domain.findFirst({
-    where: {
-      name: domain,
-    },
-    select: {
-      name: true,
-      aiAgent: true,
-    },
-  });
+  // DO NOT REMOVE for backward compatibility
 
-  if (!domainQuery) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Domain not found');
-  }
-
-  const agent = domainQuery?.aiAgent;
-
-  if (!agent) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Agent not found');
-  }
-
-  return agent;
+  throw new ApiError(httpStatus.NOT_FOUND, 'Agent not found');
 };
 
 // M2M: AGENT states
@@ -1043,227 +1035,6 @@ export async function deleteAgentSetting(aiAgentId: string, key: string, teamId:
   return deleted;
 }
 
-export const getAgentCallLogs = async ({
-  teamId,
-  aiAgentId,
-  where,
-  pagination,
-}: {
-  teamId: string;
-  aiAgentId: string;
-  where?: {
-    sourceId?: string;
-    componentId?: string;
-    inputDateFrom?: Date;
-    inputDateTo?: Date;
-    outputDateFrom?: Date;
-    outputDateTo?: Date;
-    sessionID?: string;
-    workflowID?: string;
-    processID?: string;
-    tags?: string;
-  };
-  pagination?: {
-    page?: number;
-    limit?: number;
-  };
-}) => {
-  const agent = await prisma.aiAgent.findFirst({
-    where: {
-      id: aiAgentId,
-      teamId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!agent) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Agent not found');
-  }
-
-  type Where = typeof prisma.aiAgentLog.findMany extends (args: { where: infer T }) => any ? T : never;
-
-  const agentLogQueryWhereClause: Where = {
-    aiAgent: {
-      id: aiAgentId,
-      teamId,
-    },
-
-    sourceId: { equals: where?.sourceId },
-    componentId: { equals: where?.componentId },
-    sessionID: { equals: where?.sessionID },
-    workflowID: { equals: where?.workflowID },
-    processID: { equals: where?.processID },
-
-    AND: [
-      {
-        OR: [{ tags: null }, { tags: { not: { contains: 'DEBUG' } } }],
-
-        ...(where?.tags && {
-          tags: {
-            contains: where.tags,
-          },
-        }),
-      },
-    ],
-    inputTimestamp: {
-      ...(where?.inputDateFrom && { gte: where?.inputDateFrom }),
-      ...(where?.inputDateTo && { lte: where?.inputDateTo }),
-    },
-    outputTimestamp: {
-      ...(where?.outputDateFrom && { gte: where?.outputDateFrom }),
-      ...(where?.outputDateTo && { lte: where?.outputDateTo }),
-    },
-  };
-
-  const logs = await prisma.aiAgentLog.findMany({
-    where: agentLogQueryWhereClause,
-    ...includePagination(pagination),
-    // orderBy: {
-    //   createdAt: 'asc',
-    // }, //! COMMENTED OUT BECAUSE IT'S SLOW UNTIL WE FIX THE INDEXES. FOR NOW, WE WILL MANUALLY SORT THE RESULTS after the query
-    // TODO @AHMED: FIX THE INDEXES
-  });
-
-  logs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-
-  const total = await prisma.aiAgentLog.count({
-    where: agentLogQueryWhereClause,
-  });
-
-  return {
-    logs,
-    total,
-  };
-};
-
-export const getAgentCallLogsSessions = async ({
-  teamId,
-  aiAgentId,
-  pagination,
-}: {
-  teamId: string;
-  aiAgentId: string;
-  pagination?: {
-    page?: number;
-    limit?: number;
-  };
-}) => {
-  const agent = await prisma.aiAgent.findFirst({
-    where: {
-      id: aiAgentId,
-      teamId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!agent) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Agent not found');
-  }
-
-  // id,  createdAt, sourceId, input, tags, sessionID
-
-  type Where = typeof prisma.aiAgentLog.findMany extends (args: { where: infer T }) => any ? T : never;
-
-  const agentLogQueryWhereClause: Where = {
-    aiAgent: {
-      id: aiAgentId,
-      teamId,
-    },
-
-    componentId: { contains: 'AGENT' },
-    AND: [
-      {
-        OR: [{ tags: null }, { tags: { not: { contains: 'DEBUG' } } }],
-      },
-    ],
-  };
-  const logs = await prisma.aiAgentLog.findMany({
-    where: agentLogQueryWhereClause,
-    ...includePagination(pagination),
-
-    select: {
-      id: true,
-      createdAt: true,
-      sourceId: true,
-      input: true,
-      tags: true,
-      sessionID: true,
-      workflowID: true,
-      processID: true,
-    },
-
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
-  const total = await prisma.aiAgentLog.count({
-    where: agentLogQueryWhereClause,
-  });
-
-  return {
-    logs,
-    total,
-  };
-};
-
-export const addAgentCallLogM2M = async ({
-  aiAgentId,
-  data,
-}: {
-  aiAgentId: string;
-  data: {
-    [key: string]: any;
-  };
-}) => {
-  await checkAgentExistsOrThrow(aiAgentId, undefined, { anonymous: true });
-
-  const log = await prisma.aiAgentLog.create({
-    data: {
-      aiAgent: {
-        connect: {
-          id: aiAgentId,
-        },
-      },
-      ...data,
-    },
-  });
-
-  return log;
-};
-
-export const updateAgentCallLogM2M = async ({
-  logId,
-  data,
-}: {
-  logId: number;
-  data: {
-    [key: string]: any;
-  };
-}) => {
-  try {
-    const updated = await prisma.aiAgentLog.update({
-      where: {
-        id: logId,
-      },
-      data,
-
-      select: null,
-    });
-
-    return updated;
-  } catch (error: any) {
-    if (error.code === PRISMA_ERROR_CODES.NON_EXISTENT_RECORD) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Log not found');
-    }
-    throw error;
-  }
-};
-
 export const getTeamAgents = async ({
   teamId,
   deployedOnly = false,
@@ -1296,14 +1067,7 @@ export const getTeamAgents = async ({
       description: true,
       createdAt: true,
       updatedAt: true,
-      domain: {
-        select: {
-          name: true,
-          id: true,
-          verified: true,
-          lastStatus: true,
-        },
-      },
+
       _count: {
         select: {
           AiAgentDeployment: true,
@@ -1322,12 +1086,21 @@ export const getTeamAgents = async ({
     },
   });
 
+  type ModifiedAgent = (typeof agents)[0] & { domain: any[] };
+  let modifiedAgents: ModifiedAgent[] = _.cloneDeep(agents) as any;
+
+  // for backward compatibility, add to each agent in the list an empty domain object
+  modifiedAgents = modifiedAgents.map((agent: ModifiedAgent) => {
+    agent.domain = [];
+    return agent;
+  });
+
   const total = await prisma.aiAgent.count({
     where: whereClause,
   });
 
   // Transform the response to include the deployed flag
-  const transformedAgents = agents.map(agent => ({
+  const transformedAgents = modifiedAgents.map(agent => ({
     ...agent,
     deployed: agent._count.AiAgentDeployment > 0,
     _count: undefined, // Remove the _count field from the response

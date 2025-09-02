@@ -1,37 +1,32 @@
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import {
-  BinaryTreeIcon,
-  BookIcon,
-  CogIcon,
-  DatabaseIcon,
-  DiscordIcon,
-  GridIcon,
-  HomeIcon,
-  KeyIcon,
-  LineChartIcon,
-} from '../components/svgs';
+import { BookIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
 export const NEW_ENTERPRISE_PLAN_REDIRECT = 'https://smythos.com/pricing-enquiry/';
 
-export const sidebarMenuItems = [
-  { url: '/agents', name: 'Home', icon: HomeIcon },
-  { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon },
-  { url: '/data/', name: 'Data Pool', icon: DatabaseIcon },
-  { url: '/analytics', name: 'Analytics', icon: LineChartIcon },
-  { url: '/vault', name: 'Vault', icon: KeyIcon },
-  { url: '/templates', name: 'Templates', icon: GridIcon },
-];
-export const sidebarMenuItemsWithTeams = [
-  { url: '/agents', name: 'Home', icon: HomeIcon },
-  { url: '/domains', name: 'Subdomains', icon: BinaryTreeIcon },
-  { url: '/data/', name: 'Data Pool', icon: DatabaseIcon },
-  { url: '/analytics', name: 'Analytics', icon: LineChartIcon },
-  { url: '/vault', name: 'Vault', icon: KeyIcon },
-  { url: '/templates', name: 'Templates', icon: GridIcon },
-  { url: '/teams/settings', name: 'Space Settings', icon: CogIcon },
-];
+export type SidebarMenuItem = {
+  url: string;
+  name: string;
+  icon: React.FC;
+  visible: boolean | ((ctx: any) => boolean);
+  order?: number;
+};
+
+export const getSidebarMenuItems = (): SidebarMenuItem[] => {
+  const pluginItems = (
+    plugins.getPluginsByTarget(PluginTarget.SidebarMenuItems, PluginType.Config) as {
+      config: SidebarMenuItem;
+    }[]
+  ).flatMap((item) => item.config);
+
+  return [
+    { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
+    { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
+    ...pluginItems,
+  ].sort((a, b) => (a.order || 0) - (b.order || 0));
+};
 
 export const bottomLinks = [
   { title: 'Docs', path: SMYTHOS_DOCS_URL, icon: BookIcon, isExternal: true },
@@ -43,11 +38,17 @@ export const bottomLinks = [
   },
 ];
 
-export const profileDropdownItems = [
-  { url: '/account', name: 'Account' },
-  // { url: '/teams', name: 'Spaces' },
-  { url: '/teams/members', name: 'User Management' },
-  { url: '/teams/settings', name: 'User Management' },
-  // { url: '/teams/roles', name: 'Manage Roles' },
-  { url: '/my-plan', name: 'My Plan' },
-];
+export const profileDropdownItems = () => {
+  const pluginItems = (
+    plugins.getPluginsByTarget(PluginTarget.TopMenuProfileDropdownItems, PluginType.Config) as {
+      config: any;
+    }[]
+  ).flatMap((item) => item.config);
+
+  return [
+    { url: '/account', name: 'Account' },
+    // { url: '/teams/members', name: 'User Management' },
+    ...pluginItems,
+    { url: '/teams/settings', name: 'User Management' },
+  ];
+};

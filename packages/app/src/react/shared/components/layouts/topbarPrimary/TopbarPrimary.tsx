@@ -15,7 +15,7 @@ export const TopbarPrimary = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { userInfo, userTeams, getPageAccess } = useAuthCtx();
   const [profilePages, setProfilePages] = useState(
-    profileDropdownItems.filter((p) => {
+    profileDropdownItems().filter((p) => {
       return (
         p.url !== '/teams/settings' && p.url !== '/teams/members' && getPageAccess(p.url)?.read
       );
@@ -66,13 +66,13 @@ export const TopbarPrimary = () => {
       const currTeam = userTeams?.filter?.((t) => t.id === userSettings?.userSelectedTeam)?.[0];
       if (!currTeam?.parentId) {
         setProfilePages(
-          profileDropdownItems.filter(
+          profileDropdownItems().filter(
             (p) => p.url !== '/teams/settings' && getPageAccess(p.url)?.read,
           ),
         );
       } else {
         setProfilePages(
-          profileDropdownItems.filter((p) => {
+          profileDropdownItems().filter((p) => {
             return (
               p.url !== '/teams/members' &&
               p.url !== '/teams/settings' &&

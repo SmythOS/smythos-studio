@@ -1,15 +1,14 @@
 import * as fal from '@fal-ai/serverless-client';
 
+import { randomUUID } from 'crypto';
+import { generateLinkedInAvatarPrompt } from '../../shared/constants/prompts';
 import config from '../config';
 import {
   AGENT_AVATAR_AUTO_GENERATE_IMAGE_HEIGHT,
   AGENT_AVATAR_AUTO_GENERATE_IMAGE_WIDTH,
 } from '../constants';
-import { generateLinkedInAvatarPrompt } from '../../shared/constants/prompts';
-import SmythPubStaticStorage from './storage/SmythStaticStorage.class';
-import { randomUUID } from 'crypto';
-import { authHeaders, includeAxiosAuth, smythAPIReq } from '../utils';
-const staticStorage = new SmythPubStaticStorage();
+import { authHeaders, md5Hash, posixPath, smythAPIReq } from '../utils';
+import { assetStorage } from './storage';
 
 export async function generateImage({
   prompt,
@@ -67,12 +66,8 @@ export async function autoGenerateAvatarForAgent(req, agentId: string, teamId: s
     prompt: generateLinkedInAvatarPrompt(),
   });
 
-  const avatarStoragePath = SmythPubStaticStorage.path(
-    'teams',
-    SmythPubStaticStorage.hash(teamId),
-    `avatar-${randomUUID()}`,
-  );
-  const uploaded = await staticStorage.saveContent({
+  const avatarStoragePath = posixPath('teams', md5Hash(teamId), `avatar-${randomUUID()}`);
+  const uploaded = await assetStorage.saveContent({
     key: avatarStoragePath,
     contentType: 'image/png',
     body: Buffer.from(base64Image, 'base64'),

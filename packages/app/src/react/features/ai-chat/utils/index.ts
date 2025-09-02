@@ -8,7 +8,7 @@ type GenerateResponseInput = {
   query: string;
   fileKeys?: string[];
   signal: AbortSignal;
-  onResponse: (value: string) => void;
+  onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => void;
   onStart: () => void;
   onEnd: () => void;
   onThinking?: (thinking: { message: string }) => void;
@@ -22,6 +22,8 @@ type ResponseFormat = {
   function?: string;
   function_call?: { name?: string; arguments?: any[] };
   error?: string;
+  isError?: boolean;
+  errorType?: string;
 };
 
 // Function-specific thinking messages that cycle every 5 seconds
@@ -203,11 +205,13 @@ export const chatUtils = {
     // Smooth Transition Handler
     const handleMessageTransition = (newState: MessageState) => {
       if (messageState === 'initial' && newState === 'debug') {
-        // Show processing message instead of empty
-        const processingMessage = 'Processing your request...';
-        input.onResponse(processingMessage);
+        // Don't clear message immediately when debug starts - keep the processing message
+        // The message will be cleared only when debug ends and content starts arriving
+        // const processingMessage = 'Processing your request...';
+        // input.onResponse(processingMessage);
       } else if (messageState === 'debug' && newState === 'final') {
-        // Clear and prepare for final content
+        // Clear and prepare for final content - only when debug is completely finished
+        // console.log('Debug ended - clearing message for final content');
         input.onResponse('');
       }
       messageState = newState;
@@ -372,7 +376,7 @@ export const chatUtils = {
           }
 
           if (jsonObject.content && jsonObject.content !== '') {
-            // Handle final content transition
+            // Handle final content transition - only when we're actually getting content
             if (messageState === ('debug' as MessageState)) {
               handleMessageTransition('final');
               message = ''; // Start fresh for final content
@@ -392,8 +396,11 @@ export const chatUtils = {
             // Handle regular content - response shows immediately
             message += jsonObject.content;
 
-            // INSTANT DISPLAY: Show response immediately
-            input.onResponse(message);
+            // INSTANT DISPLAY: Show response immediately with error flags if present
+            input.onResponse(message, {
+              isError: jsonObject.isError || false,
+              errorType: jsonObject.errorType || undefined,
+            });
           }
         }
 

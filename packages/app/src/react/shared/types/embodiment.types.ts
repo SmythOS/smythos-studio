@@ -35,6 +35,11 @@ export type TChatBotProperties = {
   allowFileAttachments?: boolean;
 };
 
+export type TFormPreviewProperties = {
+  name: string;
+  allowedDomains: string[];
+};
+
 export type TGptEmbodimentProperties = {
   humanName: string;
   modelName: string;

@@ -27,7 +27,7 @@ import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
 
 const CHAT_WARNING_INFO =
-  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line max-len, quotes
+  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
 
 interface AIChatProps {
   givenAgent?: string;
@@ -70,7 +70,7 @@ const AIChat: FC<AIChatProps> = ({
   });
 
   const { data: agentSettingsData } = useAgentSettings(agentId || '');
-  const { mutateAsync: createChat, isLoading: isChatCreating } = useCreateChatMutation();
+  const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
   const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
 
   // Custom Hooks - optimized
@@ -149,7 +149,6 @@ const AIChat: FC<AIChatProps> = ({
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
-  // Fast effects - minimal dependencies
   useEffect(() => {
     if (agentSettingsData?.settings && currentAgent) {
       currentAgent.aiAgentSettings = agentSettingsData.settings;
@@ -162,9 +161,7 @@ const AIChat: FC<AIChatProps> = ({
   }, [agentSettingsData, currentAgent, agentId, createNewChatSession]);
 
   useEffect(() => {
-    if (!isAgentLoading && !isQueryInputDisabled) {
-      queryInputRef.current?.focus();
-    }
+    if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
   }, [isAgentLoading, isQueryInputDisabled]);
 
   useEffect(() => {

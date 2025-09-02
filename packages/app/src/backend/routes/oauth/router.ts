@@ -1,13 +1,13 @@
+import { mapStatusCodeToMessage } from '@src/shared/utils/oauth.utils';
+import axios from 'axios';
+import crypto from 'crypto';
 import express from 'express';
 import passport from 'passport';
-import { dynamicStrategyInitialization } from '../../middlewares/dynamicStrategy.mw';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
+import { oauthStrategyInitialization } from '../../middlewares/oauthStrategy.mw';
 import { getTeamSettingsObj, saveTeamSettingsObj } from '../../services/team-data.service';
-const router = express.Router();
-import config from '../../../backend/config';
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
-import crypto from 'crypto';
-import axios from 'axios';
+const router = express.Router();
 
 // Websites that don't provide expires_in But estimated times in docs.
 const PROVIDER_EXPIRATION_TIMES = {
@@ -18,6 +18,67 @@ const PROVIDER_EXPIRATION_TIMES = {
   // Add other providers here with their specific expiration times
   // 'api.example.com': { expiresInSeconds: X, bufferInSeconds: Y }
 };
+
+/**
+ * Returns the provider configuration object to compare against request body.
+ * Supports both legacy (settings.oauth_info) and new flat settings structures.
+ */
+function getConfigForCompare(settings: any) {
+  return settings?.oauth_info && typeof settings.oauth_info === 'object'
+    ? settings.oauth_info
+    : settings;
+}
+
+/**
+ * Returns true if a valid primary token exists either in auth_data (new) or
+ * mis-saved on settings (legacy/top-level).
+ */
+function hasPrimaryToken(authData: any, settings: any): boolean {
+  if (authData && typeof authData.primary === 'string' && authData.primary !== '') return true;
+  if (settings && typeof settings.primary === 'string' && settings.primary !== '') return true;
+  return false;
+}
+
+/**
+ * Flattens legacy settings.oauth_info into auth_settings (new shape), removes disallowed keys.
+ */
+function normalizeAuthSettings(mergedSettings: any): any {
+  if (!mergedSettings || typeof mergedSettings !== 'object') return mergedSettings;
+
+  // Do not persist disallowed fields
+  if (mergedSettings.team) delete mergedSettings.team;
+
+  // Flatten oauth_info if present
+  if (mergedSettings.oauth_info && typeof mergedSettings.oauth_info === 'object') {
+    const legacyInfo = mergedSettings.oauth_info;
+    const keysToFlatten = [
+      'oauth_keys_prefix',
+      'service',
+      'platform',
+      'scope',
+      'authorizationURL',
+      'tokenURL',
+      'clientID',
+      'clientSecret',
+      'requestTokenURL',
+      'accessTokenURL',
+      'userAuthorizationURL',
+      'consumerKey',
+      'consumerSecret',
+    ];
+    for (const k of keysToFlatten) {
+      if (mergedSettings[k] === undefined && legacyInfo[k] !== undefined) {
+        mergedSettings[k] = legacyInfo[k];
+      }
+    }
+    delete mergedSettings.oauth_info;
+  }
+
+  // Ensure a name key exists to classify as named connection (even if empty)
+  if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
+
+  return mergedSettings;
+}
 
 router.post('/checkAuth', includeTeamDetails, async (req, res) => {
   try {
@@ -37,7 +98,18 @@ router.post('/checkAuth', includeTeamDetails, async (req, res) => {
   }
 });
 
-router.post('/init', includeTeamDetails, dynamicStrategyInitialization, async (req, res) => {
+router.post('/init', includeTeamDetails, oauthStrategyInitialization, async (req, res) => {
+  // Store the frontend origin from the referer or origin header
+  const referer = req.headers.referer || req.headers.referrer || req.headers.origin;
+  if (referer && typeof referer === 'string') {
+    try {
+      const frontendOrigin = new URL(referer).origin;
+      req.session.frontendOrigin = frontendOrigin;
+    } catch (error) {
+      console.error('[/oauth/init] Invalid referer/origin URL:', referer);
+    }
+  }
+
   try {
     const {
       service,
@@ -47,11 +119,19 @@ router.post('/init', includeTeamDetails, dynamicStrategyInitialization, async (r
       authorizationURL,
       tokenURL,
       oauth2CallbackURL,
+      // OAuth1 parameters
+      consumerKey,
+      consumerSecret,
+      requestTokenURL,
+      accessTokenURL,
+      userAuthorizationURL,
+      oauth1CallbackURL,
     } = req.body;
 
     let authUrl = `/oauth/${service}`;
 
     if (['google', 'linkedin', 'oauth2'].includes(service)) {
+      // OAuth2 flow
       const oauthParams: any = {
         scopes: encodeURIComponent(scope),
         clientID: encodeURIComponent(clientID),
@@ -67,8 +147,29 @@ router.post('/init', includeTeamDetails, dynamicStrategyInitialization, async (r
         Object.entries(oauthParams)
           .map(([key, value]) => `${key}=${value}`)
           .join('&');
-    }
+    } else if (['oauth1', 'twitter'].includes(service)) {
+      // OAuth1 flow
+      const oauthParams: any = {
+        scopes: encodeURIComponent(scope || ''),
+        consumerKey: encodeURIComponent(consumerKey),
+        consumerSecret: encodeURIComponent(consumerSecret),
+        callbackURL: encodeURIComponent(oauth1CallbackURL),
+      };
 
+      if (requestTokenURL) oauthParams.requestTokenURL = encodeURIComponent(requestTokenURL);
+      if (accessTokenURL) oauthParams.accessTokenURL = encodeURIComponent(accessTokenURL);
+      if (userAuthorizationURL) oauthParams.userAuthorizationURL = encodeURIComponent(userAuthorizationURL);
+
+      authUrl +=
+        '?' +
+        Object.entries(oauthParams)
+          .map(([key, value]) => `${key}=${value}`)
+          .join('&');
+    } else {
+      // Unsupported service
+      return res.status(400).json({ error: 'Invalid or unsupported service.' });
+    }
+    // console.log({ authUrl })
     res.json({ authUrl });
   } catch (error) {
     console.error('Error in /init route:', error);
@@ -145,6 +246,53 @@ router.get('/:provider', async (req, res, next) => {
   }
 });
 
+/**
+ * Extracts the origin from the OAuth callback URL in the session.
+ * Falls back to an empty string if not available or invalid.
+ */
+function getCallbackOrigin(req: express.Request): string {
+  // For OAuth flows initiated from the React app at localhost:4002,
+  // we need to send the message back to the frontend, not the backend callback URL
+
+  // Check if we have a stored frontend origin in the session
+  const frontendOrigin = req.session?.frontendOrigin;
+  if (frontendOrigin) {
+    return frontendOrigin;
+  }
+
+  // Check referer header to determine where the request came from
+  const referer = req.headers.referer || req.headers.referrer;
+  if (referer && typeof referer === 'string') {
+    try {
+      const refererOrigin = new URL(referer).origin;
+      return refererOrigin;
+    } catch (error) {
+      console.error('Invalid referer URL:', referer);
+    }
+  }
+
+  // For development, if running on localhost:4000 (backend), assume frontend is on 4002
+  const callbackUrl = req.session?.oauth_info?.oauth2CallbackURL ||
+    req.session?.oauth_info?.oauth1CallbackURL;
+
+  if (callbackUrl && callbackUrl.includes('localhost:4000')) {
+    return 'http://localhost:4002';
+  }
+
+  // Fallback to extracting from callback URL (for production)
+  if (typeof callbackUrl === 'string') {
+    try {
+      const origin = new URL(callbackUrl).origin;
+      return origin;
+    } catch (error) {
+      console.error('Invalid callback URL:', callbackUrl);
+      return '';
+    }
+  }
+
+  return '';
+}
+
 router.get('/:provider/callback', async (req, res, next) => {
   const { state, code } = req.query;
 
@@ -163,7 +311,7 @@ router.get('/:provider/callback', async (req, res, next) => {
           window.opener.postMessage({
               type: 'error',
               data: { message: 'Invalid state parameter. Possible CSRF attack.' }
-          }, '${config.env.UI_SERVER}');
+          }, '${getCallbackOrigin(req)}');
           window.close();
         </script>`);
     }
@@ -203,12 +351,13 @@ router.get('/:provider/callback', async (req, res, next) => {
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
       console.error('Error exchanging code for tokens:', error);
-      return res.status(500).send(`
+      const origin = getCallbackOrigin(req);
+      res.send(`
         <script>
           window.opener.postMessage({
               type: 'error',
               data: { message: 'Failed to exchange authorization code for tokens.' }
-          }, '${config.env.UI_SERVER}');
+          }, '${origin}');
           window.close();
         </script>`);
     }
@@ -253,12 +402,13 @@ router.get('/:provider/callback', async (req, res, next) => {
       } catch (error) {
         console.error('Error in callback route:', error);
         const errorMessage = `${error.message || 'Unknown error'}.`;
+        const origin = getCallbackOrigin(req);
         const errorScript = `
           <script>
             window.opener.postMessage({
                 type: 'error',
                 data: { message: '${errorMessage.replace(/'/g, "\\'")}' }
-            }, '${config.env.UI_SERVER}');
+            }, '${origin}');
             window.close();
           </script>`;
         res.send(errorScript);
@@ -333,17 +483,60 @@ async function handleTokenStorage(session, oauthUser, req) {
   }
 }
 
-async function handleOAuthOperation(settingKey, entryId, data, req) {
+async function handleOAuthOperation(settingKey: string, entryId: string, newDataFromAuthFlow: any, req: express.Request) {
   try {
-    const existing = await getTeamSettingsObj(req, settingKey);
-    console.log(
-      existing && existing[entryId]
-        ? 'overwriting existing oauth values'
-        : 'creating new oauth values',
-    );
-    await saveTeamSettingsObj({ req, settingKey, entryId, data });
+    const existingSettings = await getTeamSettingsObj(req, settingKey);
+    const existingEntryData = existingSettings?.[entryId] || {};
+
+    // 1. Separate new token data from new settings data
+    const { primary, secondary, expires_in, ...newSettingsFromAuthFlowRaw } = newDataFromAuthFlow;
+    // Remove fields that must not be persisted inside auth_settings (e.g., team)
+    const { team: _omitTeam, ...newSettingsFromAuthFlow } = newSettingsFromAuthFlowRaw;
+    const newAuthData = { primary, secondary, expires_in };
+
+    // 2. Determine the base settings (existing or new)
+    // If existing entry has auth_settings, use that as base, otherwise use the whole existing entry (old structure) or an empty object.
+    let baseSettings = {};
+    if (existingEntryData.auth_settings) {
+      baseSettings = existingEntryData.auth_settings;
+    } else if (Object.keys(existingEntryData).length > 0 && !existingEntryData.auth_data) {
+      // Handle old structure: extract settings from top level, excluding potential old token fields
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { primary: _p, secondary: _s, expires_in: _e, ...oldSettings } = existingEntryData;
+      baseSettings = oldSettings;
+    }
+
+    // 3. Merge new settings from auth flow into base settings and normalize
+    let mergedSettings: any = {
+      ...(baseSettings as any),
+      ...newSettingsFromAuthFlow,
+    };
+
+    // Ensure oauth_info is merged correctly if it exists in both
+    if ((baseSettings as any).oauth_info && newSettingsFromAuthFlow.oauth_info) {
+      mergedSettings.oauth_info = { ...(baseSettings as any).oauth_info, ...newSettingsFromAuthFlow.oauth_info };
+    }
+
+    // Preserve existing display metadata if missing in incoming data
+    if ((baseSettings as any).name && !mergedSettings.name) mergedSettings.name = (baseSettings as any).name;
+    if ((baseSettings as any).platform && !mergedSettings.platform) mergedSettings.platform = (baseSettings as any).platform;
+    // Ensure name key exists to classify as named (even if empty)
+    if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
+
+
+    // Normalize
+    mergedSettings = normalizeAuthSettings(mergedSettings);
+
+    // 4. Construct the final data object with the new structure
+    const finalDataToSave = {
+      auth_data: newAuthData, // Always use the fresh tokens
+      auth_settings: mergedSettings, // Use the merged settings
+    };
+
+    // 5. Save the final data object
+    await saveTeamSettingsObj({ req, settingKey, entryId, data: finalDataToSave });
   } catch (error) {
-    console.error(`Error handling OAuth operation for ${entryId}:`, error);
+    console.error(`[handleOAuthOperation] Error handling OAuth operation for ${entryId}:`, error);
     throw error; // Re-throw the error for higher-level handling
   }
 }
@@ -352,13 +545,33 @@ function handleSuccessfulAuthentication(strategyType, res) {
   try {
     const messageType = strategyType === 'oauth' ? 'oauth' : 'oauth2';
     const messageData = { message: 'Authentication successful' };
+    const origin = getCallbackOrigin(res.req);
+    // If no origin found, try to use a wildcard or the opener's origin
+    const targetOrigin = origin || '*';
 
     res.send(`<script>
-      window.opener.postMessage({
-          type: '${messageType}',
-          data: ${JSON.stringify(messageData)}
-      }, '${config.env.UI_SERVER}');
-      window.close();
+      
+      if (window.opener) {
+        // Try sending to specific origin first, then fallback to wildcard if needed
+        try {
+          window.opener.postMessage({
+              type: '${messageType}',
+              data: ${JSON.stringify(messageData)}
+          }, '${targetOrigin}');
+        } catch (e) {
+          console.error('[OAuth Callback] Failed to send to specific origin, trying wildcard:', e);
+          window.opener.postMessage({
+              type: '${messageType}',
+              data: ${JSON.stringify(messageData)}
+          }, '*');
+        }
+      } else {
+        console.error('[OAuth Callback] window.opener is null - cannot send message');
+      }
+      
+      setTimeout(() => {
+        window.close();
+      }, 500);
     </script>`);
   } catch (error) {
     console.error('Error in handleSuccessfulAuthentication:', error);
@@ -367,58 +580,64 @@ function handleSuccessfulAuthentication(strategyType, res) {
 }
 
 // Modify the existing compareOAuthDetails function to include template variable replacement.
-async function compareOAuthDetails(existing, req) {
-  // Attempt to replace template variables in requestBody before the comparison.
+async function compareOAuthDetails(existing: Record<string, any>, req: express.Request) {
   const updatedRequestBody = await replaceTemplateVariablesOptimized(req);
-
   const { oauth_keys_prefix } = updatedRequestBody;
   const entryId = `${oauth_keys_prefix}_TOKENS`;
-  // Proceed with the rest of your compareOAuthDetails function.
-  const targetObject = existing[entryId];
-  let current_oauth_object;
+
+  const entryData = existing[entryId];
+  let connectionData: any;
 
   try {
-    current_oauth_object =
-      typeof targetObject === 'string' ? JSON?.parse(targetObject) : targetObject;
+    connectionData = typeof entryData === 'string' ? JSON.parse(entryData) : entryData;
   } catch (error) {
     console.error('Error parsing target object:', error);
     return false;
   }
 
-  if (!current_oauth_object || typeof current_oauth_object !== 'object') {
+  if (!connectionData || typeof connectionData !== 'object') {
     return false;
   }
+
+  // Determine where the settings and auth data reside (new vs old structure)
+  const settings = connectionData.auth_settings || connectionData; // Use auth_settings if exists, else assume old structure
+  let authData = connectionData.auth_data || connectionData; // Use auth_data if exists, else assume old structure
+
+  // New structure has no oauth_info; prefer oauth_info if present (legacy), else compare with flat settings
+  const configToCompare: any = getConfigForCompare(settings);
+
+  // Compare request body against provider config
   for (const [key, value] of Object.entries(updatedRequestBody)) {
-    if (current_oauth_object?.oauth_info?.[key] !== value) {
+    if (configToCompare[key] !== value) {
       return false;
     }
   }
 
-  if ('primary' in current_oauth_object && current_oauth_object['primary'] === '') {
-    return false; // The property exists and is an empty string
-  } else if (current_oauth_object['primary']) {
-    return true; // The property exists and has a truthy value (not empty, not null, etc.)
-  }
+  // Robust token presence check: support mis-saved tokens under auth_settings
+  if (!hasPrimaryToken(authData, settings)) return false;
 
-  return true;
+  return true; // All checks passed
 }
 
 router.post('/signOut', includeTeamDetails, async (req, res) => {
   try {
-    const { invalidateAuthentication, oauth_keys_prefix: entryId } = req.body;
-    const settings = await getTeamSettingsObj(req, 'oauth');
+    // Accept either prefix (OAUTH_XXX) or full id (OAUTH_XXX_TOKENS)
+    const raw = String(req.body.oauth_keys_prefix || '');
+    const entryId = raw.endsWith('_TOKENS') ? raw : `${raw}_TOKENS`;
+    const { invalidateAuthentication } = req.body; // invalidateAuthentication flag is still used
 
-    // Parse existing if it's a string
-    let existing = settings[entryId];
+    const settings = await getTeamSettingsObj(req, 'oauth');
+    if (!settings || !settings[entryId]) {
+      return res.status(404).json({ error: 'No existing OAuth settings found for the provided prefix.' });
+    }
+
+    // Parse existing data if it's a string
+    let existingData = settings[entryId];
     try {
-      existing = typeof existing === 'string' ? JSON?.parse(existing) : existing;
+      existingData = typeof existingData === 'string' ? JSON.parse(existingData) : existingData;
     } catch (error) {
       console.error('Error parsing existing settings:', error);
       return res.status(500).json({ error: 'Invalid settings format' });
-    }
-
-    if (!settings || !existing) {
-      return res.status(404).json({ error: 'No existing OAuth settings found.' });
     }
 
     if (invalidateAuthentication !== true) {
@@ -426,27 +645,62 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
         .status(400)
         .json({ error: 'Invalid request. Missing or invalid "invalidateAuthentication" flag.' });
     }
-    // Clear properties if they exist
-    for (let prop of ['primary', 'secondary']) {
-      if (prop in existing && existing[prop] === '') {
-        return res.json({ invalidate: true, message: '' }); // send empty message with true, and stop if the property exists and is an empty string
-      } else if (prop in existing) {
-        existing[prop] = ''; // Set the property to an empty string if it exists and is not already empty
+
+    // Prepare the updated data structure
+    let updatedData;
+
+    // Check if the existing data uses the new structure
+    if (existingData.auth_data && existingData.auth_settings) {
+      // New structure: Clear tokens within auth_data
+      updatedData = {
+        ...existingData,
+        auth_data: {
+          ...existingData.auth_data,
+          primary: '',
+          secondary: '',
+          // Optionally clear expires_in or leave it? Clearing for consistency.
+          expires_in: undefined, // or '' or null depending on desired state
+        },
+      };
+      // Remove undefined expires_in if set that way
+      if (updatedData.auth_data.expires_in === undefined) {
+        delete updatedData.auth_data.expires_in;
+      }
+
+    } else {
+      // Old structure: Clear tokens at the top level
+      updatedData = {
+        ...existingData,
+        primary: '',
+        secondary: '',
+        expires_in: undefined, // or '' or null
+      };
+      if (updatedData.expires_in === undefined) {
+        delete updatedData.expires_in;
       }
     }
+
+    // If tokens were already empty, respond without saving (optional optimization)
+    const currentPrimary = existingData.auth_data ? existingData.auth_data.primary : existingData.primary;
+    const currentSecondary = existingData.auth_data ? existingData.auth_data.secondary : existingData.secondary;
+    if (currentPrimary === '' && currentSecondary === '') {
+      return res.json({ invalidate: true, message: 'Already signed out.' });
+    }
+
+
     // Save the updated settings
     const saveResult = await saveTeamSettingsObj({
       req,
       settingKey: 'oauth',
       entryId,
-      data: existing,
+      data: updatedData, // Save the structure with cleared tokens
     });
-    // Check the result of saveTeamSettingsObj
+
     if (!saveResult.success) {
-      // Handle failure according to your application's needs
-      console.error('Failed to save team settings:', saveResult.error);
+      console.error('Failed to save team settings during sign out:', saveResult.error);
       return res.status(500).json({ error: saveResult.error || 'Failed to process Sign out.' });
     }
+
     return res.json({ invalidate: true, message: 'Signed out successfully.' });
   } catch (error) {
     console.error('Error during sign out:', error);
@@ -454,23 +708,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
   }
 });
 
-// This function maps HTTP status codes to user-friendly error messages
-function mapStatusCodeToMessage(statusCode) {
-  switch (statusCode) {
-    case 400:
-      return 'Bad Request. Please verify your request and try again.';
-    case 401:
-      return 'Unauthorized. Please ensure you are logged in and have the necessary permissions.';
-    case 403:
-      return 'Forbidden. Access is denied.';
-    case 404:
-      return 'Not Found. The requested resource was not found.';
-    case 500:
-      return 'Internal Server Error. Something went wrong on our end.';
-    default:
-      return 'An unexpected error occurred. Please try again.';
-  }
-}
+
 
 async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
   try {

@@ -1,7 +1,4 @@
-import httpStatus from 'http-status';
-import { prisma } from '../../../../../../prisma/prisma-client';
 import { PrismaTransaction } from '../../../../../../types';
-import ApiError from '../../../../../utils/apiError';
 
 export interface VersionComponents {
   major: number;

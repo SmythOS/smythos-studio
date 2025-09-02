@@ -21,7 +21,7 @@ export default [
   {
     input: './src/backend/index.ts',
     output: {
-      dir: './server',
+      dir: './dist/server',
       format: 'esm',
     },
     plugins: [

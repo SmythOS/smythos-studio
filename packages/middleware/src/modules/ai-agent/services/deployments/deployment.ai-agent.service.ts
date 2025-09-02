@@ -1,11 +1,11 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-restricted-syntax */
 import httpStatus from 'http-status';
+import { aiAgentService } from '..';
 import { prisma } from '../../../../../prisma/prisma-client';
+import { PrismaTransaction } from '../../../../../types';
 import { versionUtils } from '../../../../utils';
 import ApiError from '../../../../utils/apiError';
-import { aiAgentService } from '..';
-import { PrismaTransaction } from '../../../../../types';
 import { AbstractDeployer } from './strategies/AbstractDeployer';
 import { SmythOsDeployer } from './strategies/SmythOsDeployer';
 
@@ -219,7 +219,7 @@ export const listDeploymentsByAgentId = async ({
     anonymous: options?.anonymous,
   });
 
-  const deployments = await prisma.aiAgentDeployment.findMany({
+  let deployments = await prisma.aiAgentDeployment.findMany({
     where: {
       aiAgent: {
         id: aiAgentId,
@@ -245,17 +245,6 @@ export const listDeploymentsByAgentId = async ({
       aiAgent: {
         select: {
           name: true,
-
-          ...(include?.includes('domain')
-            ? {
-                domain: {
-                  select: {
-                    name: true,
-                    id: true,
-                  },
-                },
-              }
-            : {}),
         },
       },
 
@@ -266,6 +255,14 @@ export const listDeploymentsByAgentId = async ({
         : {}),
     },
   });
+
+  // for backward compatibility, add to each deployment an empty domain object
+  if (include?.includes('domain')) {
+    deployments = deployments.map((deployment: any) => {
+      (deployment.aiAgent as any).domain = [];
+      return deployment;
+    });
+  }
 
   const deploymentsWithUnformattedVersion: {
     createdAt: Date;
@@ -313,12 +310,6 @@ export const getLatestAgentDeployment = async ({ teamId, aiAgentId }: { teamId: 
       aiAgent: {
         select: {
           name: true,
-          domain: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
         },
       },
     },
@@ -327,6 +318,8 @@ export const getLatestAgentDeployment = async ({ teamId, aiAgentId }: { teamId: 
   if (!deployment) {
     return null;
   }
+
+  (deployment.aiAgent as any).domain = [];
 
   return {
     ...deployment,

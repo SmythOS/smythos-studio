@@ -1,4 +1,4 @@
-/* eslint-disable max-len, no-unused-vars, @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 import { Tooltip } from 'flowbite-react';
 import { FC, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
@@ -13,25 +13,13 @@ import {
   ReplyLoader,
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
-import { FileWithMetadata } from '@react/shared/types/chat.types';
+import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-export interface IChatMessage {
-  me?: boolean;
-  message: string;
-  type?: 'user' | 'system' | 'thinking';
-  avatar?: string;
-  isLast?: boolean;
-  isError?: boolean;
-  isReplying?: boolean;
-  isRetrying?: boolean;
-  isFirstMessage?: boolean;
-  onRetryClick?: () => void;
-  files?: FileWithMetadata[];
-  hideMessageBubble?: boolean;
-}
+// Re-export the interface for use in other components
+export type { IChatMessage };
 
 export const ChatBubble: FC<IChatMessage> = ({
   me,
@@ -45,6 +33,7 @@ export const ChatBubble: FC<IChatMessage> = ({
   onRetryClick,
   isError = false,
   hideMessageBubble,
+  thinkingMessage,
 }) => {
   if (me) {
     return (
@@ -65,10 +54,12 @@ export const ChatBubble: FC<IChatMessage> = ({
     <div className={me ? 'pl-[100px]' : ''}>
       {!hideMessageBubble && (
         <SystemMessageBubble
+          avatar={avatar}
           message={message}
           isError={isError}
           onRetryClick={onRetryClick}
           isRetrying={isRetrying}
+          thinkingMessage={thinkingMessage}
         />
       )}
     </div>
@@ -108,16 +99,20 @@ const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files, hideMessage
 
 interface ISystemMessageBubble {
   message: string;
+  avatar?: string;
   isError?: boolean;
   isRetrying?: boolean;
   onRetryClick?: () => void;
+  thinkingMessage?: string;
 }
 
 const SystemMessageBubble: FC<ISystemMessageBubble> = ({
+  avatar,
   message,
   isError,
   isRetrying,
   onRetryClick,
+  thinkingMessage,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -201,10 +196,13 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
                 p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
               }}
             />
+
+            {/* Display thinking message inline if present */}
+            {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
           </div>
         )}
       </div>
-      {!isError && (
+      {!isError && !thinkingMessage && (
         <div className="flex gap-4 p-4 pl-0">
           <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="bottom">
             <button
@@ -225,6 +223,11 @@ const ErrorMessageBubble: FC<{
   onRetryClick: () => void;
   isRetrying?: boolean;
 }> = ({ message, onRetryClick, isRetrying }) => {
+  // Check if this is a 401 API key error
+  const isApiKeyError =
+    message.includes('Incorrect API key provided') ||
+    (message.includes('401') && message.toLowerCase().includes('api key'));
+
   return (
     <div className="flex flex-col items-start">
       <div className="rounded-lg bg-pink-50 border border-pink-200 p-4 max-w-screen-md flex justify-between items-center gap-5">
@@ -249,6 +252,22 @@ const ErrorMessageBubble: FC<{
           </div>
 
           <div className="flex-1 text-red-700 text-sm leading-relaxed">
+            {isApiKeyError && (
+              <>
+                <h6 className="font-bold">Invalid API Key</h6>
+                <p>
+                  The API key you provided is not valid. Please set a valid key to continue:&nbsp;
+                  <a
+                    href="/vault"
+                    target="_blank"
+                    className="text-red-700 hover:text-red-900 font-semibold"
+                  >
+                    Set API Key
+                  </a>
+                </p>
+                <h6 className="font-semibold pt-1">Error details:</h6>
+              </>
+            )}
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
           </div>
         </div>

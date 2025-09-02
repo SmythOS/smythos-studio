@@ -1,6 +1,5 @@
 import { CatchAllPage } from '@src/react/features/error-pages/pages/CatchAllPage';
 import ErrorPage from '@src/react/features/error-pages/pages/Error';
-import PaidFeatureRoute from '@src/react/features/subscriptions/components/paywalls/paid-feature-route';
 import { RootLayout } from '@src/react/shared/components/layouts/RootLayout';
 import withDocumentTitle from '@src/react/shared/components/layouts/withDocumentTitle';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
@@ -109,15 +108,8 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
             </div>
           ) : userInfoCtx.error && !page.skipAuth ? (
             <p>Application Error</p>
-          ) : page.access?.subscriptionBased ? (
-            <PaidFeatureRoute
-              checkAccess={page.access.checkAccess}
-              UpsellContent={page.access.UpsellContent}
-              analytics={{ page_url: page.path, source: page.title }}
-            >
-              <ComponentWithDocumentTitle>{page.component}</ComponentWithDocumentTitle>
-            </PaidFeatureRoute>
-          ) : (
+          ) : 
+            (
             <ComponentWithDocumentTitle>{page.component}</ComponentWithDocumentTitle>
           );
 

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-import * as aiAgentsController from '../controllers/ai-agent.controller';
 import { validate } from '../../../middlewares/validate.middleware';
-import * as aiAgentValidations from '../validations/ai-agent.validation';
 import { userAuthMiddleware } from '../../auth/middlewares/auth.middleware';
+import * as aiAgentsController from '../controllers/ai-agent.controller';
+import * as aiAgentValidations from '../validations/ai-agent.validation';
 
 const router = Router();
 
@@ -81,22 +81,6 @@ router.put(
 );
 
 router.delete('/ai-agent/:agentId/settings/:key', userAuthMiddleware, asyncHandler(aiAgentsController.deleteAgentSetting));
-
-// #region AI AGENT Analytics
-router.get(
-  '/ai-agent/:agentId/logs/calls',
-  userAuthMiddleware,
-  validate(aiAgentValidations.getAgentCallLogs),
-  asyncHandler(aiAgentsController.getAgentCallLogs),
-);
-
-router.get(
-  '/ai-agent/:agentId/logs/sessions',
-  userAuthMiddleware,
-  validate(aiAgentValidations.getAgentCallLogsSessions),
-  asyncHandler(aiAgentsController.getAgentCallLogsSessions),
-);
-// #endregion AI AGENT Analytics
 
 // #region Agent Conversations
 

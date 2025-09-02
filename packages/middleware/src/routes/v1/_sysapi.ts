@@ -5,6 +5,7 @@ import { _embodimentRouter } from '../../modules/embodiment/routes/_sysapi';
 import { _teamRouter } from '../../modules/team/routes/_sysapi/team.route';
 
 import { authMiddlewareFactory } from '../../modules/auth/middlewares/auth.middleware';
+import { _domainRouter } from '../../modules/domains/routes/_sysapi/domain-registeration.route';
 import { _subscriptionRouter } from '../../modules/subscription/routes/_sysapi/subscription.route.m2m';
 import { _userRouter } from '../../modules/user/routes/_sysapi';
 
@@ -24,6 +25,10 @@ const defaultRoutes: Route[] = [
   {
     rootPath: '/',
     route: _teamRouter,
+  },
+  {
+    rootPath: '/',
+    route: _domainRouter,
   },
   {
     rootPath: '/',

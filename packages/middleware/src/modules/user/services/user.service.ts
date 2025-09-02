@@ -1,14 +1,10 @@
 import httpStatus from 'http-status';
-import { prisma } from '../../../../prisma/prisma-client';
 import { LOGGER } from '../../../../config/logging';
+import { prisma } from '../../../../prisma/prisma-client';
 import { PrismaTransaction, Transactional } from '../../../../types';
-import * as quotaUtils from '../../quota/utils';
 import ApiError from '../../../utils/apiError';
-import errKeys from '../../../utils/errorKeys';
-import { teamService } from '../../team/services';
-import * as dateFns from 'date-fns';
+import * as quotaUtils from '../../quota/utils';
 
-import Stripe from 'stripe';
 import { PRISMA_ERROR_CODES } from '../../../utils/general';
 // import businessCustomMetrics from '../../../metrices/custom/business.custom.metrices';
 
@@ -195,8 +191,7 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
   // create a new user and team
 
   const operations = async (tx: PrismaTransaction) => {
-    // check if the free plan exists //! THIS IS A TEMPORARY SOLUTION.
-    let freePlan = await tx.plan.findFirst({
+    let fullAccessPlan = await tx.plan.findFirst({
       where: {
         isDefaultPlan: true,
       },
@@ -205,16 +200,16 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
       },
     });
 
-    if (!freePlan) {
-      LOGGER.info(`FREE PLAN DOESN'T EXIST. CREATING...`);
-      freePlan = await tx.plan.create({
+    if (!fullAccessPlan) {
+      LOGGER.info(`Full Access PLAN DOESN'T EXIST. CREATING...`);
+      fullAccessPlan = await tx.plan.create({
         data: {
-          name: 'Free',
-          price: 0,
-          paid: false,
+          name: 'Full Access',
+          price: 1,
+          paid: true,
           isDefaultPlan: true,
-          stripeId: 'no-id',
-          priceId: 'no-id',
+          stripeId: 'na',
+          priceId: 'na',
           properties: quotaUtils.buildDefaultPlanProps(),
         },
         select: {
@@ -234,7 +229,7 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
             status: 'ACTIVE',
             plan: {
               connect: {
-                id: freePlan.id,
+                id: fullAccessPlan.id,
               },
             },
           },

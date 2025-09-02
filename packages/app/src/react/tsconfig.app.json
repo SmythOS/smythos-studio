@@ -32,6 +32,13 @@
     "noUnusedParameters": false,
     "noImplicitThis": false
   },
-  "include": [".", "vite-env.d.ts", "index.tsx", "App.tsx", "../eslint.config.js"]
+  "include": [
+    ".",
+    "vite-env.d.ts",
+    "index.tsx",
+    "App.tsx",
+    "../eslint.config.js",
+    "../../../../../src/react/features/onboarding/constants",
+    "../../../../../src/react/features/onboarding/utils"
+, "../../../../../src/react/features/templates/components/AgentsPageTemplateSection.tsx"  ]
 }
-  

@@ -1,6 +1,7 @@
 export interface PlanProperties {
   limits?: PlanPropLimits;
   flags?: PlanPropFlags;
+  app_version?: string;
 
   [key: string]: any;
 }

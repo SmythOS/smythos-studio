@@ -1,6 +1,7 @@
-import { getTeamMembers, getTeamRoles } from '@react/features/teams/clients/subteam-api';
 import {
   getProperTeamSubs,
+  getTeamMembers,
+  getTeamRoles,
   getTeamSubs,
   getUserTeamMembers,
 } from '@react/features/teams/clients/team-api';

@@ -1,16 +1,13 @@
 import express from 'express';
-import config from '../../config';
-import ejsHelper from '../../ejsHelper';
-import builderSidebar from './builder-sidebar';
-import { getNavPages, profilePages } from './menus';
-
+import { llmModelsLoaderMiddleware } from '../../../backend/middlewares/llmModelsLoader.mw';
 import * as userData from '../../../backend/services/user-data.service';
 import { getUserSettingsByKey } from '../../../backend/utils/api.utils';
-import { UserSettingsKey } from '../../types/user-data';
-
-import { llmModelsLoaderMiddleware } from '../../../backend/middlewares/llmModelsLoader.mw';
 import { SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
-import { checkOnboarding as checkOnboardingMW } from './onboarding.mw';
+import config from '../../config';
+import ejsHelper from '../../ejsHelper';
+import { UserSettingsKey } from '../../types/user-data';
+import { getBuilderSidebarMenu } from './builder-sidebar';
+import { getNavPages, profilePages } from './menus';
 
 const router = express.Router();
 
@@ -69,22 +66,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/builder', checkOnboardingMW, llmModelsLoaderMiddleware, async (req, res) => {
-  // const redirected = await checkOnboarding(req, res, true, '/builder');
-  // if (!redirected.redirected) {
+router.get('/builder', llmModelsLoaderMiddleware, async (req, res) => {
   const plan = req?._team?.subscription?.plan || null;
   res.render('index', {
     page: 'builder',
     agentId: '',
-    menu: builderSidebar,
+    menu: getBuilderSidebarMenu(),
     showTopMenuBar: false,
     plan,
     ...res.locals.ejsOnboardingData,
   });
-  // }
 });
 
-router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, async (req, res) => {
+router.get('/builder/:agentId', llmModelsLoaderMiddleware, async (req, res) => {
   const agentId = req.params.agentId;
   let agentAvatar = null;
   let agentData = null;
@@ -97,22 +91,12 @@ router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, as
       agentData = { ...agent };
     } catch (error) {
       console.error('Error fetching agent:', error);
-
-      // if (
-      //   error?.code === 404 ||
-      //   error?.status === 404 ||
-      //   error?.includes?.('404') ||
-      //   error?.statusCode === 404 ||
-      //   error?.message?.includes?.('404')
-      // ) {
-      //   return res.redirect('/error/404');
-      // }
     }
 
     res.render('index', {
       page: 'builder',
       agentId: req.params.agentId,
-      menu: builderSidebar,
+      menu: getBuilderSidebarMenu(),
       showTopMenuBar: false,
       agent: agentData ? { ...agentData, avatar: agentAvatar } : { avatar: agentAvatar },
       plan,
@@ -128,17 +112,13 @@ router.get('/logs/:agentId', async (req, res) => {
   res.render('index', {
     page: 'logs',
     agentId,
-    menu: builderSidebar,
+    menu: getBuilderSidebarMenu(),
     tag: req.query?.tag || '',
     sessionID: req.query?.sessionID || '',
     showTopMenuBar: true,
     isSmythStaff: res.locals.isSmythStaff,
     isSmythAlpha: res.locals.isSmythAlpha,
   });
-});
-
-router.get('/doc', (req, res) => {
-  res.render('index', { page: 'doc', showTopMenuBar: true });
 });
 
 export function createReactRoute(
@@ -172,12 +152,6 @@ should be handled in a middleware instead of checking in each route!!
 
 //#region React Routes
 
-router.get('/data', createReactRoute());
-router.get('/data/:dataspace', createReactRoute());
-
-router.get('/domains', checkOnboardingMW, async (req, res) => {
-  createReactRoute()(req, res);
-});
 router.get(
   '/agents',
   async (req, res, next) => {
@@ -211,7 +185,6 @@ router.get(
     }
     return next();
   },
-  checkOnboardingMW,
   async (req, res, next) => {
     try {
       return createReactRoute()(req, res);
@@ -221,95 +194,10 @@ router.get(
     }
   },
 );
-router.get('/templates', checkOnboardingMW, async (req, res) => {
-  createReactRoute()(req, res);
-});
-router.get('/teams', createReactRoute());
-router.get('/teams/settings', createReactRoute());
-router.get('/teams/roles', createReactRoute());
-router.get('/teams/members', createReactRoute());
-router.get('/teams/accept-invitation/:invitationId', createReactRoute({ hideTopMenu: true }));
-
-router.get('/plans', checkOnboardingMW, async (req, res) => {
-  createReactRoute({
-    includeTracking: true,
-  })(req, res);
-});
-
-router.get('/enterprise', (req, res) => {
-  if (config.env.NODE_ENV !== 'DEV') {
-    res.status(404).render('index', {
-      page: 'error',
-      error: { code: '404', message: 'Page Not Found' },
-      showTopMenuBar: true,
-      user: req._user || null,
-    });
-  } else {
-    createReactRoute({ includeTracking: true })(req, res);
-  }
-});
-
-// Routes for your enterprise tier v4 pages:
-router.get('/enterprise-t1', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t2', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t3', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t4', createReactRoute({ includeTracking: true }));
-router.get('/partner', createReactRoute({ includeTracking: true }));
-
-router.get('/subscriptions/:priceId', createReactRoute());
-router.get('/subscriptions', createReactRoute());
-
-router.get('/account', createReactRoute());
-
-router.get('/partners', createReactRoute());
-
-router.get('/aiagents/:agentId', (req, res) => {
-  if (res.locals.isSmythStaff) {
-    createReactRoute({ hideTopMenu: true })(req, res);
-  } else {
-    res.redirect('/error/404');
-  }
-});
-router.get('/aiagents/:agentId/chat/:chatId', (req, res) => {
-  if (res.locals.isSmythStaff) {
-    createReactRoute({ hideTopMenu: true })(req, res);
-  } else {
-    res.redirect('/error/404');
-  }
-});
-router.get('/chat', createReactRoute({ hideTopMenu: true }));
-
-router.get('/chat/:agentId', createReactRoute({ hideTopMenu: true }));
-
-router.get('/chat/:agentId/chat/:chatId', createReactRoute({ hideTopMenu: true }));
 
 router.get('/agent-settings/:agentId', llmModelsLoaderMiddleware, createReactRoute());
 
-router.get('/agent-settings/:agentId/bulk/:componentId', createReactRoute());
-
-router.get('/onboard', createReactRoute({ hideTopMenu: true, includeTracking: true }));
-
-router.get(
-  '/welcome',
-  checkOnboardingMW,
-  createReactRoute({ hideTopMenu: true, includeTracking: true }),
-);
-
-router.get(
-  '/welcome/:subpage',
-  checkOnboardingMW,
-  createReactRoute({ hideTopMenu: true, includeTracking: true }),
-);
-
-router.get('/analytics', createReactRoute());
-
 router.use('/account-deleted', createReactRoute({ env: config.env.NODE_ENV, hideTopMenu: true }));
-
-router.get('/my-plan', createReactRoute());
-
-router.get('/vault', checkOnboardingMW, createReactRoute());
-
-router.get('/vaultv2', createReactRoute());
 
 //#endregion
 
@@ -359,7 +247,6 @@ router.get('/error/:code', (req, res) => {
 });
 
 //* All React Routes SHOULD NOW BE HANDLED BY WEBAPP V2 Route that matches non-existing routes
-
 //* NEW: catch all rest of new React routes and serve react app
 router.get(/^\/(?!.*\.\w+$).*$/, createReactRoute());
 

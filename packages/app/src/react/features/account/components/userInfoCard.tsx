@@ -43,7 +43,7 @@ const UserInfoCard = () => {
 
   const teamMembersQuery = useQuery({
     queryKey: ['team_members_list'],
-    queryFn: teamAPI.getTeamMembers,
+    queryFn: () => teamAPI.getTeamMembers(),
     refetchInterval: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
