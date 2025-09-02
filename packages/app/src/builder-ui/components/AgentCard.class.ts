@@ -668,11 +668,43 @@ export class AgentCard extends EventEmitter {
     });
 
     this.workspace.agent.addEventListener('AvatarUpdated', (url: string) => {
+      // Update agent card avatar
       const cardAgentAvatarElm: HTMLImageElement | null =
         document.querySelector('#agent-card-avatar');
       if (cardAgentAvatarElm) {
         cardAgentAvatarElm.src = url;
+        cardAgentAvatarElm.classList.remove('hidden');
       }
+
+      // Hide the placeholder when avatar is available
+      const agentImagePlaceholder: HTMLDivElement | null = document.querySelector(
+        '#agent-card-avatar-placeholder',
+      );
+      if (agentImagePlaceholder) {
+        agentImagePlaceholder.classList.add('hidden');
+      }
+
+      // Update builder topbar avatar
+      const topbarAvatarElm: HTMLImageElement | null = document.querySelector('#agent-avatar');
+      if (topbarAvatarElm) {
+        topbarAvatarElm.src = url;
+      }
+
+      // Update any other avatar elements in the builder
+      const allAvatarElements = document.querySelectorAll('[data-agent-avatar]');
+      allAvatarElements.forEach((element: HTMLImageElement) => {
+        element.src = url;
+      });
+
+      // Save to session storage for persistence
+      if (this.workspace.agent?.id) {
+        window.sessionStorage.setItem(`agent-avatar-${this.workspace.agent.id}`, url);
+      }
+
+      // Trigger a custom event for React components to listen to
+      window.dispatchEvent(new CustomEvent('agentAvatarUpdated', { 
+        detail: { agentId: this.workspace.agent?.id, avatarUrl: url } 
+      }));
     });
   }
 
