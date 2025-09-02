@@ -6,7 +6,13 @@ import { AgentActivityModal } from '@src/react/features/agents/components/agentC
 import { AgentContributorsModal } from '@src/react/features/agents/components/agentCard/modals/AgentContributorsModal';
 import { AgentDeleteConfirmationModal } from '@src/react/features/agents/components/agentCard/modals/AgentDeleteConfirmationModal';
 import { IAgent } from '@src/react/features/agents/components/agentCard/types';
-import { ChatIconWithTail, PencilIcon, PinIcon, PinIconSlim, UnPinIcon } from '@src/react/shared/components/svgs';
+import {
+  ChatIconWithTail,
+  PencilIcon,
+  PinIcon,
+  PinIconSlim,
+  UnPinIcon,
+} from '@src/react/shared/components/svgs';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
@@ -234,16 +240,20 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                                       <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
                                     ) : (
                                       <div className="relative mr-3 h-4 w-4">
-                                        {agent.isPinned ?
-                                            <UnPinIcon className="h-4 w-4" /> :
-                                            <PinIcon className="h-4 w-4" />
-                                        }
+                                        {agent.isPinned ? (
+                                          <UnPinIcon className="h-4 w-4" />
+                                        ) : (
+                                          <PinIcon className="h-4 w-4" />
+                                        )}
                                       </div>
                                     )}
-                                    {cardState.isPinning 
-                                      ? (agent.isPinned ? 'Unpinning...' : 'Pinning...') 
-                                      : (agent.isPinned ? 'Unpin Agent' : 'Pin Agent')
-                                    }
+                                    {cardState.isPinning
+                                      ? agent.isPinned
+                                        ? 'Unpinning...'
+                                        : 'Pinning...'
+                                      : agent.isPinned
+                                        ? 'Unpin Agent'
+                                        : 'Pin Agent'}
                                   </button>
                                 )}
                               </Menu.Item>
