@@ -789,7 +789,8 @@ export class Workspace extends EventEmitter {
 
     // Generate avatar for the new agent (non-blocking)
     if (result && result.id) {
-      this.generateAgentAvatar(result.id).catch((error) => {
+      const { generateAgentAvatar } = builderStore.getState();
+      generateAgentAvatar(result.id).catch((error) => {
         console.warn('Avatar generation failed for new agent:', error);
       });
     }
@@ -2365,29 +2366,5 @@ export class Workspace extends EventEmitter {
 
   public async updateWeaverData(data: Record<string, any>) {
     this.userData.weaver = data;
-  }
-
-  /**
-   * Handles avatar generation for a newly created agent
-   */
-  public async generateAgentAvatar(agentId: string): Promise<boolean> {
-    try {
-      const response = await fetch(
-        `/api/page/agent_settings/ai-agent/${agentId}/avatar/auto-generate`,
-        { method: 'POST' },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.url) {
-          this.agent.emit('AvatarUpdated', data.url);
-        }
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Avatar generation failed:', error);
-      return false;
-    }
   }
 }
