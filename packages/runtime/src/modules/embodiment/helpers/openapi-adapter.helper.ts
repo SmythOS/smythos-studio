@@ -77,13 +77,13 @@ const agentDataConnector = new EmbodimentAgentDataConnector();
  */
 function constructServerUrl(domain: string): string {
   const server_url_scheme =
-    config.env.NODE_ENV === "DEV" &&
+    config.env.NODE_ENV === "development" &&
     config.env.AGENT_DOMAIN_PORT &&
     domain.includes(config.env.AGENT_DOMAIN)
       ? "http"
       : "https";
   const server_url_port =
-    config.env.NODE_ENV === "DEV" &&
+    config.env.NODE_ENV === "development" &&
     config.env.AGENT_DOMAIN_PORT &&
     domain.includes(config.env.AGENT_DOMAIN)
       ? `:${config.env.AGENT_DOMAIN_PORT}`
