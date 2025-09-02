@@ -4,6 +4,7 @@
 import { AiAgentSettings, AiAgentState } from '@prisma/client';
 import crypto from 'crypto';
 import httpStatus from 'http-status';
+import _ from 'lodash';
 import { createLogger } from '../../../../config/logging-v2';
 import { prisma } from '../../../../prisma/prisma-client';
 import { PrismaTransaction } from '../../../../types';
@@ -435,11 +436,12 @@ export const getAgentById = async (
   }
 
   type ModifiedAgent = typeof agent & { domain: any[] };
-  const modifiedAgent: ModifiedAgent = JSON.parse(JSON.stringify(agent));
+  const modifiedAgent: ModifiedAgent = _.cloneDeep(agent) as any;
   // for backward compatibility, add to the agent an empty domain object
   modifiedAgent.domain = [];
 
   const { name, updatedAt, aiAgentData, domain, lockId, lastLockBeat, lastLockSaveOperation, ...rest } = modifiedAgent;
+
   const isLocked = agentHasValidLock(modifiedAgent.lastLockBeat, modifiedAgent.lastLockSaveOperation, modifiedAgent.lockId);
 
   return {
@@ -1085,7 +1087,7 @@ export const getTeamAgents = async ({
   });
 
   type ModifiedAgent = (typeof agents)[0] & { domain: any[] };
-  let modifiedAgents: ModifiedAgent[] = JSON.parse(JSON.stringify(agents));
+  let modifiedAgents: ModifiedAgent[] = _.cloneDeep(agents) as any;
 
   // for backward compatibility, add to each agent in the list an empty domain object
   modifiedAgents = modifiedAgents.map((agent: ModifiedAgent) => {

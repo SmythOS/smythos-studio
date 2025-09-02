@@ -13,6 +13,7 @@ interface AgentsGridProps {
   isLoadingMore: boolean;
   onLoadMore: () => void;
   onRefreshAgents: () => void;
+  updateAgentInPlace: (updatedAgent: Agent) => void;
 }
 
 /**
@@ -26,6 +27,7 @@ export function AgentsGrid({
   isLoadingMore,
   onLoadMore,
   onRefreshAgents,
+  updateAgentInPlace,
 }: AgentsGridProps) {
   const endOfPageRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +64,12 @@ export function AgentsGrid({
     <div data-qa="agents-list-section" className="py-5 mx-auto mb-6">
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         {filteredAgents.map((agent) => (
-          <AgentCard agent={agent} key={agent.id} loadAgents={onRefreshAgents} />
+          <AgentCard 
+            agent={agent} 
+            key={agent.id} 
+            loadAgents={onRefreshAgents}
+            updateAgentInPlace={updateAgentInPlace}
+          />
         ))}
         {isLoadingMore && <SkeletonLoader />}
       </div>

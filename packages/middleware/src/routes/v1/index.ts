@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { config } from '../../../config/config';
-import { userRouter } from '../../modules/user/routes';
 import { aiAgentRouter } from '../../modules/ai-agent/routes';
+import { domainRouter } from '../../modules/domains/routes/domain-registeration.route';
 import { embodimentRouter } from '../../modules/embodiment/routes';
-import { teamRouter } from '../../modules/team/routes/team.route';
 import { subscriptionRouter } from '../../modules/subscription/routes/subscription.route';
-
+import { teamRouter } from '../../modules/team/routes/team.route';
+import { userRouter } from '../../modules/user/routes';
 const mainRouter = Router();
 
 type Route = {
@@ -27,7 +27,10 @@ const defaultRoutes: Route[] = [
     rootPath: '/',
     route: aiAgentRouter,
   },
-
+  {
+    rootPath: '/',
+    route: domainRouter,
+  },
   {
     rootPath: '/',
     route: embodimentRouter,

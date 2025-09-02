@@ -47,7 +47,7 @@ export class MCPClient extends Component {
   protected async init() {
     this.settings = {
       mcpUrl: {
-        type: 'textarea',
+        type: 'input',
         value: '',
         validate: `required`,
         label: 'MCP URL',
