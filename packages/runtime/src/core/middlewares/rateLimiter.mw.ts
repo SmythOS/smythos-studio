@@ -6,12 +6,8 @@ import config from "@core/config";
 const console = Logger("(Core) Middleware: RateLimiter");
 
 // Configuration from environment variables with sensible defaults
-const REQUESTS_PER_MINUTE = parseInt(
-  (config.env.REQ_LIMIT_PER_MINUTE as string) || "100"
-);
-const MAX_CONCURRENT_REQUESTS = parseInt(
-  process.env.MAX_CONCURRENT_REQUESTS || "10"
-);
+const REQUESTS_PER_MINUTE = config.env.REQ_LIMIT_PER_MINUTE as number;
+const MAX_CONCURRENT_REQUESTS = config.env.MAX_CONCURRENT_REQUESTS as number;
 const WINDOW_SIZE_MS = 60 * 1000; // 1 minute window
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // Cleanup every 5 minutes
 

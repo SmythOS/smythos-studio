@@ -1,3 +1,4 @@
+import config from "./config";
 /**
  * Runtime Configuration System
  * Designed for future server extraction without code changes
@@ -150,7 +151,7 @@ export const RuntimeConfigs = {
  * This will be used by the extraction script
  */
 export function loadRuntimeConfig(): RuntimeConfig {
-  const configType = process.env.SMYTHOS_SERVER_TYPE || "combined";
+  const configType = config.env.SMYTHOS_SERVER_TYPE;
 
   switch (configType) {
     case "debugger":

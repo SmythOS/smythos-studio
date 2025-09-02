@@ -3,8 +3,8 @@ import { app } from "../index.js";
 import { Server } from "http";
 import config from "./config";
 
-const ADMIN_PORT = parseInt(process.env.ADMIN_PORT || "5054");
-const PORT = parseInt(process.env.PORT || "5053");
+const ADMIN_PORT = config.env.ADMIN_PORT || 5054;
+const PORT = config.env.PORT || 5053;
 // eslint-disable-next-line import/no-mutable-exports
 
 export let server: Server;

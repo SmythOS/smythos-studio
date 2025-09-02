@@ -1,6 +1,7 @@
-import { Logger } from "@smythos/sre";
 import { ChildProcess, spawn } from "child_process";
 import path from "path";
+
+import { Logger } from "@smythos/sre";
 
 const console = Logger("code-sandbox-service");
 

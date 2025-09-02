@@ -36,7 +36,7 @@ import { routes as embodimentRoutes } from "@embodiment/routes";
 import { CodeSandboxService } from "./services/code-sandbox.service";
 
 const app = express();
-const port = parseInt(process.env.PORT || "5053");
+const port = config.env.PORT;
 
 // Register all connectors
 registerConnectors();
@@ -53,12 +53,12 @@ const sre = SmythRuntime.Instance.init({
   Account: {
     Connector: "SmythOSSAccount",
     Settings: {
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
+      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
+      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
+      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
+      oAuthResource: config.env.LOGTO_API_RESOURCE,
       oAuthScope: "",
-      smythAPIBaseUrl: process.env.MIDDLEWARE_API_BASE_URL,
+      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + "/_sysapi",
     },
   },
   Vault: {
@@ -82,12 +82,12 @@ const sre = SmythRuntime.Instance.init({
     Settings: {
       agentStageDomain: config.env.AGENT_DOMAIN || "",
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || "",
-      oAuthAppID: process.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: process.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${process.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: process.env.LOGTO_API_RESOURCE,
+      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
+      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
+      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
+      oAuthResource: config.env.LOGTO_API_RESOURCE,
       oAuthScope: "",
-      smythAPIBaseUrl: process.env.MIDDLEWARE_API_BASE_URL,
+      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + "/_sysapi",
     },
   },
   Log: {
@@ -137,7 +137,7 @@ app.use(cookieParser());
 app.use(
   session({
     name: "smythos_runtime_session",
-    secret: process.env.SESSION_SECRET || "default-session-secret-for-dev",
+    secret: config.env.SESSION_SECRET || "default-session-secret-for-dev",
     cookie: {
       maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
       sameSite: config.env.NODE_ENV === "development" ? "lax" : "none",
@@ -219,7 +219,7 @@ const codeSandboxService = CodeSandboxService.getInstance();
     console.info("🎯 All Services Running:");
     console.info(
       `   • Management Server: http://localhost:${
-        process.env.ADMIN_PORT || "5054"
+        config.env.ADMIN_PORT || "5054"
       }`
     );
     console.info(`   • Runtime Server:    http://localhost:${port}`);

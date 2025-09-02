@@ -20,7 +20,7 @@ export class Code extends Component {
     try {
       let Output: any = {};
       let _error = undefined;
-      const url = (process.env.CODE_SANDBOX_URL || "http://localhost:5055") + "/run-js";
+      const url = config.env.CODE_SANDBOX_URL + "/run-js";
 
       let codeInputs = {};
       for (let fieldName in input) {

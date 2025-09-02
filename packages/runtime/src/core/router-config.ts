@@ -24,6 +24,7 @@ import {
   createDebuggerRouter,
 } from "./shared-agent-router";
 import { createConfiguredSmartRouter } from "./smart-agent-router";
+import config from "./config";
 
 /**
  * Configures and mounts agent routers based on runtime configuration
@@ -169,7 +170,7 @@ export function createDebuggerServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5053"),
+      port: config.env.PORT,
       name: "smythos-debugger-server",
       healthCheck: true,
       metrics: true,
@@ -193,7 +194,7 @@ export function createAgentRunnerServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5053"),
+      port: config.env.PORT,
       name: "smythos-agent-runner-server",
       healthCheck: true,
       metrics: true,
@@ -217,7 +218,7 @@ export function createEmbodimentServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "separate" },
     server: {
-      port: parseInt(process.env.PORT || "5053"),
+      port: config.env.PORT,
       name: "smythos-embodiment-server",
       healthCheck: true,
       metrics: true,
@@ -241,7 +242,7 @@ export function createCombinedServerConfig(): RuntimeConfig {
     },
     routing: { strategy: "smart" },
     server: {
-      port: parseInt(process.env.PORT || "5053"),
+      port: config.env.PORT,
       name: "smythos-runtime-combined",
       healthCheck: true,
       metrics: true,

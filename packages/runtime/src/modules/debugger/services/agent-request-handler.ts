@@ -3,6 +3,7 @@ import { Request } from "express";
 
 import { AgentProcess, Logger } from "@smythos/sre";
 
+import config from "@/core/config";
 import { getMockData } from "@core/helpers/agent.helper";
 
 const console = Logger("Service: Agent Request Handler");
@@ -288,7 +289,7 @@ async function runAgentDebug(
     headers["X-DEBUG-RUN"] = "";
 
     //'X-DEBUG-RUN': '',
-    const port = process.env.PORT || 5053;
+    const port = config.env.PORT;
 
     let url = `http://localhost:${port}${req.path.replace("/debug", "/api")}`;
     //add query params
