@@ -1,6 +1,7 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
 import { accquireLock } from '@react/features/agents/utils';
 import { useAgent, useAgentMutations } from '@react/shared/hooks/agent';
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
@@ -65,11 +66,10 @@ export function useAgentOperations({
       }
 
       // Generate avatar for the new agent (non-blocking)
-      if (window.workspace?.generateAgentAvatar) {
-        const avatarGenerated = await window.workspace.generateAgentAvatar(newAgent.id);
-        if (!avatarGenerated) {
-          console.warn('Avatar generation failed for duplicated agent');
-        }
+      const { generateAgentAvatar } = builderStore.getState();
+      const avatarGenerated = await generateAgentAvatar(newAgent.id);
+      if (!avatarGenerated) {
+        console.warn('Avatar generation failed for duplicated agent');
       }
 
       return {
