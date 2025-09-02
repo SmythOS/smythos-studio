@@ -403,7 +403,10 @@ export class Workspace extends EventEmitter {
     })
       .then(async (response) => {
         if (!response.ok) {
-          console.error('[Workspace.getOAuthConnections] Error fetching OAuth connections:', response.status);
+          console.error(
+            '[Workspace.getOAuthConnections] Error fetching OAuth connections:',
+            response.status,
+          );
           throw new Error(`Failed to fetch OAuth connections: ${response.status}`);
         }
         const data = await response.json();
@@ -467,7 +470,7 @@ export class Workspace extends EventEmitter {
     if (sourceBR.right > targetBR.left) {
       const cornerRadius =
         sourceComponentBR.left - targetComponentBR.left > 100 &&
-          sourceComponentBR.top - targetComponentBR.bottom > 100
+        sourceComponentBR.top - targetComponentBR.bottom > 100
           ? 80
           : 30;
 
@@ -782,10 +785,20 @@ export class Workspace extends EventEmitter {
     //this._agent = {}; //reset agent
     this.agent.resetData();
     if (typeof callback === 'function') callback(data); //this can be used to preload agent template or other information
-    return this.saveAgent(name, '', data);
+    const result = await this.saveAgent(name, '', data);
+
+    // Generate avatar for the new agent (non-blocking)
+    if (result && result.id) {
+      this.generateAgentAvatar(result.id).catch((error) => {
+        console.warn('Avatar generation failed for new agent:', error);
+      });
+    }
+
+    return result;
   }
 
   private setAgentInfo(id, name, domain, data) {
+    const previousName = this.agent.name;
     this.agent.setData({ id, name, domain, data });
     const nameInput = document.getElementById('agent-name-input') as HTMLInputElement;
     const idInput = document.getElementById('agent-id-input') as HTMLInputElement;
@@ -802,6 +815,13 @@ export class Workspace extends EventEmitter {
 
     updateBuilderTopbarAgentName(name);
     updateBuilderTopbarAgentAvatar(name);
+
+    // If the agent name changed, generate a new avatar
+    if (previousName && previousName !== name && id) {
+      this.generateAgentAvatar(id).catch((error) => {
+        console.warn('Avatar generation failed after name change:', error);
+      });
+    }
 
     this.emit('agentUpdated', this.agent);
   }
@@ -968,7 +988,7 @@ export class Workspace extends EventEmitter {
         smoothScroll: true,
         duration: 300,
         easing: 'ease-out',
-        handleStartEvent(e) { },
+        handleStartEvent(e) {},
       });
 
       const parent = zoom.parentElement;
@@ -1174,7 +1194,7 @@ export class Workspace extends EventEmitter {
     components.forEach((component) => {
       try {
         this.componentTemplates[component.id] = JSON.parse(component.data);
-      } catch (error) { }
+      } catch (error) {}
     });
   }
   private async initServerData() {
@@ -2353,5 +2373,29 @@ export class Workspace extends EventEmitter {
 
   public async updateWeaverData(data: Record<string, any>) {
     this.userData.weaver = data;
+  }
+
+  /**
+   * Handles avatar generation for a newly created agent
+   */
+  public async generateAgentAvatar(agentId: string): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `/api/page/agent_settings/ai-agent/${agentId}/avatar/auto-generate`,
+        { method: 'POST' },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          this.agent.emit('AvatarUpdated', data.url);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Avatar generation failed:', error);
+      return false;
+    }
   }
 }

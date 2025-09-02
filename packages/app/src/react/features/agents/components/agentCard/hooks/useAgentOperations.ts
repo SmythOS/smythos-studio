@@ -19,22 +19,6 @@ interface UseAgentOperationsResult {
 }
 
 /**
- * Handles avatar generation for a newly created agent
- */
-const generateAgentAvatar = async (agentId: string): Promise<boolean> => {
-  try {
-    const response = await fetch(
-      `/api/page/agent_settings/ai-agent/${agentId}/avatar/auto-generate`,
-      { method: 'POST' },
-    );
-    return response.ok;
-  } catch (error) {
-    console.error('Avatar generation failed:', error);
-    return false;
-  }
-};
-
-/**
  * Custom hook for handling agent operations (duplicate, delete)
  */
 export function useAgentOperations({
@@ -81,9 +65,11 @@ export function useAgentOperations({
       }
 
       // Generate avatar for the new agent (non-blocking)
-      const avatarGenerated = await generateAgentAvatar(newAgent.id);
-      if (!avatarGenerated) {
-        console.warn('Avatar generation failed for duplicated agent');
+      if (window.workspace?.generateAgentAvatar) {
+        const avatarGenerated = await window.workspace.generateAgentAvatar(newAgent.id);
+        if (!avatarGenerated) {
+          console.warn('Avatar generation failed for duplicated agent');
+        }
       }
 
       return {
@@ -204,10 +190,9 @@ export function useAgentOperations({
       toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
       // Update the agent in place instead of reloading the entire list
       onAgentPinned?.(updatedAgent);
-
     } catch (error) {
       console.error('Failed to pin/unpin agent:', error);
-      
+
       // Check if error has a message, if not use generic error
       if (error && typeof error === 'object' && 'message' in error) {
         toast.error(error.message);

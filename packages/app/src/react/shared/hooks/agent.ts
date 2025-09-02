@@ -79,6 +79,14 @@ export const useAgentMutations = () => {
     }
 
     const data = await response.json();
+
+    // Generate avatar for the new agent (non-blocking)
+    if (data.id && window.workspace?.generateAgentAvatar) {
+      window.workspace.generateAgentAvatar(data.id).catch((error) => {
+        console.warn('Avatar generation failed for new agent:', error);
+      });
+    }
+
     await queryClient.invalidateQueries(['agents']); // Invalidate agents list
     return data;
   };

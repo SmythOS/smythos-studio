@@ -6,14 +6,20 @@ import { AgentActivityModal } from '@src/react/features/agents/components/agentC
 import { AgentContributorsModal } from '@src/react/features/agents/components/agentCard/modals/AgentContributorsModal';
 import { AgentDeleteConfirmationModal } from '@src/react/features/agents/components/agentCard/modals/AgentDeleteConfirmationModal';
 import { IAgent } from '@src/react/features/agents/components/agentCard/types';
-import { ChatIconWithTail, PencilIcon, PinIcon, PinIconSlim, UnPinIcon } from '@src/react/shared/components/svgs';
+import {
+  ChatIconWithTail,
+  PencilIcon,
+  PinIcon,
+  PinIconSlim,
+  UnPinIcon,
+} from '@src/react/shared/components/svgs';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 import { useFeatureFlagPayload } from 'posthog-js/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FaCircleNotch,
   FaClockRotateLeft,
@@ -48,6 +54,28 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
   // Modal states
   const [isContributorsModalOpen, setIsContributorsModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+
+  // Listen for avatar updates
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      if (event.detail?.agentId === agent.id && event.detail?.avatarUrl) {
+        // Update the agent in place with the new avatar URL
+        const updatedAgent = {
+          ...agent,
+          aiAgentSettings: agent.aiAgentSettings?.map((setting) =>
+            setting.key === 'AVATAR' ? { ...setting, value: event.detail.avatarUrl } : setting,
+          ) || [{ key: 'AVATAR', value: event.detail.avatarUrl }],
+        };
+        updateAgentInPlace(updatedAgent);
+      }
+    };
+
+    window.addEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
+    };
+  }, [agent.id, agent.aiAgentSettings, updateAgentInPlace]);
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 
   // Custom hooks for state and data management
@@ -234,16 +262,20 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                                       <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
                                     ) : (
                                       <div className="relative mr-3 h-4 w-4">
-                                        {agent.isPinned ?
-                                            <UnPinIcon className="h-4 w-4" /> :
-                                            <PinIcon className="h-4 w-4" />
-                                        }
+                                        {agent.isPinned ? (
+                                          <UnPinIcon className="h-4 w-4" />
+                                        ) : (
+                                          <PinIcon className="h-4 w-4" />
+                                        )}
                                       </div>
                                     )}
-                                    {cardState.isPinning 
-                                      ? (agent.isPinned ? 'Unpinning...' : 'Pinning...') 
-                                      : (agent.isPinned ? 'Unpin Agent' : 'Pin Agent')
-                                    }
+                                    {cardState.isPinning
+                                      ? agent.isPinned
+                                        ? 'Unpinning...'
+                                        : 'Pinning...'
+                                      : agent.isPinned
+                                        ? 'Unpin Agent'
+                                        : 'Pin Agent'}
                                   </button>
                                 )}
                               </Menu.Item>
