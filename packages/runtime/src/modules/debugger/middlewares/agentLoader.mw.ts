@@ -51,7 +51,7 @@ export default async function agentLoader(req, res, next) {
     }
   }
   agentDomain = domain;
-  if (agentId && domain.includes(config.env.AGENT_DOMAIN)) {
+  if (agentId && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)) {
     isTestDomain = true;
   }
   if (agentId) {

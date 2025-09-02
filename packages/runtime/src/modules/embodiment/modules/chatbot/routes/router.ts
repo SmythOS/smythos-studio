@@ -90,7 +90,7 @@ initDebug('${config.env.UI_SERVER}', '${agent.id}');
             logo: '${logo}',
             introMessage: '${introMessage}',
             allowAttachments: ${allowAttachments},
-            //domain:'${agent.id}.${config.env.AGENT_DOMAIN}',
+            //domain:'${agent.id}.${config.env.DEFAULT_AGENT_DOMAIN}',
             colors: ${JSON.stringify(colors, null, 2)},
             isChatOnly: true,
             containerId: 'smyth-chatbot-page',
@@ -126,7 +126,7 @@ router.get("/chat-configs", async (req: any, res) => {
 
 router.post("/chat-stream", async (req, res) => {
   let streamStarted = false;
-  const isLocalAgent = req.hostname.includes("localagent");
+  const isLocalAgent = req.hostname.includes("localhost");
   const agentId = req._agent?.id;
   const agentVersion = req._agent?.version;
   const isDebugSession = req._agent.debugSessionEnabled;
@@ -276,7 +276,7 @@ router.get("/params", async (req, res) => {
 
   // If chatbot properties exist, append the 'chatbotEnabled' flag
   if (chatbotProperties) {
-    const isLocalAgent = req.hostname.includes("localagent");
+    const isLocalAgent = req.hostname.includes("localhost");
     const agentId = agent?.id;
     const chatbotName =
       agent.agentSettings?.embodiments.get(EMBODIMENT_TYPES.ChatBot, "name") ||
@@ -324,7 +324,9 @@ router.get("/params", async (req, res) => {
 
     //* Note: chatbot conversations are not created in db table, it is just a uid created on the fly
     //* On the other hand, Agent Chat conversations are created in db table and can be retrieved from db
-    const isTestDomain = req.hostname.includes(`.${config.env.AGENT_DOMAIN}`);
+    const isTestDomain = req.hostname.includes(
+      `.${config.env.DEFAULT_AGENT_DOMAIN}`
+    );
     const conversationId = buildConversationId(undefined, isTestDomain);
 
     chatbotProperties.headers = {
@@ -422,7 +424,7 @@ async function exchangeCodeForToken(
   domain: string,
   authInfo: any
 ): Promise<any> {
-  const isLocalAgent = domain.includes("localagent");
+  const isLocalAgent = domain.includes("localhost");
   const baseUrl = isLocalAgent
     ? `http://${domain}:${config.env.PORT}`
     : `https://${domain}`;

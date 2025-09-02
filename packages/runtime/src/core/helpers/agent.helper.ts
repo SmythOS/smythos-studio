@@ -57,7 +57,7 @@ export async function getAgentDomainById(agentId: string) {
     if (deployed) {
       return `${agentId}.${config.env.PROD_AGENT_DOMAIN}`;
     } else {
-      return `${agentId}.${config.env.AGENT_DOMAIN}`;
+      return `${agentId}.${config.env.DEFAULT_AGENT_DOMAIN}`;
     }
   }
   return domain;
@@ -126,12 +126,14 @@ export async function getAgentEmbodiments(agentID) {
 export async function getAgentIdByDomain(domain = "") {
   let agentId;
   //first check if this is the internal wildcard agents domain
-  const isStageWildcardDomain = domain.includes(config.env.AGENT_DOMAIN);
+  const isStageWildcardDomain = domain.includes(
+    config.env.DEFAULT_AGENT_DOMAIN
+  );
   const isProdWildcardDomain = domain.includes(config.env.PROD_AGENT_DOMAIN);
   if (isStageWildcardDomain || isProdWildcardDomain) {
     agentId = domain.split(".")[0];
     if (
-      `${agentId}.${config.env.AGENT_DOMAIN}` !== domain &&
+      `${agentId}.${config.env.DEFAULT_AGENT_DOMAIN}` !== domain &&
       `${agentId}.${config.env.PROD_AGENT_DOMAIN}` !== domain
     ) {
       throw new Error(`Invalid agent domain: ${domain}`);
