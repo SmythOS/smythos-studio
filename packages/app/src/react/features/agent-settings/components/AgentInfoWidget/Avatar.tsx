@@ -55,7 +55,7 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
     };
 
     window.addEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
-    
+
     return () => {
       window.removeEventListener('agentAvatarUpdated', handleAvatarUpdate as EventListener);
     };
