@@ -54,7 +54,6 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
   // Modal states
   const [isContributorsModalOpen, setIsContributorsModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
-
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 
   // Custom hooks for state and data management
