@@ -230,16 +230,24 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
     setShowVaultKeys(null);
   };
 
-  const handleAddKeyClick = () => {
+  const handleAddKeyClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     setShowAddKeyModal(true);
     setNewKey({ name: '', key: '' });
     setKeyErrors({});
     setShowVaultKeys(null);
 
     const timeout = setTimeout(() => {
-      if (addKeyModalRef.current)
-        addKeyModalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+      if (addKeyModalRef.current) {
+        // Use scrollIntoView with more controlled options to prevent jumping to top
+        addKeyModalRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest', // Changed from 'center' to 'nearest'
+          inline: 'nearest', // Added inline positioning
+        });
+      }
       clearTimeout(timeout);
     }, 0);
   };

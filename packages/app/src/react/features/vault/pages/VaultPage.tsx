@@ -10,6 +10,7 @@ import { EnterpriseModels } from '../components/enterprise-models';
 import { RecommendedModels } from '../components/recommended-models';
 import { UserModels } from '../components/user-models';
 import { useVault } from '../hooks/use-vault';
+import { OAuthConnections } from '../components/oauth-connections';
 
 export default function VaultPage() {
   const [isExporting, setIsExporting] = React.useState(false);
@@ -78,6 +79,7 @@ export default function VaultPage() {
 
       <UserModels pageAccess={pageAccess} />
       <EnterpriseModels pageAccess={pageAccess} />
+      <OAuthConnections />
 
       <ErrorBoundarySuspense
         loadingFallback={<div>Loading...</div>}

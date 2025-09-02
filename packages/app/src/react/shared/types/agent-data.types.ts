@@ -56,6 +56,7 @@ export interface Agent {
   shortDescription?: string | null;
   __disabled?: boolean;
   createdAt?: string;
+  isPinned?: boolean;
 }
 
 export interface Component {

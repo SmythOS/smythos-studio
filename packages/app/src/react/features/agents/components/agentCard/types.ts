@@ -40,6 +40,7 @@ export interface IAgent {
   isPublic?: boolean;
   userId?: string;
   teamId?: string;
+  isPinned?: boolean;
 }
 
 export interface AgentActivity {
@@ -53,6 +54,7 @@ export interface AgentCardState {
   isDeleted: boolean;
   isDeleting: boolean;
   isDuplicating: boolean;
+  isPinning: boolean;
   showTooltip: boolean;
   tooltipPosition: 'top' | 'bottom';
   isActionDropdownVisible: boolean;
