@@ -79,7 +79,6 @@ export const useAgentMutations = () => {
     }
 
     const data = await response.json();
-
     await queryClient.invalidateQueries(['agents']); // Invalidate agents list
     return data;
   };
