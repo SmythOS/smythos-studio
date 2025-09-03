@@ -8,11 +8,11 @@ import {
 
 import config from "@core/config";
 import {
+  addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
   getAgentIdAndVersion,
 } from "@core/helpers/agent.helper";
-import { addDefaultComponentsAndConnections } from "@core/helpers/agent.helper";
 
 const console = Logger("[Embodiment] Middleware: Agent Loader");
 
@@ -61,7 +61,7 @@ export default async function agentLoader(req, res, next) {
       console.error("Error calling getAgentIdByDomain:", error);
     }
     agentDomain = domain;
-    if (agentId && domain.includes(config.env.AGENT_DOMAIN)) {
+    if (agentId && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)) {
       isTestDomain = true;
     }
   }

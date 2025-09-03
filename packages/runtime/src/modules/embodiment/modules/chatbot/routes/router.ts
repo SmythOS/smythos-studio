@@ -90,7 +90,7 @@ initDebug('${config.env.UI_SERVER}', '${agent.id}');
             logo: '${logo}',
             introMessage: '${introMessage}',
             allowAttachments: ${allowAttachments},
-            //domain:'${agent.id}.${config.env.AGENT_DOMAIN}',
+            //domain:'${agent.id}.${config.env.DEFAULT_AGENT_DOMAIN}',
             colors: ${JSON.stringify(colors, null, 2)},
             isChatOnly: true,
             containerId: 'smyth-chatbot-page',
@@ -324,7 +324,9 @@ router.get("/params", async (req, res) => {
 
     //* Note: chatbot conversations are not created in db table, it is just a uid created on the fly
     //* On the other hand, Agent Chat conversations are created in db table and can be retrieved from db
-    const isTestDomain = req.hostname.includes(`.${config.env.AGENT_DOMAIN}`);
+    const isTestDomain = req.hostname.includes(
+      `.${config.env.DEFAULT_AGENT_DOMAIN}`
+    );
     const conversationId = buildConversationId(undefined, isTestDomain);
 
     chatbotProperties.headers = {

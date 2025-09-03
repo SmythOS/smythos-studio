@@ -1,11 +1,11 @@
 import { ConnectorService, Logger } from "@smythos/sre";
 
+import config from "@core/config";
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
 } from "@core/helpers/agent.helper";
-import config from "@core/config";
 
 import { DEFAULT_FILE_PARSING_ENDPOINT } from "@agent-runner/constants";
 
@@ -46,7 +46,7 @@ export default async function agentLoader(req, res, next) {
       console.error("Error calling getAgentIdByDomain:", error);
     }
     agentDomain = domain;
-    if (agentId && domain.includes(config.env.AGENT_DOMAIN)) {
+    if (agentId && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)) {
       isTestDomain = true;
     }
   }

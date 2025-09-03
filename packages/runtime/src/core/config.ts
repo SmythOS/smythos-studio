@@ -17,7 +17,7 @@ const config = {
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
-    AGENT_DOMAIN: process.env?.AGENT_DOMAIN,
+    DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN,
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
     AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT,
 

@@ -142,7 +142,9 @@ router.post("/stream", async (req, res) => {
 
 router.post("/new", async (req, res) => {
   const { conversation = {} } = req.body;
-  const isTestDomain = req.hostname.includes(`.${config.env.AGENT_DOMAIN}`);
+  const isTestDomain = req.hostname.includes(
+    `.${config.env.DEFAULT_AGENT_DOMAIN}`
+  );
   let agentId = req.header("X-AGENT-ID");
 
   const teamDetails = requestContext.get(`team_info:${agentId}`);
