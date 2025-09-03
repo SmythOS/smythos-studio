@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
@@ -29,7 +35,7 @@ const config = {
 
     CODE_SANDBOX_URL: process.env.CODE_SANDBOX_URL || "http://localhost:5055",
 
-    DATA_PATH: process.env.DATA_PATH,
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, "../../data"),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || "combined",
   },
