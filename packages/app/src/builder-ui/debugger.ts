@@ -1305,14 +1305,14 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
   // SECURITY FIX: Create button element properly instead of using innerHTML
   const pinButton = document.createElement('button');
   pinButton.className = 'pin button primary';
-  pinButton.innerHTML = '<span class="mif-pin icon"></span>';
+  pinButton.textContent = '<span class="mif-pin icon"></span>';
 
   // Create a container for the formatted content
   const contentContainer = document.createElement('div');
-  contentContainer.innerHTML = formattedContent;
+  contentContainer.textContent = formattedContent;
 
   // Clear the div and append elements safely
-  div.innerHTML = '';
+  div.textContent = '';
   div.className = 'dbg-element dbg-output';
   div.appendChild(pinButton);
   div.appendChild(contentContainer);
@@ -1384,14 +1384,14 @@ function showInputInfo(inputEndpoint, inputContent) {
   // SECURITY FIX: Create button element properly instead of using innerHTML
   const pinButton = document.createElement('button');
   pinButton.className = 'pin button primary';
-  pinButton.innerHTML = '<span class="mif-pin icon"></span>';
+  pinButton.textContent = '<span class="mif-pin icon"></span>';
 
   // Create a container for the formatted content
   const contentContainer = document.createElement('div');
-  contentContainer.innerHTML = formattedContent;
+  contentContainer.textContent = formattedContent;
 
   // Clear the div and append elements safely
-  div.innerHTML = '';
+  div.textContent = '';
   div.className = 'dbg-element dbg-output';
   div.appendChild(pinButton);
   div.appendChild(contentContainer);
