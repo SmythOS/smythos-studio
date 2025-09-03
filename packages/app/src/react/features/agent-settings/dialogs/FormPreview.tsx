@@ -6,6 +6,7 @@ import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { extractError } from '@react/shared/utils/errors';
 import { validateDomains, validateURL } from '@react/shared/utils/utils';
 import { CloseIcon } from '@src/react/shared/components/svgs';
+import { Switch } from '@src/react/shared/components/ui/switch';
 import { FormPreviewEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,7 +20,6 @@ interface IFormPreviewDialogProps {
   isOpen: boolean;
   closeModal: () => void;
   currentData: any;
-  refreshEmbodiments: (agentId: string, embodimentId: string) => void;
   style: any;
   activeAgent: any;
   agentId: string;
@@ -29,7 +29,6 @@ const FormPreviewDialog = ({
   isOpen,
   closeModal,
   currentData,
-  refreshEmbodiments,
   style,
   activeAgent,
   agentId,
@@ -43,6 +42,7 @@ const FormPreviewDialog = ({
   const defaultFormValues = {
     name: '',
     allowedDomains: [],
+    outputPreview: false,
   };
 
   useEffect(() => {
@@ -137,7 +137,7 @@ const FormPreviewDialog = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <div className="w-[80vw] max-w-[1000px]">
+              <div className="w-[80vw] max-w-[600px]">
                 <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>Form Preview Configuration</span>
@@ -159,18 +159,17 @@ const FormPreviewDialog = ({
                     {(props: FormikProps<FormPreviewEmbodimentData>) => {
                       return (
                         <Form>
-                          <div className="gap-4">
-                            <div className="mt-5">
-                              <div>
-                                <label
-                                  htmlFor="name"
-                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
-                                >
-                                  Name
-                                </label>
-                                <Field
-                                  type="text"
-                                  className="bg-white
+                          <div className="mt-5 space-y-4">
+                            <div>
+                              <label
+                                htmlFor="name"
+                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
+                              >
+                                Name
+                              </label>
+                              <Field
+                                type="text"
+                                className="bg-white
                                   border
                                   text-gray-900
                                   rounded
@@ -187,47 +186,47 @@ const FormPreviewDialog = ({
                                   placeholder:font-normal
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
-                                  name="name"
-                                  id="name"
-                                  onChange={props.handleChange}
-                                  onBlur={props.handleBlur}
-                                  value={props.values?.name}
-                                  placeholder="Enter form preview name"
-                                  disabled={true}
-                                />
-                                <ErrorMessage
-                                  name="name"
-                                  component="div"
-                                  className="text-red-500 text-sm"
-                                />
-                              </div>
+                                name="name"
+                                id="name"
+                                onChange={props.handleChange}
+                                onBlur={props.handleBlur}
+                                value={props.values?.name}
+                                placeholder="Enter form preview name"
+                                disabled={true}
+                              />
+                              <ErrorMessage
+                                name="name"
+                                component="div"
+                                className="text-red-500 text-sm"
+                              />
+                            </div>
 
-                              {/* ALLOWED DOMAINS START */}
-                              <div>
-                                <label
-                                  htmlFor="allowedDomains"
-                                  className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
+                            {/* ALLOWED DOMAINS START */}
+                            <div>
+                              <label
+                                htmlFor="allowedDomains"
+                                className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
+                              >
+                                Allowed Domains{' '}
+                                <Tooltip
+                                  className="w-60 text-center"
+                                  content={
+                                    <div>
+                                      Restrict form preview to specific domains.
+                                      <br /> Use commas to separate multiple domains (e.g.,
+                                      example.com, mysite.org).
+                                      <br /> Leave empty for no restrictions.
+                                    </div>
+                                  }
                                 >
-                                  Allowed Domains{' '}
-                                  <Tooltip
-                                    className="w-60 text-center"
-                                    content={
-                                      <div>
-                                        Restrict form preview to specific domains.
-                                        <br /> Use commas to separate multiple domains (e.g.,
-                                        example.com, mysite.org).
-                                        <br /> Leave empty for no restrictions.
-                                      </div>
-                                    }
-                                  >
-                                    <Info className="w-5 h-5 ml-1" />
-                                  </Tooltip>
-                                </label>
+                                  <Info className="w-5 h-5 ml-1" />
+                                </Tooltip>
+                              </label>
 
-                                <Field
-                                  type="text"
-                                  id="allowedDomains"
-                                  className={`bg-white
+                              <Field
+                                type="text"
+                                id="allowedDomains"
+                                className={`bg-white
                                   border
                                   text-gray-900
                                   rounded
@@ -248,42 +247,70 @@ const FormPreviewDialog = ({
                                     ? 'border-red-500 text-red-900 placeholder-red-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500'
                                     : ''
                                 }`}
-                                  name="allowedDomains"
-                                  placeholder="Enter comma separated values for domains"
-                                  value={
-                                    Array.isArray(props.values?.allowedDomains)
-                                      ? props.values.allowedDomains.join(',')
-                                      : props.values?.allowedDomains || ''
+                                name="allowedDomains"
+                                placeholder="Enter comma separated values for domains"
+                                value={
+                                  Array.isArray(props.values?.allowedDomains)
+                                    ? props.values.allowedDomains.join(',')
+                                    : props.values?.allowedDomains || ''
+                                }
+                                onChange={(e) => {
+                                  if (domainError) {
+                                    setDomainError(false);
                                   }
-                                  onChange={(e) => {
-                                    if (domainError) {
-                                      setDomainError(false);
-                                    }
-                                    const newValue = e.target.value
-                                      ? e.target.value.split(',')
-                                      : [];
-                                    props.setFieldValue('allowedDomains', newValue);
-                                  }}
-                                />
+                                  const newValue = e.target.value ? e.target.value.split(',') : [];
+                                  props.setFieldValue('allowedDomains', newValue);
+                                }}
+                              />
 
-                                {domainError && (
-                                  <p className="mb-2 text-sm text-red-600 dark:text-red-500">
-                                    <span className="font-medium">
-                                      One or more domains are invalid. Make sure there is no
-                                      trailing comma.
-                                    </span>
-                                  </p>
-                                )}
+                              {domainError && (
+                                <p className="mb-2 text-sm text-red-600 dark:text-red-500">
+                                  <span className="font-medium">
+                                    One or more domains are invalid. Make sure there is no trailing
+                                    comma.
+                                  </span>
+                                </p>
+                              )}
 
-                                <ErrorMessage
-                                  name="allowedDomains"
-                                  component="div"
-                                  className="text-red-500 text-sm mb-2"
-                                />
-                              </div>
-                              {/* ALLOWED DOMAINS END */}
+                              <ErrorMessage
+                                name="allowedDomains"
+                                component="div"
+                                className="text-red-500 text-sm mb-2"
+                              />
                             </div>
+                            {/* ALLOWED DOMAINS END */}
+
+                            {/* OUTPUT PREVIEW START */}
+                            <div className="flex items-center justify-between">
+                              <label
+                                htmlFor="outputPreview"
+                                className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
+                              >
+                                Output Preview
+                                <Tooltip
+                                  className="w-60 text-center"
+                                  content={
+                                    <div>
+                                      Enabling output preview will show the download and copy
+                                      options for the output.
+                                    </div>
+                                  }
+                                >
+                                  <Info className="w-5 h-5 ml-1" />
+                                </Tooltip>
+                              </label>
+                              <Switch
+                                name="outputPreview"
+                                className="bg-gray-200 data-[state=checked]:bg-[#3f83f8]"
+                                onCheckedChange={(checked) =>
+                                  props.setFieldValue('outputPreview', checked)
+                                }
+                                checked={props.values?.outputPreview}
+                              />
+                            </div>
+                            {/* OUTPUT PREVIEW END */}
                           </div>
+
                           <div className="flex justify-end w-full mt-4">
                             <Button
                               handleClick={() => submitForm(props.values)}

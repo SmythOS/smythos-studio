@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import { Agent } from '../../shared/types/agent-data.types';
-import { Embodiment } from '../../shared/types/api-results.types';
+import { DeploymentWithAgentSnapshot, Embodiment } from '../../shared/types/api-results.types';
 import { getAgentEmbodiments, getAgentSettings } from '../agent-settings/clients';
 import {
   AlwaysAvailableEmbodiments,
@@ -41,7 +41,7 @@ export function structureAgentSetting(
     agentId: string;
     canUseEmbodiments: boolean;
     isReadOnlyAccess: boolean;
-    agentDeployed: boolean;
+    agentDeployed: DeploymentWithAgentSnapshot;
   },
   modalHandlers?: {
     activeModal: string | null;
