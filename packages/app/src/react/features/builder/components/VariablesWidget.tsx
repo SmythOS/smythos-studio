@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tooltip } from 'flowbite-react';
 import { Component, useEffect, useRef, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
-import { IoClose, IoKeyOutline } from 'react-icons/io5';
+import { IoKeyOutline } from 'react-icons/io5';
 import { LuInfo } from 'react-icons/lu';
 
 type KeyValuePair = {
@@ -468,14 +468,15 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
               <LuInfo size={20} />
             </Tooltip>
             <Tooltip content="Close" placement="top">
-              <IoClose
-                className="cursor-pointer"
-                size={22}
+              <div
+                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
                 onClick={(e) => {
                   e?.stopPropagation();
                   handleClose();
                 }}
-              />
+              >
+                <CloseIcon width={16} height={16} />
+              </div>
             </Tooltip>
           </div>
         </div>

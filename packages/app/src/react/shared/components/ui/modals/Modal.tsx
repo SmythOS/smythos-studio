@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react';
+import { CloseIcon } from '@react/shared/components/svgs';
 import classNames from 'classnames';
 import React, { Fragment } from 'react';
-import { IoClose } from 'react-icons/io5';
 
 type Props = {
   onClose: () => void;
@@ -83,14 +83,15 @@ const Modal = ({
                       </div>
 
                       {!hideCloseIcon && (
-                        <IoClose
-                          className="cursor-pointer"
-                          size={22}
+                        <div
+                          className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             onClose();
                           }}
-                        />
+                        >
+                          <CloseIcon width={16} height={16} />
+                        </div>
                       )}
                     </div>
                   </Dialog.Title>

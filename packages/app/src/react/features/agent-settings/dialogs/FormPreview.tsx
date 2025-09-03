@@ -5,6 +5,7 @@ import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { extractError } from '@react/shared/utils/errors';
 import { validateDomains, validateURL } from '@react/shared/utils/utils';
+import { CloseIcon } from '@src/react/shared/components/svgs';
 import { FormPreviewEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,7 +13,6 @@ import { Tooltip } from 'flowbite-react';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Info } from 'lucide-react';
 import { Fragment, useEffect, useState } from 'react';
-import { IoClose } from 'react-icons/io5';
 import { saveEmbodiment } from '../clients';
 
 interface IFormPreviewDialogProps {
@@ -141,7 +141,12 @@ const FormPreviewDialog = ({
                 <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>Form Preview Configuration</span>
-                    <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
+                    <div
+                      className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                      onClick={() => closeModal()}
+                    >
+                      <CloseIcon width={16} height={16} />
+                    </div>
                   </Dialog.Title>
                   <Formik
                     initialValues={activeData || defaultFormValues}
