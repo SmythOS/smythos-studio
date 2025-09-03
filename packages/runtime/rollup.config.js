@@ -10,8 +10,8 @@ import { terser } from "rollup-plugin-terser";
 import typescriptPaths from "rollup-plugin-typescript-paths";
 import pkg from "./package.json";
 
-const isProduction = process.env.BUILD === "prod";
-const format = process.env.FORMAT || "es";
+const isProduction = process.env.NODE_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "development";
 
 const banner = `/**
  * ${pkg.name} v${pkg.version}
@@ -19,184 +19,27 @@ const banner = `/**
  */
 `;
 
-const devCJSConfig = {
-  input: "./src/index.ts",
-  output: {
-    file: "./dist/index.cjs", // CommonJS output
-    format: "cjs", // Specify the CommonJS format
-    sourcemap: true,
-    inlineDynamicImports: true, // Inline all dynamic imports into one file
-    banner,
-  },
-  plugins: [
-    resolve({
-      browser: false, // Allow bundling of modules from `node_modules`
-      preferBuiltins: true, // Prefer Node.js built-in modules
-      mainFields: ["module", "main"], // Ensure Node.js package resolution
-      extensions: [".js", ".ts", ".json"], // Resolve these extensions
-    }),
-    commonjs(), // Convert CommonJS modules to ES6 for Rollup to bundle them
-    json(),
-    filenameReplacePlugin(),
-    typescriptPaths({
-      tsconfig: "./tsconfig.json",
-      preserveExtensions: true,
-      nonRelative: false,
-    }),
-    esbuild({
-      sourceMap: true,
-      minify: false,
-      treeShaking: false,
-      target: "node18",
-    }),
-    sourcemaps(),
-    copy({
-      targets: [
-        { src: "src/data/*", dest: "dist/data" },
-        { src: "src/static/*", dest: "dist/static" },
-        // swagger-ui-dist package
-        {
-          src: "node_modules/swagger-ui-dist/*.{js,css,html,.js.map}",
-          dest: "dist",
-        },
-      ],
-    }),
-  ],
-};
-const devESBundleConfig = {
-  input: "./src/index.ts",
-  output: {
-    format: "es",
-    sourcemap: true,
+// Base plugins for all configurations
+const basePlugins = [
+  resolve({
+    browser: false,
+    preferBuiltins: true,
+    mainFields: ["module", "main"],
+    extensions: [".js", ".ts", ".json"],
+  }),
+  commonjs(),
+  json(),
+  filenameReplacePlugin(),
+  typescriptPaths({
+    tsconfig: "./tsconfig.json",
+    preserveExtensions: true,
+    nonRelative: false,
+  }),
+  sourcemaps(),
+];
 
-    //Comment this line and uncomment the following lines if you need ES bundle
-    //file: 'distributions/agent-builder/dist/agent-builder.dev.js',
-    dir: "dist",
-    inlineDynamicImports: true,
-    entryFileNames: "index.bundle.js",
-    banner,
-  },
-  plugins: [
-    //Uncomment the following lines if you need ES Bundle
-    resolve({
-      browser: false,
-      preferBuiltins: true,
-    }),
-    commonjs(),
-    json(),
-    filenameReplacePlugin(),
-    typescriptPaths({
-      tsconfig: "./tsconfig.json",
-      preserveExtensions: true,
-      nonRelative: false,
-    }),
-    esbuild({
-      sourceMap: true,
-      minify: false,
-      treeShaking: false,
-    }),
-
-    // typescript({
-    //     tsconfig: './tsconfig.json',
-    //     clean: true,
-    //     include: ['src/**/*.ts', 'distributions/AWS/**/*.ts'],
-    //     exclude: ['node_modules'],
-    // }),
-
-    sourcemaps(),
-
-    copy({
-      targets: [
-        { src: "src/data/*", dest: "dist/data" },
-        /*{ src: 'src/static/*', dest: 'dist/static' },*/
-      ],
-    }),
-  ],
-};
-
-const devESConfig = {
-  input: "./src/index.ts",
-  output: {
-    format: "es",
-    sourcemap: true,
-
-    //Comment this line and uncomment the following lines if you need ES bundle
-    file: "./dist/index.js",
-    banner,
-  },
-  plugins: [
-    json(),
-    filenameReplacePlugin(),
-    typescriptPaths({
-      tsconfig: "./tsconfig.json",
-      preserveExtensions: true,
-      nonRelative: false,
-    }),
-    esbuild({
-      sourceMap: true,
-      minify: false,
-      treeShaking: false,
-    }),
-
-    // typescript({
-    //     tsconfig: './tsconfig.json',
-    //     clean: true,
-    //     include: ['src/**/*.ts', 'distributions/AWS/**/*.ts'],
-    //     exclude: ['node_modules'],
-    // }),
-
-    sourcemaps(),
-
-    copy({
-      targets: [
-        { src: "src/data/*", dest: "dist/data" },
-        /*{ src: 'src/static/*', dest: 'dist/static' },*/
-      ],
-    }),
-  ],
-};
-
-const prodESConfig = {
-  input: "./src/index.ts",
-  output: {
-    file: "./dist/index.js",
-    format: "es",
-    sourcemap: true,
-    banner,
-  },
-  plugins: [
-    json(),
-    typescriptPaths({
-      tsconfig: "./tsconfig.json", // Ensure this points to your tsconfig file
-      preserveExtensions: true,
-      nonRelative: false,
-    }),
-    filenameReplacePlugin(),
-    esbuild({
-      sourceMap: true,
-      minify: true,
-      treeShaking: true,
-    }),
-    // typescript({
-    //     tsconfig: './tsconfig.json',
-    //     clean: true,
-    //     include: ['src/**/*.ts', 'distributions/AWS/**/*.ts'],
-    //     exclude: ['node_modules'],
-    // }),
-
-    sourcemaps(),
-    terser(),
-
-    copy({
-      targets: [
-        { src: "src/data/*", dest: "dist/data" },
-        /*{ src: 'src/static/*', dest: 'dist/static' },*/
-      ],
-    }),
-  ],
-};
-
-const prodCJSConfig = {
+// Development configuration
+const devConfig = {
   input: "./src/index.ts",
   output: {
     file: "./dist/index.cjs",
@@ -206,58 +49,63 @@ const prodCJSConfig = {
     banner,
   },
   plugins: [
-    resolve({
-      browser: false, // Allow bundling of modules from `node_modules`
-      preferBuiltins: true, // Prefer Node.js built-in modules
-      mainFields: ["module", "main"], // Ensure Node.js package resolution
-      extensions: [".js", ".ts", ".json"], // Resolve these extensions
-    }),
-    commonjs(), // Convert CommonJS modules to ES6 for Rollup to bundle them
-    json(),
-    typescriptPaths({
-      tsconfig: "./tsconfig.json", // Ensure this points to your tsconfig file
-      preserveExtensions: true,
-      nonRelative: false,
-    }),
-    filenameReplacePlugin(),
+    ...basePlugins,
     esbuild({
       sourceMap: true,
-      minify: true,
-      treeShaking: true,
+      minify: false,
+      treeShaking: false,
+      target: "node18",
     }),
-    // typescript({
-    //     tsconfig: './tsconfig.json',
-    //     clean: true,
-    //     include: ['src/**/*.ts', 'distributions/AWS/**/*.ts'],
-    //     exclude: ['node_modules'],
-    // }),
-
-    sourcemaps(),
-    terser(),
-
     copy({
       targets: [
         { src: "src/data/*", dest: "dist/data" },
-        /*{ src: 'src/static/*', dest: 'dist/static' },*/
+        { src: "src/static/*", dest: "dist/static" },
+        {
+          src: "node_modules/swagger-ui-dist/*.{js,css,html,js.map}",
+          dest: "dist",
+        },
       ],
     }),
   ],
 };
 
-let devConfig = devESConfig;
-if (format === "cjs") {
-  devConfig = devCJSConfig;
-}
+// Production configuration
+const prodConfig = {
+  input: "./src/index.ts",
+  output: {
+    file: "./dist/index.cjs",
+    format: "cjs",
+    sourcemap: true,
+    inlineDynamicImports: true,
+    banner,
+  },
+  plugins: [
+    ...basePlugins,
+    esbuild({
+      sourceMap: true,
+      minify: true,
+      treeShaking: true,
+      target: "node18",
+    }),
+    terser({
+      compress: {
+        drop_console: false, // Keep console logs for server apps
+      },
+    }),
+    copy({
+      targets: [
+        { src: "src/data/*", dest: "dist/data" },
+        { src: "src/static/*", dest: "dist/static" },
+        {
+          src: "node_modules/swagger-ui-dist/*.{js,css,html,js.map}",
+          dest: "dist",
+        },
+      ],
+    }),
+  ],
+};
 
-if (format === "esbundle") {
-  devConfig = devESBundleConfig;
-}
-
-let config = isProduction
-  ? format === "cjs"
-    ? prodCJSConfig
-    : prodESConfig
-  : devConfig;
+const config = isProduction ? prodConfig : devConfig;
 
 export default config;
 
