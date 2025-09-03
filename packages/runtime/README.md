@@ -78,24 +78,146 @@ npm install
 # Link smyth-runtime (if needed)
 npm link smyth-runtime
 
-# Build and run in development mode
+# Development mode with auto-reload
 npm run dev
 
-# Or build and run with CommonJS
-npm run dev:cjs
+# Build for development
+npm run build:dev
 
 # Build for production
-npm run build:dev
+npm run build
+
+# Start the server
+npm run start
 ```
 
 ## Available Scripts
 
-- `npm run dev` - Build and run in ES module format
-- `npm run dev:cjs` - Build and run in CommonJS format
-- `npm run build:dev:es` - Build ES modules for development
-- `npm run build:dev:cjs` - Build CommonJS for development
-- `npm run start` - Start the built server
-- `npm test` - Run tests
+### Core Scripts (Minimal)
+- `npm run dev` - Development mode with auto-reload using nodemon
+- `npm run build` - Build for production 
+- `npm run start:prod` - Start server in production mode
+
+### Additional Scripts
+- `npm run test` - Run tests
+- `npm run clean` - Clean the dist directory
+- `npm run lint` - Lint TypeScript files
+- `npm run lint-fix` - Lint and auto-fix TypeScript files
+- `npm run ts-error-scan` - Check for TypeScript errors without emitting files
+- `npm run format` - Format TypeScript files with Prettier
+- `npm run prettier:format` - Format all supported files with Prettier
+- `npm run bump` - Bump patch version
+
+## 🔧 Environment Setup
+
+### Required (for both development and production):
+```bash
+# Authentication (get these from your LogTo setup)
+LOGTO_M2M_APP_SECRET="your-m2m-app-secret"
+LOGTO_M2M_APP_ID="your-m2m-app-id"  
+LOGTO_SERVER="https://auth.yourdomain.com"
+LOGTO_API_RESOURCE="https://api.yourdomain.com"
+MIDDLEWARE_API_BASE_URL="http://middleware.yourdomain.com"
+```
+
+### Optional (development):
+```bash
+# Ports
+PORT="5053"              # Runtime server port
+ADMIN_PORT="5054"        # Admin interface port  
+
+# URLs
+BASE_URL="http://localhost:5053"
+UI_SERVER="http://localhost:4000"
+
+# Security
+SESSION_SECRET="your-random-secret-here"
+
+# Storage
+DATA_PATH="/path/to/your/data"
+```
+
+### Domain Configuration:
+```bash
+# Development/staging wildcard domain
+DEFAULT_AGENT_DOMAIN="localagent.stage.yourdomain.ai"
+
+# Production wildcard domain  
+PROD_AGENT_DOMAIN="agentid.yourdomain.com"
+```
+
+## 🌐 Deployment
+
+### Environment Requirements
+
+**Development:**
+- Node.js 18+
+- pnpm 8+
+- LogTo authentication server
+
+**Production:**
+- All development requirements
+- Redis (for session management)
+- SSL certificates (for production domains)
+- Load balancer (recommended)
+
+### Quick Deploy
+
+1. **Build everything:**
+   ```bash
+   npm run build
+   ```
+
+2. **Set production environment:**
+   ```bash
+   NODE_ENV=production
+   PORT=5053
+   # Add your production environment variables
+   ```
+
+3. **Start production server:**
+   ```bash
+   npm run start:prod
+   ```
+
+### Production Checklist
+
+- [ ] Environment variables configured
+- [ ] Authentication server running
+- [ ] Database connected  
+- [ ] Redis connected (for sessions)
+- [ ] SSL certificates installed
+- [ ] Domain routing configured
+- [ ] Health checks passing (`http://your-domain/health`)
+
+## 🔍 Troubleshooting
+
+### Common Issues:
+
+**"Agent not routing correctly"**
+```bash
+# Check routing with explicit headers
+curl -H "X-FORCE-DEBUGGER: true" http://localhost:5053/api/test
+```
+
+**"Authentication failing"**
+- Verify LogTo environment variables
+- Check LogTo server is accessible
+- Confirm M2M app is configured correctly
+
+**"Development server not starting"**
+```bash
+# Clean and reinstall
+rm -rf node_modules
+npm install
+```
+
+**"Build failing"**
+```bash
+# Increase memory for builds
+export NODE_OPTIONS='--max-old-space-size=4096'
+npm run build
+```
 
 ## Health Check
 
