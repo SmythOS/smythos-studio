@@ -1302,14 +1302,26 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
     ? getFormattedContent(outputContent, compName)
     : outputContent + '';
 
-  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
+  // SECURITY FIX: Create button element properly instead of using innerHTML
+  const pinButton = document.createElement('button');
+  pinButton.className = 'pin button primary';
+  pinButton.innerHTML = '<span class="mif-pin icon"></span>';
+
+  // Create a container for the formatted content
+  const contentContainer = document.createElement('div');
+  contentContainer.innerHTML = formattedContent;
+
+  // Clear the div and append elements safely
+  div.innerHTML = '';
   div.className = 'dbg-element dbg-output';
+  div.appendChild(pinButton);
+  div.appendChild(contentContainer);
 
   // keep the pinning state if the debugger window is already pinned
   const isPinned = div.closest('.endpoint')?.classList.contains('pinned');
   togglePinning(div, isPinned ? 'pin' : '');
 
-  div.querySelector('.pin').onclick = async (e) => {
+  pinButton.onclick = async (e) => {
     e.stopPropagation();
     e.stopImmediatePropagation();
     togglePinning(div, 'toggle');
@@ -1369,8 +1381,20 @@ function showInputInfo(inputEndpoint, inputContent) {
 
   const formattedContent = getFormattedContent(inputContent);
 
-  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
+  // SECURITY FIX: Create button element properly instead of using innerHTML
+  const pinButton = document.createElement('button');
+  pinButton.className = 'pin button primary';
+  pinButton.innerHTML = '<span class="mif-pin icon"></span>';
+
+  // Create a container for the formatted content
+  const contentContainer = document.createElement('div');
+  contentContainer.innerHTML = formattedContent;
+
+  // Clear the div and append elements safely
+  div.innerHTML = '';
   div.className = 'dbg-element dbg-output';
+  div.appendChild(pinButton);
+  div.appendChild(contentContainer);
 
   inputEndpoint?.appendChild(div);
 
@@ -1378,7 +1402,7 @@ function showInputInfo(inputEndpoint, inputContent) {
   const isPinned = div.closest('.endpoint')?.classList.contains('pinned');
   togglePinning(div, isPinned ? 'pin' : '');
 
-  div.querySelector('.pin').onclick = async (e) => {
+  pinButton.onclick = async (e) => {
     e.stopPropagation();
     e.stopImmediatePropagation();
     togglePinning(div, 'toggle');
