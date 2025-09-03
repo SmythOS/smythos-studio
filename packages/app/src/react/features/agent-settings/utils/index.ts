@@ -130,6 +130,7 @@ export const mapFormPreviewEmbodimentProperties = (
   return {
     name: properties?.name || activeAgent?.name || '',
     allowedDomains: properties?.allowedDomains || [],
+    outputPreview: properties?.outputPreview || false,
   };
 };
 
