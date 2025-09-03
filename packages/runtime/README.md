@@ -138,12 +138,26 @@ DATA_PATH="/path/to/your/data"
 ```
 
 ### Domain Configuration:
+
+> **⚠️ WARNING**: To run the agent locally, the domain name must contain `localagent`
+
+When running agents in a local development environment, ensure your domain configuration includes the keyword `localagent`. This is required for proper local agent execution and routing.
+
 ```bash
 # Development/staging wildcard domain
 DEFAULT_AGENT_DOMAIN="localagent.stage.yourdomain.ai"
 
 # Production wildcard domain  
 PROD_AGENT_DOMAIN="agentid.yourdomain.com"
+```
+
+**Example:**
+```bash
+# ✅ Correct - domain contains 'localagent'
+DEFAULT_AGENT_DOMAIN="localagent.stage.yourdomain.ai"
+
+# ❌ Incorrect - missing 'localagent' keyword
+DEFAULT_AGENT_DOMAIN="localhost:3000"
 ```
 
 ## 🌐 Deployment
