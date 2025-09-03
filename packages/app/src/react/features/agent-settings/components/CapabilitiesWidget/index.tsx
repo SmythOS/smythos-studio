@@ -5,6 +5,7 @@ import { WIDGETS_PRICING_ALERT_TEXT } from '@react/features/agent-settings/const
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { Component } from '@react/shared/types/agent-data.types';
 import { EVENTS } from '@shared/posthog/constants/events';
+import { CloseIcon } from '@src/react/shared/components/svgs';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { PostHog } from '@src/shared/posthog';
 
@@ -24,9 +25,6 @@ interface SkillBtnConfig {
 
 const CapabilitiesWidget = ({ isOnPaidPlan: isSubscribedToPlan, isWriteAccess }: Props) => {
   const { latestAgentDeploymentQuery } = useAgentSettingsCtx();
-
-  
-
 
   return (
     <WidgetCard isWriteAccess={isWriteAccess} showOverflow={true}>
@@ -98,13 +96,19 @@ function Endpoint({ component }: { component: Component }) {
   const { agentId } = useAgentSettingsCtx();
 
   let pluginItems = (
-    plugins.getPluginsByTarget(PluginTarget.AgentSettingsSkillsWidgetSkillButton, PluginType.Config) as {
+    plugins.getPluginsByTarget(
+      PluginTarget.AgentSettingsSkillsWidgetSkillButton,
+      PluginType.Config,
+    ) as {
       config: SkillBtnConfig;
     }[]
   ).flatMap((item) => item.config);
 
   // const skillWidgetBtns = pluginItems.map((item) => item.renderBtn(component.id));
-  const skillWidgetBtns = useMemo(() => pluginItems.map((item) => item.renderBtn(component.id)), [component.id]);
+  const skillWidgetBtns = useMemo(
+    () => pluginItems.map((item) => item.renderBtn(component.id)),
+    [component.id],
+  );
 
   return (
     <>
@@ -155,12 +159,12 @@ function Endpoint({ component }: { component: Component }) {
               </div>
 
               {/* Close button */}
-              <button
-                className="absolute top-4 right-4 text-[#1E1E1E] hover:text-gray-500"
+              <div
+                className="absolute top-4 right-4 text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2"
                 onClick={() => setIsTriggeringSkill(false)}
               >
-                ✕
-              </button>
+                <CloseIcon width={16} height={16} />
+              </div>
             </div>
           </div>
         </div>

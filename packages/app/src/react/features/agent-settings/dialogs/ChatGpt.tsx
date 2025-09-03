@@ -6,6 +6,7 @@ import {
   MODEL_DESCRIPTION_THRESHOLD,
 } from '@react/features/agent-settings/constants';
 import { mapGptEmbodimentProperties } from '@react/features/agent-settings/utils';
+import { CloseIcon } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
@@ -14,7 +15,6 @@ import { errorToast, successToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { Fragment, useEffect, useState } from 'react';
-import { IoClose } from 'react-icons/io5';
 
 interface IFormValues {
   humanName: string;
@@ -159,7 +159,12 @@ const ChatGptDialog = ({
                 <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>ChatGPT Configurations</span>
-                    <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
+                    <div
+                      className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                      onClick={() => closeModal()}
+                    >
+                      <CloseIcon width={16} height={16} />
+                    </div>
                   </Dialog.Title>
                   <Formik
                     initialValues={activeData}

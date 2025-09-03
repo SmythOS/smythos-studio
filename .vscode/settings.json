@@ -14,12 +14,11 @@
   "typescript.preferences.includePackageJsonAutoImports": "auto",
   "typescript.suggest.autoImports": true,
   "typescript.preferences.useAliasesForRenames": true,
-  
+
   // ✅ CORRECT CURRENT SETTINGS: Force alias usage
   "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
   "typescript.updateImportsOnPaste.enabled": true,
-  
+  "cSpell.words": ["logto", "smythos"]
 
-  
   // ✅ Additional helpful settings
 }

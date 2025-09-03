@@ -1,6 +1,5 @@
 import express from 'express';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
-import { autoGenerateAvatarForAgent } from '../../../services/falai-helper';
 import * as openai from '../../../services/openai-helper';
 import * as userData from '../../../services/user-data.service';
 const router = express.Router();
@@ -10,7 +9,6 @@ router.post('/', [includeTeamDetails], async (req, res) => {
   const userId = req?._user?.id;
   const userName = req?._user?.name || req?._user?.email;
   const teamId = req?._team?.id;
-  let avatar;
 
   if (!userId) {
     return res.status(400).json({ success: false, error: 'User not found' });
@@ -23,24 +21,15 @@ router.post('/', [includeTeamDetails], async (req, res) => {
     return res.status(400).json({ success: false, error: result.error.message });
   }
 
-  const beforeAvatarGenerationTimestamp = Date.now();
-
-  try {
-    // #region TODO: move this responsibility to the caller
-    const existingAvatar = await userData.getAgentSettings(req, result.id, 'avatar');
-    if (!existingAvatar && hasAvatar !== true) {
-      avatar = await autoGenerateAvatarForAgent(req, result.id, req._team.id);
-    }
-  } catch (error) {
-    console.error('Error handling avatar generation:', error);
-  }
-
-  const afterAvatarGenerationTimestamp = Date.now();
-  console.log(
-    `Avatar generation took ${afterAvatarGenerationTimestamp - beforeAvatarGenerationTimestamp}ms`,
-  );
-
-  return res.send({ success: true, id: result.id, name: result.name, avatar });
+  // Return immediately after agent creation with avatar status information
+  // Avatar will be generated asynchronously on client side
+  return res.send({
+    success: true,
+    id: result.id,
+    name: result.name,
+    avatarStatus: 'pending',
+    avatarUrl: null,
+  });
 });
 
 router.delete('/:id', async (req, res) => {
