@@ -80,7 +80,7 @@ const sre = SmythRuntime.Instance.init({
   AgentData: {
     Connector: "SmythOSSAgentData",
     Settings: {
-      agentStageDomain: config.env.DEFAULT_AGENT_DOMAIN || "",
+      agentStageDomain: config.env.AGENT_DOMAIN || "",
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || "",
       oAuthAppID: config.env.LOGTO_M2M_APP_ID,
       oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
@@ -150,9 +150,7 @@ app.use(
         return req.sessionID;
       }
       const domain = req.hostname;
-      const isTestDomain = domain.includes(
-        `.${config.env.DEFAULT_AGENT_DOMAIN}`
-      );
+      const isTestDomain = domain.includes(`.${config.env.AGENT_DOMAIN}`);
       const prefix = isTestDomain ? "test-" : "";
       const formattedDate = getCurrentFormattedDate();
       const randomString = crypto.randomBytes(8).toString("hex");
@@ -168,7 +166,7 @@ app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 
 // Health endpoint
 app.get("/health", (req: any, res) => {
-  let agent_domain = config.env.DEFAULT_AGENT_DOMAIN;
+  let agent_domain = config.env.AGENT_DOMAIN;
   if (config.env.AGENT_DOMAIN_PORT)
     agent_domain += `:${config.env.AGENT_DOMAIN_PORT}`;
 

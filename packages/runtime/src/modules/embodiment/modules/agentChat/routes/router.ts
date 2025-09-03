@@ -56,7 +56,7 @@ const validations = {
 
 router.post("/stream", async (req, res) => {
   let streamStarted = false;
-  const isLocalAgent = req.hostname.includes("localhost");
+  const isLocalAgent = req.hostname.includes("localagent");
   const agentId = req._agent?.id;
   const agentVersion = req._agent?.version;
   let verifiedKey = null;
@@ -142,9 +142,7 @@ router.post("/stream", async (req, res) => {
 
 router.post("/new", async (req, res) => {
   const { conversation = {} } = req.body;
-  const isTestDomain = req.hostname.includes(
-    `.${config.env.DEFAULT_AGENT_DOMAIN}`
-  );
+  const isTestDomain = req.hostname.includes(`.${config.env.AGENT_DOMAIN}`);
   let agentId = req.header("X-AGENT-ID");
 
   const teamDetails = requestContext.get(`team_info:${agentId}`);

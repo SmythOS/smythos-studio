@@ -41,7 +41,7 @@ router.get("/params", async (req, res) => {
 
   await Promise.all(promises);
 
-  const isLocalAgent = req.hostname.includes("localhost");
+  const isLocalAgent = req.hostname.includes("localagent");
   const agentId = agent?.id;
 
   const port = isLocalAgent ? config.env.AGENT_DOMAIN_PORT : undefined;
