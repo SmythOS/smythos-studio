@@ -33,8 +33,6 @@ const config = {
     UI_SERVER: process.env.UI_SERVER || "http://localhost:4000",
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    CODE_SANDBOX_URL: process.env.CODE_SANDBOX_URL || "http://localhost:5055",
-
     DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, "../../data"),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || "combined",

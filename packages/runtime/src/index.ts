@@ -18,7 +18,6 @@ import RateLimiter from "@core/middlewares/rateLimiter.mw";
 import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
 import { requestContext } from "@core/services/request-context";
 
-import { registerComponents } from "@core/component/componentRegistry";
 import { registerConnectors } from "@core/connectors/connectorRegistry";
 
 // Routes are handled by configureAgentRouters
@@ -32,18 +31,11 @@ import {
 // Embodiment imports
 import { routes as embodimentRoutes } from "@embodiment/routes";
 
-// Code sandbox service
-import { CodeSandboxService } from "./services/code-sandbox.service";
-
 const app = express();
 const port = config.env.PORT;
 
 // Register all connectors
 registerConnectors();
-
-SystemEvents.on("SRE:Initialized", (SRE) => {
-  registerComponents();
-});
 
 const sre = SmythRuntime.Instance.init({
   Cache: {
@@ -92,10 +84,6 @@ const sre = SmythRuntime.Instance.init({
   },
   Log: {
     Connector: "ConsoleLog",
-    Settings: {},
-  },
-  Code: {
-    Connector: "ECMASandbox",
     Settings: {},
   },
 });
@@ -200,17 +188,11 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 let server: Server | null = null;
-const codeSandboxService = CodeSandboxService.getInstance();
 
 (async () => {
   try {
     console.info("🚀 Starting SmythOS Runtime Services...");
     console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-    // Start the code sandbox service
-    console.info("📦 Starting Code Sandbox Service...");
-    await codeSandboxService.start();
-    console.info(`✅ Code Sandbox Service running on http://localhost:5055`);
 
     // Start the main servers (runtime + management)
     console.info("⚡ Starting Main Runtime Services...");
@@ -225,7 +207,7 @@ const codeSandboxService = CodeSandboxService.getInstance();
       }`
     );
     console.info(`   • Runtime Server:    http://localhost:${port}`);
-    console.info(`   • Code Sandbox:      http://localhost:5055`);
+
     console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.info("✨ SmythOS Runtime is ready!");
   } catch (error) {
@@ -243,9 +225,6 @@ const gracefulShutdown = async (signal: string) => {
   console.info(`Received ${signal}, shutting down gracefully`);
 
   try {
-    // Stop code sandbox service
-    await codeSandboxService.stop();
-
     // Close HTTP server if it exists
     if (server) {
       server.close(() => {
