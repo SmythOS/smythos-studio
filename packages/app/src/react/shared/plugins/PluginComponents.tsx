@@ -1,16 +1,37 @@
 import { useEffect, useState } from 'react';
-import { plugins, PluginTarget, PluginType } from './Plugins';
+import { plugins, PluginTarget, PluginType, TPlugin } from './Plugins';
 
+type PluginComponentsProps = {
+  targetId: PluginTarget;
+  props?: Record<string, any>;
+};
 
-export const PluginComponents = ({targetId}: {targetId: PluginTarget}) => {
-const [components, setComponents] = useState<React.ReactNode[]>([]);
+export const PluginComponents = ({ targetId, props }: PluginComponentsProps) => {
+  const [components, setComponents] = useState<React.ReactNode[]>([]);
 
-useEffect(() => {
-    const matchedPlugins = plugins.getPluginsByTarget(targetId, PluginType.Component) as {component: React.ReactNode}[];
-    setComponents(matchedPlugins.map((plugin) => plugin.component));
-}, [targetId]);
+  useEffect(() => {
+    const allPlugins = plugins.getPluginsByTarget(targetId) as TPlugin[];
 
-  
-  
-  return <>{components.map((component, index) => <div key={index}>{component}</div>)}</>;
+    const renderedComponents = allPlugins
+      .map((plugin, index) => {
+        if (plugin.type === PluginType.Function && props) {
+          return plugin.function(props);
+        }
+        if (plugin.type === PluginType.Component) {
+          return plugin.component;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    setComponents(renderedComponents);
+  }, [targetId, props]);
+
+  return (
+    <>
+      {components.map((component, index) => (
+        <div key={index}>{component}</div>
+      ))}
+    </>
+  );
 };

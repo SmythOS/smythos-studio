@@ -1,10 +1,9 @@
 import { useOnboarding } from '@src/react/features/agents/contexts/OnboardingContext';
 import OnboardingTask from '@src/react/features/onboarding/components/agent-onboarding-section/OnboardingTask';
-import { Spinner } from '@src/react/shared/components/ui/spinner';
-import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
+import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
+import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { OnboardingTaskType } from '@src/react/shared/types/onboard.types';
-import type { ReactNode } from 'react';
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GoChevronDown } from 'react-icons/go';
 
@@ -129,62 +128,20 @@ export const OnboardingTasks = ({ onDismiss }: { onDismiss: () => void }) => {
         </div>
       )}
 
-      {/* Enterprise: render invite member modal via plugin system if provided */}
       {isInviteMemberModalOpen &&
         createPortal(
-          <Suspense fallback={<Spinner />}>
-            {(() => {
-              // Prefer function-based plugin so we can pass onClose
-              const functionPlugins = plugins.getPluginsByTarget(
-                PluginTarget.Onboarding,
-                PluginType.Function,
-              ) as Array<{
-                type: PluginType.Function;
-                function: (args: { onClose: () => void }) => ReactNode;
-              }>;
-
-              if (functionPlugins.length > 0) {
-                const modalFactory = functionPlugins[0].function;
-                return modalFactory({ onClose: handleModalClose });
-              }
-
-              // Fallback: component plugin (no props). Provider must handle closing.
-              const componentPlugins = plugins.getPluginsByTarget(
-                PluginTarget.Onboarding,
-                PluginType.Component,
-              ) as Array<{ type: PluginType.Component; component: ReactNode }>;
-              return componentPlugins[0]?.component ?? null;
-            })()}
-          </Suspense>,
+          <PluginComponents
+            targetId={PluginTarget.InviteOrganizationMemberModal}
+            props={{ onClose: handleModalClose }}
+          />,
           document.body,
         )}
-      {/* Enterprise: render space member modal via plugin system if provided */}
       {isInviteSpaceMemberModalOpen &&
         createPortal(
-          <Suspense fallback={<Spinner />}>
-            {(() => {
-              // Prefer function-based plugin so we can pass onClose
-              const functionPlugins = plugins.getPluginsByTarget(
-                PluginTarget.OnboardingSpaceMember,
-                PluginType.Function,
-              ) as Array<{
-                type: PluginType.Function;
-                function: (args: { onClose: () => void }) => ReactNode;
-              }>;
-
-              if (functionPlugins.length > 0) {
-                const modalFactory = functionPlugins[0].function;
-                return modalFactory({ onClose: handleSpaceMemberModalClose });
-              }
-
-              // Fallback: component plugin (no props). Provider must handle closing.
-              const componentPlugins = plugins.getPluginsByTarget(
-                PluginTarget.OnboardingSpaceMember,
-                PluginType.Component,
-              ) as Array<{ type: PluginType.Component; component: ReactNode }>;
-              return componentPlugins[0]?.component ?? null;
-            })()}
-          </Suspense>,
+          <PluginComponents
+            targetId={PluginTarget.InviteSpaceMemberModal}
+            props={{ onClose: handleSpaceMemberModalClose }}
+          />,
           document.body,
         )}
     </div>

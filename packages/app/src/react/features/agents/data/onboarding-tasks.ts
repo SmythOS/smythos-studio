@@ -3,7 +3,7 @@ import { OnboardingTaskProps, OnboardingTaskType } from '@src/react/shared/types
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 
 const onboardingPlugins = (
-  plugins.getPluginsByTarget(PluginTarget.Onboarding, PluginType.Config) as {
+  plugins.getPluginsByTarget(PluginTarget.InviteOrganizationMemberModal, PluginType.Config) as {
     config: any;
   }[]
 ).map((plugin) => plugin.config);
