@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import classNames from 'classnames';
 import {
   ChangeEvent,
@@ -88,6 +87,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
     );
 
     const handleSubmit = useCallback((): void => {
+      if (isQueryInputDisabled) return;
       if (isGenerating) return stopGenerating();
 
       const trimmedMessage = message.trim();
@@ -99,7 +99,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
           fileInputRef.current.value = '';
         }
       }
-    }, [message, files, sendMessage, isGenerating, stopGenerating, clearFiles]);
+    }, [message, files, isGenerating, isQueryInputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleKeyDown = useCallback(
       (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -154,14 +154,14 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
     return (
       <div
         className={classNames(
-          'bg-white border border-solid border-[#e5e5e5] rounded-lg min-h-[60px] py-1 text-sm flex flex-col items-center justify-center cursor-text',
+          'w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 text-sm flex flex-col items-start justify-center cursor-text',
           className,
         )}
         onClick={handleContainerClick}
       >
         {files.length > 0 && (
           <div
-            className="flex flex-nowrap gap-2 w-full px-2.5 py-5 overflow-x-auto"
+            className="flex flex-nowrap gap-2 w-full h-full px-2.5 py-5 overflow-x-auto"
             role="list"
             aria-label="Attached files"
           >
@@ -200,7 +200,6 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
             onPaste={handlePaste}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            disabled={isQueryInputDisabled}
             placeholder={queryInputPlaceholder}
             maxLength={maxLength}
             className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
@@ -232,7 +231,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
           <div onClick={(e) => e.stopPropagation()}>
             <SendButton
               isProcessing={isQueryInputProcessing || isGenerating}
-              disabled={!canSubmit}
+              disabled={isQueryInputDisabled || !canSubmit}
               onClick={handleSubmit}
             />
           </div>
