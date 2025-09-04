@@ -36,13 +36,13 @@ async function onComponentLoad(sidebar) {
 
   if (component.workspace?.locked) {
     setReadonlyMode(sidebar, ['close-btn', 'action-help']);
-    sidebar.querySelector('.action-save').classList.add('hidden');
-    sidebar.querySelector('.del-btn').classList.add('hidden');
+    sidebar.querySelector('.action-save')?.classList.add('hidden');
+    sidebar.querySelector('.del-btn')?.classList.add('hidden');
   } else {
     // Always hide the top save button for manual save/cancel flow
-    sidebar.querySelector('.action-save').classList.remove('hidden');
-    sidebar.querySelector('.del-btn').classList.remove('hidden');
-    sidebar.querySelector('.close-btn').classList.remove('hidden');
+    sidebar.querySelector('.action-save')?.classList.remove('hidden');
+    sidebar.querySelector('.del-btn')?.classList.remove('hidden');
+    sidebar.querySelector('.close-btn')?.classList.remove('hidden');
   }
 
   // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
