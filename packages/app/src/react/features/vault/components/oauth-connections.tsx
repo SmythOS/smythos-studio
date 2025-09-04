@@ -7,7 +7,7 @@ import {
   mapOAuthTypeDisplay,
 } from '@src/shared/utils/oauth.utils';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
-import { Circle, Copy, Pencil, PlusCircle, Trash2 } from 'lucide-react';
+import { Circle, CopyPlus, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   OAUTH_QUERY_KEY, // Import the query key
@@ -416,9 +416,9 @@ export function OAuthConnections() {
                       </span>
                     </td>
                     {/* Status Column */}
-                    <td className="px-4 py-3">
+                    <td className="px-8 py-3">
                       <div
-                        className="flex items-center justify-start"
+                        className="flex"
                         title={isActive ? 'Active' : 'Inactive'}
                       >
                         {isCheckingStatus ? (
@@ -476,7 +476,7 @@ export function OAuthConnections() {
                           title="Duplicate"
                           disabled={isDisabled}
                         >
-                          <Copy className="h-4 w-4" />
+                          <CopyPlus className="h-4 w-4" />
                         </button>
 
                         {/* Edit Button */}
