@@ -185,7 +185,6 @@ const FormEmbodimentModal: FC<FormEmbodimentModalProps> = ({
                   variant="primary"
                   handleClick={handleCopyClick}
                   label={copied ? 'Copied' : 'Copy Code'}
-                  className="text-sm"
                   aria-label={copied ? 'Copied' : 'Copy code'}
                 />
               </div>

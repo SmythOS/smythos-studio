@@ -469,7 +469,7 @@ const LlmEmbodimentModal: React.FC<LlmEmbodimentModalProps> = ({
             <Button
               label={copyState === 'copied' ? 'Copied' : 'Copy Code'}
               variant="primary"
-              className="px-4 py-1 text-xs"
+              className="px-4 py-2"
               handleClick={handleCopyCode}
               aria-label="Copy Code"
               type="button"
@@ -491,7 +491,7 @@ const LlmEmbodimentModal: React.FC<LlmEmbodimentModalProps> = ({
                     <Button
                       label="Create a new key"
                       variant="primary"
-                      className="px-6 py-2 text-sm"
+                      className="px-6 py-2"
                       handleClick={handleOpenCreateKey}
                       aria-label="Create a new key"
                       type="button"

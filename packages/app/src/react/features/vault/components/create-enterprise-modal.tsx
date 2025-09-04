@@ -634,13 +634,11 @@ export function DeleteEnterpriseModelModal({
       onClose={onClose}
       label={isProcessing ? 'Deleting...' : 'Delete'}
       handleConfirm={() => onConfirm(model)}
-      handleCancel={onClose}
       message="Delete Enterprise Model"
       lowMsg={`Are you sure you want to delete the enterprise model "${model.name}"? This action cannot be undone.`}
       isLoading={isProcessing}
       width="max-w-[600px] w-[calc(100vw_-_-20px)]"
       confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"
-      cancelLabel="Cancel"
     />
   );
 }

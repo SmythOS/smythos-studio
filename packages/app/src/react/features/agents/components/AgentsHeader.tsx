@@ -1,6 +1,13 @@
 import HeaderSearch from '@react/shared/components/headerSearch';
 import { AscendingIcon, DescendingIcon } from '@react/shared/components/svgs';
 import { Button as CustomButton } from '@react/shared/components/ui/newDesign/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@react/shared/components/ui/select';
 import { Suspense } from 'react';
 
 import { SortOption } from '../types/agents.types';
@@ -55,21 +62,18 @@ export function AgentsHeader({
 
       <div className="w-max flex justify-between gap-2 flex-wrap flex-col sm:flex-row sm:flex-nowrap">
         <div className="flex items-center">
-          <select
-            id="sorting"
-            onChange={(e) => onSortCriteriaChange(e.target.value)}
-            value={sortCriteria}
-            className="w-36 border border-gray-300 text-gray-900 text-sm rounded
-             focus:ring-blue-500 focus:border-blue-500 block px-4 py-2
-              dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-               dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          >
-            {SORT_FIELDS.map((s: SortOption) => (
-              <option key={s.value} value={s.value}>
-                {s.title}
-              </option>
-            ))}
-          </select>
+          <Select onValueChange={onSortCriteriaChange} value={sortCriteria}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Select sort criteria" />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_FIELDS.map((s: SortOption) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <button onClick={onSortOrderToggle} className="mx-2" aria-label="Sort agents">
             {sortOrder === 'asc' ? (

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BackButtonWithTail, CloseIconWithoutPadding } from '../../shared/components/svgs';
+import { BackButtonWithTail, CloseIcon } from '../../shared/components/svgs';
 
 /**
  * Props for the ModalHeaderEmbodiment component.
@@ -62,11 +62,11 @@ const ModalHeaderEmbodiment: React.FC<ModalHeaderEmbodimentProps> = ({
       )}
       {/* Close button */}
       <button
-        className="absolute -right-2 -top-2 p-[6px] text-[#222] hover:bg-gray-100 rounded"
+        className="absolute -right-2 -top-2 p-2 text-[#222] hover:bg-gray-100 rounded"
         onClick={onClose}
         aria-label="Close"
       >
-        <CloseIconWithoutPadding width={12} height={12} />
+        <CloseIcon width={16} height={16} />
       </button>
     </div>
   );

@@ -56,13 +56,11 @@ export const DeleteApiKeyDialog: FC<DeleteApiKeyDialogProps> = ({ isOpen, apiKey
       onClose={onClose}
       label={isLoading ? 'Deleting...' : 'Delete'}
       handleConfirm={handleDelete}
-      handleCancel={onClose}
       message="Are you sure?"
       lowMsg="This action cannot be undone. This will permanently delete the API key."
       isLoading={isLoading}
       width="max-w-[600px] w-[calc(100vw_-_-20px)]"
       confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"
-      cancelLabel="Cancel"
     />
   );
 };

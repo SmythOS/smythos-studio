@@ -752,7 +752,6 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                               >
                                 here
                               </a>
-                              )
                             </span>
                           </div>
                           <div className="space-y-2">
@@ -776,7 +775,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                           <Button
                             type="submit"
                             loading={isInProgress}
-                            className="h-[48px] px-8 rounded-lg ml-auto"
+                            className="px-8 rounded-lg ml-auto"
                           >
                             Deploy
                           </Button>
@@ -789,10 +788,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                           Deploy on-prem or to enterprise cloud with enterprise security and
                           unlimited task options available. Great for enterprise.
                         </p>
-                        <Button
-                          className="h-[48px] px-8 rounded-lg ml-auto"
-                          handleClick={handleContactSales}
-                        >
+                        <Button className="rounded-lg ml-auto" handleClick={handleContactSales}>
                           Contact sales
                         </Button>
                       </div>
@@ -804,7 +800,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                           local runtime for Mac, Windows, Linux.
                         </p>
                         <Button
-                          className="h-[48px] px-8 rounded-lg ml-auto"
+                          className="px-8 rounded-lg ml-auto"
                           handleClick={() => handleDeploy('locally')}
                         >
                           Download SRE
