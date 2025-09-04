@@ -1,18 +1,11 @@
 import { ConnectorService, Logger } from "@smythos/sre";
 
-<<<<<<< HEAD
 import config from "@core/config";
-=======
->>>>>>> dev
 import {
   addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
 } from "@core/helpers/agent.helper";
-<<<<<<< HEAD
-=======
-import config from "@core/config";
->>>>>>> dev
 
 import { DEFAULT_FILE_PARSING_ENDPOINT } from "@agent-runner/constants";
 
