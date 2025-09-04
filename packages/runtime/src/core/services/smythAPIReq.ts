@@ -1,5 +1,5 @@
-import axios from "axios";
-import config from "../config";
+import axios from 'axios';
+import config from '../config';
 
 //middleware sys API
 export const mwSysAPI = axios.create({
@@ -22,14 +22,12 @@ export function includeAuth(token: string) {
  * @param authHeader - The Authorization header value
  * @returns The extracted token or null if the token is invalid
  */
-export const extractBearerToken = (
-  authHeader: string | undefined
-): string | null => {
+export const extractBearerToken = (authHeader: string | undefined): string | null => {
   if (!authHeader) {
     return null;
   }
 
-  if (typeof authHeader !== "string" || !authHeader.startsWith("Bearer ")) {
+  if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
     return null;
   }
 

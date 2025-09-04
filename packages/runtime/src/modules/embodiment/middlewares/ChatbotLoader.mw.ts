@@ -1,20 +1,18 @@
-import { Agent } from "@smythos/sre";
-import Chatbot from "../services/Chatbot.class";
-import ApiError from "../utils/apiError";
+import { Agent } from '@smythos/sre';
+import Chatbot from '../services/Chatbot.class';
+import ApiError from '../utils/apiError';
 //TODO : handle cache TTL
 
 const __chatbot_cache = { 0: 1 };
 export default async function ChatbotLoader(req, res, next) {
-  console.log("ChatbotLoader");
+  console.log('ChatbotLoader');
   const agent: Agent = req._agent;
   if (!agent) return next();
   try {
     if (__chatbot_cache[agent.id] && !agent.usingTestDomain) {
       const chatBotData = __chatbot_cache[agent.id];
       if (chatBotData.agentVersion == agent.version) {
-        console.log(
-          `Chatbot loaded from cache, domain=${chatBotData.domain} version=${chatBotData.version}`
-        );
+        console.log(`Chatbot loaded from cache, domain=${chatBotData.domain} version=${chatBotData.version}`);
         const chatbot = new Chatbot(req);
         chatbot.deserialize(chatBotData);
         req._chatbot = chatbot;
@@ -28,7 +26,7 @@ export default async function ChatbotLoader(req, res, next) {
       __chatbot_cache[agent.id] = chatbot.serialize(); //we cannot store an object in session, so we serialize it
     }
   } catch (error) {
-    if (error.errKey == "MODEL_NOT_SUPPORTED") {
+    if (error.errKey == 'MODEL_NOT_SUPPORTED') {
       console.warn(error.message);
       return next(new ApiError(400, error.message, error.errKey));
     }

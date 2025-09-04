@@ -3,7 +3,7 @@
  * Following Domain-Driven Design and Clean Architecture principles
  */
 
-import { Request } from "express";
+import { Request } from 'express';
 
 export interface AgentContext {
   id: string;

@@ -1,4 +1,4 @@
 export enum EStorageTypes {
-    Local = 'local',
-    Remote = 'remote',
+  Local = 'local',
+  Remote = 'remote',
 }

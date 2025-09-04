@@ -1,30 +1,23 @@
-import { Express } from "express";
+import { Express } from 'express';
 
-import { uploadHandler } from "@core/middlewares/uploadHandler.mw";
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 
-import agentRunnerAgentLoader from "@agent-runner/middlewares/agentLoader.mw";
-import agentRunnerOauthRouter from "@agent-runner/routes/_oauth/router";
-import { processAgentRequest as agentRunnerProcessAgentRequest } from "@agent-runner/services/agent-request-handler";
+import agentRunnerAgentLoader from '@agent-runner/middlewares/agentLoader.mw';
+import agentRunnerOauthRouter from '@agent-runner/routes/_oauth/router';
+import { processAgentRequest as agentRunnerProcessAgentRequest } from '@agent-runner/services/agent-request-handler';
 
-import debuggerAgentLoader from "@debugger/middlewares/agentLoader.mw";
-import modelsRouter from "@debugger/routes/models/router";
+import debuggerAgentLoader from '@debugger/middlewares/agentLoader.mw';
+import modelsRouter from '@debugger/routes/models/router';
 import {
   createSseConnection as debuggerCreateSseConnection,
   getDebugSession as debuggerGetDebugSession,
   processAgentRequest as debuggerProcessAgentRequest,
-} from "@debugger/services/agent-request-handler";
+} from '@debugger/services/agent-request-handler';
 
-import {
-  RuntimeConfig,
-  loadRuntimeConfig,
-  validateRuntimeConfig,
-} from "./runtime-config";
-import {
-  createAgentRunnerRouter,
-  createDebuggerRouter,
-} from "./shared-agent-router";
-import { createConfiguredSmartRouter } from "./smart-agent-router";
-import config from "./config";
+import { RuntimeConfig, loadRuntimeConfig, validateRuntimeConfig } from './runtime-config';
+import { createAgentRunnerRouter, createDebuggerRouter } from './shared-agent-router';
+import { createConfiguredSmartRouter } from './smart-agent-router';
+import config from './config';
 
 /**
  * Configures and mounts agent routers based on runtime configuration
@@ -36,18 +29,13 @@ import config from "./config";
  * - 'agent-runner': Only agent-runner service
  * - 'embodiment': Only embodiment service
  */
-export function configureAgentRouters(
-  app: Express,
-  runtimeConfig?: RuntimeConfig
-) {
+export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfig) {
   const config = runtimeConfig || loadRuntimeConfig();
 
   // Validate configuration
   const validation = validateRuntimeConfig(config);
   if (!validation.valid) {
-    throw new Error(
-      `Invalid runtime configuration: ${validation.errors.join(", ")}`
-    );
+    throw new Error(`Invalid runtime configuration: ${validation.errors.join(', ')}`);
   }
 
   console.log(`Configuring ${config.serverType} server with services:`, {
@@ -58,8 +46,8 @@ export function configureAgentRouters(
   });
 
   // Mount common routes that should be available in all server configurations
-  console.log("Mounting /models route (available for all server types)");
-  app.use("/models", modelsRouter);
+  console.log('Mounting /models route (available for all server types)');
+  app.use('/models', modelsRouter);
 
   // Configure based on routing strategy and enabled services
   const debuggerEnabled = config.services.debugger.enabled;
@@ -67,12 +55,8 @@ export function configureAgentRouters(
   const embodimentEnabled = config.services.embodiment.enabled;
 
   // Smart routing: Multiple services with intelligent request routing
-  if (
-    config.routing.strategy === "smart" &&
-    debuggerEnabled &&
-    agentRunnerEnabled
-  ) {
-    console.log("Using smart router for intelligent request routing");
+  if (config.routing.strategy === 'smart' && debuggerEnabled && agentRunnerEnabled) {
+    console.log('Using smart router for intelligent request routing');
 
     const smartRouter = createConfiguredSmartRouter(
       {
@@ -90,42 +74,32 @@ export function configureAgentRouters(
       {
         enableMetrics: config.server.metrics,
         enableDebuggerRoutes: debuggerEnabled,
-      }
+      },
     );
 
-    app.use("/", smartRouter);
+    app.use('/', smartRouter);
     return;
   }
 
   // Separate routing: Mount individual routers (extraction-ready)
-  if (
-    config.routing.strategy === "separate" ||
-    config.routing.strategy === "smart"
-  ) {
+  if (config.routing.strategy === 'separate' || config.routing.strategy === 'smart') {
     if (debuggerEnabled) {
-      console.log("Mounting debugger router");
-      const debuggerRouter = createDebuggerRouter(
-        [uploadHandler, debuggerAgentLoader],
-        debuggerProcessAgentRequest,
-        {
-          getDebugSession: debuggerGetDebugSession,
-          createSseConnection: debuggerCreateSseConnection,
-        }
-      );
-      app.use("/", debuggerRouter);
+      console.log('Mounting debugger router');
+      const debuggerRouter = createDebuggerRouter([uploadHandler, debuggerAgentLoader], debuggerProcessAgentRequest, {
+        getDebugSession: debuggerGetDebugSession,
+        createSseConnection: debuggerCreateSseConnection,
+      });
+      app.use('/', debuggerRouter);
     }
 
     if (agentRunnerEnabled) {
-      console.log("Mounting agent-runner router");
-      const agentRunnerRouter = createAgentRunnerRouter(
-        [uploadHandler, agentRunnerAgentLoader],
-        agentRunnerProcessAgentRequest
-      );
-      app.use("/", agentRunnerRouter);
+      console.log('Mounting agent-runner router');
+      const agentRunnerRouter = createAgentRunnerRouter([uploadHandler, agentRunnerAgentLoader], agentRunnerProcessAgentRequest);
+      app.use('/', agentRunnerRouter);
 
       // Mount agent-runner-specific routes
-      console.log("Mounting /oauth route for agent-runner");
-      app.use("/oauth", agentRunnerOauthRouter);
+      console.log('Mounting /oauth route for agent-runner');
+      app.use('/oauth', agentRunnerOauthRouter);
     }
 
     // Note: Embodiment router will be mounted here when embodimentEnabled is true
@@ -133,23 +107,19 @@ export function configureAgentRouters(
   }
 
   // Legacy routing: Use original individual routers (for backward compatibility)
-  if (config.routing.strategy === "legacy") {
-    console.log("Using legacy routing with original routers");
+  if (config.routing.strategy === 'legacy') {
+    console.log('Using legacy routing with original routers');
 
     if (debuggerEnabled) {
-      import("@debugger/routes/agent/routes").then(
-        ({ default: debuggerRouter }) => {
-          app.use("/", debuggerRouter);
-        }
-      );
+      import('@debugger/routes/agent/routes').then(({ default: debuggerRouter }) => {
+        app.use('/', debuggerRouter);
+      });
     }
 
     if (agentRunnerEnabled) {
-      import("@agent-runner/routes/agent/router").then(
-        ({ default: agentRunnerRouter }) => {
-          app.use("/", agentRunnerRouter);
-        }
-      );
+      import('@agent-runner/routes/agent/router').then(({ default: agentRunnerRouter }) => {
+        app.use('/', agentRunnerRouter);
+      });
     }
   }
 }
@@ -162,16 +132,16 @@ export function configureAgentRouters(
 // For backward compatibility - these functions now return RuntimeConfig
 export function createDebuggerServerConfig(): RuntimeConfig {
   return {
-    serverType: "debugger",
+    serverType: 'debugger',
     services: {
       debugger: { enabled: true, standalone: true },
       agentRunner: { enabled: false, standalone: false },
       embodiment: { enabled: false, standalone: false },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: config.env.PORT,
-      name: "smythos-debugger-server",
+      name: 'smythos-debugger-server',
       healthCheck: true,
       metrics: true,
     },
@@ -186,16 +156,16 @@ export function createDebuggerServerConfig(): RuntimeConfig {
 
 export function createAgentRunnerServerConfig(): RuntimeConfig {
   return {
-    serverType: "agent-runner",
+    serverType: 'agent-runner',
     services: {
       debugger: { enabled: false, standalone: false },
       agentRunner: { enabled: true, standalone: true },
       embodiment: { enabled: false, standalone: false },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: config.env.PORT,
-      name: "smythos-agent-runner-server",
+      name: 'smythos-agent-runner-server',
       healthCheck: true,
       metrics: true,
     },
@@ -210,16 +180,16 @@ export function createAgentRunnerServerConfig(): RuntimeConfig {
 
 export function createEmbodimentServerConfig(): RuntimeConfig {
   return {
-    serverType: "embodiment",
+    serverType: 'embodiment',
     services: {
       debugger: { enabled: false, standalone: false },
       agentRunner: { enabled: false, standalone: false },
       embodiment: { enabled: true, standalone: true },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: config.env.PORT,
-      name: "smythos-embodiment-server",
+      name: 'smythos-embodiment-server',
       healthCheck: true,
       metrics: true,
     },
@@ -234,16 +204,16 @@ export function createEmbodimentServerConfig(): RuntimeConfig {
 
 export function createCombinedServerConfig(): RuntimeConfig {
   return {
-    serverType: "combined",
+    serverType: 'combined',
     services: {
       debugger: { enabled: true, standalone: false },
       agentRunner: { enabled: true, standalone: false },
       embodiment: { enabled: true, standalone: false },
     },
-    routing: { strategy: "smart" },
+    routing: { strategy: 'smart' },
     server: {
       port: config.env.PORT,
-      name: "smythos-runtime-combined",
+      name: 'smythos-runtime-combined',
       healthCheck: true,
       metrics: true,
     },

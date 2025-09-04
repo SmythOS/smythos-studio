@@ -5,7 +5,7 @@
  * from a JSON file for better maintainability.
  */
 
-import modelsData from "@data/models.json";
+import modelsData from '@data/models.json';
 
 // Base interface with all possible fields for non-Echo models
 interface BaseModelConfig {
@@ -30,7 +30,7 @@ interface BaseModelConfig {
 
 // Echo model configuration (only requires provider)
 interface EchoModelConfig {
-  provider: "Echo";
+  provider: 'Echo';
 }
 
 // Conditional type: if provider is "Echo", use EchoModelConfig, otherwise use BaseModelConfig

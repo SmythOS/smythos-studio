@@ -1,19 +1,13 @@
-import crypto from "crypto";
-import { OpenAI } from "openai";
-import { Readable } from "stream";
+import crypto from 'crypto';
+import { OpenAI } from 'openai';
+import { Readable } from 'stream';
 
-import {
-  AccessCandidate,
-  Agent,
-  ConnectorService,
-  Conversation,
-  Logger,
-} from "@smythos/sre";
+import { AccessCandidate, Agent, ConnectorService, Conversation, Logger } from '@smythos/sre';
 
-import ApiError from "@core/utils/apiError";
-import { getAgentIdAndVersion } from "@core/helpers/agent.helper";
+import ApiError from '@core/utils/apiError';
+import { getAgentIdAndVersion } from '@core/helpers/agent.helper';
 
-const console = Logger("[Embodiment] Service: OpenAI Chat");
+const console = Logger('[Embodiment] Service: OpenAI Chat');
 
 interface ChatCompletionParams {
   apiKey: string;
@@ -32,14 +26,12 @@ class OpenAIChatService {
     params,
     options,
     agent,
-  }: ChatCompletionParams): Promise<
-    OpenAI.Chat.Completions.ChatCompletion | Readable | ApiError
-  > {
+  }: ChatCompletionParams): Promise<OpenAI.Chat.Completions.ChatCompletion | Readable | ApiError> {
     const { agentId, agentVersion } = getAgentIdAndVersion(params.model);
-    console.log("parsed agentId and agentVersion", agentId, agentVersion);
+    console.log('parsed agentId and agentVersion', agentId, agentVersion);
 
     if (!apiKey) {
-      return new ApiError(401, "Invalid Authentication", "Unauthorized");
+      return new ApiError(401, 'Invalid Authentication', 'Unauthorized');
     }
 
     // TODO: move this to the agent loader middleware
@@ -48,19 +40,19 @@ class OpenAIChatService {
     const exists = await vaultConnector
       .user(accessCandidate)
       .exists(apiKey)
-      .catch((error) => {
-        console.error("Error checking if api key exists:", error);
+      .catch(error => {
+        console.error('Error checking if api key exists:', error);
         return false;
       });
 
     if (!exists) {
-      return new ApiError(401, "Incorrect API key provided", "Unauthorized");
+      return new ApiError(401, 'Incorrect API key provided', 'Unauthorized');
     }
 
     const systemPrompt = params.messages
-      .filter((m) => m.role === "system")
-      .map((m) => m.content)
-      .join("\n");
+      .filter(m => m.role === 'system')
+      .map(m => m.content)
+      .join('\n');
 
     // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
     const conv = new Conversation(modelId, agentId, { agentVersion });
@@ -69,21 +61,18 @@ class OpenAIChatService {
       conv.systemPrompt += `\n\n######\n\n${systemPrompt}`;
     }
 
-    const history = params.messages.filter((m) => m.role !== "system");
-    const lastUserMessageIndx =
-      history.length -
-      1 -
-      [...history].reverse().findIndex((m) => m.role === "user");
+    const history = params.messages.filter(m => m.role !== 'system');
+    const lastUserMessageIndx = history.length - 1 - [...history].reverse().findIndex(m => m.role === 'user');
     // remove the last user message from the history
     const lastUserMessage = history.splice(lastUserMessageIndx, 1)[0];
 
     for (const message of history) {
       switch (message.role) {
-        case "user":
+        case 'user':
           const id = crypto.randomUUID();
           conv.context.addUserMessage(message.content as string, id);
           break;
-        case "assistant":
+        case 'assistant':
           const id2 = crypto.randomUUID();
           conv.context.addAssistantMessage(message.content as string, id2);
           break;
@@ -97,11 +86,11 @@ class OpenAIChatService {
         read() {},
       });
 
-      conv.on("content", (content) => {
+      conv.on('content', content => {
         const now = Date.now();
         const preparedContent: OpenAI.Chat.Completions.ChatCompletionChunk = {
           id: completionId,
-          object: "chat.completion.chunk",
+          object: 'chat.completion.chunk',
           created: now,
           model: params.model,
           choices: [{ index: 0, delta: { content }, finish_reason: null }],
@@ -124,9 +113,9 @@ class OpenAIChatService {
       //     readable.push(`data: ${JSON.stringify(preparedContent)}\n\n`);
       // });
 
-      conv.on("beforeToolCall", (info) => {
+      conv.on('beforeToolCall', info => {
         const now = Date.now();
-        console.log("Before Tool Call:", info);
+        console.log('Before Tool Call:', info);
         // tool name info?.tool?.name
         if (!options?.include_status) return;
 
@@ -138,7 +127,7 @@ class OpenAIChatService {
           }[];
         } = {
           id: completionId,
-          object: "chat.completion.chunk",
+          object: 'chat.completion.chunk',
           created: now,
           model: params.model,
           choices: [
@@ -146,7 +135,7 @@ class OpenAIChatService {
               finish_reason: null,
               index: 0,
               delta: {
-                content: "",
+                content: '',
                 status: info?.tool?.name,
               },
             },
@@ -155,9 +144,9 @@ class OpenAIChatService {
         readable.push(`data: ${JSON.stringify(toolStatusChunk)}\n\n`);
       });
 
-      conv.on("toolCall", (info) => {
+      conv.on('toolCall', info => {
         const now = Date.now();
-        console.debug("Tool Call:", info);
+        console.debug('Tool Call:', info);
         const toolStatusChunk: OpenAI.Chat.Completions.ChatCompletionChunk & {
           choices: {
             index: number;
@@ -166,7 +155,7 @@ class OpenAIChatService {
           }[];
         } = {
           id: completionId,
-          object: "chat.completion.chunk",
+          object: 'chat.completion.chunk',
           created: now,
           model: params.model,
           choices: [
@@ -175,10 +164,10 @@ class OpenAIChatService {
               index: 0,
               delta: {
                 smyth_event: {
-                  type: "toolCall",
+                  type: 'toolCall',
                   content: info?.tool?.name,
                 },
-                content: "",
+                content: '',
               },
             },
           ],
@@ -186,9 +175,9 @@ class OpenAIChatService {
         readable.push(`data: ${JSON.stringify(toolStatusChunk)}\n\n`);
       });
 
-      conv.on("usage", (usage) => {
+      conv.on('usage', usage => {
         const now = Date.now();
-        console.debug("Usage:", usage);
+        console.debug('Usage:', usage);
         // tool name info?.tool?.name
         // if (!options?.include_status) return;
 
@@ -200,7 +189,7 @@ class OpenAIChatService {
           }[];
         } = {
           id: completionId,
-          object: "chat.completion.chunk",
+          object: 'chat.completion.chunk',
           created: now,
           model: params.model,
           choices: [
@@ -209,10 +198,10 @@ class OpenAIChatService {
               index: 0,
               delta: {
                 smyth_event: {
-                  type: "usage",
+                  type: 'usage',
                   content: usage,
                 },
-                content: "",
+                content: '',
               },
             },
           ],
@@ -220,43 +209,43 @@ class OpenAIChatService {
         readable.push(`data: ${JSON.stringify(toolStatusChunk)}\n\n`);
       });
 
-      conv.on("end", () => {
-        console.log("streaming: [DONE]");
-        readable.push("data: [DONE]\n\n");
+      conv.on('end', () => {
+        console.log('streaming: [DONE]');
+        readable.push('data: [DONE]\n\n');
         readable.push(null);
       });
 
-      conv.on("error", (error) => {
-        console.info("streaming: error", error);
-        readable.emit("error", error);
+      conv.on('error', error => {
+        console.info('streaming: error', error);
+        readable.emit('error', error);
       });
 
       conv
         .streamPrompt(lastUserMessage?.content as string, {
-          "X-AGENT-ID": agentId,
+          'X-AGENT-ID': agentId,
         })
-        .catch((error) => {
-          readable.emit("error", error);
+        .catch(error => {
+          readable.emit('error', error);
         });
 
       return readable;
     } else {
       const now = Date.now();
       const result = (await conv.prompt(lastUserMessage?.content as string, {
-        "X-AGENT-ID": agentId,
+        'X-AGENT-ID': agentId,
       })) as string;
 
       return {
         id: completionId,
-        object: "chat.completion",
+        object: 'chat.completion',
         created: now,
         model: params.model,
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content: result, refusal: null },
+            message: { role: 'assistant', content: result, refusal: null },
             logprobs: null,
-            finish_reason: "stop",
+            finish_reason: 'stop',
           },
         ],
       };
@@ -268,14 +257,14 @@ class OpenAIChatService {
     readable: Readable,
     completionId: string,
     now: number,
-    params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming
+    params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
   ) {
     const shouldEmitStatus = this.firstTime || Math.random() < 0.5;
     this.firstTime && (this.firstTime = false);
 
     const randomToolStatus = [
-      { text: "Thinking", pauseDelay: 5_000 },
-      { text: "Analyzing", pauseDelay: 5_000 },
+      { text: 'Thinking', pauseDelay: 5_000 },
+      { text: 'Analyzing', pauseDelay: 5_000 },
     ];
     if (shouldEmitStatus) {
       const status = randomToolStatus.pop();
@@ -288,13 +277,13 @@ class OpenAIChatService {
         }[];
       } = {
         id: completionId,
-        object: "chat.completion.chunk",
+        object: 'chat.completion.chunk',
         created: now,
         model: params.model,
         choices: [
           {
             index: 0,
-            delta: { content: "", status: status.text },
+            delta: { content: '', status: status.text },
             finish_reason: null,
           },
         ],

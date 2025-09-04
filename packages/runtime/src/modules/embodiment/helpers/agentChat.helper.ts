@@ -3,24 +3,24 @@ import { getM2MToken } from './logto.helper';
 import { includeAuth, mwSysAPI } from '@core/services/smythAPIReq';
 
 export async function updateConversation({ data, conversationId }: { conversationId: string; data: IMetadataFile }) {
-    const token = (await getM2MToken('https://api.smyth.ai')) as string;
-    const response = await mwSysAPI
-        .put(
-            `/chats/${conversationId}`,
-            {
-                conversation: {
-                    label: data.label,
-                    summary: data.summary,
-                    chunkSize: data.chunkSize,
-                    lastChunkID: data.lastChunkId?.toString(),
-                },
-            },
-            includeAuth(token),
-        )
-        .catch((error) => {
-            console.error('Error updating conversation', error);
-            return null;
-        });
+  const token = (await getM2MToken('https://api.smyth.ai')) as string;
+  const response = await mwSysAPI
+    .put(
+      `/chats/${conversationId}`,
+      {
+        conversation: {
+          label: data.label,
+          summary: data.summary,
+          chunkSize: data.chunkSize,
+          lastChunkID: data.lastChunkId?.toString(),
+        },
+      },
+      includeAuth(token),
+    )
+    .catch(error => {
+      console.error('Error updating conversation', error);
+      return null;
+    });
 
-    return response?.status === 200;
+  return response?.status === 200;
 }

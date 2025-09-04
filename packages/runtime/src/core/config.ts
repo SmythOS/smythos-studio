@@ -1,6 +1,6 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -9,17 +9,17 @@ const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
-    PORT: parseInt(process.env.PORT || "5053"),
+    PORT: parseInt(process.env.PORT || '5053'),
     // Required environment variables
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     LOGTO_SERVER: process.env.LOGTO_SERVER,
     LOGTO_API_RESOURCE: process.env.LOGTO_API_RESOURCE,
     MIDDLEWARE_API_BASE_URL: process.env.MIDDLEWARE_API_BASE_URL,
-    NODE_ENV: process.env?.NODE_ENV || "development",
+    NODE_ENV: process.env?.NODE_ENV || 'development',
 
     ADMIN_PORT: process.env.ADMIN_PORT || 5054,
 
-    BASE_URL: process.env.BASE_URL || "http://localhost:5053",
+    BASE_URL: process.env.BASE_URL || 'http://localhost:5053',
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
@@ -30,12 +30,12 @@ const config = {
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,
     MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 10,
 
-    UI_SERVER: process.env.UI_SERVER || "http://localhost:4000",
+    UI_SERVER: process.env.UI_SERVER || 'http://localhost:4000',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, "../../data"),
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../data'),
 
-    SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || "combined",
+    SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },
 };
 

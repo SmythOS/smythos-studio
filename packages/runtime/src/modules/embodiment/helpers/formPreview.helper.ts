@@ -1,6 +1,6 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError } from 'axios';
 
-import config from "@core/config";
+import config from '@core/config';
 
 export type CallSkillParams = {
   agentId: string;
@@ -8,8 +8,8 @@ export type CallSkillParams = {
 
 export type CallSkillBody = {
   componentId: string;
-  payload?: Record<string, any> | null | "";
-  version?: "dev" | "latest";
+  payload?: Record<string, any> | null | '';
+  version?: 'dev' | 'latest';
 };
 
 export type CallSkillType = {
@@ -28,20 +28,16 @@ export async function callSkill({ params, body, endpoint }: CallSkillType) {
 
   request.body = JSON.stringify(body?.payload || {});
   request.headers = {
-    "Content-Type": "application/json",
-    "X-DEBUG-SKIP": "true",
-    ...(body.version !== "dev" && { "X-AGENT-VERSION": body.version }), // if version is dev, don't send it
-    "X-AGENT-ID": params.agentId,
+    'Content-Type': 'application/json',
+    'X-DEBUG-SKIP': 'true',
+    ...(body.version !== 'dev' && { 'X-AGENT-VERSION': body.version }), // if version is dev, don't send it
+    'X-AGENT-ID': params.agentId,
   };
 
   try {
-    const res = await axios.post(
-      `${RUNTIME_AGENT_URL}/api/${endpoint}`,
-      request.body,
-      {
-        headers: request.headers,
-      }
-    );
+    const res = await axios.post(`${RUNTIME_AGENT_URL}/api/${endpoint}`, request.body, {
+      headers: request.headers,
+    });
     return res.data;
   } catch (error) {
     const axiosErr = error as AxiosError;

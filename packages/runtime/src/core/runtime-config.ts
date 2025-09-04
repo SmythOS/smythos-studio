@@ -1,4 +1,4 @@
-import config from "./config";
+import config from './config';
 /**
  * Runtime Configuration System
  * Designed for future server extraction without code changes
@@ -6,7 +6,7 @@ import config from "./config";
 
 export interface RuntimeConfig {
   // Server identity - determines which services this instance provides
-  serverType: "combined" | "debugger" | "agent-runner" | "embodiment";
+  serverType: 'combined' | 'debugger' | 'agent-runner' | 'embodiment';
 
   // Service enablement flags
   services: {
@@ -26,7 +26,7 @@ export interface RuntimeConfig {
 
   // Routing strategy when multiple services are enabled
   routing: {
-    strategy: "smart" | "separate" | "legacy";
+    strategy: 'smart' | 'separate' | 'legacy';
     // Smart: Intelligent routing based on request characteristics
     // Separate: Mount separate routers (current approach)
     // Legacy: Use original individual routers
@@ -55,16 +55,16 @@ export interface RuntimeConfig {
 export const RuntimeConfigs = {
   // Combined server (current default)
   combined: (): RuntimeConfig => ({
-    serverType: "combined",
+    serverType: 'combined',
     services: {
       debugger: { enabled: true, standalone: false },
       agentRunner: { enabled: true, standalone: false },
       embodiment: { enabled: true, standalone: false },
     },
-    routing: { strategy: "smart" },
+    routing: { strategy: 'smart' },
     server: {
       port: 5000,
-      name: "smythos-runtime-combined",
+      name: 'smythos-runtime-combined',
       healthCheck: true,
       metrics: true,
     },
@@ -78,16 +78,16 @@ export const RuntimeConfigs = {
 
   // Debugger-only server (for extraction)
   debugger: (): RuntimeConfig => ({
-    serverType: "debugger",
+    serverType: 'debugger',
     services: {
       debugger: { enabled: true, standalone: true },
       agentRunner: { enabled: false, standalone: false },
       embodiment: { enabled: false, standalone: false },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: 5001,
-      name: "smythos-debugger-server",
+      name: 'smythos-debugger-server',
       healthCheck: true,
       metrics: true,
     },
@@ -101,16 +101,16 @@ export const RuntimeConfigs = {
 
   // Agent-runner-only server (for extraction)
   agentRunner: (): RuntimeConfig => ({
-    serverType: "agent-runner",
+    serverType: 'agent-runner',
     services: {
       debugger: { enabled: false, standalone: false },
       agentRunner: { enabled: true, standalone: true },
       embodiment: { enabled: false, standalone: false },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: 5002,
-      name: "smythos-agent-runner-server",
+      name: 'smythos-agent-runner-server',
       healthCheck: true,
       metrics: true,
     },
@@ -124,16 +124,16 @@ export const RuntimeConfigs = {
 
   // Embodiment-only server (for extraction)
   embodiment: (): RuntimeConfig => ({
-    serverType: "embodiment",
+    serverType: 'embodiment',
     services: {
       debugger: { enabled: false, standalone: false },
       agentRunner: { enabled: false, standalone: false },
       embodiment: { enabled: true, standalone: true },
     },
-    routing: { strategy: "separate" },
+    routing: { strategy: 'separate' },
     server: {
       port: 5003,
-      name: "smythos-embodiment-server",
+      name: 'smythos-embodiment-server',
       healthCheck: true,
       metrics: true,
     },
@@ -154,13 +154,13 @@ export function loadRuntimeConfig(): RuntimeConfig {
   const configType = config.env.SMYTHOS_SERVER_TYPE;
 
   switch (configType) {
-    case "debugger":
+    case 'debugger':
       return RuntimeConfigs.debugger();
-    case "agent-runner":
+    case 'agent-runner':
       return RuntimeConfigs.agentRunner();
-    case "embodiment":
+    case 'embodiment':
       return RuntimeConfigs.embodiment();
-    case "combined":
+    case 'combined':
     default:
       return RuntimeConfigs.combined();
   }
@@ -176,11 +176,9 @@ export function validateRuntimeConfig(config: RuntimeConfig): {
   const errors: string[] = [];
 
   // At least one service must be enabled
-  const enabledServices = Object.values(config.services).filter(
-    (service) => service.enabled
-  );
+  const enabledServices = Object.values(config.services).filter(service => service.enabled);
   if (enabledServices.length === 0) {
-    errors.push("At least one service must be enabled");
+    errors.push('At least one service must be enabled');
   }
 
   // Standalone services should be the only enabled service
@@ -189,11 +187,7 @@ export function validateRuntimeConfig(config: RuntimeConfig): {
     .map(([name, _]) => name);
 
   if (standaloneServices.length > 1) {
-    errors.push(
-      `Multiple standalone services not allowed: ${standaloneServices.join(
-        ", "
-      )}`
-    );
+    errors.push(`Multiple standalone services not allowed: ${standaloneServices.join(', ')}`);
   }
 
   if (standaloneServices.length === 1) {
@@ -202,17 +196,13 @@ export function validateRuntimeConfig(config: RuntimeConfig): {
       .map(([name, _]) => name);
 
     if (otherEnabledServices.length > 0) {
-      errors.push(
-        `Standalone service cannot coexist with other services: ${otherEnabledServices.join(
-          ", "
-        )}`
-      );
+      errors.push(`Standalone service cannot coexist with other services: ${otherEnabledServices.join(', ')}`);
     }
   }
 
   // Smart routing requires multiple services
-  if (config.routing.strategy === "smart" && enabledServices.length < 2) {
-    errors.push("Smart routing requires multiple enabled services");
+  if (config.routing.strategy === 'smart' && enabledServices.length < 2) {
+    errors.push('Smart routing requires multiple enabled services');
   }
 
   return {

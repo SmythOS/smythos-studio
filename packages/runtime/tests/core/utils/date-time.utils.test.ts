@@ -2,12 +2,7 @@
  * Unit tests for date-time utilities
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  getCurrentFormattedDate,
-  toDateFromFormattedDateStr,
-  getDayFormattedDate,
-  delay,
-} from '@core/utils/date-time.utils';
+import { getCurrentFormattedDate, toDateFromFormattedDateStr, getDayFormattedDate, delay } from '@core/utils/date-time.utils';
 
 describe('Date-Time Utils', () => {
   beforeEach(() => {
@@ -80,7 +75,7 @@ describe('Date-Time Utils', () => {
     it('should return current date only', () => {
       const now = new Date();
       const result = getDayFormattedDate();
-      
+
       const [year, month, day] = result.split('-').map(Number);
       expect(year).toBe(now.getFullYear());
       expect(month).toBe(now.getMonth() + 1);
@@ -101,14 +96,16 @@ describe('Date-Time Utils', () => {
   describe('delay', () => {
     it('should resolve after the specified milliseconds', async () => {
       vi.useFakeTimers();
-      
+
       const promise = delay(1000);
       expect(promise).toBeInstanceOf(Promise);
 
       vi.advanceTimersByTime(500);
       // Promise should still be pending
       let resolved = false;
-      promise.then(() => { resolved = true; });
+      promise.then(() => {
+        resolved = true;
+      });
       await Promise.resolve(); // Allow microtasks to run
       expect(resolved).toBe(false);
 
@@ -123,18 +120,18 @@ describe('Date-Time Utils', () => {
       const start = Date.now();
       await delay(0);
       const end = Date.now();
-      
+
       // Should resolve almost immediately
       expect(end - start).toBeLessThan(10);
     });
 
     it('should work with non-integer values', async () => {
       vi.useFakeTimers();
-      
+
       const promise = delay(100.5);
       vi.advanceTimersByTime(100.5);
       await promise;
-      
+
       // Should not throw an error
       expect(true).toBe(true);
 
@@ -151,7 +148,7 @@ describe('Date-Time Utils', () => {
       // The dates should be very close (within a second or two)
       const originalParts = original.split('-').map(Number);
       const backParts = backToString.split('-').map(Number);
-      
+
       expect(originalParts[0]).toBe(backParts[0]); // Year
       expect(originalParts[1]).toBe(backParts[1]); // Month
       expect(originalParts[2]).toBe(backParts[2]); // Day

@@ -1,14 +1,10 @@
-import { AgentDataConnector, Logger } from "@smythos/sre";
+import { AgentDataConnector, Logger } from '@smythos/sre';
 
-import config from "@core/config";
-import {
-  addDefaultComponentsAndConnections,
-  getAgentDataById,
-  getAgentIdByDomain,
-} from "@core/helpers/agent.helper";
-import type { AgentData, OpenAPISpec } from "@core/types/openapi.types";
+import config from '@core/config';
+import { addDefaultComponentsAndConnections, getAgentDataById, getAgentIdByDomain } from '@core/helpers/agent.helper';
+import type { AgentData, OpenAPISpec } from '@core/types/openapi.types';
 
-const console = Logger("openapi-adapter.helper.ts");
+const console = Logger('openapi-adapter.helper.ts');
 
 /**
  * AgentDataConnector implementation for sre-embodiment-server
@@ -24,10 +20,7 @@ class EmbodimentAgentDataConnector extends AgentDataConnector {
     return getAgentIdByDomain(domain);
   }
 
-  async getAgentSettings(
-    agentId: string,
-    version?: string
-  ): Promise<{ [key: string]: any }> {
+  async getAgentSettings(agentId: string, version?: string): Promise<{ [key: string]: any }> {
     const agentData = await this.getAgentData(agentId, version);
     return agentData?.settings || {};
   }
@@ -42,24 +35,15 @@ class EmbodimentAgentDataConnector extends AgentDataConnector {
       const agentData = await this.getAgentData(agentId);
       return agentData?.deployed || false;
     } catch (error) {
-      console.warn(
-        `Failed to check deployment status for agent ${agentId}:`,
-        error
-      );
+      console.warn(`Failed to check deployment status for agent ${agentId}:`, error);
       return false;
     }
   }
 
-  async listTeamAgents(
-    teamId: string,
-    deployedOnly?: boolean,
-    includeData?: boolean
-  ): Promise<AgentData[]> {
+  async listTeamAgents(teamId: string, deployedOnly?: boolean, includeData?: boolean): Promise<AgentData[]> {
     // This method would need to be implemented based on your team agent retrieval logic
     // For now, returning empty array as it's not used in the current OpenAPI generation
-    console.warn(
-      "listTeamAgents not fully implemented in EmbodimentAgentDataConnector"
-    );
+    console.warn('listTeamAgents not fully implemented in EmbodimentAgentDataConnector');
     return [];
   }
 
@@ -77,17 +61,11 @@ const agentDataConnector = new EmbodimentAgentDataConnector();
  */
 function constructServerUrl(domain: string): string {
   const server_url_scheme =
-    config.env.NODE_ENV === "development" &&
-    config.env.AGENT_DOMAIN_PORT &&
-    domain.includes(config.env.DEFAULT_AGENT_DOMAIN)
-      ? "http"
-      : "https";
+    config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN) ? 'http' : 'https';
   const server_url_port =
-    config.env.NODE_ENV === "development" &&
-    config.env.AGENT_DOMAIN_PORT &&
-    domain.includes(config.env.DEFAULT_AGENT_DOMAIN)
+    config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)
       ? `:${config.env.AGENT_DOMAIN_PORT}`
-      : "";
+      : '';
   return `${server_url_scheme}://${domain}${server_url_port}`;
 }
 
@@ -100,19 +78,9 @@ function constructServerUrl(domain: string): string {
  * @param aiOnly - Whether to include only AI-exposed endpoints
  * @returns Promise<object> - The OpenAPI specification
  */
-export async function getOpenAPIJSON(
-  agent: any,
-  domain: string,
-  version: string,
-  aiOnly: boolean = false
-): Promise<OpenAPISpec> {
+export async function getOpenAPIJSON(agent: any, domain: string, version: string, aiOnly: boolean = false): Promise<OpenAPISpec> {
   const server_url = constructServerUrl(domain);
-  const result = await agentDataConnector.getOpenAPIJSON(
-    agent,
-    server_url,
-    version,
-    aiOnly
-  );
+  const result = await agentDataConnector.getOpenAPIJSON(agent, server_url, version, aiOnly);
   return result;
 }
 
@@ -131,21 +99,19 @@ export async function getOpenAPIJSONById(
   domain: string,
   version: string,
   aiOnly: boolean = false,
-  addDefaultFileParsingAgent: boolean = false
+  addDefaultFileParsingAgent: boolean = false,
 ): Promise<any> {
   try {
     if (!agentId) {
-      return { error: "Agent not found" };
+      return { error: 'Agent not found' };
     }
 
-    const agentData = await getAgentDataById(agentId, version).catch(
-      (error) => {
-        console.error("Failed to fetch agent data:", error);
-        return {
-          error: `Failed to fetch agent data: ${error.message || error}`,
-        };
-      }
-    );
+    const agentData = await getAgentDataById(agentId, version).catch(error => {
+      console.error('Failed to fetch agent data:', error);
+      return {
+        error: `Failed to fetch agent data: ${error.message || error}`,
+      };
+    });
 
     if (agentData?.error) {
       return agentData;
@@ -156,15 +122,10 @@ export async function getOpenAPIJSONById(
     }
 
     const server_url = constructServerUrl(domain);
-    const result = await agentDataConnector.getOpenAPIJSON(
-      agentData,
-      server_url,
-      version,
-      aiOnly
-    );
+    const result = await agentDataConnector.getOpenAPIJSON(agentData, server_url, version, aiOnly);
     return result;
   } catch (error) {
-    return { error: error.message || "OpenAPI generation failed" };
+    return { error: error.message || 'OpenAPI generation failed' };
   }
 }
 
@@ -176,31 +137,18 @@ export async function getOpenAPIJSONById(
  * @param addDefaultFileParsingAgent - Whether to add default file parsing components
  * @returns Promise<any> - The OpenAPI specification or error
  */
-export async function getOpenAPIJSONForAI(
-  domain: string,
-  version: string,
-  addDefaultFileParsingAgent: boolean = false
-): Promise<any> {
+export async function getOpenAPIJSONForAI(domain: string, version: string, addDefaultFileParsingAgent: boolean = false): Promise<any> {
   try {
     const agentId = await getAgentIdByDomain(domain);
     if (!agentId) {
-      return { error: "Agent not found" };
+      return { error: 'Agent not found' };
     }
 
-    return getOpenAPIJSONById(
-      agentId,
-      domain,
-      version,
-      true,
-      addDefaultFileParsingAgent
-    );
+    return getOpenAPIJSONById(agentId, domain, version, true, addDefaultFileParsingAgent);
   } catch (error) {
-    return { error: error.message || "OpenAPI generation failed" };
+    return { error: error.message || 'OpenAPI generation failed' };
   }
 }
 
 // Export utility functions for backward compatibility
-export {
-  getAgentDataById,
-  getAgentIdByDomain,
-} from "@core/helpers/agent.helper";
+export { getAgentDataById, getAgentIdByDomain } from '@core/helpers/agent.helper';

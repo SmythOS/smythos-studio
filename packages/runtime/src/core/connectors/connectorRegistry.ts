@@ -1,22 +1,14 @@
-import {
-  ConnectorService,
-  JSONModelsProvider,
-  TConnectorService,
-} from "@smythos/sre";
+import { ConnectorService, JSONModelsProvider, TConnectorService } from '@smythos/sre';
 
-import { SmythOSSAccount } from "./SmythOSSAccount.class";
-import { SmythOSSAgentDataConnector } from "./SmythOSSAgentDataConnector.class";
-import { SmythOSSVault } from "./SmythOSSVault.class";
+import { SmythOSSAccount } from './SmythOSSAccount.class';
+import { SmythOSSAgentDataConnector } from './SmythOSSAgentDataConnector.class';
+import { SmythOSSVault } from './SmythOSSVault.class';
 
 const CONNECTORS = [
-  [
-    TConnectorService.AgentData,
-    "SmythOSSAgentData",
-    SmythOSSAgentDataConnector,
-  ],
-  [TConnectorService.Account, "SmythOSSAccount", SmythOSSAccount],
-  [TConnectorService.Vault, "SmythOSSVault", SmythOSSVault],
-  [TConnectorService.ModelsProvider, "SmythModelsProvider", JSONModelsProvider],
+  [TConnectorService.AgentData, 'SmythOSSAgentData', SmythOSSAgentDataConnector],
+  [TConnectorService.Account, 'SmythOSSAccount', SmythOSSAccount],
+  [TConnectorService.Vault, 'SmythOSSVault', SmythOSSVault],
+  [TConnectorService.ModelsProvider, 'SmythModelsProvider', JSONModelsProvider],
 ] as const;
 
 /**

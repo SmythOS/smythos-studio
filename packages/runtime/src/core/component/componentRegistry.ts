@@ -1,22 +1,15 @@
-import {
-  AccessCandidate,
-  ComponentConnector,
-  ConnectorService,
-} from "@smythos/sre";
+import { AccessCandidate, ComponentConnector, ConnectorService } from '@smythos/sre';
 
-import { Code } from "./Code.class";
+import { Code } from './Code.class';
 
-const COMPONENTS = [["Code", Code]] as const;
+const COMPONENTS = [['Code', Code]] as const;
 
 /**
  * Register all components
  */
 export function registerComponents(): void {
-  const componentConnector =
-    ConnectorService.getComponentConnector() as ComponentConnector;
-  const requester = componentConnector.requester(
-    AccessCandidate.user("system")
-  );
+  const componentConnector = ConnectorService.getComponentConnector() as ComponentConnector;
+  const requester = componentConnector.requester(AccessCandidate.user('system'));
 
   COMPONENTS.forEach(([name, componentClass]) => {
     requester.register(name, new componentClass());

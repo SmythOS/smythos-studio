@@ -1,12 +1,12 @@
 export type OpenAiParamsProps = Record<
-    string,
-    {
-        type: string;
-        description?: string;
-        items?: object;
-        additionalProperties?: object;
-        enum?: string[];
-    }
+  string,
+  {
+    type: string;
+    description?: string;
+    items?: object;
+    additionalProperties?: object;
+    enum?: string[];
+  }
 >;
 export type OpenAiParams = {
   type: string;

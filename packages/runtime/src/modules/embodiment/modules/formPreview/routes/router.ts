@@ -1,15 +1,15 @@
-import config from "@core/config";
-import { callSkill } from "@embodiment/helpers/formPreview.helper";
-import agentLoader from "@embodiment/middlewares/agentLoader.mw";
-import { Agent } from "@smythos/sre";
-import express from "express";
+import config from '@core/config';
+import { callSkill } from '@embodiment/helpers/formPreview.helper';
+import agentLoader from '@embodiment/middlewares/agentLoader.mw';
+import { Agent } from '@smythos/sre';
+import express from 'express';
 
 const router = express.Router();
 
 const middlewares = [agentLoader];
 router.use(middlewares);
 
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   const agent: Agent = req._agent;
 
   res.send(`
@@ -34,14 +34,14 @@ router.get("/", async (req, res) => {
 </html>`);
 });
 
-router.get("/params", async (req, res) => {
+router.get('/params', async (req, res) => {
   const agent: Agent = req._agent;
 
   let promises = [agent.agentSettings?.ready()];
 
   await Promise.all(promises);
 
-  const isLocalAgent = req.hostname.includes("localagent");
+  const isLocalAgent = req.hostname.includes('localagent');
   const agentId = agent?.id;
 
   const port = isLocalAgent ? config.env.AGENT_DOMAIN_PORT : undefined;
@@ -56,18 +56,16 @@ router.get("/params", async (req, res) => {
   res.send(agentData);
 });
 
-router.post("/call-skill", async (req, res) => {
+router.post('/call-skill', async (req, res) => {
   const agent: Agent = req._agent;
 
   const agentId = agent?.id;
   const { componentId, payload, version } = req.body;
 
-  const component = (agent.data as Agent).components.find(
-    (c) => c.id === componentId
-  );
+  const component = (agent.data as Agent).components.find(c => c.id === componentId);
 
   if (!component) {
-    res.status(404).send({ error: "Component not found" });
+    res.status(404).send({ error: 'Component not found' });
   }
 
   const response = await callSkill({
@@ -75,7 +73,7 @@ router.post("/call-skill", async (req, res) => {
     body: {
       componentId: componentId as string,
       payload: payload as Record<string, any>,
-      version: version as "dev" | "latest",
+      version: version as 'dev' | 'latest',
     },
     endpoint: component.data.endpoint!,
   });

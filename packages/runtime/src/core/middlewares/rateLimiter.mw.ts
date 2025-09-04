@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from "express";
-import { Logger } from "@smythos/sre";
+import { Request, Response, NextFunction } from 'express';
+import { Logger } from '@smythos/sre';
 
-import config from "@core/config";
+import config from '@core/config';
 
-const console = Logger("(Core) Middleware: RateLimiter");
+const console = Logger('(Core) Middleware: RateLimiter');
 
 // Configuration from environment variables with sensible defaults
 const REQUESTS_PER_MINUTE = config.env.REQ_LIMIT_PER_MINUTE as number;
@@ -30,14 +30,14 @@ const concurrentStore = new Map<string, ConcurrentEntry>();
  */
 const shouldExcludeIP = (ip: string): boolean => {
   const excludedPrefixes = [
-    "127.0.0.1", // localhost IPv4
-    "::1", // localhost IPv6
-    "10.20.", // internal network
-    "10.30.", // internal network
-    "192.168.", // private network
-    "172.16.", // private network
+    '127.0.0.1', // localhost IPv4
+    '::1', // localhost IPv6
+    '10.20.', // internal network
+    '10.30.', // internal network
+    '192.168.', // private network
+    '172.16.', // private network
   ];
-  return excludedPrefixes.some((prefix) => ip.startsWith(prefix));
+  return excludedPrefixes.some(prefix => ip.startsWith(prefix));
 };
 
 /**
@@ -49,9 +49,7 @@ const cleanupExpiredEntries = (): void => {
   // Cleanup rate limit entries
   for (const [key, entry] of rateLimitStore.entries()) {
     if (now - entry.lastCleanup > CLEANUP_INTERVAL_MS) {
-      entry.requests = entry.requests.filter(
-        (timestamp) => now - timestamp < WINDOW_SIZE_MS
-      );
+      entry.requests = entry.requests.filter(timestamp => now - timestamp < WINDOW_SIZE_MS);
       entry.lastCleanup = now;
 
       if (entry.requests.length === 0) {
@@ -86,9 +84,7 @@ const checkRateLimit = (clientIP: string): boolean => {
   }
 
   // Clean up old requests
-  entry.requests = entry.requests.filter(
-    (timestamp) => now - timestamp < WINDOW_SIZE_MS
-  );
+  entry.requests = entry.requests.filter(timestamp => now - timestamp < WINDOW_SIZE_MS);
 
   if (entry.requests.length >= REQUESTS_PER_MINUTE) {
     return true; // Rate limit exceeded
@@ -110,7 +106,7 @@ const checkConcurrentRequests = (clientIP: string): (() => void) | null => {
   const currentCount = entry?.count || 0;
 
   if (currentCount >= MAX_CONCURRENT_REQUESTS) {
-    throw new Error("Concurrent limit exceeded");
+    throw new Error('Concurrent limit exceeded');
   }
 
   // Increment counter
@@ -144,7 +140,7 @@ setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
  */
 const RateLimiter = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
 
     // Skip rate limiting for excluded IPs (localhost, private networks)
     if (shouldExcludeIP(clientIP)) {
@@ -155,8 +151,8 @@ const RateLimiter = (req: Request, res: Response, next: NextFunction): void => {
     if (checkRateLimit(clientIP)) {
       console.log(`Rate limit exceeded for IP: ${clientIP}`);
       res.status(429).json({
-        error: "Too Many Requests",
-        message: "Rate limit exceeded. Please try again later.",
+        error: 'Too Many Requests',
+        message: 'Rate limit exceeded. Please try again later.',
         retryAfter: Math.ceil(WINDOW_SIZE_MS / 1000), // seconds until window resets
       });
       return;
@@ -167,11 +163,11 @@ const RateLimiter = (req: Request, res: Response, next: NextFunction): void => {
     try {
       cleanupConcurrent = checkConcurrentRequests(clientIP);
     } catch (err) {
-      if (err.message === "Concurrent limit exceeded") {
+      if (err.message === 'Concurrent limit exceeded') {
         console.log(`Concurrent request limit exceeded for IP: ${clientIP}`);
         res.status(429).json({
-          error: "Too Many Requests",
-          message: "Too many concurrent requests. Please try again later.",
+          error: 'Too Many Requests',
+          message: 'Too many concurrent requests. Please try again later.',
         });
         return;
       }
@@ -181,20 +177,20 @@ const RateLimiter = (req: Request, res: Response, next: NextFunction): void => {
     // Set up cleanup for concurrent requests if needed
     if (cleanupConcurrent) {
       const cleanup = () => {
-        res.removeListener("finish", cleanup);
-        res.removeListener("close", cleanup);
-        res.removeListener("error", cleanup);
+        res.removeListener('finish', cleanup);
+        res.removeListener('close', cleanup);
+        res.removeListener('error', cleanup);
         cleanupConcurrent();
       };
 
-      res.on("finish", cleanup);
-      res.on("close", cleanup);
-      res.on("error", cleanup);
+      res.on('finish', cleanup);
+      res.on('close', cleanup);
+      res.on('error', cleanup);
     }
 
     next();
   } catch (err) {
-    console.error("Unexpected error in rate limiter:", err);
+    console.error('Unexpected error in rate limiter:', err);
     // Don't block requests on unexpected errors
     next();
   }

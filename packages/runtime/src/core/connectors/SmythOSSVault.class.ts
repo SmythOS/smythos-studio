@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance } from 'axios';
 
 import {
   AccessRequest,
@@ -11,17 +11,17 @@ import {
   TAccessLevel,
   TAccessRole,
   VaultConnector,
-} from "@smythos/sre";
+} from '@smythos/sre';
 
-import { getM2MToken } from "@core/helpers/logto.helper";
+import { getM2MToken } from '@core/helpers/logto.helper';
 
 export type SmythVaultConfig = {
   vaultAPIBaseUrl: string;
 };
 
-const console = Logger("SmythOSSVault");
+const console = Logger('SmythOSSVault');
 export class SmythOSSVault extends VaultConnector {
-  public name: string = "SmythOSSVault";
+  public name: string = 'SmythOSSVault';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -36,8 +36,8 @@ export class SmythOSSVault extends VaultConnector {
     this.oAuthAppId = _settings.oAuthAppID;
     this.oAuthAppSecret = _settings.oAuthAppSecret;
     this.oAuthBaseUrl = _settings.oAuthBaseUrl;
-    this.oAuthResource = _settings.oAuthResource || "";
-    this.oAuthScope = _settings.oAuthScope || "";
+    this.oAuthResource = _settings.oAuthResource || '';
+    this.oAuthScope = _settings.oAuthScope || '';
     this.vaultAPI = axios.create({
       baseURL: `${_settings.vaultAPIBaseUrl}/v1/api`,
     });
@@ -49,24 +49,16 @@ export class SmythOSSVault extends VaultConnector {
     const teamId = await accountConnector.getCandidateTeam(acRequest.candidate);
     const vaultAPIHeaders = await this.getVaultRequestHeaders();
 
-    let key = "";
+    let key = '';
     try {
-      const vaultResponse = await this.vaultAPI.get(
-        `/vault/${teamId}/secrets/${keyId}`,
-        { headers: vaultAPIHeaders }
-      );
+      const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets/${keyId}`, { headers: vaultAPIHeaders });
       key = vaultResponse?.data?.secret?.value || null;
     } catch (error) {
-      console.warn(
-        `Warn: Failed to get key "${keyId}" from SmythVault, trying to get it from the legacy vault`
-      );
+      console.warn(`Warn: Failed to get key "${keyId}" from SmythVault, trying to get it from the legacy vault`);
     }
 
     if (!key) {
-      const vaultResponse = await this.vaultAPI.get(
-        `/vault/${teamId}/secrets/name/${keyId}`,
-        { headers: vaultAPIHeaders }
-      );
+      const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets/name/${keyId}`, { headers: vaultAPIHeaders });
 
       key = vaultResponse?.data?.secret?.value || null;
     }
@@ -74,12 +66,8 @@ export class SmythOSSVault extends VaultConnector {
     if (!key) {
       // * Note: Adjustment for legacy global vault keys, we can remove it after migrating all keys in Hashicorp Vault with proper key ID such as 'googleai' -> 'GoogleAI'
       const legacyGlobalVaultKey = keyId.toLowerCase();
-      const globalVaultKey =
-        legacyGlobalVaultKey === "anthropic" ? "claude" : legacyGlobalVaultKey; // Ensure backward compatibility: In SaaS the key was stored under 'claude';
-      const vaultResponse = await this.vaultAPI.get(
-        `/vault/${teamId}/secrets/${globalVaultKey}`,
-        { headers: vaultAPIHeaders }
-      );
+      const globalVaultKey = legacyGlobalVaultKey === 'anthropic' ? 'claude' : legacyGlobalVaultKey; // Ensure backward compatibility: In SaaS the key was stored under 'claude';
+      const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets/${globalVaultKey}`, { headers: vaultAPIHeaders });
 
       return vaultResponse?.data?.secret?.value;
     }
@@ -92,10 +80,7 @@ export class SmythOSSVault extends VaultConnector {
     const accountConnector = ConnectorService.getAccountConnector();
     const teamId = await accountConnector.getCandidateTeam(acRequest.candidate);
     const vaultAPIHeaders = await this.getVaultRequestHeaders();
-    const vaultResponse = await this.vaultAPI.get(
-      `/vault/${teamId}/secrets/${keyId}`,
-      { headers: vaultAPIHeaders }
-    );
+    const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets/${keyId}`, { headers: vaultAPIHeaders });
     return vaultResponse?.data?.secret ? true : false;
   }
 
@@ -114,7 +99,7 @@ export class SmythOSSVault extends VaultConnector {
             secret.metadata.scope = JSON.parse(secret.metadata.scope);
           } catch (error) {
             secret.metadata.scope = [];
-            console.error("Error:", error);
+            console.error('Error:', error);
           }
         }
       });

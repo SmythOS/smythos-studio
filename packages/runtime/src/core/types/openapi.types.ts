@@ -4,53 +4,53 @@
  */
 
 export interface AgentData {
-    id?: string;
-    name?: string;
-    data?: {
-        version?: string;
-        behavior?: string;
-        shortDescription?: string;
-        description?: string;
-        components?: Array<AgentComponent>;
-    };
-    settings?: { [key: string]: any };
-    embodiments?: any[];
-    deployed?: boolean;
+  id?: string;
+  name?: string;
+  data?: {
+    version?: string;
+    behavior?: string;
+    shortDescription?: string;
+    description?: string;
+    components?: Array<AgentComponent>;
+  };
+  settings?: { [key: string]: any };
+  embodiments?: any[];
+  deployed?: boolean;
 }
 
 export interface AgentComponent {
-    name: string;
-    data: {
-        endpoint?: string;
-        method?: string;
-        description?: string;
-        doc?: string;
-        ai_exposed?: boolean;
-    };
-    inputs?: Array<AgentInput>;
+  name: string;
+  data: {
+    endpoint?: string;
+    method?: string;
+    description?: string;
+    doc?: string;
+    ai_exposed?: boolean;
+  };
+  inputs?: Array<AgentInput>;
 }
 
 export interface AgentInput {
-    name: string;
-    type: string;
-    description?: string;
-    optional?: boolean;
-    defaultVal?: any;
+  name: string;
+  type: string;
+  description?: string;
+  optional?: boolean;
+  defaultVal?: any;
 }
 
 export interface OpenAPISpec {
-    openapi: string;
-    info: {
-        title: string;
-        description: string;
-        version: string;
-    };
-    servers: Array<{ url: string }>;
-    paths: { [path: string]: any };
-    components?: {
-        schemas?: { [key: string]: any };
-        securitySchemes?: { [key: string]: any };
-    };
-    security?: Array<{ [key: string]: string[] }>;
-    [key: string]: any; // Allow additional OpenAPI properties
+  openapi: string;
+  info: {
+    title: string;
+    description: string;
+    version: string;
+  };
+  servers: Array<{ url: string }>;
+  paths: { [path: string]: any };
+  components?: {
+    schemas?: { [key: string]: any };
+    securitySchemes?: { [key: string]: any };
+  };
+  security?: Array<{ [key: string]: string[] }>;
+  [key: string]: any; // Allow additional OpenAPI properties
 }

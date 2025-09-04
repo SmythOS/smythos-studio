@@ -13,8 +13,7 @@
     "lint": "eslint --ext .ts src/",
     "lint-fix": "eslint --ext .ts src/ --fix",
     "ts-error-scan": "tsc --noEmit",
-    "format": "prettier --write \"**/*.ts\"",
-    "prettier:format": "prettier --write **/*.{js,jsx,ts,tsx,json,css,md}",
+    "prettier:format": "prettier --write \"**/*.ts\"",
     "lint-staged": "lint-staged",
     "bump": "pnpm version patch"
   },

@@ -75,7 +75,7 @@ describe('Chat Utils', () => {
     it('should parse date from conversation ID', () => {
       const convId = 'chat-2023-12-25-15-30-45-some-suffix';
       const result = parseDateFromConvId(convId);
-      
+
       expect(result).toBeInstanceOf(Date);
       expect(result?.getFullYear()).toBe(2023);
       expect(result?.getMonth()).toBe(11); // December (0-based)
@@ -91,7 +91,7 @@ describe('Chat Utils', () => {
     it('should parse date from test conversation ID', () => {
       const convId = 'chat-test-2024-01-01-12-00-00-test-suffix';
       const result = parseDateFromConvId(convId);
-      
+
       expect(result).toBeInstanceOf(Date);
       expect(result?.getFullYear()).toBe(2024);
       expect(result?.getMonth()).toBe(0); // January (0-based)
@@ -170,7 +170,7 @@ describe('Chat Utils', () => {
     it('should create conversation ID that can be parsed for date', () => {
       const convId = buildConversationId();
       const parsedDate = parseDateFromConvId(convId);
-      
+
       expect(parsedDate).toBeInstanceOf(Date);
       expect(parsedDate?.getFullYear()).toBe(2023);
       expect(parsedDate?.getMonth()).toBe(11); // December
@@ -181,7 +181,7 @@ describe('Chat Utils', () => {
       const convId = buildConversationId(undefined, true);
       const parsedDate = parseDateFromConvId(convId);
       const prefix = getChatPrefixByEnv('test');
-      
+
       expect(convId.startsWith(prefix)).toBe(true);
       expect(parsedDate).toBeInstanceOf(Date);
     });
