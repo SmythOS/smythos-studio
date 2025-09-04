@@ -1,5 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { CloseIcon } from '@react/shared/components/svgs';
+import { BackButtonWithTail, CloseIcon } from '@react/shared/components/svgs';
 import classNames from 'classnames';
 import React, { Fragment } from 'react';
 
@@ -16,6 +16,7 @@ type Props = {
   panelWidthClasses?: string;
   panelWrapperClasses?: string;
   showOverflow?: boolean;
+  onBack?: () => void;
 };
 
 const Modal = ({
@@ -31,6 +32,7 @@ const Modal = ({
   panelWidthClasses = '',
   hideCloseIcon = false,
   showOverflow = false,
+  onBack,
 }: Props) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -77,14 +79,24 @@ const Modal = ({
                 >
                   <Dialog.Title as="h3" className="text-xl font-semibold leading-6 text-[#1E1E1E]">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <span className="mb-1">{title}</span>
-                        {description && <p className="text-sm text-gray-500">{description}</p>}
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1">
+                          {onBack && (
+                            <div
+                              className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2 flex items-center justify-center"
+                              onClick={onBack}
+                            >
+                              <BackButtonWithTail width={16} height={16} />
+                            </div>
+                          )}
+                          <span className="text-xl font-semibold text-[#1E1E1E]">{title}</span>
+                        </div>
+                        {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
                       </div>
 
                       {!hideCloseIcon && (
                         <div
-                          className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                          className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2 flex items-center justify-center"
                           onClick={(e) => {
                             e.stopPropagation();
                             onClose();

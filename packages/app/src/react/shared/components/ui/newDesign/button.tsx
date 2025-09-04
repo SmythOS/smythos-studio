@@ -32,7 +32,7 @@ interface CustomButtonProps {
   onMouseEnter?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   onMouseLeave?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   btnRef?: React.Ref<HTMLButtonElement>;
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'delete';
   isDelete?: boolean;
   iconPosition?: 'left' | 'right';
 }
@@ -78,6 +78,8 @@ export function Button({
           return TERTIARY_BUTTON_STYLE;
         case 'quaternary':
           return QUATERNARY_BUTTON_STYLE;
+        case 'delete':
+          return DELETE_BUTTON_STYLE;
         default:
           return PRIMARY_BUTTON_STYLE;
       }

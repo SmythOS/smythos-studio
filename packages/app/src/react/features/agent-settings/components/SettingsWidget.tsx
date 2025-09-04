@@ -161,7 +161,7 @@ const SettingsWidget = () => {
                 <Button
                   handleClick={handleModalClose}
                   type="button"
-                  className="h-[48px] px-8 rounded-lg ml-auto"
+                  className="px-8 rounded-lg ml-auto"
                 >
                   Done
                 </Button>

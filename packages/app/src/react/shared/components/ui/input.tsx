@@ -71,7 +71,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              `h-9 w-full bg-white 
+              `h-[42px] w-full bg-white 
             border
             text-gray-900
             rounded
@@ -85,7 +85,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             font-normal
             placeholder:text-sm
             placeholder:font-normal`,
-              isSearch ? 'pl-10 pr-[10px] py-2' : 'px-[10px]',
+              isSearch ? 'pl-10 pr-[10px] py-0' : 'px-[10px]',
               error
                 ? '!border-[#C50F1F] focus:border-[#C50F1F]'
                 : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500',
