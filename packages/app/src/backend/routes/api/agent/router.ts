@@ -10,7 +10,6 @@ router.post('/', [includeTeamDetails], async (req, res) => {
   const userName = req?._user?.name || req?._user?.email;
   const teamId = req?._team?.id;
 
-  console.log('LOGGER USERID', req._user);
   if (!userId) {
     return res.status(400).json({ success: false, error: 'User not found' });
   }
