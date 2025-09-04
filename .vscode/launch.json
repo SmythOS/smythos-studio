@@ -54,27 +54,6 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Launch Runtime Server",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/runtime/dist/index.cjs",
-      "preLaunchTask": "runtime: build:dev",
-      "skipFiles": ["<node_internals>/**"],
-      "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.js"],
-      "cwd": "${workspaceFolder}/packages/runtime"
-    },
-    {
-      "name": "Launch Runtime Server (No Build)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/runtime/dist/index.cjs",
-      "skipFiles": ["<node_internals>/**"],
-      "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.js"],
-      "cwd": "${workspaceFolder}/packages/runtime"
     }
   ]
 }
