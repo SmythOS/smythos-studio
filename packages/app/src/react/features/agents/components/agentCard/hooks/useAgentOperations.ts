@@ -1,7 +1,8 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
 import { accquireLock } from '@react/features/agents/utils';
-import { useAgentMutations } from '@react/shared/hooks/agent';
+import { Agent, AgentData } from '@src/react/shared/types/agent-data.types';
 import { builderStore } from '@src/shared/state_stores/builder/store';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
@@ -19,6 +20,69 @@ interface UseAgentOperationsResult {
   isLoading: boolean;
 }
 
+interface SaveAgentResponse {
+  success: boolean;
+  agent: Agent;
+}
+
+interface CreateAgentResponse {
+  id: string;
+  name: string;
+  success: boolean;
+}
+
+interface CreateAgent {
+  name: string;
+  behavior?: string;
+  description?: string;
+  domain?: string[];
+  data?: AgentData;
+}
+
+export const useAgentMutations = () => {
+  const queryClient = useQueryClient();
+
+  const createAgent = async (agentData: CreateAgent): Promise<CreateAgentResponse> => {
+    const response = await fetch('/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(agentData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create agent');
+    }
+
+    const data = await response.json();
+    await queryClient.invalidateQueries(['agents']); // Invalidate agents list
+    return data;
+  };
+
+  const saveAgent = async (
+    agentId: string,
+    agentData: Partial<Agent>,
+  ): Promise<SaveAgentResponse> => {
+    const response = await fetch(`/api/agent/${agentId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(agentData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save agent');
+    }
+
+    const data = await response.json();
+    await queryClient.invalidateQueries(['agent_data', agentId]); // Invalidate specific agent data
+    await queryClient.invalidateQueries(['agents']); // Invalidate agents list
+    return data.agent;
+  };
+
+  return { createAgent, saveAgent };
+};
+
 /**
  * Custom hook for handling agent operations (duplicate, delete)
  */
@@ -30,7 +94,7 @@ export function useAgentOperations({
 }: UseAgentOperationsProps): UseAgentOperationsResult {
   // Only fetch full agent data when actually needed for duplication
   // This prevents unnecessary API calls for every agent card
-  const { createAgent, saveAgent } = useAgentMutations();
+  const { createAgent } = useAgentMutations();
 
   /**
    * Creates a duplicate of an existing agent with reset configurations
