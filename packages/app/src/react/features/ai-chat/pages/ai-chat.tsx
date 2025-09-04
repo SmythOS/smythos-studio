@@ -201,9 +201,9 @@ const AIChat = () => {
 
         <ChatContainer>
           <div
-            className="w-full h-full overflow-auto relative scroll-smooth mt-16"
-            ref={combineRefs(chatContainerRef, dropzoneRef)}
             onScroll={handleScroll}
+            ref={combineRefs(chatContainerRef, dropzoneRef)}
+            className="w-full h-full overflow-auto relative scroll-smooth mt-16"
           >
             <ChatHistory agent={currentAgent} messages={chatHistoryMessages} />
             {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}
