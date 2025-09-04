@@ -881,10 +881,10 @@ export async function openPostmanEmbodiment() {
   const prodUrl = prodDomain ? `${scheme}://${prodDomain}/postman` : '';
 
   const testBtn = testUrl
-    ? `<div><a href="${testUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Test Endpoints</a></div>`
+    ? `<div><a href="${testUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 leading-none text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Test Endpoints</a></div>`
     : '';
   const prodBtn = prodUrl
-    ? `<div><a href="${prodUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Prod Endpoints</a></div>`
+    ? `<div><a href="${prodUrl}" target="_blank" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 leading-none text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">Export Prod Endpoints</a></div>`
     : '';
 
   const content = `<div class="emb-instructions p-4 flex-row">

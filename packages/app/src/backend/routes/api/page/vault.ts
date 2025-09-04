@@ -1,7 +1,7 @@
 import express from 'express';
+import config from '../../../config';
 import {
   CUSTOM_LLM_SETTINGS_KEY,
-  CUSTOM_MODELS_CACHE_KEY,
   DEFAULT_SMYTH_LLM_PROVIDERS_SETTINGS,
   SMYTH_LLM_PROVIDERS_SETTINGS_KEY,
 } from '../../../constants';
@@ -489,7 +489,7 @@ const handleCustomLLMSave = async (req, res) => {
     });
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -569,7 +569,7 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
     const deleteModel = await deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 

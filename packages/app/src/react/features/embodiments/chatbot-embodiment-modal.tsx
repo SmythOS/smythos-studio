@@ -38,11 +38,11 @@ export interface ChatbotEmbodimentModalProps {
  * @param {ChatbotEmbodimentModalProps} props - The component props.
  * @returns {JSX.Element} The rendered modal.
  */
-const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({ 
-  onClose, 
-  domain = 'your-domain.com', 
+const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
+  onClose,
+  domain = 'your-domain.com',
   embodimentData,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -131,8 +131,8 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
                 <p>
                   {!isUsingFullScreen ? (
                     <>
-                      Copy and paste this snippet into your website before the closing{' '}
-                      &lt;/body&gt; tag.
+                      Copy and paste this snippet into your website before the closing &lt;/body&gt;
+                      tag.
                     </>
                   ) : (
                     'Place this snippet inside a container DOM element, and the chatbot will occupy the full available space within it.'
@@ -148,14 +148,13 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
                   className="w-full h-64 p-3 text-sm text-gray-800 bg-white rounded-lg border border-gray-200 font-mono resize-none focus:outline-none focus:border-b-2 focus:border-b-blue-500 transition-colors"
                   value={codeSnippet}
                 />
-                
+
                 {/* Copy Code button */}
                 <div className="flex justify-end">
                   <Button
                     variant="primary"
                     handleClick={handleCopyClick}
                     label={copied ? 'Copied' : 'Copy Code'}
-                    className="text-sm"
                     aria-label={copied ? 'Copied' : 'Copy code'}
                   />
                 </div>
@@ -168,4 +167,4 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
   );
 };
 
-export default ChatbotEmbodimentModal; 
+export default ChatbotEmbodimentModal;

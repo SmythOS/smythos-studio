@@ -224,9 +224,12 @@ const ErrorMessageBubble: FC<{
   isRetrying?: boolean;
 }> = ({ message, onRetryClick, isRetrying }) => {
   // Check if this is a 401 API key error
+
   const isApiKeyError =
     message.includes('Incorrect API key provided') ||
-    (message.includes('401') && message.toLowerCase().includes('api key'));
+    (message.includes('401') &&
+      message.toLowerCase().includes('api') &&
+      message.toLocaleLowerCase().includes('key'));
 
   return (
     <div className="flex flex-col items-start">

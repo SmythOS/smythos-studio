@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-    "configurations": [
+  "configurations": [
     {
       "type": "node",
       "request": "launch",
@@ -25,8 +25,23 @@
       "outFiles": ["${workspaceFolder}/packages/middleware/dist/**/*.js"],
       "sourceMaps": true,
       "env": {},
-      
+
       "outputCapture": "std"
+    },
+    {
+      "name": "Launch Runtime Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/runtime/dist/index.cjs",
+      "preLaunchTask": "runtime: build",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.js"],
+      "cwd": "${workspaceFolder}/packages/runtime",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal"
     },
     {
       "type": "node",

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import Joi from 'joi';
 import os from 'os';
@@ -77,6 +78,11 @@ const config = {
   flags: {
     useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS),
   },
+
+  cache: {
+    STANDARD_MODELS_CACHE_KEY: `__llm_smod_cache_${_generateHash(process.env.UI_SERVER)}`,
+    getCustomModelsCacheKey: (teamId: string) => `__llm_cmod_cache_${teamId}`,
+  },
 };
 
 export const supportedHfTasks = [
@@ -136,6 +142,12 @@ const { error, value } = requiredKeysSchema.validate(config.env);
 
 if (error) {
   console.warn('config validation error: ', error.message);
+}
+
+function _generateHash(str, algorithm = 'md5') {
+  const hash = crypto.createHash(algorithm);
+  hash.update(str);
+  return hash.digest('hex');
 }
 
 export default config;
