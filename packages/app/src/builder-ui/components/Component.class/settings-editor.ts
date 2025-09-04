@@ -251,7 +251,6 @@ async function onSave(values) {
   //console.log('new settings', component.settings);
 
   component.emit('settingsSaved', settingsValues);
-  successToast('Settings saved');
 
   // Also dispatch a global event for tracking
   document.dispatchEvent(
