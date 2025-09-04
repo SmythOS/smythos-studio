@@ -14,8 +14,8 @@ export const agentRequestKeys = {
   CONVERSATION_QUERY: ['get', '/api/page/chat/messages'],
 };
 
-export const useCreateChatMutation = () => {
-  return useMutation<CreateChatsResponse, Error, CreateChatRequest>(
+export const useCreateChatMutation = () =>
+  useMutation<CreateChatsResponse, Error, CreateChatRequest>(
     agentRequestKeys.CHAT_CREATE_MUTATION,
     (params) => createChat(params),
     {
@@ -24,4 +24,3 @@ export const useCreateChatMutation = () => {
       },
     },
   );
-};
