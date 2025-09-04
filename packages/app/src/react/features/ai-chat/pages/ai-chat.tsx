@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
+  Container,
   ChatHeader,
   Chats,
-  Container,
   Footer,
   QueryInputRef,
 } from '@react/features/ai-chat/components';
