@@ -22,7 +22,7 @@
   "include": [
     "src/**/*",
     "node_modules/@types",
-    "eslint.config.js", "../../../src/server/api/pages/quota.ts", "../../../src/react/features/subscriptions/utils", "../../../src/react/features/agent-settings/pages/AgentSettingsBulkCallPage.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/BulkSkillCallForm.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/meta/skill-calls-utils.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/meta/UploadDataBtn.tsx", "../../../src/react/features/templates/components/AgentsPageTemplateSection.tsx", "../../../src/server/api/pages/templates.ts", "../../../src/builder-ui/features/logs_page/index.ts", "../../../src/server/routes/api/pages/logs.ts",
+    "eslint.config.js", "../../../src/server/api/pages/quota.ts", "../../../src/react/features/subscriptions/utils", "../../../src/react/features/agent-settings/pages/AgentSettingsBulkCallPage.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/BulkSkillCallForm.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/meta/skill-calls-utils.tsx", "../../../src/react/features/agent-settings/components/agent-bulk-call/meta/UploadDataBtn.tsx", "../../../src/react/features/templates/components/AgentsPageTemplateSection.tsx", "../../../src/server/api/pages/templates.ts", "../../../src/builder-ui/features/logs_page/index.ts", "../../../src/server/routes/api/pages/logs.ts", "../../../src/builder-ui/components/ServerlessCode.class.ts",
     ],
   "exclude": ["node_modules"]
 }
