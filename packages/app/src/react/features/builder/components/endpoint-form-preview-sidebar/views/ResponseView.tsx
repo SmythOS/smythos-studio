@@ -15,6 +15,7 @@ const ResponseView = () => {
     lastResponse,
     mode,
     agentSkillErrors,
+    selectedSkill,
   } = useEndpointFormPreview();
 
   const [isCopied, setIsCopied] = useState(false);
@@ -141,12 +142,28 @@ const ResponseView = () => {
           Something went wrong? try{' '}
           <span
             className="font-semibold border-b border-solid pb-0.5 cursor-pointer text-blue-500 border-blue-500"
-            onClick={() => {
-              //Toggle debug bar
+            onClick={async () => {
+              // Toggle debug bar
               const debugSwitcher = document.querySelector('.debug-switcher');
               // trigger click on debug bar
               if (debugSwitcher && !debugSwitcher?.classList.contains('active')) {
                 debugSwitcher.dispatchEvent(new Event('click', { bubbles: true }));
+              }
+
+              // Open debug modal for the current skill
+              const componentElement = document.getElementById(selectedSkill?.skillId);
+              if (componentElement) {
+                const component = componentElement['_control'];
+                if (component && typeof component.openDebugDialog === 'function') {
+                  // Fire telemetry event
+                  const { PostHog } = await import('@src/shared/posthog');
+                  PostHog.track('debug_modal_opened', {
+                    source: 'test_as_form',
+                  });
+
+                  // Open the debug dialog with 'run' operation
+                  await component.openDebugDialog(new Event('click'), 'run', lastFormValues);
+                }
               }
             }}
           >
