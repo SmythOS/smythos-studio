@@ -12,3 +12,5 @@ export * from './scroll-to-bottom-button';
 export * from './send-button';
 export * from './thinking-message';
 export * from './warning-info-chat';
+export * from './footer';
+export * from './messages';

@@ -4,12 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChatContainer,
   ChatHeader,
-  ChatHistory,
-  ErrorToast,
-  QueryInput,
+  Footer,
+  Messages,
   QueryInputRef,
-  ScrollToBottomButton,
-  WarningInfo,
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
 import {
@@ -25,9 +22,6 @@ import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
 import { useAgent } from '@react/shared/hooks/agent';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
-
-const CHAT_WARNING_INFO =
-  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
 
 /**
  * Combines multiple refs into a single ref callback
@@ -200,22 +194,24 @@ const AIChat = () => {
         />
 
         <ChatContainer>
-          <div
-            onScroll={handleScroll}
-            ref={combineRefs(chatContainerRef, dropzoneRef)}
-            className="w-full h-full overflow-auto relative scroll-smooth mt-16"
-          >
-            <ChatHistory agent={currentAgent} messages={chatHistoryMessages} />
-            {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}
-          </div>
-
-          {uploadError.show && <ErrorToast message={uploadError.message} onClose={clearError} />}
-          <div className="pt-2.5" />
-          <QueryInput
-            ref={queryInputRef}
-            submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
+          <Messages
+            handleScroll={handleScroll}
+            combineRefs={combineRefs}
+            chatContainerRef={chatContainerRef}
+            dropzoneRef={dropzoneRef}
+            currentAgent={currentAgent}
+            chatHistoryMessages={chatHistoryMessages}
+            showScrollButton={showScrollButton}
+            scrollToBottom={scrollToBottom}
           />
-          <WarningInfo infoMessage={CHAT_WARNING_INFO} />
+          <Footer
+            uploadError={uploadError}
+            clearError={clearError}
+            queryInputRef={queryInputRef}
+            isChatCreating={isChatCreating}
+            isAgentLoading={isAgentLoading}
+            uploadingFiles={uploadingFiles}
+          />
         </ChatContainer>
       </div>
     </ChatProvider>
