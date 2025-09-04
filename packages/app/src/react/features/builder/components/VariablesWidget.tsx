@@ -620,7 +620,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                   e?.stopPropagation();
                   setShowAddKeyModal(false);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg -mr-2 text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Close modal"
               >
                 <CloseIcon width={16} height={16} />
