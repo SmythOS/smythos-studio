@@ -217,7 +217,7 @@ async function fetchAgentAuthData(agentId: string) {
   return await accountConnector.user(AccessCandidate.agent(agentId)).getAgentSetting(AGENT_AUTH_SETTINGS_KEY);
 }
 
-export async function getAgentAuthData(agentId: string) {
+async function getAgentAuthData(agentId: string) {
   const freshSettings = await fetchAgentAuthData(agentId);
   return JSON.parse(freshSettings || '{}');
 }

@@ -6,9 +6,9 @@ import config from '@core/config';
 import { DEFAULT_MODEL } from '@core/constants';
 
 import { EMBODIMENT_TYPES } from '@embodiment/constants';
+import { ChatConversationsEnv } from '@embodiment/types/chat.types';
 
 import { getOpenAPIJSONForAI } from '../helpers/openapi-adapter.helper';
-import { ChatConversationsEnv } from '../utils/chat.utils';
 import { delay } from '../utils/date-time.utils';
 import { FsChatbotContextStore } from './FsChatbotContextStore.class';
 import { ConversationStreamYield } from './FsChatbotContextStore.class/FsChatbotContextExporter.class';

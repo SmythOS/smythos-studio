@@ -25,7 +25,7 @@ export function parseAlexaRequest(alexRequest: any) {
   return { type, intent, slots };
 }
 
-export function getSlotValues(filledSlots) {
+function getSlotValues(filledSlots) {
   const slotValues = {};
 
   Object.keys(filledSlots).forEach(item => {
@@ -68,7 +68,7 @@ export function getSlotValues(filledSlots) {
   return slotValues;
 }
 
-export function buildAlexaResponse(outputSpeech: string, reprompt = '', shouldEndSession = false) {
+function buildAlexaResponse(outputSpeech: string, reprompt = '', shouldEndSession = false) {
   return {
     version: '1.0',
     sessionAttributes: {},
@@ -183,7 +183,7 @@ export async function createAlexaSkill(agentName: string, accessToken: string, v
   }
 }
 
-export function processAlexaSearchQuery(query: string, model: string, agent: Agent): Promise<string> {
+function processAlexaSearchQuery(query: string, model: string, agent: Agent): Promise<string> {
   return new Promise(async (resolve, reject) => {
     // const { agentId, agentVersion } = getAgentIdAndVersion(model);
     let result = '';

@@ -94,7 +94,7 @@ export async function getOpenAPIJSON(agent: any, domain: string, version: string
  * @param addDefaultFileParsingAgent - Whether to add default file parsing components
  * @returns Promise<any> - The OpenAPI specification or error
  */
-export async function getOpenAPIJSONById(
+async function getOpenAPIJSONById(
   agentId: string,
   domain: string,
   version: string,
@@ -149,6 +149,3 @@ export async function getOpenAPIJSONForAI(domain: string, version: string, addDe
     return { error: error.message || 'OpenAPI generation failed' };
   }
 }
-
-// Export utility functions for backward compatibility
-export { getAgentDataById, getAgentIdByDomain } from '@core/helpers/agent.helper';

@@ -7,7 +7,7 @@ const ADMIN_PORT = config.env.ADMIN_PORT || 5054;
 const PORT = config.env.PORT || 5053;
 // eslint-disable-next-line import/no-mutable-exports
 
-export let server: Server;
+let server: Server;
 
 const host = config.env.NODE_ENV === 'production' ? 'localhost' : '';
 
@@ -33,7 +33,6 @@ function disableAppPort() {
 
 // Management app listening on port 5054
 const managementApp = express();
-export { managementApp };
 
 // Route to handle management operations
 managementApp.get('/', (req, res) => {

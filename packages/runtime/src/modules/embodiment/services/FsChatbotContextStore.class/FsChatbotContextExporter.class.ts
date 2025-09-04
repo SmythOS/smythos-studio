@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import path from 'path';
 
 import * as chatUtils from '@embodiment/utils/chat.utils';
+import { ChatConversationsEnv } from '@embodiment/types/chat.types';
 import { fsExists } from '@embodiment/utils/general.utils';
 
 export type ConversationStreamYield = {
@@ -23,13 +24,7 @@ export class FsChatbotContextExporter {
    * @param param0
    * @returns
    */
-  public async *streamConversations({
-    dateRange,
-    env,
-  }: {
-    dateRange?: string;
-    env?: chatUtils.ChatConversationsEnv;
-  }): AsyncGenerator<ConversationStreamYield> {
+  public async *streamConversations({ dateRange, env }: { dateRange?: string; env?: ChatConversationsEnv }): AsyncGenerator<ConversationStreamYield> {
     // TODO covert to stream-based export. will implement it NOW
     const folderPath = path.join(this.sessionsPath, this.agentId);
     const testConvprefix = chatUtils.CHAT_PREFIXES['test'];

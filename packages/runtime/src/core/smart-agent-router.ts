@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const console = Logger('[Smart Agent Router]');
 
-export interface RouterDependencies {
+interface RouterDependencies {
   // Debugger dependencies
   debugger: {
     middlewares: express.RequestHandler[];
@@ -86,7 +86,7 @@ function shouldUseDebugger(req: any): { useDebugger: boolean; reason: string } {
 /**
  * Creates a smart router that automatically chooses between debugger and agent-runner
  */
-export function createSmartAgentRouter(dependencies: RouterDependencies): express.Router {
+function createSmartAgentRouter(dependencies: RouterDependencies): express.Router {
   const router = express.Router();
 
   // Add correlation ID for request tracing
@@ -224,7 +224,7 @@ async function runMiddlewares(req: any, res: express.Response, middlewares: expr
 /**
  * Configuration helper for different deployment scenarios
  */
-export interface SmartRouterConfig {
+interface SmartRouterConfig {
   enableDebuggerRoutes?: boolean;
   enableMetrics?: boolean;
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
@@ -282,7 +282,7 @@ export function createConfiguredSmartRouter(dependencies: RouterDependencies, co
  * Utility function to test routing decisions without making actual requests
  * Useful for debugging and testing the routing logic
  */
-export function testRoutingDecision(headers: Record<string, string> = {}): {
+function testRoutingDecision(headers: Record<string, string> = {}): {
   useDebugger: boolean;
   reason: string;
 } {
@@ -296,7 +296,7 @@ export function testRoutingDecision(headers: Record<string, string> = {}): {
 /**
  * Helper function to create common header combinations for testing
  */
-export const RoutingHeaders = {
+const RoutingHeaders = {
   // Force agent-runner (highest priority)
   FORCE_AGENT_RUNNER: { 'X-FORCE-AGENT-RUNNER': 'true' },
 

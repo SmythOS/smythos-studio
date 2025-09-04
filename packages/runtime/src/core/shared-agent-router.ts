@@ -1,7 +1,7 @@
 import { Logger } from '@smythos/sre';
 import express from 'express';
 
-export interface AgentRouterConfig {
+interface AgentRouterConfig {
   mode: 'debugger' | 'agent-runner';
   middlewares: express.RequestHandler[];
   processAgentRequest: (agentOrId: any, req: express.Request) => Promise<any>;
@@ -13,7 +13,7 @@ export interface AgentRouterConfig {
  * Creates a shared agent router that can be configured for both debugger and agent-runner modes
  * This allows code reuse while maintaining the ability to extract servers separately
  */
-export function createAgentRouter(config: AgentRouterConfig): express.Router {
+function createAgentRouter(config: AgentRouterConfig): express.Router {
   const console = Logger(config.loggerPrefix || '[Shared] Router: Agent');
   const router = express.Router();
 
@@ -71,6 +71,7 @@ export function createDebuggerRouter(
     createSseConnection: (req: any) => string;
   },
 ): express.Router {
+  const console = Logger('[Debugger] Router: Agent');
   return createAgentRouter({
     mode: 'debugger',
     middlewares,

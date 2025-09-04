@@ -1,6 +1,8 @@
 import crypto from 'crypto';
+
+import { ChatConversationsEnv } from '@embodiment/types/chat.types';
 import { getCurrentFormattedDate, toDateFromFormattedDateStr } from './date-time.utils';
-export type ChatConversationsEnv = 'test' | 'prod';
+
 export const CHAT_PREFIXES: Record<ChatConversationsEnv, string> = {
   test: 'chat-test-',
   prod: 'chat-',
@@ -16,10 +18,6 @@ export const parseDateFromConvId = (convId: string) => {
 
   if (!match) return null;
   return toDateFromFormattedDateStr(match[0]);
-};
-
-export const getChatPrefixByEnv = (env: ChatConversationsEnv) => {
-  return CHAT_PREFIXES[env];
 };
 
 export const parseDateRange = (dateRange: string) => {

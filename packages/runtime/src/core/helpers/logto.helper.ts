@@ -46,20 +46,3 @@ export function getM2MToken(resource?, scope?) {
   });
 }
 
-export async function getUserInfo(userId: string) {
-  const token = await getM2MToken('https://default.logto.app/api', 'all');
-
-  const response: any = await axios({
-    method: 'get',
-    url: `${config.env.LOGTO_SERVER}/api/users/${userId}`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }).catch(error => ({ error }));
-
-  if (response.error) {
-    return null;
-  }
-
-  return response.data;
-}

@@ -1,15 +1,15 @@
 import fs from 'fs/promises';
 
-export function uid() {
+function uid() {
   return (Date.now() + Math.random()).toString(36).replace('.', '').toUpperCase();
 }
 
-export const hasKeyTemplateVar = (str: string = ''): boolean => {
+const hasKeyTemplateVar = (str: string = ''): boolean => {
   if (!str || typeof str !== 'string') return false;
   return (str?.match(/{{KEY\((.*?)\)}}/g) ?? []).length > 0;
 };
 
-export function parseTemplate(str, obj, { escapeString = true, processUnmatched = true, unmached = '' } = {}) {
+function parseTemplate(str, obj, { escapeString = true, processUnmatched = true, unmached = '' } = {}) {
   try {
     const parsed = str?.replace(/{{(.*?)}}/g, function (match, varName) {
       // if key template var, return as is

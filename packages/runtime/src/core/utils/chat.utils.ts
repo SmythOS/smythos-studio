@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { getCurrentFormattedDate, toDateFromFormattedDateStr } from './date-time.utils';
-export type ChatConversationsEnv = 'test' | 'prod';
+import { ChatConversationsEnv } from '@embodiment/types/chat.types';
+
 export const CHAT_PREFIXES: Record<ChatConversationsEnv, string> = {
   test: 'chat-test-',
   prod: 'chat-',

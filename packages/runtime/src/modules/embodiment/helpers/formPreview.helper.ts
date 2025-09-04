@@ -2,17 +2,17 @@ import axios, { AxiosError } from 'axios';
 
 import config from '@core/config';
 
-export type CallSkillParams = {
+type CallSkillParams = {
   agentId: string;
 };
 
-export type CallSkillBody = {
+type CallSkillBody = {
   componentId: string;
   payload?: Record<string, any> | null | '';
   version?: 'dev' | 'latest';
 };
 
-export type CallSkillType = {
+type CallSkillType = {
   params: CallSkillParams;
   body: CallSkillBody;
   endpoint: string;

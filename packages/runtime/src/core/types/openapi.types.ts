@@ -18,7 +18,7 @@ export interface AgentData {
   deployed?: boolean;
 }
 
-export interface AgentComponent {
+interface AgentComponent {
   name: string;
   data: {
     endpoint?: string;
@@ -30,7 +30,7 @@ export interface AgentComponent {
   inputs?: Array<AgentInput>;
 }
 
-export interface AgentInput {
+interface AgentInput {
   name: string;
   type: string;
   description?: string;

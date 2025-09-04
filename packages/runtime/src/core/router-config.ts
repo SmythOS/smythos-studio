@@ -130,7 +130,7 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
  */
 
 // For backward compatibility - these functions now return RuntimeConfig
-export function createDebuggerServerConfig(): RuntimeConfig {
+function createDebuggerServerConfig(): RuntimeConfig {
   return {
     serverType: 'debugger',
     services: {
@@ -154,7 +154,7 @@ export function createDebuggerServerConfig(): RuntimeConfig {
   };
 }
 
-export function createAgentRunnerServerConfig(): RuntimeConfig {
+function createAgentRunnerServerConfig(): RuntimeConfig {
   return {
     serverType: 'agent-runner',
     services: {
@@ -178,7 +178,7 @@ export function createAgentRunnerServerConfig(): RuntimeConfig {
   };
 }
 
-export function createEmbodimentServerConfig(): RuntimeConfig {
+function createEmbodimentServerConfig(): RuntimeConfig {
   return {
     serverType: 'embodiment',
     services: {

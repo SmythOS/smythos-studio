@@ -9,7 +9,7 @@ import { getMockData } from '@core/helpers/agent.helper';
 const console = Logger('Service: Agent Request Handler');
 
 const debugPromises: any = {}; //TODO : persist this ?
-export const sseConnections = new Map();
+const sseConnections = new Map();
 
 export function getDebugSession(id) {
   console.log(`Getting debug session for agent ${id} with session id ${debugPromises[id]?.dbgSession}`);

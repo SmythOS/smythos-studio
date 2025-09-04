@@ -52,7 +52,7 @@ export interface RuntimeConfig {
 /**
  * Predefined configurations for different deployment scenarios
  */
-export const RuntimeConfigs = {
+const RuntimeConfigs = {
   // Combined server (current default)
   combined: (): RuntimeConfig => ({
     serverType: 'combined',

@@ -34,7 +34,7 @@ function splitOnSeparator(str = '', maxLen, separator = ' .') {
 }
 
 //FIXME load version from prod domain
-export async function getChatGPTManifestById(agentId: string, domain: string, version: string): Promise<ChatGPTManifest> {
+async function getChatGPTManifestById(agentId: string, domain: string, version: string): Promise<ChatGPTManifest> {
   console.log('getChatGPTManifestById', agentId, domain, version);
   if (!agentId) {
     throw new Error('Agent not found');

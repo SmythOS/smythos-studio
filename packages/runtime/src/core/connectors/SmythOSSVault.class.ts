@@ -15,7 +15,7 @@ import {
 
 import { getM2MToken } from '@core/helpers/logto.helper';
 
-export type SmythVaultConfig = {
+type SmythVaultConfig = {
   vaultAPIBaseUrl: string;
 };
 
