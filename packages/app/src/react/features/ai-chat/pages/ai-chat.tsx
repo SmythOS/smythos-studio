@@ -64,7 +64,9 @@ const AIChat: FC<AIChatProps> = (props) => {
     onError: () => navigate('/error/403'),
   });
 
-  const { data: agentSettingsData } = useAgentSettings(agentId || '');
+  const { data: agentSettingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(
+    agentId || '',
+  );
   const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
   const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
 
@@ -199,7 +201,8 @@ const AIChat: FC<AIChatProps> = (props) => {
     <ChatProvider value={chatContextValue}>
       <div className="w-full h-full max-h-screen bg-white">
         <ChatHeader
-          agentName={currentAgent?.name || '...'}
+          agentName={currentAgent?.name}
+          isLoading={isAgentSettingsLoading}
           avatar={agentSettingsData?.settings?.avatar}
         />
 
