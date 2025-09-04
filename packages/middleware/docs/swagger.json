@@ -173,6 +173,44 @@
           "type": "object"
         }
       }
+    },
+    "VaultSecretRequest": {
+      "type": "object",
+      "properties": {
+        "teamId": {
+          "type": "string",
+          "description": "Team ID"
+        },
+        "secretId": {
+          "type": "string",
+          "description": "Secret ID"
+        },
+        "key": {
+          "type": "string",
+          "description": "Secret key",
+          "maxLength": 300
+        },
+        "value": {
+          "type": "string",
+          "description": "Secret value",
+          "maxLength": 10000
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Optional metadata"
+        }
+      },
+      "required": ["teamId", "secretId", "key", "value"]
+    },
+    "VaultSecretMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "description": "Secret metadata"
+        }
+      },
+      "required": ["metadata"]
     }
   },
 
@@ -4842,6 +4880,332 @@
           },
           "400": {
             "description": "Invalid space data",
+            "schema": {
+              "$ref": "#/definitions/GenericErrorModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/secret": {
+      "post": {
+        "tags": ["Vault"],
+        "summary": "Create vault secret",
+        "description": "Create a new vault secret",
+        "operationId": "createVaultSecret",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Vault secret data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/VaultSecretRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret created successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "schema": {
+              "$ref": "#/definitions/GenericErrorModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/secrets": {
+      "get": {
+        "tags": ["Vault"],
+        "summary": "Get all secrets for a team",
+        "description": "Retrieve all vault secrets for a specific team",
+        "operationId": "getAllSecrets",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "metadataFilter",
+            "in": "query",
+            "description": "Filter secrets by metadata",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secrets retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/count/secrets": {
+      "get": {
+        "tags": ["Vault"],
+        "summary": "Get secrets count for a team",
+        "description": "Get the total count of secrets for a specific team",
+        "operationId": "getSecretsCount",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secrets count retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/secrets/{secretId}": {
+      "get": {
+        "tags": ["Vault"],
+        "summary": "Get secret by ID",
+        "description": "Retrieve a specific vault secret by its ID",
+        "operationId": "getSecretById",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "secretId",
+            "in": "path",
+            "description": "Secret ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Vault"],
+        "summary": "Delete secret by ID",
+        "description": "Delete a specific vault secret by its ID",
+        "operationId": "deleteSecretById",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "secretId",
+            "in": "path",
+            "description": "Secret ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/secrets/{secretId}/exists": {
+      "get": {
+        "tags": ["Vault"],
+        "summary": "Check if secret exists by ID",
+        "description": "Check if a vault secret exists by its ID",
+        "operationId": "checkSecretExistsById",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "secretId",
+            "in": "path",
+            "description": "Secret ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret existence check completed",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/secrets/name/{secretName}": {
+      "get": {
+        "tags": ["Vault"],
+        "summary": "Get secret by name",
+        "description": "Retrieve a vault secret by its name",
+        "operationId": "getSecretByName",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "secretName",
+            "in": "path",
+            "description": "Secret name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          }
+        }
+      }
+    },
+
+    "/vault/v1/api/{teamId}/secrets/{secretId}/metadata": {
+      "put": {
+        "tags": ["Vault"],
+        "summary": "Update secret metadata",
+        "description": "Update metadata for a specific vault secret",
+        "operationId": "updateSecretMetadata",
+        "produces": ["application/json"],
+        "security": [
+          {
+            "Bearer": [],
+            "TeamId": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "secretId",
+            "in": "path",
+            "description": "Secret ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Metadata to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/VaultSecretMetadataRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ResponseMessage"
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
             "schema": {
               "$ref": "#/definitions/GenericErrorModel"
             }
