@@ -36,11 +36,9 @@ async function onComponentLoad(sidebar) {
 
   if (component.workspace?.locked) {
     setReadonlyMode(sidebar, ['close-btn', 'action-help']);
-    sidebar.querySelector('.action-save')?.classList.add('hidden');
     sidebar.querySelector('.del-btn')?.classList.add('hidden');
   } else {
     // Always hide the top save button for manual save/cancel flow
-    sidebar.querySelector('.action-save')?.classList.remove('hidden');
     sidebar.querySelector('.del-btn')?.classList.remove('hidden');
     sidebar.querySelector('.close-btn')?.classList.remove('hidden');
   }
@@ -67,9 +65,6 @@ function onTemplateCreateLoad(sidebar) {
 
   const closeButton: HTMLButtonElement = titleRightActions.querySelector('button.close-btn');
   closeButton.classList.remove('hidden');
-
-  const saveButton: HTMLButtonElement = titleRightActions.querySelector('button.action-save');
-  saveButton.classList.add('hidden');
 
   const deleteButton: HTMLButtonElement = actionElement.querySelector('button.del-btn');
   deleteButton.classList.add('hidden');
@@ -960,37 +955,13 @@ export async function editSettings(component: Component) {
       helpTooltip = '';
   }
   //show settings
-  // Build bottom actions (Cancel/Save) for component settings
-  const bottomActions = {
-    cancel: {
-      type: 'button',
-      label: 'Cancel',
-      class:
-        'action-cancel items-center ml-2 py-2 text-sm font-medium text-gray-500 bg-transparent hover:text-gray-900',
-      click: () => {
-        const closeBtn: HTMLButtonElement = document.querySelector(
-          '#right-sidebar .close-btn',
-        ) as HTMLButtonElement;
-        closeBtn && closeBtn.click();
-      },
-    },
-    save: {
-      type: 'button',
-      label: 'Save',
-      class:
-        'action-save items-center py-2 text-sm font-medium bg-transparent text-blue-500 hover:text-blue-600',
-      click: () => {},
-    },
-  };
-
-  // Merge template action (if any) with bottom actions
-  const mergedActions = sidebarActions ? { ...sidebarActions, ...bottomActions } : bottomActions;
+  // Remove bottom Save/Cancel actions; saving will be handled by the close 'x' button
 
   sidebarEditValues({
     title: sidebarTitleHTML,
     entriesObject: { Settings: component.settingsEntries },
     features: { templateVars: true },
-    actions: mergedActions,
+    actions: sidebarActions || null,
     onSave: onSave.bind(component),
     onDraft: async function (values) {
       await onDraft.apply(component, [values]);
