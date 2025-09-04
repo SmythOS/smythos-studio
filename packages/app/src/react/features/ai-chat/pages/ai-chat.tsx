@@ -1,4 +1,4 @@
-import { FC, MutableRefObject, RefObject, useCallback, useEffect, useRef } from 'react';
+import { MutableRefObject, RefObject, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -29,11 +29,6 @@ import { Analytics } from '@shared/posthog/services/analytics';
 const CHAT_WARNING_INFO =
   "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
 
-interface AIChatProps {
-  givenAgent?: string;
-  isWarningVisible?: boolean;
-}
-
 /**
  * Combines multiple refs into a single ref callback
  */
@@ -46,11 +41,9 @@ const combineRefs =
     });
   };
 
-const AIChat: FC<AIChatProps> = (props) => {
-  const { givenAgent, isWarningVisible = false } = props;
-
+const AIChat = () => {
   const params = useParams<{ agentId: string }>();
-  const agentId = givenAgent || params?.agentId;
+  const agentId = params?.agentId;
   const queryInputRef = useRef<QueryInputRef>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isFirstMessageSentRef = useRef(false);
@@ -217,13 +210,12 @@ const AIChat: FC<AIChatProps> = (props) => {
           </div>
 
           {uploadError.show && <ErrorToast message={uploadError.message} onClose={clearError} />}
-
           <div className="pt-2.5" />
           <QueryInput
             ref={queryInputRef}
             submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
           />
-          {!isWarningVisible && <WarningInfo infoMessage={CHAT_WARNING_INFO} />}
+          <WarningInfo infoMessage={CHAT_WARNING_INFO} />
         </ChatContainer>
       </div>
     </ChatProvider>
