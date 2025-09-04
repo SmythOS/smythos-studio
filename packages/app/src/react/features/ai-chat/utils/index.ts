@@ -379,7 +379,7 @@ export const chatUtils = {
             // Handle final content transition - only when we're actually getting content
             if (messageState === ('debug' as MessageState)) {
               handleMessageTransition('final');
-              message = ''; // Start fresh for final content
+              message += message.length > 0 ? '\n' + jsonObject.content : jsonObject.content; // Final response will begin below previous message
             }
 
             // Stop all thinking messages when content starts arriving
