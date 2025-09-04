@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
@@ -17,9 +23,9 @@ const config = {
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
-    DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN,
+    DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN || 'localagent.stage.smyth.ai',
+    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT || 5053,
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
-    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT,
 
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,
     MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 10,
@@ -27,9 +33,7 @@ const config = {
     UI_SERVER: process.env.UI_SERVER || "http://localhost:4000",
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    CODE_SANDBOX_URL: process.env.CODE_SANDBOX_URL || "http://localhost:5055",
-
-    DATA_PATH: process.env.DATA_PATH,
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, "../../data"),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || "combined",
   },

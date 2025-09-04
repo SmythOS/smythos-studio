@@ -126,7 +126,7 @@ router.get("/chat-configs", async (req: any, res) => {
 
 router.post("/chat-stream", async (req, res) => {
   let streamStarted = false;
-  const isLocalAgent = req.hostname.includes("localhost");
+  const isLocalAgent = req.hostname.includes("localagent");
   const agentId = req._agent?.id;
   const agentVersion = req._agent?.version;
   const isDebugSession = req._agent.debugSessionEnabled;
@@ -276,7 +276,7 @@ router.get("/params", async (req, res) => {
 
   // If chatbot properties exist, append the 'chatbotEnabled' flag
   if (chatbotProperties) {
-    const isLocalAgent = req.hostname.includes("localhost");
+    const isLocalAgent = req.hostname.includes("localagent");
     const agentId = agent?.id;
     const chatbotName =
       agent.agentSettings?.embodiments.get(EMBODIMENT_TYPES.ChatBot, "name") ||
@@ -424,7 +424,7 @@ async function exchangeCodeForToken(
   domain: string,
   authInfo: any
 ): Promise<any> {
-  const isLocalAgent = domain.includes("localhost");
+  const isLocalAgent = domain.includes("localagent");
   const baseUrl = isLocalAgent
     ? `http://${domain}:${config.env.PORT}`
     : `https://${domain}`;

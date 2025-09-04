@@ -56,7 +56,7 @@ const validations = {
 
 router.post("/stream", async (req, res) => {
   let streamStarted = false;
-  const isLocalAgent = req.hostname.includes("localhost");
+  const isLocalAgent = req.hostname.includes("localagent");
   const agentId = req._agent?.id;
   const agentVersion = req._agent?.version;
   let verifiedKey = null;

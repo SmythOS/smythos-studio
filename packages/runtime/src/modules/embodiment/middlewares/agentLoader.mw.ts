@@ -8,11 +8,11 @@ import {
 
 import config from "@core/config";
 import {
+  addDefaultComponentsAndConnections,
   extractAgentVerionsAndPath,
   getAgentDomainById,
   getAgentIdAndVersion,
 } from "@core/helpers/agent.helper";
-import { addDefaultComponentsAndConnections } from "@core/helpers/agent.helper";
 
 const console = Logger("[Embodiment] Middleware: Agent Loader");
 
