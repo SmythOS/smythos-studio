@@ -6,7 +6,6 @@ import {
 
 import { SmythOSSAccount } from "./SmythOSSAccount.class";
 import { SmythOSSAgentDataConnector } from "./SmythOSSAgentDataConnector.class";
-import { SmythOSSVault } from "./SmythOSSVault.class";
 
 const CONNECTORS = [
   [
@@ -15,7 +14,6 @@ const CONNECTORS = [
     SmythOSSAgentDataConnector,
   ],
   [TConnectorService.Account, "SmythOSSAccount", SmythOSSAccount],
-  [TConnectorService.Vault, "SmythOSSVault", SmythOSSVault],
   [TConnectorService.ModelsProvider, "SmythModelsProvider", JSONModelsProvider],
 ] as const;
 

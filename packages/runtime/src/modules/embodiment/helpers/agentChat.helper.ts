@@ -1,6 +1,6 @@
-import { IMetadataFile } from '../types/chat.types';
-import { getM2MToken } from './logto.helper';
+import { getM2MToken } from '@/core/helpers/logto.helper';
 import { includeAuth, mwSysAPI } from '@core/services/smythAPIReq';
+import { IMetadataFile } from '../types/chat.types';
 
 export async function updateConversation({ data, conversationId }: { conversationId: string; data: IMetadataFile }) {
     const token = (await getM2MToken('https://api.smyth.ai')) as string;
