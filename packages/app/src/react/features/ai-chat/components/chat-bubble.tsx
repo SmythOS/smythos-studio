@@ -15,9 +15,6 @@ import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 
 import '../styles/index.css';
 
-const DEFAULT_AVATAR_URL =
-  'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
-
 export const ChatBubble: FC<IChatMessage> = ({
   me,
   files,
@@ -43,9 +40,7 @@ export const ChatBubble: FC<IChatMessage> = ({
   }
 
   return isReplying || isRetrying ? (
-    <>
-      <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
-    </>
+    <ReplyLoader avatar={avatar} />
   ) : (
     <div className={me ? 'pl-[100px]' : ''}>
       {!hideMessageBubble && (

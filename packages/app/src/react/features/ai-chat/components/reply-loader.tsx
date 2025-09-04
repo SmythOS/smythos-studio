@@ -4,7 +4,7 @@ interface ReplyLoaderProps {
   avatar?: string;
 }
 
-export const ReplyLoader: FC<ReplyLoaderProps> = ({ avatar }) => (
+export const ReplyLoader: FC<ReplyLoaderProps> = () => (
   <div className="flex items-center gap-2 pr-[100px]">
     {/* <img
           src={avatar ?? DEFAULT_AVATAR_URL}

@@ -1,11 +1,11 @@
 import { Tooltip } from 'flowbite-react';
 import { FC } from 'react';
-import { FaRegPenToSquare, FaUser } from 'react-icons/fa6';
+import { FaRegPenToSquare } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
 
+import { CloseIcon } from '@react/features/ai-chat/components/icons';
+import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
-import { cn } from '@src/react/shared/utils/general';
-import { CloseIcon } from './icons';
 
 interface ChatHeaderProps {
   agentName?: string;
@@ -21,18 +21,11 @@ export const ChatHeader: FC<ChatHeaderProps> = ({ agentName, avatar, isLoading }
       <div className="w-full max-w-4xl flex justify-between items-center">
         {/* Left side - Avatar and Agent Name */}
         <div className="flex items-center gap-3">
-          {avatar && !isLoading ? (
-            <img src={avatar} alt="avatar" className="size-8 rounded-full" />
-          ) : (
-            <div
-              className={cn(
-                'size-8 flex justify-center items-center rounded-full bg-primary-100',
-                isLoading && 'animate-pulse',
-              )}
-            >
-              <FaUser className="size-4" />
-            </div>
-          )}
+          <img
+            src={avatar ?? DEFAULT_AVATAR_URL}
+            alt="avatar"
+            className={`size-8 rounded-full ${isLoading && 'animate-pulse'}`}
+          />
           <div className="text-lg font-medium text-[#111827]">{agentName || '...'}</div>
         </div>
 
