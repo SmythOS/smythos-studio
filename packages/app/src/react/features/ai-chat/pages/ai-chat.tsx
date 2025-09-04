@@ -57,11 +57,11 @@ const AIChat = () => {
     onError: () => navigate('/error/403'),
   });
 
-  const { data: agentSettingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(
-    agentId || '',
-  );
+  const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId || '');
   const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
   const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
+
+  const agentSettings = settingsData?.settings;
 
   // Custom Hooks - optimized
   const { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton } =
@@ -92,7 +92,7 @@ const AIChat = () => {
     clearMessages,
   } = useChatActions({
     agentId: agentId || '',
-    chatId: agentSettingsData?.settings?.lastConversationId,
+    chatId: agentSettings?.lastConversationId,
     avatar: currentAgent?.aiAgentSettings?.avatar,
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
@@ -140,15 +140,15 @@ const AIChat = () => {
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
   useEffect(() => {
-    if (agentSettingsData?.settings && currentAgent) {
-      currentAgent.aiAgentSettings = agentSettingsData.settings;
+    if (agentSettings && currentAgent) {
+      currentAgent.aiAgentSettings = agentSettings;
       currentAgent.id = agentId;
 
       if (!currentAgent?.aiAgentSettings?.lastConversationId) {
         createNewChatSession();
       }
     }
-  }, [agentSettingsData, currentAgent, agentId, createNewChatSession]);
+  }, [agentSettings, currentAgent, agentId, createNewChatSession]);
 
   useEffect(() => {
     if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
@@ -194,9 +194,9 @@ const AIChat = () => {
     <ChatProvider value={chatContextValue}>
       <div className="w-full h-full max-h-screen bg-white">
         <ChatHeader
+          avatar={agentSettings?.avatar}
           agentName={currentAgent?.name}
           isLoading={isAgentSettingsLoading}
-          avatar={agentSettingsData?.settings?.avatar}
         />
 
         <ChatContainer>
