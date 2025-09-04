@@ -16,7 +16,5 @@ export const defaultAuthMiddleware = (req: Request, res: Response, next: NextFun
     },
   };
 
-  console.log('SET THE req._user to: ', req._user);
-  console.log('SET THE req.user to: ', req.user);
   next();
 };

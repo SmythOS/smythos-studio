@@ -45,11 +45,6 @@ const sre = SmythRuntime.Instance.init({
   Account: {
     Connector: "SmythOSSAccount",
     Settings: {
-      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: config.env.LOGTO_API_RESOURCE,
-      oAuthScope: "",
       smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + "/_sysapi",
     },
   },
@@ -74,11 +69,6 @@ const sre = SmythRuntime.Instance.init({
     Settings: {
       agentStageDomain: config.env.DEFAULT_AGENT_DOMAIN || "",
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || "",
-      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: config.env.LOGTO_API_RESOURCE,
-      oAuthScope: "",
       smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + "/_sysapi",
     },
   },
@@ -243,3 +233,4 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 export { app };
+

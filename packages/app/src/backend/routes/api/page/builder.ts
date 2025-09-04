@@ -365,6 +365,7 @@ router.get('/app-config/collections', componentsMWHandler);
 
 router.get('/app-config/collections/:id/components', componentsMWHandler);
 
+// TODO: move to ee
 router.get('/integrations', async (req, res) => {
   try {
     const integrations = await getIntegrations();
