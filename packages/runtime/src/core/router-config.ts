@@ -14,10 +14,10 @@ import {
   processAgentRequest as debuggerProcessAgentRequest,
 } from '@debugger/services/agent-request-handler';
 
+import config from './config';
 import { RuntimeConfig, loadRuntimeConfig, validateRuntimeConfig } from './runtime-config';
 import { createAgentRunnerRouter, createDebuggerRouter } from './shared-agent-router';
 import { createConfiguredSmartRouter } from './smart-agent-router';
-import config from './config';
 
 /**
  * Configures and mounts agent routers based on runtime configuration
@@ -46,7 +46,6 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
   });
 
   // Mount common routes that should be available in all server configurations
-  console.log('Mounting /models route (available for all server types)');
   app.use('/models', modelsRouter);
 
   // Configure based on routing strategy and enabled services
