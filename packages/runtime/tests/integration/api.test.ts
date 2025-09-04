@@ -1,9 +1,9 @@
 /**
  * Simple API integration tests
  */
-import { describe, it, expect, vi } from 'vitest';
-import request from 'supertest';
 import express from 'express';
+import request from 'supertest';
+import { describe, it } from 'vitest';
 
 describe('API Integration', () => {
   const createTestApp = () => {

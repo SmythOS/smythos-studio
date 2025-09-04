@@ -13,7 +13,7 @@ tests/
 │   ├── utils/           # Utility function tests
 │   └── middlewares/     # Middleware tests
 ├── services/            # Service tests
-└── integration/         # API tests
+└── integration/         # API integration tests (using supertest)
 ```
 
 ## Running Tests
@@ -24,14 +24,12 @@ pnpm test
 
 # Watch mode
 pnpm test:watch
-
-# Coverage report
-pnpm test:coverage
 ```
 
 ## Writing Tests - KISS Approach
 
 ### Keep It Simple
+
 ```typescript
 describe('MyFunction', () => {
   it('handles valid input', () => {
@@ -47,6 +45,7 @@ describe('MyFunction', () => {
 ```
 
 ### Mock Only What You Need
+
 ```typescript
 vi.mock('@smythos/sre', () => ({
   Logger: vi.fn(() => ({ error: vi.fn() })),
@@ -54,14 +53,16 @@ vi.mock('@smythos/sre', () => ({
 ```
 
 ### Test One Thing at a Time
+
 - Each test should verify one behavior
 - Use descriptive test names
 - Follow Arrange-Act-Assert pattern
 
-## Coverage Goals
-- **Target**: 70% overall coverage
-- Focus on critical paths, not 100% coverage
+## Testing Philosophy
+
+- Focus on critical paths and business logic
 - Quality over quantity
+- Test behavior, not implementation details
 
 ## Best Practices
 
@@ -80,12 +81,9 @@ it('processes valid requests', async () => {
   expect(result.status).toBe('success');
 });
 
-// Simple API test
+// API integration test with supertest
 it('returns health status', async () => {
-  await request(app)
-    .get('/health')
-    .expect(200)
-    .expect({ status: 'ok' });
+  await request(app).get('/health').expect(200).expect({ status: 'ok' });
 });
 ```
 
