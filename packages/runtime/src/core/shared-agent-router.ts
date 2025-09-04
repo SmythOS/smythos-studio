@@ -1,5 +1,6 @@
 import { Logger } from '@smythos/sre';
 import express from 'express';
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 
 interface AgentRouterConfig {
   mode: 'debugger' | 'agent-runner';
@@ -32,7 +33,10 @@ function createAgentRouter(config: AgentRouterConfig): express.Router {
   ];
 
   apiRoutes.forEach(({ method, path }) => {
-    router[method](path, config.middlewares, async (req: any, res) => {
+    // Add uploadHandler to all API routes (matches old server pattern)
+    // Comment from old server: "uploadHandler should precede AgentLoader to parse multipart/form-data correctly"
+    const middlewares = [uploadHandler, ...config.middlewares];
+    router[method](path, middlewares, async (req: any, res) => {
       try {
         const agent = req._agent;
         if (!agent) {

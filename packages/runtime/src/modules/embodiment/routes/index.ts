@@ -33,7 +33,7 @@ const defaultRoutes: Route[] = [
     route: postmanRouter,
   },
 
-  // #region Swagger, we need both
+  // #region Swagger, we need both routers
   {
     rootPath: ['/swagger', '/emb/swagger'],
     route: swaggerUi.serve,

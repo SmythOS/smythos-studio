@@ -15,7 +15,6 @@ import { startServers } from '@core/management-router';
 import cors from '@core/middlewares/cors.mw';
 import { errorHandler, notFoundHandler } from '@core/middlewares/error.mw';
 import RateLimiter from '@core/middlewares/rateLimiter.mw';
-import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 import { requestContext } from '@core/services/request-context';
 
 import { registerConnectors } from '@core/connectors/connectorRegistry';
@@ -35,6 +34,12 @@ const port = config.env.PORT;
 registerConnectors();
 
 const sre = SmythRuntime.Instance.init({
+  Storage: {
+    Connector: 'LocalStorage',
+    Settings: {
+      folder: config.env.DATA_PATH + '/tmp',
+    },
+  },
   Cache: {
     Connector: 'RAM',
     Settings: {},
@@ -140,7 +145,6 @@ app.use(
   }),
 );
 
-app.use(uploadHandler);
 app.use(RateLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));

@@ -6,6 +6,7 @@
 
 import { Logger } from '@smythos/sre';
 import express from 'express';
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 import { v4 as uuidv4 } from 'uuid';
 
 const console = Logger('[Smart Agent Router]');
@@ -131,10 +132,14 @@ function createSmartAgentRouter(dependencies: RouterDependencies): express.Route
     const startTime = Date.now();
 
     try {
-      // Step 1: Make routing decision based on headers
+      // Step 1: Handle file uploads for all API requests (matches old server pattern)
+      // Comment from old server: "uploadHandler should precede AgentLoader to parse multipart/form-data correctly"
+      await runMiddleware(req, res, uploadHandler);
+
+      // Step 2: Make routing decision based on headers
       const { useDebugger, reason } = shouldUseDebugger(req);
 
-      // Step 2: Apply service-specific middleware (including upload handlers)
+      // Step 3: Apply service-specific middleware
       const serviceMiddlewares = useDebugger ? dependencies.debugger.middlewares : dependencies.agentRunner.middlewares;
 
       console.debug(`Applying ${serviceMiddlewares.length} ${useDebugger ? 'debugger' : 'agent-runner'} middleware(s)`, {
@@ -149,7 +154,7 @@ function createSmartAgentRouter(dependencies: RouterDependencies): express.Route
         path: req.path,
       });
 
-      // Step 3: Process with appropriate service
+      // Step 4: Process with appropriate service
       let result: any;
 
       if (useDebugger) {

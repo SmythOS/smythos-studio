@@ -2,10 +2,10 @@ import axios from 'axios';
 import express from 'express';
 
 import { AccessCandidate, Agent, BinaryInput } from '@smythos/sre';
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 
 import config from '@core/config';
 import { readAgentOAuthConfig } from '@core/helpers/agent.helper';
-import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 
 import { EMBODIMENT_TYPES } from '@embodiment/constants';
 import { getChatGPTManifest } from '@embodiment/helpers/chatgpt.helper';

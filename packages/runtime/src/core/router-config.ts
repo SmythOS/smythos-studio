@@ -1,7 +1,5 @@
 import { Express } from 'express';
 
-import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
-
 import agentRunnerAgentLoader from '@agent-runner/middlewares/agentLoader.mw';
 import agentRunnerOauthRouter from '@agent-runner/routes/_oauth/router';
 import { processAgentRequest as agentRunnerProcessAgentRequest } from '@agent-runner/services/agent-request-handler';
@@ -60,13 +58,13 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
     const smartRouter = createConfiguredSmartRouter(
       {
         debugger: {
-          middlewares: [uploadHandler, debuggerAgentLoader],
+          middlewares: [debuggerAgentLoader],
           processAgentRequest: debuggerProcessAgentRequest,
           getDebugSession: debuggerGetDebugSession,
           createSseConnection: debuggerCreateSseConnection,
         },
         agentRunner: {
-          middlewares: [uploadHandler, agentRunnerAgentLoader],
+          middlewares: [agentRunnerAgentLoader],
           processAgentRequest: agentRunnerProcessAgentRequest,
         },
       },
@@ -84,7 +82,7 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
   if (config.routing.strategy === 'separate' || config.routing.strategy === 'smart') {
     if (debuggerEnabled) {
       console.log('Mounting debugger router');
-      const debuggerRouter = createDebuggerRouter([uploadHandler, debuggerAgentLoader], debuggerProcessAgentRequest, {
+      const debuggerRouter = createDebuggerRouter([debuggerAgentLoader], debuggerProcessAgentRequest, {
         getDebugSession: debuggerGetDebugSession,
         createSseConnection: debuggerCreateSseConnection,
       });
@@ -93,7 +91,7 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
 
     if (agentRunnerEnabled) {
       console.log('Mounting agent-runner router');
-      const agentRunnerRouter = createAgentRunnerRouter([uploadHandler, agentRunnerAgentLoader], agentRunnerProcessAgentRequest);
+      const agentRunnerRouter = createAgentRunnerRouter([agentRunnerAgentLoader], agentRunnerProcessAgentRequest);
       app.use('/', agentRunnerRouter);
 
       // Mount agent-runner-specific routes
