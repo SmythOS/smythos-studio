@@ -31,7 +31,7 @@ const AIChat = () => {
   const navigate = useNavigate();
 
   // API Hooks - optimized with minimal dependencies
-  const { data: currentAgent, isLoading: isAgentLoading } = useAgent(agentId || '', {
+  const { data: agent, isLoading: isAgentLoading } = useAgent(agentId || '', {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
@@ -71,7 +71,7 @@ const AIChat = () => {
   } = useChatActions({
     agentId: agentId || '',
     chatId: agentSettings?.lastConversationId,
-    avatar: currentAgent?.aiAgentSettings?.avatar,
+    avatar: agent?.aiAgentSettings?.avatar,
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
         isFirstMessageSentRef.current = true;
@@ -81,7 +81,7 @@ const AIChat = () => {
 
   // Fast memoized values - minimal dependencies
   const isQueryInputDisabled = isChatCreating || isAgentLoading || isQueryInputProcessing;
-  const queryInputPlaceholder = currentAgent ? `Message ${currentAgent?.name}...` : 'Message ...';
+  const queryInputPlaceholder = agent ? `Message ${agent?.name}...` : 'Message ...';
   const isMaxFilesUploaded = files.length >= FILE_LIMITS.MAX_ATTACHED_FILES;
 
   // Fast callbacks - minimal dependencies
@@ -118,15 +118,15 @@ const AIChat = () => {
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
   useEffect(() => {
-    if (agentSettings && currentAgent) {
-      currentAgent.aiAgentSettings = agentSettings;
-      currentAgent.id = agentId;
+    if (agentSettings && agent) {
+      agent.aiAgentSettings = agentSettings;
+      agent.id = agentId;
 
-      if (!currentAgent?.aiAgentSettings?.lastConversationId) {
+      if (!agent?.aiAgentSettings?.lastConversationId) {
         createNewChatSession();
       }
     }
-  }, [agentSettings, currentAgent, agentId, createNewChatSession]);
+  }, [agentSettings, agent, agentId, createNewChatSession]);
 
   useEffect(() => {
     if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
@@ -171,15 +171,15 @@ const AIChat = () => {
       <div className="w-full h-full max-h-screen bg-white">
         <ChatHeader
           avatar={agentSettings?.avatar}
-          agentName={currentAgent?.name}
+          agentName={agent?.name}
           isLoading={isAgentSettingsLoading}
         />
 
         <ChatContainer>
           <Messages
-            currentAgent={currentAgent}
-            chatContainerRef={chatContainerRef}
-            chatHistoryMessages={chatHistoryMessages}
+            agent={agent}
+            messages={chatHistoryMessages}
+            containerRef={chatContainerRef}
             handleFileDrop={handleFileDrop}
             {...scroll}
           />

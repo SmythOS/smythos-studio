@@ -1,8 +1,9 @@
 import { FC, useEffect, useRef } from 'react';
 
-import { ChatBubble, IChatMessage } from '@react/features/ai-chat/components';
+import { ChatBubble } from '@react/features/ai-chat/components';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { AgentDetails } from '@react/shared/types/agent-data.types';
+import { IChatMessage } from '@src/react/shared/types/chat.types';
 
 interface ChatHistoryProps {
   agent: AgentDetails;
@@ -32,7 +33,6 @@ export const ChatHistory: FC<ChatHistoryProps> = ({ agent, messages }) => {
                 : undefined
             }
             isRetrying={contextIsRetrying && index === chatHistoryMessages.length - 1}
-            // Handle error messages as normal responses with error styling
             isError={message.isError}
           />
           {index === chatHistoryMessages.length - 1 && contextIsRetrying && (

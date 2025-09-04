@@ -5,8 +5,6 @@ import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import '../styles/index.css';
-
 import {
   CodeBlockWithCopyButton,
   FileItemPreview,
@@ -15,17 +13,18 @@ import {
 } from '@react/features/ai-chat/components';
 import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 
+import '../styles/index.css';
+
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
 // Re-export the interface for use in other components
-export type { IChatMessage };
+// export type { IChatMessage };
 
 export const ChatBubble: FC<IChatMessage> = ({
   me,
   files,
   avatar,
-  isLast,
   message,
   type,
   isReplying,

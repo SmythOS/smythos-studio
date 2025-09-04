@@ -1,19 +1,17 @@
 /* eslint-disable no-unused-vars */
-import {
-  ChatHistory,
-  IChatMessage,
-  ScrollToBottomButton,
-} from '@react/features/ai-chat/components';
+import { ChatBubble, ScrollToBottomButton } from '@react/features/ai-chat/components';
+import { useChatContext } from '@react/features/ai-chat/contexts';
+import { useDragAndDrop } from '@react/features/ai-chat/hooks';
 import { AgentDetails } from '@src/react/shared/types/agent-data.types';
-import { FC, MutableRefObject, RefObject, useEffect } from 'react';
-import { useDragAndDrop } from '../hooks';
+import { IChatMessage } from '@src/react/shared/types/chat.types';
+import { FC, MutableRefObject, RefObject, useEffect, useRef } from 'react';
 
 interface MessagesProps {
   handleScroll: () => void;
-  chatContainerRef: RefObject<HTMLElement>;
-  currentAgent: AgentDetails;
-  chatHistoryMessages: IChatMessage[];
+  agent: AgentDetails;
+  messages: IChatMessage[];
   showScrollButton: boolean;
+  containerRef: RefObject<HTMLElement>;
   scrollToBottom: (smooth?: boolean) => void;
   handleFileDrop: (droppedFiles: File[]) => Promise<void>;
 }
@@ -32,24 +30,52 @@ const combineRefs =
 
 export const Messages: FC<MessagesProps> = (props) => {
   const {
+    agent,
+    messages,
+    containerRef,
     handleScroll,
-    chatContainerRef,
-    currentAgent,
-    chatHistoryMessages,
     showScrollButton,
     scrollToBottom,
     handleFileDrop,
   } = props;
+  const { isRetrying, retryLastMessage } = useChatContext();
+  const messagesContainer = useRef<HTMLDivElement>(null);
+  const avatar = agent?.aiAgentSettings?.avatar;
+
+  useEffect(() => {
+    if (!messagesContainer.current) return;
+    messagesContainer.current.scrollTop = messagesContainer.current.scrollHeight;
+  }, [messages]);
+
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
-  useEffect(() => scrollToBottom(), [chatHistoryMessages, scrollToBottom]);
+  useEffect(() => scrollToBottom(), [messages, scrollToBottom]);
 
   return (
     <div
       onScroll={handleScroll}
-      ref={combineRefs(chatContainerRef, dropzoneRef)}
+      ref={combineRefs(containerRef, dropzoneRef)}
       className="w-full h-full overflow-auto relative scroll-smooth mt-16"
     >
-      <ChatHistory agent={currentAgent} messages={chatHistoryMessages} />
+      <div className="w-full flex-1 pb-4 space-y-6 px-2.5" ref={messagesContainer}>
+        {messages.map((message, index) => (
+          <div key={index}>
+            <ChatBubble
+              {...message}
+              avatar={avatar}
+              onRetryClick={
+                message.isError && index === messages.length - 1 ? retryLastMessage : undefined
+              }
+              isRetrying={isRetrying && index === messages.length - 1}
+              isError={message.isError}
+            />
+            {index === messages.length - 1 && isRetrying && (
+              <button onClick={retryLastMessage} className="pt-1.5">
+                Retry
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
       {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}
     </div>
   );
