@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ChatBubble, ScrollToBottomButton } from '@react/features/ai-chat/components';
+import { Chat, ScrollToBottomButton } from '@react/features/ai-chat/components';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { useDragAndDrop } from '@react/features/ai-chat/hooks';
 import { AgentDetails } from '@src/react/shared/types/agent-data.types';
@@ -28,7 +28,7 @@ const combineRefs =
     });
   };
 
-export const Messages: FC<MessagesProps> = (props) => {
+export const Chats: FC<MessagesProps> = (props) => {
   const {
     agent,
     messages,
@@ -59,7 +59,7 @@ export const Messages: FC<MessagesProps> = (props) => {
       <div className="w-full flex-1 pb-4 space-y-6 px-2.5" ref={messagesContainer}>
         {messages.map((message, index) => (
           <div key={index}>
-            <ChatBubble
+            <Chat
               {...message}
               avatar={avatar}
               onRetryClick={

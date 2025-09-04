@@ -8,10 +8,7 @@ interface CodeBlockWithCopyButtonProps {
   children: string;
 }
 
-export const CodeBlockWithCopyButton: FC<CodeBlockWithCopyButtonProps> = ({
-  language,
-  children,
-}) => {
+export const CodeBlock: FC<CodeBlockWithCopyButtonProps> = ({ language, children }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopyClick = () => {

@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-  ChatContainer,
   ChatHeader,
+  Chats,
+  Container,
   Footer,
-  Messages,
   QueryInputRef,
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
@@ -175,8 +175,8 @@ const AIChat = () => {
           isLoading={isAgentSettingsLoading}
         />
 
-        <ChatContainer>
-          <Messages
+        <Container>
+          <Chats
             agent={agent}
             messages={chatHistoryMessages}
             containerRef={chatContainerRef}
@@ -189,7 +189,7 @@ const AIChat = () => {
             queryInputRef={queryInputRef}
             submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
           />
-        </ChatContainer>
+        </Container>
       </div>
     </ChatProvider>
   );
