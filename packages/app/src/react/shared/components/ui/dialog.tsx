@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { CloseIcon } from '@react/shared/components/svgs';
 import { cn } from '@react/shared/utils/general';
-import { X } from 'lucide-react';
 import * as React from 'react';
 
 const Dialog = DialogPrimitive.Root;
@@ -41,8 +41,8 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-sm ring-offset-background transition-opacity hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-5 w-5 font-bold" color="#1E1E1E" strokeWidth={2} />
+      <DialogPrimitive.Close className="absolute right-6 top-6 p-2 rounded-lg hover:text-gray-900 hover:bg-gray-200 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <CloseIcon width={16} height={16} />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
@@ -97,6 +97,5 @@ export {
   DialogOverlay,
   DialogPortal,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 };
-

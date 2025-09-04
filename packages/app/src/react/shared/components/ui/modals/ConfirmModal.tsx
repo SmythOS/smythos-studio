@@ -48,17 +48,17 @@ const ConfirmModal = (props: Props) => {
           )}
           <button
             type="button"
-            className="absolute right-4 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
+            className="absolute right-2 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
             onClick={props.onClose}
           >
-            <CloseIcon />
+            <CloseIcon width={16} height={16} />
           </button>
         </div>
 
         {props.children && props.children}
 
         {/* Code snippet textarea */}
-        <div className="px-4 pt-2 pb-2">
+        <div className="px-2 pt-2 pb-2">
           {/* <p className="mb-4 text-sm text-gray-900">{props.message}</p> */}
           <div className="flex justify-end items-center flex-row gap-2">
             {props.handleCancel && (

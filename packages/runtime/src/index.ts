@@ -1,4 +1,4 @@
-import { Logger, SmythRuntime, SystemEvents, version } from "@smythos/sre";
+import { Logger, SmythRuntime, version } from "@smythos/sre";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
@@ -207,7 +207,6 @@ let server: Server | null = null;
       }`
     );
     console.info(`   • Runtime Server:    http://localhost:${port}`);
-
     console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.info("✨ SmythOS Runtime is ready!");
   } catch (error) {

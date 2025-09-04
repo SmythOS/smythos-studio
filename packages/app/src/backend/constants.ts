@@ -74,6 +74,3 @@ export const WEAVER_FREE_LIMIT = {
   countKeyPrefix: 'weaver_free_limit_count:',
   startedAtKeyPrefix: 'weaver_requests_started_at:',
 };
-
-export const STANDARD_MODELS_CACHE_KEY = '__llm_standard_models';
-export const CUSTOM_MODELS_CACHE_KEY = '__llm_custom_models';
