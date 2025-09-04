@@ -1760,7 +1760,6 @@ export class Component extends EventEmitter {
         console.log('new settings', values);
 
         this.emit('settingsSaved', values);
-        successToast('Settings saved');
         return true;
       }
     }
@@ -2907,7 +2906,11 @@ export class Component extends EventEmitter {
     }
   }
 
-  public async openDebugDialog(event, operation: 'step' | 'run' = 'step') {
+  public async openDebugDialog(
+    event,
+    operation: 'step' | 'run' = 'step',
+    prefillValues?: Record<string, any>,
+  ) {
     PostHog.track('app_debug_inject_click', {});
     event.stopPropagation();
     event.stopImmediatePropagation();
@@ -2976,6 +2979,7 @@ export class Component extends EventEmitter {
           }
         },
         operation,
+        prefillValues,
       );
     });
   }

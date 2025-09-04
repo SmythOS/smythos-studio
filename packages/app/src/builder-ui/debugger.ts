@@ -2372,23 +2372,28 @@ export function createDebugInjectDialog(
   outputs,
   callback,
   operation: 'step' | 'run' = 'step',
+  prefillValues?: Record<string, any>,
 ) {
   const createInputList = (array, type) => {
     return array
       .map((el, index) => {
         if (el.type === 'file') {
+          const prefillValue = prefillValues?.[el.name] || '';
           return `
-            <div class="flex mb-5">
-              <span class="inline-flex w-40 items-center px-3 text-sm text-gray-900 bg-gray-200 border border-e-0 border-gray-300 rounded-s-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600 break-all">
-                ${el.name}
-              </span>
-              <input type="file" name="${el.name}" id="${type}-input-${index}" class="${type}-input input
-                block w-full text-sm text-slate-500
-                file:mr-4 file:py-2 file:px-4 file:rounded-md
-                file:border-0 file:text-sm file:font-semibold
-                file:bg-gray-200 file:text-gray-900
-                hover:file:bg-gray-300 pl-5
-              " multiple>
+            <div class="mb-5">
+              <div class="flex">
+                <span class="inline-flex w-40 items-center px-3 text-sm text-gray-900 bg-gray-200 border border-e-0 border-gray-300 rounded-s-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600 break-all">
+                  ${el.name}
+                </span>
+                <input type="file" name="${el.name}" id="${type}-input-${index}" class="${type}-input input
+                  block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2 file:px-4 file:rounded-md
+                  file:border-0 file:text-sm file:font-semibold
+                  file:bg-gray-200 file:text-gray-900
+                  hover:file:bg-gray-300 pl-5
+                " multiple>
+              </div>
+              ${prefillValue ? `<div class="mt-2 text-xs text-gray-600">Previously selected: ${prefillValue.substring(0, 100)}${prefillValue.length > 100 ? '...' : ''}</div>` : ''}
             </div>`;
         } else {
           return `
@@ -2923,6 +2928,16 @@ export function createDebugInjectDialog(
       setupTooltip('#tooltip-container');
       setupTooltip('#default-values-tooltip');
       setupTooltip('#default-values-tooltip-outputs');
+
+      // Set prefill values if provided
+      if (prefillValues) {
+        inputs.forEach((input, index) => {
+          const inputElement: HTMLTextAreaElement = dialog.querySelector(`#inputs-input-${index}`);
+          if (inputElement && prefillValues[input.name] && inputElement.type !== 'file') {
+            inputElement.value = prefillValues[input.name].toString();
+          }
+        });
+      }
     },
   });
 

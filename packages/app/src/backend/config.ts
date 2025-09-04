@@ -115,27 +115,27 @@ export const supportedHfTasks = [
 ];
 
 const requiredKeysSchema = Joi.object({
-  PORT: Joi.number().default(3000),
-  ADMIN_PORT: Joi.number().default(3001),
+  // PORT: Joi.number().default(3000),
+  // ADMIN_PORT: Joi.number().default(3001),
   NODE_ENV: Joi.string().valid('PROD', 'DEV', 'TEST').required().default('DEV'),
-  LOCAL_MODE: Joi.boolean().default(false),
+  // LOCAL_MODE: Joi.boolean().default(false),
   GOOGLE_CLIENT_ID: Joi.string().required(),
   GOOGLE_CLIENT_SECRET: Joi.string().required(),
   API_SERVER: Joi.string().required(),
   DOC_SERVER: Joi.string().required(),
   SMYTH_API_BASE_URL: Joi.string().required(),
-  LOGTO_SERVER: Joi.string().required(),
-  LOGTO_APP_ID: Joi.string().required(),
-  LOGTO_APP_SECRET: Joi.string().required(),
-  LOGTO_API_RESOURCE: Joi.string().required(),
-  OPENAI_API_KEY: Joi.string().required(),
+  // LOGTO_SERVER: Joi.string().required(),
+  // LOGTO_APP_ID: Joi.string().required(),
+  // LOGTO_APP_SECRET: Joi.string().required(),
+  // LOGTO_API_RESOURCE: Joi.string().required(),
+  // OPENAI_API_KEY: Joi.string().required(),
 
-  AWS_ACCESS_KEY_ID: Joi.string().required(),
-  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
-  AWS_S3_BUCKET_NAME: Joi.string().required(),
-  AWS_S3_REGION: Joi.string().required(),
-  AWS_S3_PUB_BUCKET_NAME: Joi.string().required(),
-  AWS_S3_PUB_REGION: Joi.string().required(),
+  // AWS_ACCESS_KEY_ID: Joi.string().required(),
+  // AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  // AWS_S3_BUCKET_NAME: Joi.string().required(),
+  // AWS_S3_REGION: Joi.string().required(),
+  // AWS_S3_PUB_BUCKET_NAME: Joi.string().required(),
+  // AWS_S3_PUB_REGION: Joi.string().required(),
 }).unknown(true);
 
 const { error, value } = requiredKeysSchema.validate(config.env);

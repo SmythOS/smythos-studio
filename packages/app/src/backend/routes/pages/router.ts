@@ -107,19 +107,6 @@ router.get('/builder/:agentId', llmModelsLoaderMiddleware, async (req, res) => {
     res.status(500).send('Error fetching agent');
   }
 });
-router.get('/logs/:agentId', async (req, res) => {
-  const { agentId } = req.params;
-  res.render('index', {
-    page: 'logs',
-    agentId,
-    menu: getBuilderSidebarMenu(),
-    tag: req.query?.tag || '',
-    sessionID: req.query?.sessionID || '',
-    showTopMenuBar: true,
-    isSmythStaff: res.locals.isSmythStaff,
-    isSmythAlpha: res.locals.isSmythAlpha,
-  });
-});
 
 export function createReactRoute(
   args?: object | ((req: express.Request, res: express.Response) => object),

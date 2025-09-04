@@ -1,5 +1,5 @@
-import JwtM2M from './jwtM2M.verfication';
-import UserToken from './userToken.veification';
+import DefaultM2MAuth from './defaultM2MAuth.verification';
+import DefaultUIAuth from './defaultUIAuth.verification';
 
 export interface AuthStrategy {
   name: string;
@@ -11,8 +11,8 @@ export interface AuthStrategy {
 }
 
 const tokenVerStrategies = {
-  userToken: new UserToken(),
-  jwtM2M: new JwtM2M(),
+  defaultUIAuth: new DefaultUIAuth(),
+  defaultM2MAuth: new DefaultM2MAuth(),
 };
 
 export default tokenVerStrategies;
