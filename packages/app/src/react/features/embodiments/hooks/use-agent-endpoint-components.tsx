@@ -16,7 +16,6 @@ export const useAgentEndpointComponents = (agentId?: string) => {
 
   // Use workspace data if available, otherwise use API data
   const agentData = workspaceData || apiData?.data;
-
   return {
     components:
       agentData?.components?.filter(

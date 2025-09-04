@@ -88,14 +88,14 @@ pnpm run start:prod
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm run dev` | Development mode with auto-reload |
-| `pnpm run build` | Build for production |
-| `pnpm run start:prod` | Start production server |
-| `pnpm run test` | Run tests |
-| `pnpm run lint` | Lint TypeScript files |
-| `pnpm run clean` | Clean build directory |
+| Script                | Description                       |
+| --------------------- | --------------------------------- |
+| `pnpm run dev`        | Development mode with auto-reload |
+| `pnpm run build`      | Build for production              |
+| `pnpm run start:prod` | Start production server           |
+| `pnpm run test`       | Run tests                         |
+| `pnpm run lint`       | Lint TypeScript files             |
+| `pnpm run clean`      | Clean build directory             |
 
 ## 🔧 Configuration
 
@@ -104,7 +104,7 @@ pnpm run start:prod
 ```bash
 # Authentication (LogTo configuration)
 LOGTO_M2M_APP_SECRET="your-m2m-app-secret"
-LOGTO_M2M_APP_ID="your-m2m-app-id"  
+LOGTO_M2M_APP_ID="your-m2m-app-id"
 LOGTO_SERVER="https://auth.yourdomain.com"
 LOGTO_API_RESOURCE="https://api.yourdomain.com"
 MIDDLEWARE_API_BASE_URL="http://middleware.yourdomain.com"
@@ -135,16 +135,19 @@ PROD_AGENT_DOMAIN="agentid.yourdomain.com"
 ## 🌐 API Modules
 
 ### Agent Runner (`/api/*`)
+
 - **OAuth Authentication**: `/oauth/*` - Handle OAuth flows
 - **Agent Execution**: `/agent/*` - Execute and manage agents
 - **File Operations**: File upload and processing capabilities
 
 ### Debugger (`/models/*`)
+
 - **Model Management**: Team-based access control for AI models
 - **Debug Sessions**: Real-time agent debugging and monitoring
 - **Component Tracking**: Async component execution tracking
 
 ### Embodiment (Various endpoints)
+
 - **ChatGPT Plugin**: `/chatgpt/*` - ChatGPT plugin integration
 - **OpenAI Proxy**: `/openai/*` - OpenAI API proxy
 - **Alexa Skills**: `/alexa/*` - Amazon Alexa integration
@@ -172,12 +175,12 @@ curl -H "X-DEBUG-RUN: true" http://localhost:5053/api/test
 
 ### Routing Headers
 
-| Header | Purpose | Routes To |
-|--------|---------|-----------|
-| `X-FORCE-AGENT-RUNNER` | Force agent execution | Agent Runner |
-| `X-FORCE-DEBUGGER` | Force debug mode | Debugger |
-| `X-DEBUG-RUN` | Start debug session | Debugger |
-| `X-MONITOR-ID` | Monitor agent execution | Debugger |
+| Header                 | Purpose                 | Routes To    |
+| ---------------------- | ----------------------- | ------------ |
+| `X-FORCE-AGENT-RUNNER` | Force agent execution   | Agent Runner |
+| `X-FORCE-DEBUGGER`     | Force debug mode        | Debugger     |
+| `X-DEBUG-RUN`          | Start debug session     | Debugger     |
+| `X-MONITOR-ID`         | Monitor agent execution | Debugger     |
 
 ### Server Modes
 
@@ -185,7 +188,7 @@ Control server functionality with the `SERVER_MODE` environment variable:
 
 - `runtime` (default): Full functionality
 - `agent`: Agent runner only
-- `debugger`: Debugger only  
+- `debugger`: Debugger only
 - `embodiment`: Integrations only
 
 ## 🌐 Deployment
@@ -193,11 +196,13 @@ Control server functionality with the `SERVER_MODE` environment variable:
 ### Environment Requirements
 
 **Development:**
+
 - Node.js 18+
 - pnpm 8+
 - LogTo authentication server
 
 **Production:**
+
 - All development requirements
 - Redis (for session management)
 - SSL certificates
@@ -206,11 +211,13 @@ Control server functionality with the `SERVER_MODE` environment variable:
 ### Production Deployment
 
 1. **Build the application:**
+
    ```bash
    pnpm run build
    ```
 
 2. **Set environment:**
+
    ```bash
    NODE_ENV=production
    PORT=5053
@@ -227,6 +234,7 @@ Control server functionality with the `SERVER_MODE` environment variable:
 Check server health at: `http://localhost:5053/health`
 
 The health endpoint provides:
+
 - Server status and mode
 - Available modules
 - Version information
@@ -236,17 +244,20 @@ The health endpoint provides:
 ### Common Issues
 
 **Authentication Failing**
+
 - Verify LogTo environment variables
 - Ensure LogTo server is accessible
 - Check M2M app configuration
 
 **Routing Issues**
+
 ```bash
 # Test with explicit headers
 curl -H "X-FORCE-AGENT-RUNNER: true" http://localhost:5053/api/test
 ```
 
 **Build Problems**
+
 ```bash
 # Increase memory for builds
 export NODE_OPTIONS='--max-old-space-size=4096'
@@ -254,6 +265,7 @@ pnpm run build
 ```
 
 **Development Server Issues**
+
 ```bash
 # Clean reinstall
 rm -rf node_modules
@@ -275,6 +287,7 @@ curl -H "X-MONITOR-ID: session-123" http://localhost:5053/api/test
 ## 📊 Monitoring & Logging
 
 The server provides comprehensive logging for:
+
 - Request routing decisions
 - Authentication events
 - Agent execution status
