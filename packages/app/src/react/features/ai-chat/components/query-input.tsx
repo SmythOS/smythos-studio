@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -18,9 +17,9 @@ import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { createFileFromText } from '@react/features/ai-chat/utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
+import { cn } from '@src/react/shared/utils/general';
 
 interface QueryInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
-  className?: string;
   submitDisabled?: boolean;
   maxLength?: number;
 }
@@ -35,7 +34,7 @@ const TEXTAREA_MAX_HEIGHT = 160;
 const LARGE_TEXT_THRESHOLD = 4000;
 
 export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
-  ({ className, submitDisabled = false, maxLength = MAX_CHAT_MESSAGE_LENGTH }, ref) => {
+  ({ submitDisabled = false, maxLength = MAX_CHAT_MESSAGE_LENGTH }, ref) => {
     const {
       files,
       removeFile,
@@ -132,7 +131,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
       e.preventDefault();
       const pasted = e.clipboardData.getData('text/plain');
       if (pasted.length >= LARGE_TEXT_THRESHOLD) {
-        const file = createFileFromText(pasted);
+        const file = createFileFromText(message + pasted);
         handleFileDrop([file.file]);
         setMessage('');
       } else setMessage((prev) => prev + pasted);
@@ -153,10 +152,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
 
     return (
       <div
-        className={classNames(
-          'w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 text-sm flex flex-col items-start justify-center cursor-text',
-          className,
-        )}
+        className="w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 pt-2.5 text-sm flex flex-col items-start justify-center cursor-text"
         onClick={handleContainerClick}
       >
         {files.length > 0 && (
@@ -177,10 +173,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
         )}
 
         <div
-          className={classNames(
-            'rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px] cursor-text',
-            className,
-          )}
+          className="rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px] cursor-text"
           onClick={handleContainerClick}
         >
           <input
@@ -208,7 +201,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
           />
 
           <div
-            className={classNames(
+            className={cn(
               'text-xs mr-2 w-[75px] text-right flex-shrink-0',
               isMaxLengthReached ? 'text-red-500' : 'text-gray-500',
             )}

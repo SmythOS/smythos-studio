@@ -5,7 +5,5 @@ interface WarningInfoProps {
 }
 
 export const WarningInfo: FC<WarningInfoProps> = ({ infoMessage }) => (
-  <div className="py-4 flex justify-center">
-    <span className="text-xs text-gray-500">{infoMessage}</span>
-  </div>
+  <h6 className="py-4 text-center text-xs text-gray-500">{infoMessage}</h6>
 );

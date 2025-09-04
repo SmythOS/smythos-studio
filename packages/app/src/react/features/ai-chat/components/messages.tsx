@@ -5,32 +5,43 @@ import {
   ScrollToBottomButton,
 } from '@react/features/ai-chat/components';
 import { AgentDetails } from '@src/react/shared/types/agent-data.types';
-import { FC, MutableRefObject, RefObject } from 'react';
+import { FC, MutableRefObject, RefObject, useEffect } from 'react';
+import { useDragAndDrop } from '../hooks';
 
 interface MessagesProps {
   handleScroll: () => void;
-  combineRefs: <T extends HTMLElement>(
-    ...refs: Array<RefObject<T> | MutableRefObject<T | null>>
-  ) => (element: T | null) => void;
   chatContainerRef: RefObject<HTMLElement>;
-  dropzoneRef: RefObject<HTMLElement>;
   currentAgent: AgentDetails;
   chatHistoryMessages: IChatMessage[];
   showScrollButton: boolean;
   scrollToBottom: (smooth?: boolean) => void;
+  handleFileDrop: (droppedFiles: File[]) => Promise<void>;
 }
+
+/**
+ * Combines multiple refs into a single ref callback
+ */
+const combineRefs =
+  <T extends HTMLElement>(...refs: Array<RefObject<T> | MutableRefObject<T | null>>) =>
+  (element: T | null) => {
+    refs.forEach((ref) => {
+      if (!ref) return;
+      (ref as MutableRefObject<T | null>).current = element;
+    });
+  };
 
 export const Messages: FC<MessagesProps> = (props) => {
   const {
     handleScroll,
-    combineRefs,
     chatContainerRef,
-    dropzoneRef,
     currentAgent,
     chatHistoryMessages,
     showScrollButton,
     scrollToBottom,
+    handleFileDrop,
   } = props;
+  const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
+  useEffect(() => scrollToBottom(), [chatHistoryMessages, scrollToBottom]);
 
   return (
     <div

@@ -1,4 +1,4 @@
-import { MutableRefObject, RefObject, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -13,7 +13,6 @@ import {
   useAgentSettings,
   useChatActions,
   useCreateChatMutation,
-  useDragAndDrop,
   useFileUpload,
   useScrollToBottom,
   useUpdateAgentSettingsMutation,
@@ -22,18 +21,6 @@ import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
 import { useAgent } from '@react/shared/hooks/agent';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
-
-/**
- * Combines multiple refs into a single ref callback
- */
-const combineRefs =
-  <T extends HTMLElement>(...refs: Array<RefObject<T> | MutableRefObject<T | null>>) =>
-  (element: T | null) => {
-    refs.forEach((ref) => {
-      if (!ref) return;
-      (ref as MutableRefObject<T | null>).current = element;
-    });
-  };
 
 const AIChat = () => {
   const params = useParams<{ agentId: string }>();
@@ -58,8 +45,7 @@ const AIChat = () => {
   const agentSettings = settingsData?.settings;
 
   // Custom Hooks - optimized
-  const { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton } =
-    useScrollToBottom(chatContainerRef);
+  const { setShowScrollButton, ...scroll } = useScrollToBottom(chatContainerRef);
 
   const {
     files,
@@ -72,8 +58,6 @@ const AIChat = () => {
     isUploadInProgress,
     clearFiles,
   } = useFileUpload();
-
-  const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
   const {
     chatHistoryMessages,
@@ -148,8 +132,6 @@ const AIChat = () => {
     if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
   }, [isAgentLoading, isQueryInputDisabled]);
 
-  useEffect(() => scrollToBottom(), [chatHistoryMessages, scrollToBottom]);
-
   useEffect(() => {
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
     return () => Analytics.track(EVENTS.CHAT_EVENTS.SESSION_END);
@@ -195,22 +177,17 @@ const AIChat = () => {
 
         <ChatContainer>
           <Messages
-            handleScroll={handleScroll}
-            combineRefs={combineRefs}
-            chatContainerRef={chatContainerRef}
-            dropzoneRef={dropzoneRef}
             currentAgent={currentAgent}
+            chatContainerRef={chatContainerRef}
             chatHistoryMessages={chatHistoryMessages}
-            showScrollButton={showScrollButton}
-            scrollToBottom={scrollToBottom}
+            handleFileDrop={handleFileDrop}
+            {...scroll}
           />
           <Footer
             uploadError={uploadError}
             clearError={clearError}
             queryInputRef={queryInputRef}
-            isChatCreating={isChatCreating}
-            isAgentLoading={isAgentLoading}
-            uploadingFiles={uploadingFiles}
+            submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
           />
         </ChatContainer>
       </div>
