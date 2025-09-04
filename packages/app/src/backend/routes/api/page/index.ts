@@ -1,4 +1,3 @@
-import logs from '../../../../../../../../src/server/routes/api/pages/logs';
 import account from './account';
 import agentSettings from './agent-settings';
 import agents from './agents';
@@ -18,7 +17,6 @@ const routers = {
   vault,
   account,
   agent_settings: agentSettings,
-  logs,
   chat: chatRouter,
   onboard: onboardRouter,
   collection,
