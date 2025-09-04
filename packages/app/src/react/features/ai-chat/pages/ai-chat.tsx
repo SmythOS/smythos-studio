@@ -31,29 +31,24 @@ const CHAT_WARNING_INFO =
 
 interface AIChatProps {
   givenAgent?: string;
-  isMenuVisible?: boolean;
   isWarningVisible?: boolean;
 }
 
 /**
  * Combines multiple refs into a single ref callback
  */
-const combineRefs = <T extends HTMLElement>(
-  ...refs: Array<RefObject<T> | MutableRefObject<T | null>>
-) => {
-  return (element: T | null) => {
+const combineRefs =
+  <T extends HTMLElement>(...refs: Array<RefObject<T> | MutableRefObject<T | null>>) =>
+  (element: T | null) => {
     refs.forEach((ref) => {
       if (!ref) return;
       (ref as MutableRefObject<T | null>).current = element;
     });
   };
-};
 
-const AIChat: FC<AIChatProps> = ({
-  givenAgent,
-  isMenuVisible = false,
-  isWarningVisible = false,
-}) => {
+const AIChat: FC<AIChatProps> = (props) => {
+  const { givenAgent, isWarningVisible = false } = props;
+
   const params = useParams<{ agentId: string }>();
   const agentId = givenAgent || params?.agentId;
   const queryInputRef = useRef<QueryInputRef>(null);
@@ -164,9 +159,7 @@ const AIChat: FC<AIChatProps> = ({
     if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
   }, [isAgentLoading, isQueryInputDisabled]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistoryMessages, scrollToBottom]);
+  useEffect(() => scrollToBottom(), [chatHistoryMessages, scrollToBottom]);
 
   useEffect(() => {
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
@@ -205,40 +198,29 @@ const AIChat: FC<AIChatProps> = ({
   return (
     <ChatProvider value={chatContextValue}>
       <div className="w-full h-full max-h-screen bg-white">
-        {!isMenuVisible && (
-          <ChatHeader
-            agentName={currentAgent?.name || '...'}
-            avatar={agentSettingsData?.settings?.avatar}
-          />
-        )}
+        <ChatHeader
+          agentName={currentAgent?.name || '...'}
+          avatar={agentSettingsData?.settings?.avatar}
+        />
 
         <ChatContainer>
           <div
-            className="w-full h-full flex justify-center overflow-auto relative scroll-smooth"
+            className="w-full h-full overflow-auto relative scroll-smooth mt-16"
             ref={combineRefs(chatContainerRef, dropzoneRef)}
             onScroll={handleScroll}
           >
-            <div className="w-full pt-16 max-w-4xl mt-0">
-              <ChatHistory
-                agent={currentAgent}
-                chatId={agentSettingsData?.settings?.lastConversationId || ''}
-                messages={chatHistoryMessages}
-              />
-            </div>
+            <ChatHistory agent={currentAgent} messages={chatHistoryMessages} />
             {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}
           </div>
-          {uploadError.show && (
-            <div className="w-full max-w-4xl">
-              <ErrorToast message={uploadError.message} onClose={clearError} />
-            </div>
-          )}
-          <div className="w-full max-w-4xl mt-[10px]">
-            <QueryInput
-              ref={queryInputRef}
-              submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
-            />
-            {!isWarningVisible && <WarningInfo infoMessage={CHAT_WARNING_INFO} />}
-          </div>
+
+          {uploadError.show && <ErrorToast message={uploadError.message} onClose={clearError} />}
+
+          <div className="pt-2.5" />
+          <QueryInput
+            ref={queryInputRef}
+            submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
+          />
+          {!isWarningVisible && <WarningInfo infoMessage={CHAT_WARNING_INFO} />}
         </ChatContainer>
       </div>
     </ChatProvider>
