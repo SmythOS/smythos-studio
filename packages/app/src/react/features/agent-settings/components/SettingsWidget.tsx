@@ -135,7 +135,7 @@ const SettingsWidget = () => {
             theme={{
               header: {
                 close: {
-                  base: 'text-[#1E1E1E] hover:text-gray-700',
+                  base: 'text-[#1E1E1E] hover:text-gray-700 h-8 w-8 p-1.5 hover:bg-gray-200 rounded-lg',
                 },
               },
             }}

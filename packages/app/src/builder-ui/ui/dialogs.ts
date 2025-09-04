@@ -661,7 +661,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
 
         button.setAttribute(
           'class',
-          `items-center text-sm text-xl text-gray-900 w-7 h-7 pt-[1px] action-btn-emb ${
+          `items-center text-sm text-xl text-gray-900 w-7 h-8 action-btn-emb ${
             action.cls || ''
           } ${contentCls + '-btn'}`,
         );
