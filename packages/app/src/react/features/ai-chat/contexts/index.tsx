@@ -1,4 +1,5 @@
-import { FileWithMetadata } from '@react/shared/types/chat.types';
+/* eslint-disable no-unused-vars */
+import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
 import { ChangeEvent, createContext, FC, PropsWithChildren, useContext } from 'react';
 
 interface ChatContextType {
@@ -16,7 +17,7 @@ interface ChatContextType {
   isGenerating: boolean;
   isQueryInputProcessing: boolean;
   isRetrying: boolean;
-  chatHistoryMessages: any[];
+  chatHistoryMessages: IChatMessage[];
   queryInputPlaceholder: string;
   isQueryInputDisabled: boolean;
 
@@ -32,6 +33,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
  * Hook to use the chat context
  * @throws {Error} If used outside of ChatProvider
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useChatContext = () => {
   const context = useContext(ChatContext);
   if (!context) throw new Error('useChatContext must be used within a ChatProvider');
