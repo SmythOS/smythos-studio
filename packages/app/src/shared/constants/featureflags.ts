@@ -14,6 +14,7 @@ export enum FEATURE_FLAGS {
   POSTHOG_EXPERIMENT_FIX_WITH_AI = 'posthog-experiment-fix-with-ai',
   ONBOARDING_CALLS_FOR_BUILDER_PLAN = 'onboarding-calls-for-builder-plan',
   GO_TO_DASHBOARD_FROM_ONBOARDING = 'go-to-dashboard-from-onboarding',
+  TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT = 'test-form-try-debug-button-experiment',
 }
 
 export const FEATURE_FLAG_PAYLOAD_RELEASE_TYPE = {
