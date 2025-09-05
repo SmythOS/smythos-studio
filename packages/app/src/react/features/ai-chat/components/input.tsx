@@ -87,7 +87,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     );
 
     const handleSubmit = useCallback((): void => {
-      if (inputDisabled) return;
       if (isGenerating) return stopGenerating();
 
       const trimmedMessage = message.trim();
@@ -110,10 +109,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
-          handleSubmit();
+          !isGenerating && handleSubmit();
         }
       },
-      [handleSubmit],
+      [handleSubmit, isGenerating],
     );
 
     const handleRemoveFile = useCallback(
@@ -231,7 +230,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           <div onClick={(e) => e.stopPropagation()}>
             <SendButton
               isProcessing={isInputProcessing || isGenerating}
-              disabled={inputDisabled || !canSubmit}
+              disabled={!canSubmit}
               onClick={handleSubmit}
             />
           </div>
