@@ -1,11 +1,18 @@
 import PreviewableAsset from '@src/react/features/builder/components/endpoint-form-preview-sidebar/PreviewableAsset';
 import { useEndpointFormPreview } from '@src/react/features/builder/contexts/endpoint-form-preview-sidebar.context';
+import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
+import { PostHog } from '@src/shared/posthog';
 import classNames from 'classnames';
 import { Textarea } from 'flowbite-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { FaRegCopy } from 'react-icons/fa6';
 import { FiDownload } from 'react-icons/fi';
+
+const TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT_VARIANTS = {
+  CONTROL: 'control',
+  VARIANT_1: 'variant_1',
+} as const;
 
 const ResponseView = () => {
   const {
@@ -17,6 +24,90 @@ const ResponseView = () => {
     agentSkillErrors,
     selectedSkill,
   } = useEndpointFormPreview();
+
+  const handleDebugClick = async () => {
+    // Toggle debug bar
+    const debugSwitcher = document.querySelector('.debug-switcher');
+    // trigger click on debug bar
+    if (debugSwitcher && !debugSwitcher?.classList.contains('active')) {
+      debugSwitcher.dispatchEvent(new Event('click', { bubbles: true }));
+    }
+
+    // Open debug modal for the current skill
+    const componentElement = document.getElementById(selectedSkill?.skillId);
+    if (componentElement) {
+      const component = componentElement['_control'];
+      if (component && typeof component.openDebugDialog === 'function') {
+        // Fire telemetry event
+        const { PostHog } = await import('@src/shared/posthog');
+        PostHog.track('debug_modal_opened', {
+          source: 'test_as_form',
+        });
+
+        // Open the debug dialog with 'run' operation
+        await component.openDebugDialog(new Event('click'), 'run', lastFormValues);
+      }
+    }
+  };
+
+  const ControlDebugMessage = () => (
+    <>
+      Something went wrong? try{' '}
+      <span
+        className="font-semibold border-b border-solid pb-0.5 cursor-pointer text-blue-500 border-blue-500"
+        onClick={() => {
+          PostHog.track('debug_api_modal_opened_test_as_form', {
+            source: 'test_as_form',
+            variant: 'control',
+          });
+          handleDebugClick();
+        }}
+      >
+        debugging
+      </span>{' '}
+      to fix errors.
+    </>
+  );
+
+  const VariantDebugButton = () => (
+    <div className="text-right">
+      <button
+        className="font-semibold cursor-pointer text-blue-500 bg-transparent hover:text-smythos-blue focus:outline-none py-2 rounded-lg text-sm transition-colors"
+        onClick={() => {
+          PostHog.track('debug_api_modal_opened_test_as_form', {
+            source: 'test_as_form',
+            variant: 'variant_1',
+          });
+          handleDebugClick();
+        }}
+      >
+        Something went wrong? Try Debugging{' '}
+        <span
+          className="transition-transform duration-300"
+          style={{ transform: 'translateX(10px)' }}
+        >
+          -&gt;
+        </span>
+      </button>
+    </div>
+  );
+
+  const getDebugComponent = () => {
+    try {
+      const featureVariant = PostHog.getFeatureFlagValue(
+        FEATURE_FLAGS.TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT,
+      ) as string;
+
+      return featureVariant === TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT_VARIANTS.VARIANT_1 ? (
+        <VariantDebugButton />
+      ) : (
+        <ControlDebugMessage />
+      );
+    } catch (error) {
+      console.error('Error in TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT: ', error.toString());
+      return <ControlDebugMessage />;
+    }
+  };
 
   const [isCopied, setIsCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -138,39 +229,7 @@ const ResponseView = () => {
             </div>
           </div>
         )}
-        <div className="py-4 text-gray-500">
-          Something went wrong? try{' '}
-          <span
-            className="font-semibold border-b border-solid pb-0.5 cursor-pointer text-blue-500 border-blue-500"
-            onClick={async () => {
-              // Toggle debug bar
-              const debugSwitcher = document.querySelector('.debug-switcher');
-              // trigger click on debug bar
-              if (debugSwitcher && !debugSwitcher?.classList.contains('active')) {
-                debugSwitcher.dispatchEvent(new Event('click', { bubbles: true }));
-              }
-
-              // Open debug modal for the current skill
-              const componentElement = document.getElementById(selectedSkill?.skillId);
-              if (componentElement) {
-                const component = componentElement['_control'];
-                if (component && typeof component.openDebugDialog === 'function') {
-                  // Fire telemetry event
-                  const { PostHog } = await import('@src/shared/posthog');
-                  PostHog.track('debug_modal_opened', {
-                    source: 'test_as_form',
-                  });
-
-                  // Open the debug dialog with 'run' operation
-                  await component.openDebugDialog(new Event('click'), 'run', lastFormValues);
-                }
-              }
-            }}
-          >
-            debugging
-          </span>{' '}
-          to fix errors.
-        </div>
+        <div className="py-4 text-gray-500">{getDebugComponent()}</div>
         {callSkillMutation.isError && (
           <div>
             <h3 className="font-semibold">Error</h3>

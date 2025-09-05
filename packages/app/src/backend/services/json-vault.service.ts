@@ -1,5 +1,5 @@
 import { VaultSecret } from '../routes/router.utils';
-import { includeAxiosAuth, smythAPIReq, smythVaultAPI } from '../utils';
+import { includeAxiosAuth, smythVaultAPI } from '../utils';
 
 export async function setVaultSecret({ token, teamId, key, value, metadata, secretId }) {
   if (!token) {
@@ -7,7 +7,7 @@ export async function setVaultSecret({ token, teamId, key, value, metadata, secr
   }
   try {
     const createdSecretResponse = await smythVaultAPI.post(
-      `/api/vault/secret`,
+      `/vault/secret`,
       {
         teamId,
         secretId,
@@ -30,7 +30,7 @@ export async function getVaultAllSecrets({ token, teamId, metadataFilter = '' })
   }
   try {
     const allSecretsResponse = await smythVaultAPI.get(
-      `/api/vault/${teamId}/secrets${metadataFilter ? `?metadataFilter=${metadataFilter}` : ''}`,
+      `/vault/${teamId}/secrets${metadataFilter ? `?metadataFilter=${metadataFilter}` : ''}`,
       includeAxiosAuth(token),
     );
 
@@ -52,19 +52,19 @@ export async function getSpecificVaultSecret({
   try {
     if (secretId) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/vault/${teamId}/secrets/${secretId}`,
+        `/vault/${teamId}/secrets/${secretId}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data?.secret
-        ? formatHashicorpSecret(secretResponse.data?.secret, teamId)
+        ? formatSecretData(secretResponse.data?.secret, teamId)
         : {};
     } else if (secretName) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/vault/${teamId}/secrets/name/${secretName}`,
+        `/vault/${teamId}/secrets/name/${secretName}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data?.secret
-        ? formatHashicorpSecret(secretResponse.data?.secret, teamId)
+        ? formatSecretData(secretResponse.data?.secret, teamId)
         : {};
     }
   } catch (error) {
@@ -78,40 +78,10 @@ export async function deleteSpecificVaultSecret({ token, teamId, secretId }) {
   }
   try {
     const deleteSecretResponse = await smythVaultAPI.delete(
-      `/api/vault/${teamId}/secrets/${secretId}`,
+      `/vault/${teamId}/secrets/${secretId}`,
       includeAxiosAuth(token),
     );
     return deleteSecretResponse.data;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-export async function syncVaultSecretToHashicorp(token, teamId, allSecrets) {
-  if (!token) {
-    throw new Error('Missing Id Token');
-  }
-  try {
-    const promises = [];
-    for (const key in allSecrets) {
-      if (!allSecrets[key]?.metadata?.isSynced) {
-        promises.push(
-          setVaultSecret({
-            token,
-            teamId,
-            key: allSecrets[key].name,
-            value: allSecrets[key].key,
-            secretId: key,
-            metadata: {
-              owner: allSecrets[key].owner,
-              scope: JSON.stringify(allSecrets[key].scope || []),
-            },
-          }),
-        );
-      }
-    }
-    const syncVaultSecretsData = await Promise.all(promises);
-    return syncVaultSecretsData;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -128,7 +98,7 @@ export async function markSecretAsInvalid({ token, teamId, secretId }) {
       isInvalid: true,
     };
     const secretResponse = await smythVaultAPI.put(
-      `/api/vault/${teamId}/secrets/${secretId}/metadata`,
+      `/vault/${teamId}/secrets/${secretId}/metadata`,
       {
         metadata: updatedMetadata,
       },
@@ -146,7 +116,7 @@ export async function getVaultSecretsCount({ token, teamId }) {
   }
   try {
     const secretsCountResponse = await smythVaultAPI.get(
-      `/api/vault/${teamId}/count/secrets`,
+      `/vault/${teamId}/count/secrets`,
       includeAxiosAuth(token),
     );
 
@@ -156,7 +126,7 @@ export async function getVaultSecretsCount({ token, teamId }) {
   }
 }
 
-export function formatHashicorpSecret(secret, team) {
+export function formatSecretData(secret, team) {
   return {
     key: secret.value,
     name: secret.key,
@@ -167,11 +137,11 @@ export function formatHashicorpSecret(secret, team) {
   };
 }
 
-export function mapHashicorpSecretsToTeamSettingObj(hashicorpSecrets, team) {
+export function mapSecretsTeamSettingObj(secrets, team) {
   const formattedSecrets = {};
-  for (const secret of hashicorpSecrets) {
+  for (const secret of secrets) {
     if (secret?.id) {
-      formattedSecrets[`${secret.id}`] = formatHashicorpSecret(secret, team);
+      formattedSecrets[`${secret.id}`] = formatSecretData(secret, team);
     }
   }
   return formattedSecrets;
@@ -247,13 +217,13 @@ export async function checkIfVaultSecretExists({
   try {
     if (secretId) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/vault/${teamId}/secrets/${secretId}/exists`,
+        `/vault/${teamId}/secrets/${secretId}/exists`,
         includeAxiosAuth(token),
       );
       return secretResponse.data;
     } else if (secretName) {
       const secretResponse = await smythVaultAPI.get(
-        `/api/vault/${teamId}/secrets/name/${secretName}/exists?excludeId=${excludeId}`,
+        `/vault/${teamId}/secrets/name/${secretName}/exists?excludeId=${excludeId}`,
         includeAxiosAuth(token),
       );
       return secretResponse.data;

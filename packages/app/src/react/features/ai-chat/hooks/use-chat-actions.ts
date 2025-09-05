@@ -170,6 +170,8 @@ export const useChatActions = ({
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.type === 'system') {
+                // Show initial processing message and loading indicator
+                lastMessage.message = 'Processing your request...';
                 lastMessage.isReplying = true; // Show loading indicator for system message
               }
               return newMessages;
