@@ -17,7 +17,7 @@ export const ChatHeader: FC<ChatHeaderProps> = ({ agentName, avatar, isLoading }
   const { clearChatSession } = useChatContext();
 
   return (
-    <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10">
+    <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10 px-2.5 lg:px-0">
       <div className="w-full max-w-4xl flex justify-between items-center">
         {/* Left side - Avatar and Agent Name */}
         <div className="flex items-center gap-3">

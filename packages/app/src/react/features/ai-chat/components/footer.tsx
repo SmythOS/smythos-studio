@@ -20,10 +20,10 @@ export const Footer: FC<FooterProps> = (props) => {
   const { uploadError, clearError, queryInputRef, submitDisabled } = props;
 
   return (
-    <>
+    <div className="w-full max-w-4xl">
       {uploadError.show && <ErrorToast message={uploadError.message} onClose={clearError} />}
       <QueryInput ref={queryInputRef} submitDisabled={submitDisabled} />
       <WarningInfo infoMessage={CHAT_WARNING_INFO} />
-    </>
+    </div>
   );
 };

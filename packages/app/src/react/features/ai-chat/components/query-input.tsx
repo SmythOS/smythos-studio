@@ -152,7 +152,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
 
     return (
       <div
-        className="w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 pt-2.5 text-sm flex flex-col items-start justify-center cursor-text"
+        className="w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 mt-2.5 text-sm flex flex-col items-start justify-center cursor-text"
         onClick={handleContainerClick}
       >
         {files.length > 0 && (
