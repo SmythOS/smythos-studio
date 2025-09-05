@@ -25,6 +25,7 @@ import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
+import { plugins, PluginType } from '@src/react/shared/plugins/Plugins';
 import { queryClient } from '@src/react/shared/query-client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -251,6 +252,16 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
         }
       }
     }, [authContext?.userInfo]);
+    // Resolve WelcomeInvitePage from plugin registry (enterprise provides it)
+    const welcomeInvitePlugins = plugins.getPluginsByTarget(
+      'WelcomeInvitePage',
+      PluginType.Function,
+    );
+    const createWelcomeInvitePage =
+      (welcomeInvitePlugins[0] as any)?.type === PluginType.Function
+        ? (welcomeInvitePlugins[0] as any).function
+        : null;
+
     return (
       <>
         {appState.isShareAgentModalOpen && !authContext?.userInfo && (
@@ -258,16 +269,16 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
             <Spinner />
           </div>
         )}
-        {/* {appState?.isShareAgentModalOpen && (
+        {appState?.isShareAgentModalOpen && createWelcomeInvitePage && (
           <div className="fixed inset-0">
-            <WelcomeInvitePage
-              isShareAgent={true}
-              onClose={() => appState.toggleShareAgentModal()}
-              agentId={workspace.agent.id}
-              agentName={workspace.agent.name}
-            />
+            {createWelcomeInvitePage({
+              isShareAgent: true,
+              onClose: () => appState.toggleShareAgentModal(),
+              agentId: workspace.agent.id,
+              agentName: workspace.agent.name,
+            })}
           </div>
-        )} */}
+        )}
         {showConfirmationModal && (
           <div className="fixed inset-0">
             <ConfirmModal
