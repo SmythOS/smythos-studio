@@ -170,9 +170,10 @@ const AIChat = () => {
     <ChatProvider value={chatContextValue}>
       <Container>
         <ChatHeader
-          avatar={agentSettings?.avatar}
           agentName={agent?.name}
-          isLoading={isAgentSettingsLoading}
+          avatar={agentSettings?.avatar}
+          isAgentLoading={isAgentLoading}
+          isAvatarLoading={isAgentSettingsLoading}
         />
 
         <Chats

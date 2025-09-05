@@ -6,14 +6,29 @@ import { Link } from 'react-router-dom';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
+import { cn } from '@src/react/shared/utils/general';
+
+/**
+ * Skeleton component
+ */
+const Skeleton: FC<{ className?: string }> = ({ className }) => (
+  <div
+    className={cn(
+      'bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse',
+      className,
+    )}
+  />
+);
 
 interface ChatHeaderProps {
-  agentName?: string;
   avatar?: string;
-  isLoading?: boolean;
+  agentName?: string;
+  isAgentLoading?: boolean;
+  isAvatarLoading?: boolean;
 }
 
-export const ChatHeader: FC<ChatHeaderProps> = ({ agentName, avatar, isLoading }) => {
+export const ChatHeader: FC<ChatHeaderProps> = (props) => {
+  const { avatar, agentName, isAgentLoading, isAvatarLoading } = props;
   const { clearChatSession } = useChatContext();
 
   return (
@@ -21,12 +36,25 @@ export const ChatHeader: FC<ChatHeaderProps> = ({ agentName, avatar, isLoading }
       <div className="w-full max-w-4xl flex justify-between items-center">
         {/* Left side - Avatar and Agent Name */}
         <div className="flex items-center gap-3">
-          <img
-            src={avatar ?? DEFAULT_AVATAR_URL}
-            alt="avatar"
-            className={`size-8 rounded-full ${isLoading && 'animate-pulse'}`}
-          />
-          <div className="text-lg font-medium text-[#111827]">{agentName || '...'}</div>
+          {isAvatarLoading ? (
+            <Skeleton className="size-8 rounded-full" />
+          ) : (
+            <img
+              src={avatar ?? DEFAULT_AVATAR_URL}
+              alt="avatar"
+              className="size-8 rounded-full transition-opacity duration-300 ease-in-out"
+            />
+          )}
+
+          <div className="flex items-center">
+            {isAgentLoading ? (
+              <Skeleton className="w-24 h-6" />
+            ) : (
+              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
+                {agentName || 'Unknown Agent'}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Right side - Action buttons */}
