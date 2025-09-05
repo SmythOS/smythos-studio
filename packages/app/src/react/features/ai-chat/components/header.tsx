@@ -48,7 +48,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
           <div className="flex items-center">
             {isAgentLoading ? (
-              <Skeleton className="w-24 h-6" />
+              <Skeleton className="w-24 h-6 rounded-md" />
             ) : (
               <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
                 {agentName || 'Unknown Agent'}
