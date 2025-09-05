@@ -43,9 +43,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       isGenerating,
       stopGenerating,
       uploadingFiles,
-      inputDisabled: isQueryInputDisabled,
-      inputPlaceholder: queryInputPlaceholder,
-      isInputProcessing: isQueryInputProcessing,
+      inputDisabled,
+      inputPlaceholder,
+      isInputProcessing,
       handleFileDrop,
       handleFileChange,
       isMaxFilesUploaded,
@@ -86,7 +86,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     );
 
     const handleSubmit = useCallback((): void => {
-      if (isQueryInputDisabled) return;
+      if (inputDisabled) return;
       if (isGenerating) return stopGenerating();
 
       const trimmedMessage = message.trim();
@@ -98,7 +98,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           fileInputRef.current.value = '';
         }
       }
-    }, [message, files, isGenerating, isQueryInputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [message, files, isGenerating, inputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleKeyDown = useCallback(
       (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -130,16 +130,17 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
       e.preventDefault();
       const pasted = e.clipboardData.getData('text/plain');
+      const text = message ? `${message} ${pasted}` : pasted;
       if (pasted.length >= LARGE_TEXT_THRESHOLD) {
-        const file = createFileFromText(message + pasted);
+        const file = createFileFromText(text);
         handleFileDrop([file.file]);
         setMessage('');
-      } else setMessage((prev) => prev + pasted);
+      } else setMessage(text);
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.scrollTop = inputRef.current.scrollHeight;
           inputRef.current.selectionStart = inputRef.current.selectionEnd =
-            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : (message + pasted).length;
+            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : text.length;
         }
       }, 0);
     };
@@ -193,7 +194,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             onPaste={handlePaste}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={queryInputPlaceholder}
+            placeholder={inputPlaceholder}
             maxLength={maxLength}
             className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
             aria-label="Message input"
@@ -215,7 +216,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             <AttachmentButton
               onClick={handleAttachmentClick}
               fileAttachmentDisabled={
-                isMaxFilesUploaded || isQueryInputDisabled || isQueryInputProcessing || isGenerating
+                isMaxFilesUploaded || inputDisabled || isInputProcessing || isGenerating
               }
               isMaxFilesUploaded={isMaxFilesUploaded}
             />
@@ -223,8 +224,8 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
           <div onClick={(e) => e.stopPropagation()}>
             <SendButton
-              isProcessing={isQueryInputProcessing || isGenerating}
-              disabled={isQueryInputDisabled || !canSubmit}
+              isProcessing={isInputProcessing || isGenerating}
+              disabled={inputDisabled || !canSubmit}
               onClick={handleSubmit}
             />
           </div>
