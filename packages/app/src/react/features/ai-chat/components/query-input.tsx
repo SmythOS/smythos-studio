@@ -19,12 +19,12 @@ import { createFileFromText } from '@react/features/ai-chat/utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@src/react/shared/utils/general';
 
-interface QueryInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
+interface ChatInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
   submitDisabled?: boolean;
   maxLength?: number;
 }
 
-export interface QueryInputRef {
+export interface ChatInputRef {
   focus: () => void;
   getValue: () => string;
   setValue: (content: string) => void; // eslint-disable-line no-unused-vars
@@ -33,7 +33,7 @@ export interface QueryInputRef {
 const TEXTAREA_MAX_HEIGHT = 160;
 const LARGE_TEXT_THRESHOLD = 4000;
 
-export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
+export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
   ({ submitDisabled = false, maxLength = MAX_CHAT_MESSAGE_LENGTH }, ref) => {
     const {
       files,
@@ -43,9 +43,9 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
       isGenerating,
       stopGenerating,
       uploadingFiles,
-      isQueryInputDisabled,
-      queryInputPlaceholder,
-      isQueryInputProcessing,
+      inputDisabled: isQueryInputDisabled,
+      inputPlaceholder: queryInputPlaceholder,
+      isInputProcessing: isQueryInputProcessing,
       handleFileDrop,
       handleFileChange,
       isMaxFilesUploaded,

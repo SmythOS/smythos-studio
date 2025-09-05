@@ -14,12 +14,12 @@ interface ChatContextType {
   uploadError: { show: boolean; message: string };
   clearError: () => void;
 
-  isGenerating: boolean;
-  isQueryInputProcessing: boolean;
   isRetrying: boolean;
-  chatHistoryMessages: IChatMessage[];
-  queryInputPlaceholder: string;
-  isQueryInputDisabled: boolean;
+  isGenerating: boolean;
+  inputDisabled: boolean;
+  inputPlaceholder: string;
+  isInputProcessing: boolean;
+  messagesHistory: IChatMessage[];
 
   sendMessage: (query: string, files?: FileWithMetadata[]) => void;
   retryLastMessage: () => void;

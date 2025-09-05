@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   ChatHeader,
+  ChatInputRef,
   Chats,
   Container,
   Footer,
-  QueryInputRef,
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
 import {
@@ -25,7 +25,7 @@ import { Analytics } from '@shared/posthog/services/analytics';
 const AIChat = () => {
   const params = useParams<{ agentId: string }>();
   const agentId = params?.agentId;
-  const queryInputRef = useRef<QueryInputRef>(null);
+  const chatInputRef = useRef<ChatInputRef>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isFirstMessageSentRef = useRef(false);
   const navigate = useNavigate();
@@ -60,9 +60,9 @@ const AIChat = () => {
   } = useFileUpload();
 
   const {
-    chatHistoryMessages,
+    messagesHistory,
     isGenerating,
-    isQueryInputProcessing,
+    isInputProcessing,
     isRetrying,
     sendMessage,
     retryLastMessage,
@@ -80,7 +80,7 @@ const AIChat = () => {
   });
 
   // Fast memoized values - minimal dependencies
-  const isQueryInputDisabled = isChatCreating || isAgentLoading || isQueryInputProcessing;
+  const inputDisabled = isChatCreating || isAgentLoading || isInputProcessing;
   const queryInputPlaceholder = agent ? `Message ${agent?.name}...` : 'Message ...';
   const isMaxFilesUploaded = files.length >= FILE_LIMITS.MAX_ATTACHED_FILES;
 
@@ -112,7 +112,7 @@ const AIChat = () => {
     isFirstMessageSentRef.current = false;
     clearMessages();
     await createNewChatSession();
-    queryInputRef.current?.focus();
+    chatInputRef.current?.focus();
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_END);
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
@@ -129,8 +129,8 @@ const AIChat = () => {
   }, [agentSettings, agent, agentId, createNewChatSession]);
 
   useEffect(() => {
-    if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
-  }, [isAgentLoading, isQueryInputDisabled]);
+    if (!isAgentLoading && !inputDisabled) chatInputRef.current?.focus();
+  }, [isAgentLoading, inputDisabled]);
 
   useEffect(() => {
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
@@ -153,11 +153,11 @@ const AIChat = () => {
 
     // Chat state
     isGenerating,
-    isQueryInputProcessing,
+    isInputProcessing,
     isRetrying,
-    chatHistoryMessages,
-    queryInputPlaceholder,
-    isQueryInputDisabled,
+    messagesHistory,
+    inputPlaceholder: queryInputPlaceholder,
+    inputDisabled,
 
     // Chat actions
     sendMessage,
@@ -178,14 +178,14 @@ const AIChat = () => {
         <Chats
           {...scroll}
           agent={agent}
-          messages={chatHistoryMessages}
+          messages={messagesHistory}
           containerRef={chatContainerRef}
           handleFileDrop={handleFileDrop}
         />
         <Footer
           uploadError={uploadError}
           clearError={clearError}
-          queryInputRef={queryInputRef}
+          chatInputRef={chatInputRef}
           submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
         />
       </Container>
