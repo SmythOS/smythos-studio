@@ -22,6 +22,7 @@ export class ScrollManager {
   private scrollContainer: HTMLElement | null = null;
   private isScrolling = false;
   private scrollTimeout: number | null = null;
+  private lastForceScrollTime = 0;
 
   static getInstance(): ScrollManager {
     if (!ScrollManager.instance) {
@@ -92,6 +93,17 @@ export class ScrollManager {
     return new Promise((resolve) => {
       const { behavior = 'smooth', force = false, delay = 0 } = options;
 
+      // Prevent too frequent force scrolls (reduced cooldown for better UX)
+      if (force) {
+        const now = Date.now();
+        if (now - this.lastForceScrollTime < 100) {
+          // 100ms cooldown (reduced from 500ms)
+          resolve();
+          return;
+        }
+        this.lastForceScrollTime = now;
+      }
+
       // Clear any existing scroll timeout
       if (this.scrollTimeout) {
         clearTimeout(this.scrollTimeout);
@@ -99,6 +111,7 @@ export class ScrollManager {
 
       const performScroll = () => {
         const container = this.getContainer();
+
         if (!container) {
           resolve();
           return;
@@ -147,6 +160,24 @@ export class ScrollManager {
   }
 
   /**
+   * Force scroll to bottom bypassing cooldown (for user-initiated scrolls)
+   */
+  forceScrollToBottomImmediate(options: ScrollToBottomOptions = {}): Promise<void> {
+    const originalCooldown = this.lastForceScrollTime;
+    this.lastForceScrollTime = 0; // Reset cooldown
+
+    // Explicitly set force to true and ensure it's not overridden
+    const forceOptions: ScrollToBottomOptions = {
+      ...options,
+      force: true,
+    };
+
+    return this.scrollToBottom(forceOptions).finally(() => {
+      this.lastForceScrollTime = originalCooldown; // Restore original cooldown
+    });
+  }
+
+  /**
    * Smart scroll that respects user's scroll position
    */
   smartScrollToBottom(options: ScrollToBottomOptions = {}): Promise<void> {
@@ -189,6 +220,13 @@ export class ScrollManager {
   }
 
   /**
+   * Reset force scroll cooldown (useful for user-initiated scrolls)
+   */
+  resetForceScrollCooldown(): void {
+    this.lastForceScrollTime = 0;
+  }
+
+  /**
    * Clean up resources
    */
   destroy(): void {
@@ -210,6 +248,9 @@ export const scrollToBottom = (options?: ScrollToBottomOptions) =>
 
 export const forceScrollToBottom = (options?: ScrollToBottomOptions) =>
   scrollManager.forceScrollToBottom(options);
+
+export const forceScrollToBottomImmediate = (options?: ScrollToBottomOptions) =>
+  scrollManager.forceScrollToBottomImmediate(options);
 
 export const smartScrollToBottom = (options?: ScrollToBottomOptions) =>
   scrollManager.smartScrollToBottom(options);
