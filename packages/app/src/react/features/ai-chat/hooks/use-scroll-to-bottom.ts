@@ -48,10 +48,7 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
       if (!shouldAutoScroll) return;
 
       // Use professional scroll manager
-      scrollManager.smartScrollToBottom({
-        behavior: smooth ? 'smooth' : 'auto',
-        delay: 0,
-      });
+      scrollManager.smartScrollToBottom({ behavior: smooth ? 'smooth' : 'auto', delay: 0 });
     },
     [shouldAutoScroll],
   );
