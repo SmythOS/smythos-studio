@@ -69,6 +69,7 @@ export const Chats: FC<MessagesProps> = (props) => {
                   isRetrying={retry}
                   isError={message.isError}
                   onRetryClick={onRetryClick}
+                  scrollToBottom={scrollToBottom}
                 />
 
                 {retry && (

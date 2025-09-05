@@ -10,7 +10,11 @@ import { IChatMessage } from '@react/shared/types/chat.types';
 
 import '../styles/index.css';
 
-export const Chat: FC<IChatMessage> = ({
+interface ChatProps extends IChatMessage {
+  scrollToBottom?: () => void;
+}
+
+export const Chat: FC<ChatProps> = ({
   me,
   files,
   avatar,
@@ -20,32 +24,26 @@ export const Chat: FC<IChatMessage> = ({
   isRetrying,
   onRetryClick,
   isError = false,
-  hideMessageBubble,
+  hideMessage,
   thinkingMessage,
+  scrollToBottom,
 }) => {
-  if (me) {
-    return <UserMessage message={message} files={files} hideMessageBubble={hideMessageBubble} />;
-  }
+  if (isReplying || isRetrying) return <ReplyLoader />;
+  if (me && !hideMessage) return <UserMessage message={message} files={files} />;
+  if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
 
-  // Handle thinking messages
-  if (type === 'thinking') {
-    return <ThinkingMessage message={message} avatar={avatar} />;
-  }
-
-  return isReplying || isRetrying ? (
-    <ReplyLoader avatar={avatar} />
-  ) : (
-    <div className={me ? 'pl-[100px]' : ''}>
-      {!hideMessageBubble && (
-        <SystemMessage
-          avatar={avatar}
-          message={message}
-          isError={isError}
-          onRetryClick={onRetryClick}
-          isRetrying={isRetrying}
-          thinkingMessage={thinkingMessage}
-        />
-      )}
-    </div>
+  return (
+    !hideMessage && (
+      <SystemMessage
+        avatar={avatar}
+        message={message}
+        isError={isError}
+        onRetryClick={onRetryClick}
+        isRetrying={isRetrying}
+        thinkingMessage={thinkingMessage}
+        onTypingProgress={() => scrollToBottom?.()}
+        enableTypingAnimation={!isReplying && !isRetrying && !isError}
+      />
+    )
   );
 };
