@@ -1,38 +1,73 @@
 import { RefObject, useCallback, useEffect, useState } from 'react';
 
-export const useScrollToBottom = (containerRef: RefObject<HTMLElement>) => {
+import { scrollManager } from '@react/features/ai-chat/utils/scroll-utils';
+
+export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Initialize scroll manager with container
+  useEffect(() => {
+    if (ref.current) {
+      scrollManager.init(ref.current);
+    }
+  }, [ref]);
 
   const handleScroll = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.toString().length > 0) return;
 
-    if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    if (ref.current) {
+      const { scrollTop, scrollHeight, clientHeight } = ref.current;
       const isScrolledUp = scrollHeight - scrollTop > clientHeight + 100; // 100px threshold
       setShowScrollButton(isScrolledUp);
+
+      // Update auto-scroll state based on scroll position
+      const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      setShouldAutoScroll(isNearBottom);
     }
-  }, [containerRef]);
+  }, [ref]);
 
   const scrollToBottom = useCallback(
     (smooth: boolean = true) => {
-      if (containerRef.current) {
-        containerRef.current.scrollTo({
-          top: containerRef.current.scrollHeight,
+      if (ref.current) {
+        ref.current.scrollTo({
+          top: ref.current.scrollHeight,
           behavior: smooth ? 'smooth' : 'auto',
         });
+        // When user manually scrolls to bottom, enable auto-scroll
+        setShouldAutoScroll(true);
       }
     },
-    [containerRef],
+    [ref],
+  );
+
+  // Professional smart scroll function
+  const smartScrollToBottom = useCallback(
+    (smooth: boolean = true) => {
+      if (!shouldAutoScroll) return;
+
+      // Use professional scroll manager
+      scrollManager.smartScrollToBottom({ behavior: smooth ? 'smooth' : 'auto', delay: 0 });
+    },
+    [shouldAutoScroll],
   );
 
   useEffect(() => {
-    const container = containerRef.current;
+    const container = ref.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [containerRef, handleScroll]);
+  }, [ref, handleScroll]);
 
-  return { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton };
+  return {
+    showScrollButton,
+    handleScroll,
+    scrollToBottom,
+    setShowScrollButton,
+    shouldAutoScroll,
+    smartScrollToBottom,
+    setShouldAutoScroll,
+  };
 };

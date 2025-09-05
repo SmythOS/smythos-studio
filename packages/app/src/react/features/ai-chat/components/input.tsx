@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-import classNames from 'classnames';
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -18,15 +16,19 @@ import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/a
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { createFileFromText } from '@react/features/ai-chat/utils';
+import {
+  forceScrollToBottomImmediate,
+  scrollManager,
+} from '@react/features/ai-chat/utils/scroll-utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
+import { cn } from '@src/react/shared/utils/general';
 
-interface QueryInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
-  className?: string;
+interface ChatInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
   submitDisabled?: boolean;
   maxLength?: number;
 }
 
-export interface QueryInputRef {
+export interface ChatInputRef {
   focus: () => void;
   getValue: () => string;
   setValue: (content: string) => void; // eslint-disable-line no-unused-vars
@@ -35,8 +37,8 @@ export interface QueryInputRef {
 const TEXTAREA_MAX_HEIGHT = 160;
 const LARGE_TEXT_THRESHOLD = 4000;
 
-export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
-  ({ className, submitDisabled = false, maxLength = MAX_CHAT_MESSAGE_LENGTH }, ref) => {
+export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
+  ({ submitDisabled = false, maxLength = MAX_CHAT_MESSAGE_LENGTH }, ref) => {
     const {
       files,
       removeFile,
@@ -45,9 +47,9 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
       isGenerating,
       stopGenerating,
       uploadingFiles,
-      isQueryInputDisabled,
-      queryInputPlaceholder,
-      isQueryInputProcessing,
+      inputDisabled,
+      inputPlaceholder,
+      isInputProcessing,
       handleFileDrop,
       handleFileChange,
       isMaxFilesUploaded,
@@ -98,17 +100,51 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        // Professional scroll to bottom after sending message
+        // Ensure scroll manager is initialized with the chat container
+        let chatContainer = document.querySelector('[data-chat-container]') as HTMLElement;
+
+        // Fallback: try to find container by class
+        if (!chatContainer) {
+          chatContainer = document.querySelector('.overflow-auto') as HTMLElement;
+        }
+
+        // Fallback: try to find container by scroll-smooth class
+        if (!chatContainer) {
+          chatContainer = document.querySelector('.scroll-smooth') as HTMLElement;
+        }
+
+        if (chatContainer) {
+          scrollManager.init(chatContainer);
+        } else {
+          // Try to use existing container if any
+          const existingContainer = scrollManager.getContainer();
+          if (!existingContainer) {
+            return; // No container available, skip scroll
+          }
+        }
+
+        // Reset cooldown to ensure user-initiated scrolls always work
+        scrollManager.resetForceScrollCooldown();
+
+        // Add a small delay to ensure the message is added to DOM first
+        setTimeout(() => {
+          forceScrollToBottomImmediate({
+            behavior: 'smooth',
+            delay: 0,
+          });
+        }, 150); // 150ms delay to ensure DOM is updated
       }
-    }, [message, files, sendMessage, isGenerating, stopGenerating, clearFiles]);
+    }, [message, files, isGenerating, inputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleKeyDown = useCallback(
       (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
-          handleSubmit();
+          !isGenerating && handleSubmit();
         }
       },
-      [handleSubmit],
+      [handleSubmit, isGenerating],
     );
 
     const handleRemoveFile = useCallback(
@@ -131,16 +167,17 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
     const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
       e.preventDefault();
       const pasted = e.clipboardData.getData('text/plain');
+      const text = message ? `${message} ${pasted}` : pasted;
       if (pasted.length >= LARGE_TEXT_THRESHOLD) {
-        const file = createFileFromText(pasted);
+        const file = createFileFromText(text);
         handleFileDrop([file.file]);
         setMessage('');
-      } else setMessage((prev) => prev + pasted);
+      } else setMessage(text);
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.scrollTop = inputRef.current.scrollHeight;
           inputRef.current.selectionStart = inputRef.current.selectionEnd =
-            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : (message + pasted).length;
+            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : text.length;
         }
       }, 0);
     };
@@ -153,15 +190,12 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
 
     return (
       <div
-        className={classNames(
-          'bg-white border border-solid border-[#e5e5e5] rounded-lg min-h-[60px] py-1 text-sm flex flex-col items-center justify-center cursor-text',
-          className,
-        )}
+        className="w-full bg-white border border-solid border-[#e5e5e5] rounded-lg py-1 mt-2.5 text-sm flex flex-col items-start justify-center cursor-text"
         onClick={handleContainerClick}
       >
         {files.length > 0 && (
           <div
-            className="flex flex-nowrap gap-2 w-full px-2.5 py-5 overflow-x-auto"
+            className="flex flex-nowrap gap-2 w-full h-full px-2.5 py-5 overflow-x-auto"
             role="list"
             aria-label="Attached files"
           >
@@ -177,10 +211,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
         )}
 
         <div
-          className={classNames(
-            'rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px] cursor-text',
-            className,
-          )}
+          className="rounded-lg py-1 px-2.5 flex items-center text-sm w-full min-h-[60px] cursor-text"
           onClick={handleContainerClick}
         >
           <input
@@ -200,8 +231,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
             onPaste={handlePaste}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            disabled={isQueryInputDisabled}
-            placeholder={queryInputPlaceholder}
+            placeholder={inputPlaceholder}
             maxLength={maxLength}
             className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
             aria-label="Message input"
@@ -209,7 +239,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
           />
 
           <div
-            className={classNames(
+            className={cn(
               'text-xs mr-2 w-[75px] text-right flex-shrink-0',
               isMaxLengthReached ? 'text-red-500' : 'text-gray-500',
             )}
@@ -223,7 +253,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
             <AttachmentButton
               onClick={handleAttachmentClick}
               fileAttachmentDisabled={
-                isMaxFilesUploaded || isQueryInputDisabled || isQueryInputProcessing || isGenerating
+                isMaxFilesUploaded || inputDisabled || isInputProcessing || isGenerating
               }
               isMaxFilesUploaded={isMaxFilesUploaded}
             />
@@ -231,7 +261,7 @@ export const QueryInput = forwardRef<QueryInputRef, QueryInputProps>(
 
           <div onClick={(e) => e.stopPropagation()}>
             <SendButton
-              isProcessing={isQueryInputProcessing || isGenerating}
+              isProcessing={isInputProcessing || isGenerating}
               disabled={!canSubmit}
               onClick={handleSubmit}
             />

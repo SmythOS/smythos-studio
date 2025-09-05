@@ -3,15 +3,12 @@ import { FaCheck, FaRegCopy } from 'react-icons/fa';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { materialDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-interface CodeBlockWithCopyButtonProps {
+interface CodeBlock {
   language: string;
   children: string;
 }
 
-export const CodeBlockWithCopyButton: FC<CodeBlockWithCopyButtonProps> = ({
-  language,
-  children,
-}) => {
+export const CodeBlock: FC<CodeBlock> = ({ language, children }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopyClick = () => {
