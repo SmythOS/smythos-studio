@@ -469,7 +469,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
             </Tooltip>
             <Tooltip content="Close" placement="top">
               <div
-                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2"
                 onClick={(e) => {
                   e?.stopPropagation();
                   handleClose();

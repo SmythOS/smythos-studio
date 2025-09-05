@@ -80,7 +80,7 @@ const ChatbotCodeSnippetModal = (props: Props) => {
           </h3>
           <button
             type="button"
-            className="inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white -mr-2"
+            className="inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white -mr-2"
             onClick={props.onClose}
           >
             <CloseIcon width={16} height={16} />
