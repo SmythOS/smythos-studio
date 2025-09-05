@@ -16,7 +16,10 @@ import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/a
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { createFileFromText } from '@react/features/ai-chat/utils';
-import { forceScrollToBottom } from '@react/features/ai-chat/utils/scroll-utils';
+import {
+  forceScrollToBottomImmediate,
+  scrollManager,
+} from '@react/features/ai-chat/utils/scroll-utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@src/react/shared/utils/general';
 
@@ -98,10 +101,39 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           fileInputRef.current.value = '';
         }
         // Professional scroll to bottom after sending message
-        forceScrollToBottom({
-          behavior: 'smooth',
-          delay: 50, // Small delay to ensure DOM updates
-        });
+        // Ensure scroll manager is initialized with the chat container
+        let chatContainer = document.querySelector('[data-chat-container]') as HTMLElement;
+
+        // Fallback: try to find container by class
+        if (!chatContainer) {
+          chatContainer = document.querySelector('.overflow-auto') as HTMLElement;
+        }
+
+        // Fallback: try to find container by scroll-smooth class
+        if (!chatContainer) {
+          chatContainer = document.querySelector('.scroll-smooth') as HTMLElement;
+        }
+
+        if (chatContainer) {
+          scrollManager.init(chatContainer);
+        } else {
+          // Try to use existing container if any
+          const existingContainer = scrollManager.getContainer();
+          if (!existingContainer) {
+            return; // No container available, skip scroll
+          }
+        }
+
+        // Reset cooldown to ensure user-initiated scrolls always work
+        scrollManager.resetForceScrollCooldown();
+
+        // Add a small delay to ensure the message is added to DOM first
+        setTimeout(() => {
+          forceScrollToBottomImmediate({
+            behavior: 'smooth',
+            delay: 0,
+          });
+        }, 150); // 150ms delay to ensure DOM is updated
       }
     }, [message, files, isGenerating, inputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
