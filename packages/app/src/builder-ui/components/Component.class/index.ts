@@ -1076,8 +1076,8 @@ export class Component extends EventEmitter {
       return (await confirm('Deleting Output. Are you sure ?', '', {
         btnYesLabel: 'Delete',
         btnNoLabel: 'Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
         btnNoClass: 'hidden',
+        btnYesType: 'danger',
       }))
         ? this.deleteEndpoint(outputDiv)
         : false;
@@ -1520,8 +1520,8 @@ export class Component extends EventEmitter {
       const _confirm = await confirm('Deleting Input. Are you sure ?', '', {
         btnYesLabel: 'Delete',
         btnNoLabel: 'Cancel',
-        btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
         btnNoClass: 'hidden',
+        btnYesType: 'danger',
       });
 
       if (_confirm) {
@@ -1725,8 +1725,8 @@ export class Component extends EventEmitter {
         'Settings Changed',
         'You have unsaved changes. Are you sure you want to discard your changes?',
         {
-          btnNoLabel: 'Discard Changes',
           btnYesLabel: 'Save Changes',
+          btnNoClass: 'hidden',
         },
       );
       if (saveBeforeClose) {
@@ -1760,7 +1760,6 @@ export class Component extends EventEmitter {
         console.log('new settings', values);
 
         this.emit('settingsSaved', values);
-        successToast('Settings saved');
         return true;
       }
     }
@@ -2412,17 +2411,14 @@ export class Component extends EventEmitter {
             'You have unsaved changes',
             'Are you sure you want to close this without saving?',
             {
-              btnNoLabel: 'Cancel',
               btnYesLabel: 'Discard Changes',
-              btnNoClass: 'h-[48px] rounded-lg px-8',
-              btnYesClass: 'h-[48px] rounded-lg px-8',
+              btnYesClass: 'rounded-lg px-8',
+              btnNoClass: 'hidden',
             },
           );
           if (!discard) return;
         }
       }
-
-      if (!this.settingsOpen && this.loadingIcon) this.loadingIcon?.classList?.remove('hidden');
 
       if (this.settingsOpen) {
         this.closeSettings();
@@ -2635,7 +2631,8 @@ export class Component extends EventEmitter {
         {
           btnYesLabel: 'Delete',
           btnNoLabel: 'Cancel',
-          btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 h-[48px] rounded-lg px-8',
+          // btnYesClass: 'bg-smyth-red-500 border-smyth-red-500 rounded-lg px-8',
+          btnYesType: 'danger',
           btnNoClass: 'hidden',
         },
       ));
@@ -2909,7 +2906,11 @@ export class Component extends EventEmitter {
     }
   }
 
-  public async openDebugDialog(event, operation: 'step' | 'run' = 'step') {
+  public async openDebugDialog(
+    event,
+    operation: 'step' | 'run' = 'step',
+    prefillValues?: Record<string, any>,
+  ) {
     PostHog.track('app_debug_inject_click', {});
     event.stopPropagation();
     event.stopImmediatePropagation();
@@ -2978,6 +2979,7 @@ export class Component extends EventEmitter {
           }
         },
         operation,
+        prefillValues,
       );
     });
   }

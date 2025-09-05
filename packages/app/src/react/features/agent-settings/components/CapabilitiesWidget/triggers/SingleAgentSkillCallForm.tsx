@@ -124,7 +124,7 @@ const SingleAgentSkillCallForm = ({ component }: Props) => {
               label={'Call Endpoint'}
               loading={callSkillMutation.isLoading}
               variant="primary"
-              className="h-[48px] px-8 rounded-lg"
+              className="px-8 rounded-lg"
             />
           </div>
         </Form>

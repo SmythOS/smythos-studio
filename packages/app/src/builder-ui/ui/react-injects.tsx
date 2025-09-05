@@ -25,6 +25,7 @@ import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
+import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { queryClient } from '@src/react/shared/query-client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -236,21 +237,29 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
     const authContext = useAuthCtx();
     const appState = useAppState();
 
-    const shareButton = document.getElementById('share-agent-button-topbar') as HTMLButtonElement;
-    if (shareButton) {
-      shareButton.disabled = !authContext?.userInfo;
-    }
-
+    // Handle button state management in useEffect only to avoid race conditions
     useEffect(() => {
       const shareButton = document.getElementById('share-agent-button-topbar') as HTMLButtonElement;
       if (shareButton) {
         if (!authContext?.userInfo) {
           shareButton.setAttribute('disabled', 'true');
+          console.warn('Share button disabled: User not authenticated');
         } else {
           shareButton.removeAttribute('disabled');
+          console.log('Share button enabled: User authenticated');
         }
       }
     }, [authContext?.userInfo]);
+    // Resolve ShareAgentWithUsers component from plugin registry (enterprise provides it)
+    const shareAgentPlugins = plugins.getPluginsByTarget(
+      PluginTarget.ShareAgentWithUsers,
+      PluginType.Function,
+    );
+    const createShareAgentModal =
+      (shareAgentPlugins[0] as any)?.type === PluginType.Function
+        ? (shareAgentPlugins[0] as any).function
+        : null;
+
     return (
       <>
         {appState.isShareAgentModalOpen && !authContext?.userInfo && (
@@ -258,16 +267,16 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
             <Spinner />
           </div>
         )}
-        {/* {appState?.isShareAgentModalOpen && (
+        {appState?.isShareAgentModalOpen && authContext?.userInfo && createShareAgentModal && (
           <div className="fixed inset-0">
-            <WelcomeInvitePage
-              isShareAgent={true}
-              onClose={() => appState.toggleShareAgentModal()}
-              agentId={workspace.agent.id}
-              agentName={workspace.agent.name}
-            />
+            {createShareAgentModal({
+              isShareAgent: true,
+              onClose: () => appState.toggleShareAgentModal(),
+              agentId: workspace.agent.id,
+              agentName: workspace.agent.name,
+            })}
           </div>
-        )} */}
+        )}
         {showConfirmationModal && (
           <div className="fixed inset-0">
             <ConfirmModal

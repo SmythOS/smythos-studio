@@ -1,8 +1,4 @@
-import {
-  AgentsGrid,
-  AgentsHeader,
-  GenerateAgentForm
-} from '@react/features/agents/components';
+import { AgentsGrid, AgentsHeader, GenerateAgentForm } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
 import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
 import { useAgentsData } from '@react/features/agents/hooks/useAgentsData';
@@ -56,18 +52,18 @@ function AgentsPage() {
     agentsUpdated,
     sortCriteria,
     sortOrder,
+    sortField,
     isLoadingMore,
     isInitialLoading,
     isLoadingAfterAction,
     setAgentsUpdated,
     loadAgents,
+    updateAgentInPlace,
     handleSearch,
     setSortCriteria,
     toggleSortOrder,
     handleLoadMore,
   } = useAgentsData();
-
-  
 
   const { data: userSettings, isFetched: isUserSettingsFetched } = useGetOnboardingData({
     options: {
@@ -80,8 +76,6 @@ function AgentsPage() {
 
   // Trigger first-visit tutorial
   useAgentsPageTutorial();
-
-  
 
   // Scroll to bottom when agents are updated
   useLayoutEffect(() => {
@@ -172,21 +166,20 @@ function AgentsPage() {
       <main className="pl-12 md:pl-0">
         {/* Generate Agent Form Section */}
         <FeatureFlagged featureFlag={FEATURE_FLAGS.INITIATE_WEAVER_MESSAGE}>
-          <GenerateAgentForm
-            onSubmit={handleGenerateAgentSubmit}
-            canEditAgents={canEditAgents}
-          />
+          <GenerateAgentForm onSubmit={handleGenerateAgentSubmit} canEditAgents={canEditAgents} />
         </FeatureFlagged>
-
 
         {/* Onboarding Tasks Section */}
         {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
 
         {/* Agents Section Header */}
         <AgentsHeader
-          sortCriteria={sortCriteria}
+          sortCriteria={sortField}
           sortOrder={sortOrder}
-          onSortCriteriaChange={setSortCriteria}
+          onSortCriteriaChange={(newField) => {
+            // Always maintain isPinned as primary sort
+            setSortCriteria(`isPinned,${newField}`);
+          }}
           onSortOrderToggle={toggleSortOrder}
           onSearch={handleSearch}
           onCreateAgentClick={handleCreateAgentClick}
@@ -202,6 +195,7 @@ function AgentsPage() {
           isLoadingMore={isLoadingMore}
           onLoadMore={handleLoadMore}
           onRefreshAgents={() => loadAgents(1, true)}
+          updateAgentInPlace={updateAgentInPlace}
         />
 
         <div ref={endOfPageRef} />

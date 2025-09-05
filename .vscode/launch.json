@@ -4,26 +4,44 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "SmythOS UI Backend",
+      "name": "Debug UI App (Backend Only)",
       "skipFiles": ["<node_internals>/**"],
-      "preLaunchTask": "cd ${workspaceFolder}/packages/app && pnpm run bundle:backend",
       "program": "${workspaceFolder}/packages/app/dist/server/index.js",
-      "outFiles": ["${workspaceFolder}/packages/app/dist/server/**/*.js"],
-      "sourceMap": true,
-      "outputCapture": "std"
+      "preLaunchTask": "start-ui-debug",
+      "outFiles": ["${workspaceFolder}/packages/app/dist/**/*.js"],
+      "sourceMaps": true,
+      "cwd": "${workspaceFolder}/packages/app",
+      "env": {},
+      "outputCapture": "std",
+      "console": "integratedTerminal"
     },
-
     {
       "type": "node",
       "request": "launch",
       "name": "SmythOS Middleware",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/packages/middleware/dist/index.js",
-      "preLaunchTask": "npm: build",
+      "preLaunchTask": "build-middleware",
       "outFiles": ["${workspaceFolder}/packages/middleware/dist/**/*.js"],
       "sourceMaps": true,
       "env": {},
+
       "outputCapture": "std"
+    },
+    {
+      "name": "Launch Runtime Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/runtime/dist/index.cjs",
+      "preLaunchTask": "runtime: build",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.js"],
+      "cwd": "${workspaceFolder}/packages/runtime",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal"
     },
     {
       "type": "node",

@@ -1,5 +1,4 @@
 import builderScripts from './builder';
-import logsScripts from './logs';
 //import agentsScript from './agents';
 
 export default class PageScriptHandler {
@@ -46,6 +45,5 @@ export default class PageScriptHandler {
 //Register the page script here
 //you can register multiple scripts for the same path
 //PageScriptHandler.register('', agentsScript);
-PageScriptHandler.register('/logs', logsScripts);
 PageScriptHandler.register('/builder', builderScripts);
 //PageScriptHandler.register('/studio', builderScripts);

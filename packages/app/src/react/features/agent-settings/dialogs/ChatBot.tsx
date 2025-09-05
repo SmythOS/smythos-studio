@@ -30,7 +30,6 @@ import { Analytics } from '@src/shared/posthog/services/analytics';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
-import { IoClose } from 'react-icons/io5';
 
 // const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
 //   name: model.label,
@@ -214,10 +213,15 @@ const ChatBotDialog = ({
               leaveTo="opacity-0 scale-95"
             >
               <div className="w-[80vw] max-w-[1000px]">
-                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full relative transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>Chatbot Configurations</span>
-                    <IoClose className="cursor-pointer" size={24} onClick={() => closeModal()} />
+                    <div
+                      className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                      onClick={() => closeModal()}
+                    >
+                      <CloseIcon width={16} height={16} />
+                    </div>
                   </Dialog.Title>
                   <Formik
                     initialValues={activeData || defaultFormValues}
@@ -1104,7 +1108,7 @@ const ChatBotDialog = ({
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                              className="px-8 h-[48px] rounded-lg"
+                              className="px-8 rounded-lg"
                             />
                           </div>
                         </Form>

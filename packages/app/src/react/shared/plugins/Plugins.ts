@@ -1,5 +1,6 @@
 export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
+  BuilderLoadAgentTemplates = 'builder/LoadAgentTemplates',
   TopMenuItem = 'topMenuItem',
   Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
@@ -10,6 +11,7 @@ export enum PluginTarget {
   BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
   BuilderSREComponents = 'builder/sreComponents',
   AgentsPageSection = 'agentsPage/section',
+  ShareAgentWithUsers = 'builder/modals/ShareAgentWithUsers',
 }
 
 export enum PluginType {

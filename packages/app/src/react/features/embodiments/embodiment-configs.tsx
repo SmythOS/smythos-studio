@@ -205,6 +205,7 @@ export const getCodeSnippetModal = (
         onClose={closeModal}
         domain={agent?.domain?.[0]?.name}
         showBackButton={false}
+        agentId={agentId}
       />,
       document.body,
     );

@@ -96,6 +96,8 @@ export class Workspace extends EventEmitter {
   private pendingAddComponent: any = null;
   public deployments: any = {};
   public domainData: any = {};
+  public oauthConnections: any = null;
+  public oauthConnectionsPromise: Promise<any> | null = null;
 
   public componentTemplates: any = {};
   public ACL = {};
@@ -120,6 +122,12 @@ export class Workspace extends EventEmitter {
         this.getDeploymentInfo().then((result) => {
           this.emit('deploymentsUpdated', result);
         });
+      }
+
+      // Invalidate OAuth connections cache when they're updated from React
+      if (event.detail.queryKey.includes('oauthConnections')) {
+        // console.log('[Workspace] OAuth connections updated, invalidating cache');
+        this.invalidateOAuthConnectionsCache();
       }
     });
 
@@ -162,7 +170,7 @@ export class Workspace extends EventEmitter {
     });
 
     this.jsPlumbInstance.bind('beforeDrop', (info) => {
-      console.log('beforeDrop: ', info);
+      // console.log('beforeDrop: ', info);
       if (this.collapsed) return false;
       if (this.locked) return false;
       // Check if a connection already exists between the source and target
@@ -362,6 +370,83 @@ export class Workspace extends EventEmitter {
     });
     this.domainData = await domainDataResponse.json();
     return result;
+  }
+
+  /**
+   * Fetches OAuth connections and caches them
+   * Returns cached data if already fetched
+   */
+  public async getOAuthConnections(forceRefresh: boolean = false): Promise<any> {
+    // If we're forcing a refresh, clear the cache
+    if (forceRefresh) {
+      this.oauthConnections = null;
+      this.oauthConnectionsPromise = null;
+    }
+
+    // Return cached data if available
+    if (this.oauthConnections !== null) {
+      return this.oauthConnections;
+    }
+
+    // If a fetch is already in progress, return that promise
+    if (this.oauthConnectionsPromise !== null) {
+      return this.oauthConnectionsPromise;
+    }
+
+    // Fetch OAuth connections
+    this.oauthConnectionsPromise = fetch(`${this.server}/api/page/vault/oauth-connections`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        credentials: 'include',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.error(
+            '[Workspace.getOAuthConnections] Error fetching OAuth connections:',
+            response.status,
+          );
+          throw new Error(`Failed to fetch OAuth connections: ${response.status}`);
+        }
+        const data = await response.json();
+        this.oauthConnections = data || {};
+
+        // Normalize: parse string values
+        Object.keys(this.oauthConnections).forEach((id) => {
+          const value = this.oauthConnections[id];
+          if (typeof value === 'string') {
+            try {
+              this.oauthConnections[id] = JSON.parse(value);
+            } catch (e) {
+              console.warn(
+                `[Workspace.getOAuthConnections] Could not parse stringified connection for id=${id}:`,
+                e,
+              );
+            }
+          }
+        });
+
+        // console.log('[Workspace.getOAuthConnections] OAuth connections cached:', this.oauthConnections);
+        return this.oauthConnections;
+      })
+      .catch((error) => {
+        console.error('[Workspace.getOAuthConnections] Failed to fetch OAuth connections:', error);
+        this.oauthConnectionsPromise = null; // Reset promise on error
+        throw error;
+      });
+
+    return this.oauthConnectionsPromise;
+  }
+
+  /**
+   * Invalidates the OAuth connections cache
+   * Call this when OAuth connections are updated
+   */
+  public invalidateOAuthConnectionsCache(): void {
+    // console.log('[Workspace] Invalidating OAuth connections cache');
+    this.oauthConnections = null;
+    this.oauthConnectionsPromise = null;
   }
 
   private _suspendConnectionRestyle = false;
@@ -609,7 +694,7 @@ export class Workspace extends EventEmitter {
         scheme: scheme,
       },
     });
-    console.log('Populated shared state');
+    // console.log('Populated shared state');
   }
 
   async loadUserSubscription() {
@@ -700,7 +785,17 @@ export class Workspace extends EventEmitter {
     //this._agent = {}; //reset agent
     this.agent.resetData();
     if (typeof callback === 'function') callback(data); //this can be used to preload agent template or other information
-    return this.saveAgent(name, '', data);
+    const result = await this.saveAgent(name, '', data);
+
+    // Generate avatar for the new agent (non-blocking)
+    if (result && result.id) {
+      const { generateAgentAvatar } = builderStore.getState();
+      generateAgentAvatar(result.id).catch((error) => {
+        console.warn('Avatar generation failed for new agent:', error);
+      });
+    }
+
+    return result;
   }
 
   private setAgentInfo(id, name, domain, data) {
@@ -747,7 +842,7 @@ export class Workspace extends EventEmitter {
 
     try {
       const result = await this.agent.delete(id);
-      console.log('Agent Delete result', result);
+      // console.log('Agent Delete result', result);
       if (result.error || !result?.success) {
         return false;
       } else {
@@ -1083,7 +1178,9 @@ export class Workspace extends EventEmitter {
   public async preloadComponentsTemplates() {
     let url = '/api/page/builder/app-config/components';
 
-    const result = await fetch(url).then((res) => res.json());
+    const result = await fetch(url)
+      .then((res) => res.json())
+      .catch((e) => []);
 
     const components = result?.components || [];
 
@@ -1696,7 +1793,7 @@ export class Workspace extends EventEmitter {
       properties.top = configuration.ui.agentCard.top;
     } else {
       const skills = configuration?.components?.filter((c) => c.name === 'APIEndpoint');
-      console.log('skills to compare', skills);
+      // console.log('skills to compare', skills);
 
       if (skills.length > 0) {
         // get the skill with the least Y and place the card above it to the left. x - agent_card_width, y - agent_card_height / 2
@@ -1754,7 +1851,7 @@ export class Workspace extends EventEmitter {
     });
   }
   public lock(options?: { showViewOnlyMsg?: boolean }) {
-    console.log('Locking Workspace');
+    // console.log('Locking Workspace');
     this.locked = true;
     document.querySelector('#builder-container')?.classList.remove('locked');
     if (options?.showViewOnlyMsg) this.toggleViewOnlyModeMsg(true);
@@ -1776,7 +1873,7 @@ export class Workspace extends EventEmitter {
   }
 
   public unlock() {
-    console.log('Unlocking Workspace');
+    // console.log('Unlocking Workspace');
     this.locked = false;
     document.querySelector('#builder-container')?.classList.remove('locked');
     this.toggleViewOnlyModeMsg(false);
@@ -1819,7 +1916,7 @@ export class Workspace extends EventEmitter {
       }
     });
     this.agent.addEventListener('lock', (prevStatus) => {
-      console.log('lock', prevStatus);
+      // console.log('lock', prevStatus);
       if (prevStatus?.startsWith('unlock') || !prevStatus) {
         this.lock({ showViewOnlyMsg: false });
       }
@@ -2216,10 +2313,6 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  public async saveTemplate() {
-    return workspaceHelper.saveTemplate.call(this);
-  }
-
   public async exportTemplate() {
     return workspaceHelper.exportTemplate.call(this);
   }
@@ -2232,7 +2325,7 @@ export class Workspace extends EventEmitter {
    * Initialize the monitor
    */
   private initMonitor(): void {
-    console.log('INIT MONITOR');
+    // console.log('INIT MONITOR');
 
     // Close existing monitor if any
     if (this.monitor) {

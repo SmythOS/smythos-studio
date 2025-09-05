@@ -38,7 +38,9 @@ const ConfirmModal = (props: Props) => {
       >
         {/* Modal header */}
         <div className="flex flex-wrap justify-between items-start p-2 border-b dark:border-gray-600">
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white">{props.message}</h3>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white w-[calc(100%_-_40px)]">
+            {props.message}
+          </h3>
           {props?.lowMsg && (
             <p className={classNames('text-sm text-gray-900', { 'pt-4': props.message })}>
               {props.lowMsg}
@@ -46,17 +48,17 @@ const ConfirmModal = (props: Props) => {
           )}
           <button
             type="button"
-            className="absolute right-4 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
+            className="absolute right-2 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white -mr-2"
             onClick={props.onClose}
           >
-            <CloseIcon />
+            <CloseIcon width={16} height={16} />
           </button>
         </div>
 
         {props.children && props.children}
 
         {/* Code snippet textarea */}
-        <div className="px-4 pt-2 pb-2">
+        <div className="px-2 pt-2 pb-2">
           {/* <p className="mb-4 text-sm text-gray-900">{props.message}</p> */}
           <div className="flex justify-end items-center flex-row gap-2">
             {props.handleCancel && (
@@ -73,7 +75,7 @@ const ConfirmModal = (props: Props) => {
             <Button
               handleClick={props.handleConfirm}
               loading={props.isLoading}
-              className="h-[48px] px-8 rounded-lg"
+              className={classNames('px-8 rounded-lg', props.confirmBtnClasses)}
             >
               {props.label || 'Confirm'}
             </Button>

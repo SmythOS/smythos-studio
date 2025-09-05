@@ -11,6 +11,7 @@ interface UseAgentCardStateResult extends AgentCardState {
   setIsDeleted: (deleted: boolean) => void;
   setIsDeleting: (deleting: boolean) => void;
   setIsDuplicating: (duplicating: boolean) => void;
+  setIsPinning: (pinning: boolean) => void;
   setIsActionDropdownVisible: (visible: boolean) => void;
   setIsButtonTooltipVisible: (visible: boolean) => void;
   setTooltipPosition: (position: TooltipPosition) => void;
@@ -26,6 +27,7 @@ export function useAgentCardState({ agentId }: UseAgentCardStateProps): UseAgent
     isDeleted: false,
     isDeleting: false,
     isDuplicating: false,
+    isPinning: false,
     showTooltip: false,
     tooltipPosition: 'bottom',
     isActionDropdownVisible: false,
@@ -54,6 +56,13 @@ export function useAgentCardState({ agentId }: UseAgentCardStateProps): UseAgent
   const setIsDuplicating = useCallback(
     (isDuplicating: boolean) => {
       updateState({ isDuplicating });
+    },
+    [updateState],
+  );
+
+  const setIsPinning = useCallback(
+    (isPinning: boolean) => {
+      updateState({ isPinning });
     },
     [updateState],
   );
@@ -123,6 +132,7 @@ export function useAgentCardState({ agentId }: UseAgentCardStateProps): UseAgent
     setIsDeleted,
     setIsDeleting,
     setIsDuplicating,
+    setIsPinning,
     setIsActionDropdownVisible,
     setIsButtonTooltipVisible,
     setTooltipPosition,

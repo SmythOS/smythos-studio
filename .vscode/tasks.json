@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+
+  "tasks": [
+    {
+      "label": "build-middleware",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/middleware"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build-app-backend",
+      "type": "shell",
+      "command": "npm run build:backend",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/app"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "start-frontend-processes",
+      "type": "shell",
+      "command": "npx concurrently --kill-others-on-fail -n VIEWS,BUILDER-UI,REACT -c blue,green,cyan \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\"",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/app"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": ".*"
+        }
+      }
+    },
+    {
+      "label": "start-ui-debug",
+      "dependsOrder": "sequence",
+      "dependsOn": ["build-app-backend", "start-frontend-processes"]
+    },
+    {
+      "label": "runtime: build",
+      "type": "npm",
+      "script": "build",
+      "path": "packages/runtime/",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Build runtime server for production"
+    },
+    {
+      "label": "runtime: clean",
+      "type": "npm",
+      "script": "clean",
+      "path": "packages/runtime/",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Clean runtime build directory"
+    },
+    {
+      "label": "runtime: watch",
+      "type": "npm",
+      "script": "watch",
+      "path": "packages/runtime/",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "rollup",
+          "endsPattern": "waiting for changes"
+        }
+      },
+      "detail": "Build runtime and watch for changes"
+    }
+  ]
+}

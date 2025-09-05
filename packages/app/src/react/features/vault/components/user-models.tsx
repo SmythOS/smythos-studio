@@ -1,4 +1,5 @@
 import { UserModel } from '@react/features/vault/types/types';
+import ConfirmModal from '@react/shared/components/ui/modals/ConfirmModal';
 import { cn, copyTextToClipboard } from '@react/shared/utils/general';
 import { Button } from '@src/react/shared/components/ui/button';
 import {
@@ -124,7 +125,7 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
             handleClick={handleSubmit}
             disabled={isSaveDisabled}
             label={isLoading ? 'Saving...' : 'Save'}
-            className={cn('w-[100px] h-[48px] rounded-lg')}
+            className={cn('w-[100px] rounded-lg')}
           />
         </DialogFooter>
       </DialogContent>
@@ -158,37 +159,21 @@ const DeleteUserModelKeyDialog = ({
     );
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!isLoading) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you sure?</DialogTitle>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-muted-foreground">
-            This action cannot be undone. This will permanently delete the API key.
-          </p>
-        </div>
-        <DialogFooter className="gap-2">
-          <CustomButton
-            className="ml-auto h-[48px] rounded-lg"
-            handleClick={handleDelete}
-            label={isLoading ? 'Deleting...' : 'Delete'}
-            addIcon
-            Icon={<img className="mr-2" src="/img/icons/Delete-White.svg" />}
-            disabled={isLoading}
-            isDelete
-          />
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmModal
+      onClose={onClose}
+      label={isLoading ? 'Deleting...' : 'Delete'}
+      handleConfirm={handleDelete}
+      message="Are you sure?"
+      lowMsg="This action cannot be undone. This will permanently delete the API key."
+      isLoading={isLoading}
+      width="max-w-[600px] w-[calc(100vw_-_-20px)]"
+      confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"
+    />
   );
 };
 

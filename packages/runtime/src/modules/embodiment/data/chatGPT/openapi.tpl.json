@@ -1,0 +1,17 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "{{model_name}}",
+        "description": "{{model_description}}",
+        "version": "{{version}}"
+    },
+    "servers": [
+        {
+            "url": "{{server_url}}"
+        }
+    ],
+    "paths": {},
+    "components": {
+        "schemas": {}
+    }
+}

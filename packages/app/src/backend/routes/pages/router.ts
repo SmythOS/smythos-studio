@@ -8,7 +8,6 @@ import ejsHelper from '../../ejsHelper';
 import { UserSettingsKey } from '../../types/user-data';
 import { getBuilderSidebarMenu } from './builder-sidebar';
 import { getNavPages, profilePages } from './menus';
-import { checkOnboarding as checkOnboardingMW } from './onboarding.mw';
 
 const router = express.Router();
 
@@ -67,9 +66,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/builder', checkOnboardingMW, llmModelsLoaderMiddleware, async (req, res) => {
-  // const redirected = await checkOnboarding(req, res, true, '/builder');
-  // if (!redirected.redirected) {
+router.get('/builder', llmModelsLoaderMiddleware, async (req, res) => {
   const plan = req?._team?.subscription?.plan || null;
   res.render('index', {
     page: 'builder',
@@ -79,10 +76,9 @@ router.get('/builder', checkOnboardingMW, llmModelsLoaderMiddleware, async (req,
     plan,
     ...res.locals.ejsOnboardingData,
   });
-  // }
 });
 
-router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, async (req, res) => {
+router.get('/builder/:agentId', llmModelsLoaderMiddleware, async (req, res) => {
   const agentId = req.params.agentId;
   let agentAvatar = null;
   let agentData = null;
@@ -111,23 +107,6 @@ router.get('/builder/:agentId', checkOnboardingMW, llmModelsLoaderMiddleware, as
     res.status(500).send('Error fetching agent');
   }
 });
-router.get('/logs/:agentId', async (req, res) => {
-  const { agentId } = req.params;
-  res.render('index', {
-    page: 'logs',
-    agentId,
-    menu: getBuilderSidebarMenu(),
-    tag: req.query?.tag || '',
-    sessionID: req.query?.sessionID || '',
-    showTopMenuBar: true,
-    isSmythStaff: res.locals.isSmythStaff,
-    isSmythAlpha: res.locals.isSmythAlpha,
-  });
-});
-
-// router.get('/doc', (req, res) => {
-//   res.render('index', { page: 'doc', showTopMenuBar: true });
-// });
 
 export function createReactRoute(
   args?: object | ((req: express.Request, res: express.Response) => object),
@@ -160,7 +139,6 @@ should be handled in a middleware instead of checking in each route!!
 
 //#region React Routes
 
-router.get('/domains', checkOnboardingMW, createReactRoute());
 router.get(
   '/agents',
   async (req, res, next) => {
@@ -194,7 +172,6 @@ router.get(
     }
     return next();
   },
-  checkOnboardingMW,
   async (req, res, next) => {
     try {
       return createReactRoute()(req, res);
@@ -204,46 +181,10 @@ router.get(
     }
   },
 );
-router.get('/templates', checkOnboardingMW, createReactRoute());
-router.get('/teams/accept-invitation/:invitationId', createReactRoute({ hideTopMenu: true }));
-
-router.get('/plans', checkOnboardingMW, createReactRoute({ includeTracking: true }));
-
-// Routes for your enterprise tier v4 pages:
-router.get('/enterprise-t1', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t2', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t3', createReactRoute({ includeTracking: true }));
-router.get('/enterprise-t4', createReactRoute({ includeTracking: true }));
-router.get('/partner', createReactRoute({ includeTracking: true }));
-
-router.get('/subscriptions/:priceId', createReactRoute());
-router.get('/subscriptions', createReactRoute());
-
-router.get('/chat', createReactRoute({ hideTopMenu: true }));
-
-router.get('/chat/:agentId', createReactRoute({ hideTopMenu: true }));
-
-router.get('/chat/:agentId/chat/:chatId', createReactRoute({ hideTopMenu: true }));
 
 router.get('/agent-settings/:agentId', llmModelsLoaderMiddleware, createReactRoute());
 
-router.get('/agent-settings/:agentId/bulk/:componentId', createReactRoute());
-
-router.get(
-  '/welcome',
-  checkOnboardingMW,
-  createReactRoute({ hideTopMenu: true, includeTracking: true }),
-);
-
-router.get(
-  '/welcome/:subpage',
-  checkOnboardingMW,
-  createReactRoute({ hideTopMenu: true, includeTracking: true }),
-);
-
 router.use('/account-deleted', createReactRoute({ env: config.env.NODE_ENV, hideTopMenu: true }));
-
-router.get('/vault', checkOnboardingMW, createReactRoute());
 
 //#endregion
 

@@ -38,6 +38,7 @@ export type TChatBotProperties = {
 export type TFormPreviewProperties = {
   name: string;
   allowedDomains: string[];
+  outputPreview: boolean;
 };
 
 export type TGptEmbodimentProperties = {

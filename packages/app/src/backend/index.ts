@@ -11,10 +11,8 @@ import apiRouter from './routes/api/router';
 import dbgRouter from './routes/dbg/router';
 import oauthRouter from './routes/oauth/router';
 import pagesRouter from './routes/pages/router';
-import publicRouter from './routes/public/router';
 
 //import { handleAuthRoutes, withLogto } from '@logto/express';
-import { handleAuthRoutes, withLogto } from './logtoHelper';
 
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
@@ -23,7 +21,7 @@ import compression from 'compression';
 import RedisStore from 'connect-redis';
 import passport from 'passport';
 import { version } from '../../package.json';
-import { maintenanceCheckMiddleware } from './middlewares/maintainceCheck.mw';
+import { defaultAuthMiddleware } from './middlewares/defaultAuthMiddleware.mw';
 import { initializePassport } from './routes/oauth/helper/passportSetup';
 import { ModelsPollingService } from './services/ModelsPolling.service';
 import { cacheClient } from './services/cache.service';
@@ -32,14 +30,6 @@ const PORT = config.env.PORT || 4000;
 const app = express();
 
 app.disable('x-powered-by');
-
-app.use(maintenanceCheckMiddleware);
-
-// Allow smythos.com to access the docs
-// const corsOptions = {
-//   origin: ['http://smythos.com', 'https://smythos.com'],
-//   optionsSuccessStatus: 200,
-// };
 
 // Serve static files
 app.use(compression());
@@ -53,6 +43,8 @@ app.get('/health', (_, res) => {
     version: version,
   });
 });
+
+app.use(defaultAuthMiddleware);
 
 app.use(cookieParser());
 
@@ -73,29 +65,11 @@ app.use(
   }),
 );
 
-//////////////////////
 app.use(passport.initialize());
 app.use(passport.session());
 
 initializePassport();
 app.use(sessionCheck);
-
-//logto logic
-const logtoClientConfig = {
-  endpoint: config.env.LOGTO_SERVER,
-  appId: config.env.LOGTO_APP_ID,
-  appSecret: config.env.LOGTO_APP_SECRET,
-  baseUrl: config.env.UI_SERVER,
-  scopes: ['offline_access', 'profile', 'email', 'openid'],
-  //fetchUserInfo: true
-  //resource: config.env.LOGTO_API_RESOURCE,
-
-  firstScreen: 'register',
-  getAccessToken: true,
-};
-
-app.use(handleAuthRoutes(logtoClientConfig));
-app.use(withLogto(logtoClientConfig));
 
 app.use(
   express.json({
@@ -108,12 +82,9 @@ app.use(
 );
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
-//app.use('/oauth2', apiAuth, oauth2Router);
 app.use('/api', [apiAuth, apiACLCheck], apiRouter);
 app.use('/dbg', [apiAuth], dbgRouter);
 app.use('/oauth', oauthRouter);
-
-app.use('/', publicRouter);
 
 app.use([pageAuth, pageACLCheck, includeTeamDetails]);
 

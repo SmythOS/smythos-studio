@@ -16,7 +16,7 @@ interface UseChatActionsReturn {
   isGenerating: boolean;
   isQueryInputProcessing: boolean;
   isRetrying: boolean;
-  sendMessage: (message: string, attachedFiles?: FileWithMetadata[]) => Promise<void>; // eslint-disable-line no-unused-vars, max-len
+  sendMessage: (message: string, attachedFiles?: FileWithMetadata[]) => Promise<void>; // eslint-disable-line no-unused-vars
   retryLastMessage: () => void;
   stopGenerating: () => void;
   clearMessages: () => void;

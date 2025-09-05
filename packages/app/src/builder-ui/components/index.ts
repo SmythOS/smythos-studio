@@ -8,11 +8,7 @@ import { Async } from './Async.class';
 import { Await } from './Await.class';
 import { Base64Encoder } from './Base64Encoder.class';
 import { Classifier } from './Classifier.class';
-import { Code } from './Code.class';
 import { Component } from './Component.class';
-import { DataSourceCleaner } from './DataSourceCleaner.class';
-import { DataSourceIndexer } from './DataSourceIndexer.class';
-import { DataSourceLookup } from './DataSourceLookup.class';
 import { DBInsert } from './DBInsert.class';
 import { EmailSender } from './EmailSender.class';
 import { FCrypto } from './FCrypto.class';
@@ -59,7 +55,6 @@ import { POST_APIEndpoint } from './POST_APIEndpoint.class';
 import { PromptGenerator } from './PromptGenerator.class';
 import { Redirect } from './Redirect.class';
 import { SchedulerEndpoint } from './SchedulerEndpoint.class';
-import { ServerlessCode } from './ServerlessCode.class';
 import { SMSSender } from './SMSSender';
 import { TTS } from './TTS.class';
 import { Twitter } from './Twitter.class';
@@ -73,7 +68,6 @@ const baseComponents = {
   //FormParser,
   InputSync,
   //EmailReader,
-  DataSourceLookup,
   GPTPlugin,
   EmailSender,
   FileExport,
@@ -105,10 +99,6 @@ const baseComponents = {
   Note,
   SchedulerEndpoint,
   JSONFilter,
-  DataSourceIndexer,
-  DataSourceCleaner,
-  Code,
-  ServerlessCode,
   ForEach,
   VisionLLM,
   LLMAssistant,

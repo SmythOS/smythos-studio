@@ -1,6 +1,7 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
 import { accquireLock } from '@react/features/agents/utils';
-import { useAgent, useAgentMutations } from '@react/shared/hooks/agent';
+import { useAgentMutations } from '@react/shared/hooks/agent';
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
@@ -8,29 +9,15 @@ interface UseAgentOperationsProps {
   agent: IAgent;
   onAgentDeleted?: () => void;
   onAgentDuplicated?: () => void;
+  onAgentPinned?: (updatedAgent: IAgent) => void;
 }
 
 interface UseAgentOperationsResult {
   duplicateAgent: () => Promise<void>;
   deleteAgent: () => Promise<void>;
+  pinAgent: () => Promise<void>;
   isLoading: boolean;
 }
-
-/**
- * Handles avatar generation for a newly created agent
- */
-const generateAgentAvatar = async (agentId: string): Promise<boolean> => {
-  try {
-    const response = await fetch(
-      `/api/page/agent_settings/ai-agent/${agentId}/avatar/auto-generate`,
-      { method: 'POST' },
-    );
-    return response.ok;
-  } catch (error) {
-    console.error('Avatar generation failed:', error);
-    return false;
-  }
-};
 
 /**
  * Custom hook for handling agent operations (duplicate, delete)
@@ -39,25 +26,32 @@ export function useAgentOperations({
   agent,
   onAgentDeleted,
   onAgentDuplicated,
+  onAgentPinned,
 }: UseAgentOperationsProps): UseAgentOperationsResult {
-  const { data: fullAgentData, isLoading: isLoadingAgent } = useAgent(agent.id, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-  const { createAgent } = useAgentMutations();
+  // Only fetch full agent data when actually needed for duplication
+  // This prevents unnecessary API calls for every agent card
+  const { createAgent, saveAgent } = useAgentMutations();
 
   /**
    * Creates a duplicate of an existing agent with reset configurations
    */
   const createDuplicateAgent = useCallback(async (): Promise<DuplicateAgentResponse> => {
-    if (!fullAgentData) {
-      return {
-        success: false,
-        message: 'Unable to fetch agent details',
-      };
-    }
-
     try {
+      // Fetch full agent data only when duplication is actually triggered
+      const response = await fetch(`/api/agent/${agent.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch agent details');
+      }
+
+      const { agent: fullAgentData } = await response.json();
+
+      if (!fullAgentData) {
+        return {
+          success: false,
+          message: 'Unable to fetch agent details',
+        };
+      }
+
       const initialData = {
         description: fullAgentData.description || '',
         components: [],
@@ -78,6 +72,7 @@ export function useAgentOperations({
       }
 
       // Generate avatar for the new agent (non-blocking)
+      const { generateAgentAvatar } = builderStore.getState();
       const avatarGenerated = await generateAgentAvatar(newAgent.id);
       if (!avatarGenerated) {
         console.warn('Avatar generation failed for duplicated agent');
@@ -95,7 +90,7 @@ export function useAgentOperations({
         message: 'Failed to duplicate agent',
       };
     }
-  }, [fullAgentData, createAgent]);
+  }, [agent.id, createAgent]);
 
   /**
    * Handles the duplication process and UI feedback
@@ -167,9 +162,56 @@ export function useAgentOperations({
     }
   }, [agent.id, onAgentDeleted]);
 
+  /**
+   * Handles agent pin/unpin with proper error handling
+   */
+  const pinAgent = useCallback(async (): Promise<void> => {
+    const id = agent.id;
+    const newPinnedState = !agent.isPinned;
+    const actionText = newPinnedState ? 'pin' : 'unpin';
+
+    try {
+      const endpoint = `/api/page/agents/ai-agent/${id}/pin`;
+      const method = newPinnedState ? 'POST' : 'DELETE';
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        // Try to get error message from response
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.error || `Failed to ${actionText} agent. Please try again.`;
+        throw new Error(errorMessage);
+      }
+
+      const updatedAgent: IAgent = {
+        ...agent,
+        isPinned: newPinnedState,
+      };
+
+      toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
+      // Update the agent in place instead of reloading the entire list
+      onAgentPinned?.(updatedAgent);
+    } catch (error) {
+      console.error('Failed to pin/unpin agent:', error);
+
+      // Check if error has a message, if not use generic error
+      if (error && typeof error === 'object' && 'message' in error) {
+        toast.error(error.message);
+      } else {
+        toast.error(`Failed to ${actionText} agent. Please try again.`);
+      }
+    }
+  }, [agent, onAgentPinned]);
+
   return {
     duplicateAgent,
     deleteAgent,
-    isLoading: isLoadingAgent,
+    pinAgent,
+    isLoading: false,
   };
 }

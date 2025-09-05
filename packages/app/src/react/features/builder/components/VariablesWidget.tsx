@@ -2,7 +2,7 @@ import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 import { getAgent } from '@src/react/features/agent-settings/clients';
 import WidgetCard from '@src/react/features/agent-settings/components/WidgetCard';
 import * as agentSettingsUtils from '@src/react/features/agents/utils';
-import { GlobalVariableIcon } from '@src/react/shared/components/svgs';
+import { CloseIcon, GlobalVariableIcon } from '@src/react/shared/components/svgs';
 import { Input } from '@src/react/shared/components/ui/input';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tooltip } from 'flowbite-react';
 import { Component, useEffect, useRef, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
-import { IoClose, IoKeyOutline } from 'react-icons/io5';
+import { IoKeyOutline } from 'react-icons/io5';
 import { LuInfo } from 'react-icons/lu';
 
 type KeyValuePair = {
@@ -230,16 +230,24 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
     setShowVaultKeys(null);
   };
 
-  const handleAddKeyClick = () => {
+  const handleAddKeyClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     setShowAddKeyModal(true);
     setNewKey({ name: '', key: '' });
     setKeyErrors({});
     setShowVaultKeys(null);
 
     const timeout = setTimeout(() => {
-      if (addKeyModalRef.current)
-        addKeyModalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+      if (addKeyModalRef.current) {
+        // Use scrollIntoView with more controlled options to prevent jumping to top
+        addKeyModalRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest', // Changed from 'center' to 'nearest'
+          inline: 'nearest', // Added inline positioning
+        });
+      }
       clearTimeout(timeout);
     }, 0);
   };
@@ -460,14 +468,15 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
               <LuInfo size={20} />
             </Tooltip>
             <Tooltip content="Close" placement="top">
-              <IoClose
-                className="cursor-pointer"
-                size={22}
+              <div
+                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
                 onClick={(e) => {
                   e?.stopPropagation();
                   handleClose();
                 }}
-              />
+              >
+                <CloseIcon width={16} height={16} />
+              </div>
             </Tooltip>
           </div>
         </div>
@@ -604,7 +613,19 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
           className="mt-4 flex items-center justify-center rounded-lg border border-solid border-gray-200"
         >
           <div className="bg-[#FFFF] text-[#5A5A5A] rounded-xl p-6 w-full max-w-md modal-content">
-            <h2 className="text-base font-semibold mb-4">Save Key to the Vault</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-semibold">Save Key to the Vault</h2>
+              <button
+                onClick={(e) => {
+                  e?.stopPropagation();
+                  setShowAddKeyModal(false);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg -mr-2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close modal"
+              >
+                <CloseIcon width={16} height={16} />
+              </button>
+            </div>
 
             <div className="mb-4">
               <Input
@@ -630,15 +651,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
               />
             </div>
 
-            <div className="flex justify-end gap-3">
-              <Button
-                label="Cancel"
-                variant="secondary"
-                handleClick={(e) => {
-                  e?.stopPropagation();
-                  setShowAddKeyModal(false);
-                }}
-              />
+            <div className="flex justify-end">
               <Button
                 label={'Save'}
                 variant="primary"

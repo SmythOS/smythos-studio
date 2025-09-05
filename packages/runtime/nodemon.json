@@ -1,0 +1,15 @@
+{
+  "watch": ["src", "package.json"],
+  "ext": "ts,js,json",
+  "ignore": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "tests/**/*",
+    "dist/**/*",
+    "node_modules/**/*"
+  ],
+  "exec": "npm run build && npm run start:prod",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

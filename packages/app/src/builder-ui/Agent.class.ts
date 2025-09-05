@@ -188,16 +188,6 @@ export class Agent extends EventEmitter {
       this.configureEmbodimentsStates(result.id);
     }
     if (result.success) {
-      // Backend returns the avatar, when the first avatar is created
-      if (result.avatar) {
-        // Trigger the event to update the avatar, it will work if the agent card is rendered
-        if (window.workspace?.agent) {
-          window.workspace.agent.emit('AvatarUpdated', result.avatar);
-        }
-
-        // Save the avatar to local storage, in case the agent card is not rendered
-        window.sessionStorage.setItem(`agent-avatar-${result.id}`, result.avatar);
-      }
       //this.setAgentInfo(result.id, name, data);
       return { id: result.id, name, domain, data };
     }

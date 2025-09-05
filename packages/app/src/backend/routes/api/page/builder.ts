@@ -27,7 +27,6 @@ import {
 } from '../../../../shared/constants/general';
 import {
   CUSTOM_LLM_SETTINGS_KEY,
-  CUSTOM_MODELS_CACHE_KEY,
   SAMPLE_BINARY_SOURCES,
   WEAVER_FREE_LIMIT,
 } from '../../../constants';
@@ -366,6 +365,7 @@ router.get('/app-config/collections', componentsMWHandler);
 
 router.get('/app-config/collections/:id/components', componentsMWHandler);
 
+// TODO: move to ee
 router.get('/integrations', async (req, res) => {
   try {
     const integrations = await getIntegrations();
@@ -698,7 +698,7 @@ router.put('/custom-llm', includeTeamDetails, customLLMAccessMw, async (req, res
     });
 
     // delete the custom LLM model cache
-    await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
       console.warn('Error deleting custom LLM model cache:', error);
     });
 
@@ -779,7 +779,7 @@ router.delete(
       const deleteModel = await teamData.deleteTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY, id);
 
       // delete the custom LLM model cache
-      await cacheClient.del(`${CUSTOM_MODELS_CACHE_KEY}:${teamId}`).catch((error) => {
+      await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
         console.warn('Error deleting custom LLM model cache:', error);
       });
 

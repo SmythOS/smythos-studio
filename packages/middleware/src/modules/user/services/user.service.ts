@@ -191,8 +191,7 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
   // create a new user and team
 
   const operations = async (tx: PrismaTransaction) => {
-    // check if the free plan exists //! THIS IS A TEMPORARY SOLUTION.
-    let freePlan = await tx.plan.findFirst({
+    let fullAccessPlan = await tx.plan.findFirst({
       where: {
         isDefaultPlan: true,
       },
@@ -201,16 +200,16 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
       },
     });
 
-    if (!freePlan) {
-      LOGGER.info(`FREE PLAN DOESN'T EXIST. CREATING...`);
-      freePlan = await tx.plan.create({
+    if (!fullAccessPlan) {
+      LOGGER.info(`Full Access PLAN DOESN'T EXIST. CREATING...`);
+      fullAccessPlan = await tx.plan.create({
         data: {
-          name: 'Free',
-          price: 0,
-          paid: false,
+          name: 'Full Access',
+          price: 1,
+          paid: true,
           isDefaultPlan: true,
-          stripeId: 'no-id',
-          priceId: 'no-id',
+          stripeId: 'na',
+          priceId: 'na',
           properties: quotaUtils.buildDefaultPlanProps(),
         },
         select: {
@@ -230,7 +229,7 @@ export const createUserAndTeam = async ({ userInfo, ctx }: Transactional<{ userI
             status: 'ACTIVE',
             plan: {
               connect: {
-                id: freePlan.id,
+                id: fullAccessPlan.id,
               },
             },
           },

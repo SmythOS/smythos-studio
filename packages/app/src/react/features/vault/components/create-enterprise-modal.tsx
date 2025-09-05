@@ -9,12 +9,12 @@ import {
   enterpriseModelService,
   providerService,
 } from '@react/features/vault/vault-business-logic';
+import ConfirmModal from '@react/shared/components/ui/modals/ConfirmModal';
 import ToolTip from '@src/react/shared/components/_legacy/ui/tooltip/tooltip';
 import { Checkbox } from '@src/react/shared/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@src/react/shared/components/ui/dialog';
@@ -367,7 +367,7 @@ export function CreateEnterpriseModal({
                 variant="primary"
                 type="submit"
                 label="Next"
-                className="w-[100px] h-[48px] rounded-lg"
+                className="w-[100px] rounded-lg"
               />
             </div>
           </form>
@@ -625,37 +625,20 @@ export function DeleteEnterpriseModelModal({
 }: DeleteEnterpriseModelModalProps) {
   if (!model) return null;
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open && !isProcessing) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Delete Enterprise Model</DialogTitle>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete the enterprise model "{model.name}"? This action cannot
-            be undone.
-          </p>
-        </div>
-        <DialogFooter className="gap-2">
-          <CustomButton
-            className="ml-auto h-[48px] rounded-lg"
-            handleClick={() => onConfirm(model)}
-            label={isProcessing ? 'Deleting...' : 'Delete'}
-            addIcon
-            Icon={<img className="mr-2" src="/img/icons/Delete-White.svg" />}
-            disabled={isProcessing}
-            isDelete
-          />
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmModal
+      onClose={onClose}
+      label={isProcessing ? 'Deleting...' : 'Delete'}
+      handleConfirm={() => onConfirm(model)}
+      message="Delete Enterprise Model"
+      lowMsg={`Are you sure you want to delete the enterprise model "${model.name}"? This action cannot be undone.`}
+      isLoading={isProcessing}
+      width="max-w-[600px] w-[calc(100vw_-_-20px)]"
+      confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"
+    />
   );
 }
