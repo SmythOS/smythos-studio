@@ -87,7 +87,7 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
                   ) : (
                     <code
                       className={cn(
-                        'bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border whitespace-pre-wrap text-wrap',
+                        'bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border whitespace-pre-wrap text-wrap max-w-full',
                         className,
                       )}
                       {...props}
