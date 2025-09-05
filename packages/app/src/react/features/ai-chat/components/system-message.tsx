@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { CodeBlock, ErrorMessage, ThinkingMessage } from '@react/features/ai-chat/components';
+import { cn } from '@src/react/shared/utils/general';
 
 interface ISystemMessageBubble {
   message: string;
@@ -66,10 +67,31 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
                 h6: (props) => <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />,
                 code({ className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
-                  return match ? (
-                    <CodeBlock language={match[1]}>{String(children).replace(/\n$/, '')}</CodeBlock>
+                  const content = String(children).replace(/\n$/, '');
+
+                  // Only render as CodeBlock if:
+                  // 1. Language is detected in className, OR
+                  // 2. Content has multiple lines (likely a code block), OR
+                  // 3. Content contains code-like patterns (functions, variables, etc.)
+                  const isCodeBlock =
+                    match ||
+                    content.includes('\n') ||
+                    content.length > 50 ||
+                    /[{}();=<>]/.test(content) ||
+                    /^(function|class|import|export|const|let|var|if|for|while)/.test(
+                      content.trim(),
+                    );
+
+                  return isCodeBlock ? (
+                    <CodeBlock language={match?.[1] || 'text'}>{content}</CodeBlock>
                   ) : (
-                    <code className={className} {...props}>
+                    <code
+                      className={cn(
+                        'bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border whitespace-pre-wrap text-wrap',
+                        className,
+                      )}
+                      {...props}
+                    >
                       {children}
                     </code>
                   );
