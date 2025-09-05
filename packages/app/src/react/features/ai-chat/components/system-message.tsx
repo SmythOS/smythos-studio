@@ -1,11 +1,13 @@
 import { Tooltip } from 'flowbite-react';
 import { FC, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
-import { CodeBlock, ErrorMessage, ThinkingMessage } from '@react/features/ai-chat/components';
-import { cn } from '@src/react/shared/utils/general';
+import {
+  ErrorMessage,
+  MarkdownRenderer,
+  ThinkingMessage,
+  Typewriter,
+} from '@react/features/ai-chat/components';
 
 interface ISystemMessageBubble {
   message: string;
@@ -14,6 +16,9 @@ interface ISystemMessageBubble {
   isRetrying?: boolean;
   onRetryClick?: () => void;
   thinkingMessage?: string;
+  enableTypingAnimation?: boolean;
+  onTypingComplete?: () => void;
+  onTypingProgress?: () => void;
 }
 
 export const SystemMessage: FC<ISystemMessageBubble> = ({
@@ -23,6 +28,9 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
   isRetrying,
   onRetryClick,
   thinkingMessage,
+  onTypingComplete,
+  onTypingProgress,
+  enableTypingAnimation = true,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -54,59 +62,17 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
           <ErrorMessage message={message} onRetryClick={onRetryClick} isRetrying={isRetrying} />
         ) : (
           <div className="chat-rich-text-response space-y-1 rounded-lg p-3 text-[#141414]">
-            <ReactMarkdown
-              children={message}
-              remarkPlugins={[remarkGfm]}
-              components={{
-                // adding components to ensure formatting is preserved
-                h1: (props) => <h1 style={{ fontWeight: 'bold', fontSize: '2em' }} {...props} />,
-                h2: (props) => <h2 style={{ fontWeight: 'bold', fontSize: '1.5em' }} {...props} />,
-                h3: (props) => <h3 style={{ fontWeight: 'bold', fontSize: '1.17em' }} {...props} />,
-                h4: (props) => <h4 style={{ fontWeight: 'bold', fontSize: '1em' }} {...props} />,
-                h5: (props) => <h5 style={{ fontWeight: 'bold', fontSize: '0.83em' }} {...props} />,
-                h6: (props) => <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />,
-                code({ className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const content = String(children).replace(/\n$/, '');
-
-                  // Only render as CodeBlock if:
-                  // 1. Language is detected in className, OR
-                  // 2. Content has multiple lines (likely a code block), OR
-                  // 3. Content contains code-like patterns (functions, variables, etc.)
-                  const isCodeBlock =
-                    match ||
-                    content.includes('\n') ||
-                    content.length > 50 ||
-                    /[{}();=<>]/.test(content) ||
-                    /^(function|class|import|export|const|let|var|if|for|while)/.test(
-                      content.trim(),
-                    );
-
-                  return isCodeBlock ? (
-                    <CodeBlock language={match?.[1] || 'text'}>{content}</CodeBlock>
-                  ) : (
-                    <code
-                      className={cn(
-                        'bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border whitespace-pre-wrap text-wrap max-w-full',
-                        className,
-                      )}
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  );
-                },
-                img: (props) => (
-                  <img
-                    {...props}
-                    className="rounded-xl"
-                    style={{ maxWidth: '100%', height: 'auto' }}
-                  />
-                ),
-                a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-                p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
-              }}
-            />
+            {enableTypingAnimation ? (
+              <Typewriter
+                message={message}
+                speed={3}
+                onComplete={onTypingComplete}
+                onTypingProgress={onTypingProgress}
+                isTyping={true}
+              />
+            ) : (
+              <MarkdownRenderer message={message} />
+            )}
 
             {/* Display thinking message inline if present */}
             {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
