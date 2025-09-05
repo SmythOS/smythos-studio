@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
 import { MarkdownRenderer } from '@react/features/ai-chat/components';
+import { forceScrollToBottom } from '@react/features/ai-chat/utils/scroll-utils';
 import { useChatContext } from '../contexts';
 
 interface ITypewriterProps {
@@ -75,12 +76,23 @@ export const Typewriter: FC<ITypewriterProps> = ({
       // When generation is complete, show all content immediately
       setDisplayedText(message);
       setCurrentIndex(message.length);
-      // Trigger scroll to bottom when content is displayed instantly
-      onTypingProgress?.();
+
       onComplete?.();
       return;
     }
-  }, [isGenerating, message, onComplete, onTypingProgress]);
+  }, [isGenerating, message, onComplete]);
+
+  // Separate effect for force scroll only when generation completes
+  useEffect(() => {
+    if (!isGenerating && message.length > 0) {
+      // Force scroll to bottom when message is fully generated (ignores user scroll position)
+
+      // Add a small delay to ensure the content is fully rendered
+      setTimeout(() => {
+        forceScrollToBottom({ behavior: 'smooth', delay: 0 });
+      }, 200);
+    }
+  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isTyping) {
