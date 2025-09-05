@@ -85,7 +85,7 @@ export const useChatActions = ({
             message: '',
             type: 'user',
             files: attachedFiles,
-            hideMessageBubble: true,
+            hideMessage: true,
           };
           return [...prev, newMessage];
         });
@@ -134,7 +134,7 @@ export const useChatActions = ({
                   updatedBubbles[lastSystemMessageIndex].message = value;
                   updatedBubbles[lastSystemMessageIndex].isReplying = false;
                   updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
-                  updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false; // Show the message bubble
+                  updatedBubbles[lastSystemMessageIndex].hideMessage = false; // Show the message bubble
                   updatedBubbles[lastSystemMessageIndex].thinkingMessage = undefined; // Clear thinking message
                   return updatedBubbles;
                 }
@@ -294,7 +294,7 @@ export const useChatActions = ({
                     updatedBubbles[lastSystemMessageIndex].message = value;
                     updatedBubbles[lastSystemMessageIndex].isReplying = false;
                     updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
-                    updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false;
+                    updatedBubbles[lastSystemMessageIndex].hideMessage = false;
                     return updatedBubbles;
                   }
                   return filteredBubbles;
@@ -337,7 +337,7 @@ export const useChatActions = ({
                     // Insert after the last system message
                     newBubbles.splice(lastSystemIndex + 1, 0, thinkingMessage);
                     // Hide the system message when thinking starts
-                    newBubbles[lastSystemIndex].hideMessageBubble = true;
+                    newBubbles[lastSystemIndex].hideMessage = true;
                     newBubbles[lastSystemIndex].isReplying = false;
                   } else {
                     // Add at the end if no system message
