@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import config from '../config';
 import { VaultSecret } from '../routes/router.utils';
 import { includeAxiosAuth, smythVaultAPI } from '../utils';
 
@@ -235,8 +236,8 @@ export async function checkIfVaultSecretExists({
 }
 
 export function getUserToken(req: Request) {
- if(process.env.SMYTH_VAULT_API_BASE_URL.includes('localhost')) {
-  return req?.user?.accessToken;
- }
- return req?.session?.idToken;
+  if (config.env.SMYTH_VAULT_API_BASE_URL.includes('localhost')) {
+    return req?.user?.accessToken;
+  }
+  return req?.session?.idToken;
 }

@@ -2,32 +2,39 @@ import { ConnectorService, SRE } from '@smythos/sre';
 import fs from 'fs';
 import path from 'path';
 import { cwd } from 'process';
+import { config } from '../../../../config/config';
 import { vaultMessages } from '../constants/vault.constants';
 
+ensureVaultFileExists();
 SRE.init({
   Vault: {
-    Connector: 'JSONFileVault', Settings: {
-      file: process.env.VAULT_FILE_PATH
-    }
+    Connector: 'JSONFileVault',
+    Settings: {
+      file: config.variables.VAULT_FILE_PATH,
+    },
   },
 });
 
 export function formatSecretData(secret, secretId) {
   let key = '';
-  let value = ''
-  for (const k in secret.data.data) { // since we only store single key in a path, so it will run only 1 time and fetch the key
+  let value = '';
+  for (const k in secret.data.data) {
+    // since we only store single key in a path, so it will run only 1 time and fetch the key
     key = k;
-    value = secret.data.data[k]
+    value = secret.data.data[k];
   }
   const metadata = {
     version: secret.data.metadata.version,
     created_time: secret.data.metadata.created_time,
-    ...secret.data.metadata.custom_metadata
+    ...secret.data.metadata.custom_metadata,
   };
 
   return {
-    id: secretId, key, value, metadata,
-  }
+    id: secretId,
+    key,
+    value,
+    metadata,
+  };
 }
 
 export async function createSecret({ teamId, secretId, key, value, metadata }) {
@@ -51,10 +58,12 @@ export async function createSecret({ teamId, secretId, key, value, metadata }) {
     return {
       success: vaultMessages.SUCCESS_CREATE_SECRET,
       secret: {
-        id: secretId, key, value, metadata: updatedMetadata,
-      }
+        id: secretId,
+        key,
+        value,
+        metadata: updatedMetadata,
+      },
     };
-
   } catch (error: any) {
     console.error(error.message);
     throw error;
@@ -70,11 +79,14 @@ export async function updateSecretMetadata({ teamId, secretId, metadata }) {
     const updatedMetadata = await setSecretMetadata(teamId, secretId, metadataFilePath, metadata);
     const secretData = await getSecretById(teamId, secretId);
     return {
-      success: vaultMessages.SUCCESS_UPDATE_SECRET_METADATA, secret: {
-        id: secretId, key: secretId, value: secretData.secret.value, metadata: updatedMetadata,
-      }
+      success: vaultMessages.SUCCESS_UPDATE_SECRET_METADATA,
+      secret: {
+        id: secretId,
+        key: secretId,
+        value: secretData.secret.value,
+        metadata: updatedMetadata,
+      },
     };
-
   } catch (error: any) {
     console.error(error.message);
     throw error;
@@ -92,7 +104,6 @@ export async function getAllSecrets(teamId: string, metadataFilter: string = '')
     }
 
     return { success: vaultMessages.SUCCESS_GET_ALL_SECRETS, secrets };
-
   } catch (error: any) {
     return { success: vaultMessages.SUCCESS_GET_ALL_SECRETS, secrets: [] };
   }
@@ -109,13 +120,13 @@ export async function getSecretById(teamId: string, secretId: string) {
   if (secret) {
     return {
       success: vaultMessages.SUCCESS_GET_SECRET_BY_ID,
-      secret
-    }
+      secret,
+    };
   }
   return {
     error: vaultMessages.ERROR_SECRET_NOT_FOUND,
-    secret: null
-  }
+    secret: null,
+  };
 }
 
 export async function checkSecretExistsById(teamId: string, secretId: string) {
@@ -133,14 +144,13 @@ export async function getSecretByName(teamId: string, secretName: string) {
     if (secretData.secret) {
       return {
         success: vaultMessages.SUCCESS_GET_SECRET_BY_NAME,
-        secret: secretData.secret
-      }
+        secret: secretData.secret,
+      };
     }
     return {
       error: vaultMessages.ERROR_SECRET_NOT_FOUND,
-      secret: null
-    }
-
+      secret: null,
+    };
   } catch (error: any) {
     console.error(error.message);
     throw error;
@@ -188,7 +198,7 @@ async function setSecretMetadata(teamId: string, secretId: string, metadataFileP
     const updatedMetadata = {
       created_time: new Date().toISOString(),
       version: 1,
-      ...metadata
+      ...metadata,
     };
 
     const metadataData = fs.readFileSync(metadataFilePath, 'utf8');
@@ -211,7 +221,6 @@ export async function getSecretsCount(teamId: string) {
     const vaultConnector = await getVaultConnector();
     const allSecrets = await vaultConnector.team(teamId).listKeys();
     return { success: vaultMessages.SUCCESS_GET_ALL_SECRETS_COUNT, count: allSecrets.length };
-
   } catch (error: any) {
     console.error(error.message);
     throw error;
@@ -225,8 +234,11 @@ async function getSecret(teamId: string, secretId: string) {
     const metadataFilePath = getMetadataPath(vaultConnector?._settings?.file);
     const metadata = await getSecretMetadata(teamId, secretId, metadataFilePath);
     return {
-      id: secretId, key: secretId, value: secret, metadata,
-    }
+      id: secretId,
+      key: secretId,
+      value: secret,
+      metadata,
+    };
   } catch (error) {
     console.error(`Error getting secret ${secretId} for team ${teamId}`);
     return null;
@@ -238,7 +250,7 @@ function filterSecrets(secrets, metadataFilter = '{}') {
   try {
     let metadatafilterObj = JSON.parse(metadataFilter);
     filterObj = { ...filterObj, ...metadatafilterObj };
-  } catch (error) { }
+  } catch (error) {}
   return secrets.filter(secret => {
     for (const key in filterObj) {
       if (secret.metadata[key] !== filterObj[key]) {
@@ -262,7 +274,7 @@ async function getVaultConnector() {
   const vaultConnector = ConnectorService.getVaultConnector();
   let filePath = vaultConnector?._settings?.file;
   if (!filePath) {
-    filePath = `${cwd()}/vault.json`
+    filePath = `${cwd()}/vault.json`;
   }
 
   if (!fs.existsSync(filePath)) {
@@ -270,6 +282,28 @@ async function getVaultConnector() {
   }
 
   return vaultConnector.instance({
-    file: filePath
-  })
+    file: filePath,
+  });
+}
+
+function ensureVaultFileExists() {
+  const baseVaultContent = {
+    development: {
+      echo: '',
+      openai: '$env(OPENAI_API_KEY)',
+      anthropic: '',
+      googleai: '',
+      groq: '',
+      togetherai: '',
+      xai: '',
+      deepseek: '',
+      tavily: '',
+      scrapfly: '',
+    },
+  };
+
+  const vaultFilePath = config.variables.VAULT_FILE_PATH;
+  if (!fs.existsSync(vaultFilePath)) {
+    fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
+  }
 }
