@@ -16,7 +16,7 @@ interface ISystemMessageBubble {
   isRetrying?: boolean;
   onRetryClick?: () => void;
   thinkingMessage?: string;
-  enableTypingAnimation?: boolean;
+  typingAnimation?: boolean;
   onTypingComplete?: () => void;
   onTypingProgress?: () => void;
 }
@@ -30,7 +30,7 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
   thinkingMessage,
   onTypingComplete,
   onTypingProgress,
-  enableTypingAnimation = true,
+  typingAnimation = true,
 }) => {
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -62,7 +62,7 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
           <ErrorMessage message={message} onRetryClick={onRetryClick} isRetrying={isRetrying} />
         ) : (
           <div className="chat-rich-text-response space-y-1 rounded-lg p-3 text-[#141414]">
-            {enableTypingAnimation ? (
+            {typingAnimation ? (
               <Typewriter
                 message={message}
                 speed={3}

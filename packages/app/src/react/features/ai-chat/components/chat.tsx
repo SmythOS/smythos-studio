@@ -42,7 +42,7 @@ export const Chat: FC<ChatProps> = ({
         isRetrying={isRetrying}
         thinkingMessage={thinkingMessage}
         onTypingProgress={() => scrollToBottom?.()}
-        enableTypingAnimation={!isReplying && !isRetrying && !isError}
+        typingAnimation={!isReplying && !isRetrying && !isError}
       />
     )
   );
