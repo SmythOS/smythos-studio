@@ -752,6 +752,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                               >
                                 here
                               </a>
+                              .
                             </span>
                           </div>
                           <div className="space-y-2">
