@@ -37,19 +37,22 @@ export const Chats: FC<MessagesProps> = (props) => {
   const { isRetrying, retryLastMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
-  // Auto-scroll when new messages arrive (smart scroll)
-  useEffect(() => smartScrollToBottom(), [messages, smartScrollToBottom]);
-
-  // Force scroll to bottom for immediate user messages
+  // Smart auto-scroll when new messages arrive (respects user scroll position)
+  // But only for system messages, not user messages (user messages handle their own scroll)
   useEffect(() => {
-    if (!ref.current) return;
-    ref.current.scrollTop = ref.current.scrollHeight;
-  }, [messages]);
+    const lastMessage = messages[messages.length - 1];
+    // Only auto-scroll for system messages, not user messages
+    // lastMessage.me === false means it's a system message
+    if (lastMessage && !lastMessage.me) {
+      smartScrollToBottom();
+    }
+  }, [messages, smartScrollToBottom]);
 
   const avatar = agent?.aiAgentSettings?.avatar;
 
   return (
     <div
+      data-chat-container
       onScroll={handleScroll}
       ref={combineRefs(containerRef, dropzoneRef)}
       className="w-full h-full overflow-auto relative scroll-smooth mt-16 flex justify-center items-center"
