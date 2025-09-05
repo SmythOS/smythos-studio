@@ -1,7 +1,17 @@
 import { RefObject, useCallback, useEffect, useState } from 'react';
 
+import { scrollManager } from '@react/features/ai-chat/utils/scroll-utils';
+
 export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Initialize scroll manager with container
+  useEffect(() => {
+    if (ref.current) {
+      scrollManager.init(ref.current);
+    }
+  }, [ref]);
 
   const handleScroll = useCallback(() => {
     const selection = window.getSelection();
@@ -11,6 +21,10 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
       const { scrollTop, scrollHeight, clientHeight } = ref.current;
       const isScrolledUp = scrollHeight - scrollTop > clientHeight + 100; // 100px threshold
       setShowScrollButton(isScrolledUp);
+
+      // Update auto-scroll state based on scroll position
+      const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      setShouldAutoScroll(isNearBottom);
     }
   }, [ref]);
 
@@ -21,9 +35,25 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
           top: ref.current.scrollHeight,
           behavior: smooth ? 'smooth' : 'auto',
         });
+        // When user manually scrolls to bottom, enable auto-scroll
+        setShouldAutoScroll(true);
       }
     },
     [ref],
+  );
+
+  // Professional smart scroll function
+  const smartScrollToBottom = useCallback(
+    (smooth: boolean = true) => {
+      if (!shouldAutoScroll) return;
+
+      // Use professional scroll manager
+      scrollManager.smartScrollToBottom({
+        behavior: smooth ? 'smooth' : 'auto',
+        delay: 0,
+      });
+    },
+    [shouldAutoScroll],
   );
 
   useEffect(() => {
@@ -34,5 +64,13 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
     }
   }, [ref, handleScroll]);
 
-  return { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton };
+  return {
+    showScrollButton,
+    handleScroll,
+    scrollToBottom,
+    setShowScrollButton,
+    shouldAutoScroll,
+    smartScrollToBottom,
+    setShouldAutoScroll,
+  };
 };
