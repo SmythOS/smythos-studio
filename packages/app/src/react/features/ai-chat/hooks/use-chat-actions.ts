@@ -238,8 +238,6 @@ export const useChatActions = ({
       lastMessage.message ||
       (lastMessage.attachedFiles && lastMessage.attachedFiles.length > 0)
     ) {
-      setIsRetrying(true);
-
       // Remove the last error message and replace it with a new AI response message
       setChatHistoryMessages((prev) => {
         const newMessages = [...prev];
@@ -408,6 +406,7 @@ export const useChatActions = ({
       };
 
       retryApiCall();
+      setIsRetrying(false);
     }
   }, [agentId, chatId, avatar, onChatComplete]);
 
