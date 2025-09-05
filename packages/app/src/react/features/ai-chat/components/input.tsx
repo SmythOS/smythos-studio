@@ -16,6 +16,7 @@ import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/a
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { createFileFromText } from '@react/features/ai-chat/utils';
+import { forceScrollToBottom } from '@react/features/ai-chat/utils/scroll-utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@src/react/shared/utils/general';
 
@@ -97,6 +98,11 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        // Professional scroll to bottom after sending message
+        forceScrollToBottom({
+          behavior: 'smooth',
+          delay: 50, // Small delay to ensure DOM updates
+        });
       }
     }, [message, files, isGenerating, inputDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
 import { MarkdownRenderer } from '@react/features/ai-chat/components';
+import { useChatContext } from '../contexts';
 
 interface ITypewriterProps {
   message: string;
@@ -28,6 +29,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastMessageLength, setLastMessageLength] = useState(0);
+  const { isGenerating = true } = useChatContext();
 
   // Fast typewriter-effect library style speed
   const getTypingSpeed = useCallback((char: string, messageLength: number): number => {
@@ -66,6 +68,19 @@ export const Typewriter: FC<ITypewriterProps> = ({
 
     return Math.max(5, baseSpeed); // Minimum 5ms for ultra-smoothness
   }, []);
+
+  // Handle immediate display when generation is complete
+  useEffect(() => {
+    if (!isGenerating && message.length > 0) {
+      // When generation is complete, show all content immediately
+      setDisplayedText(message);
+      setCurrentIndex(message.length);
+      // Trigger scroll to bottom when content is displayed instantly
+      onTypingProgress?.();
+      onComplete?.();
+      return;
+    }
+  }, [isGenerating, message, onComplete, onTypingProgress]);
 
   useEffect(() => {
     if (!isTyping) {

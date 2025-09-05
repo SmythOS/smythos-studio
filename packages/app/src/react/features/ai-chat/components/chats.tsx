@@ -13,6 +13,7 @@ interface MessagesProps {
   showScrollButton: boolean;
   containerRef: RefObject<HTMLElement>;
   scrollToBottom: (smooth?: boolean) => void;
+  smartScrollToBottom: (smooth?: boolean) => void;
   handleFileDrop: (droppedFiles: File[]) => Promise<void>;
 }
 
@@ -30,13 +31,16 @@ const combineRefs =
 
 export const Chats: FC<MessagesProps> = (props) => {
   const { agent, messages, containerRef, handleFileDrop, ...scroll } = props;
-  const { handleScroll, scrollToBottom, showScrollButton } = scroll;
+  const { handleScroll, scrollToBottom, smartScrollToBottom, showScrollButton } = scroll;
 
   const ref = useRef<HTMLDivElement>(null);
   const { isRetrying, retryLastMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
-  useEffect(() => scrollToBottom(), [messages, scrollToBottom]);
+  // Auto-scroll when new messages arrive (smart scroll)
+  useEffect(() => smartScrollToBottom(), [messages, smartScrollToBottom]);
+
+  // Force scroll to bottom for immediate user messages
   useEffect(() => {
     if (!ref.current) return;
     ref.current.scrollTop = ref.current.scrollHeight;
@@ -69,7 +73,7 @@ export const Chats: FC<MessagesProps> = (props) => {
                   isRetrying={retry}
                   isError={message.isError}
                   onRetryClick={onRetryClick}
-                  scrollToBottom={scrollToBottom}
+                  scrollToBottom={smartScrollToBottom}
                 />
 
                 {retry && (

@@ -45,7 +45,8 @@ const AIChat = () => {
   const agentSettings = settingsData?.settings;
 
   // Custom Hooks - optimized
-  const { setShowScrollButton, ...scroll } = useScrollToBottom(chatContainerRef);
+  const { setShowScrollButton, smartScrollToBottom, ...scroll } =
+    useScrollToBottom(chatContainerRef);
 
   const {
     files,
@@ -182,6 +183,7 @@ const AIChat = () => {
           messages={messagesHistory}
           containerRef={chatContainerRef}
           handleFileDrop={handleFileDrop}
+          smartScrollToBottom={smartScrollToBottom}
         />
         <Footer
           uploadError={uploadError}
