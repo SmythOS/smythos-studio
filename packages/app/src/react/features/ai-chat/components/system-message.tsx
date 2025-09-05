@@ -65,10 +65,10 @@ export const SystemMessage: FC<ISystemMessageBubble> = ({
             {typingAnimation ? (
               <Typewriter
                 message={message}
-                speed={3}
+                speed={2}
                 onComplete={onTypingComplete}
                 onTypingProgress={onTypingProgress}
-                isTyping={true}
+                isTyping={typingAnimation}
               />
             ) : (
               <MarkdownRenderer message={message} />

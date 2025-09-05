@@ -29,23 +29,43 @@ export const Typewriter: FC<ITypewriterProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastMessageLength, setLastMessageLength] = useState(0);
 
-  // Calculate dynamic speed based on character type for ultra-fast professional typing
-  const getTypingSpeed = useCallback(
-    (char: string): number => {
-      const baseSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
+  // Fast typewriter-effect library style speed
+  const getTypingSpeed = useCallback((char: string, messageLength: number): number => {
+    // Very fast base speed like typewriter-effect library
+    let baseSpeed = 20; // 20ms base speed (very fast)
 
-      // Ultra-fast for all characters - professional speed
-      if (char === ' ' || char === '\n') return baseSpeed * 0.1; // Almost instant
-      if (/[a-zA-Z0-9]/.test(char)) return baseSpeed * 0.3; // Very fast
-      if (/[.,!?;:]/.test(char)) return baseSpeed * 0.5; // Quick pause
-      if (/[{}()[\]<>]/.test(char)) return baseSpeed * 0.2; // Very fast
-      if (char === '\t') return baseSpeed * 0.1; // Almost instant
-      if (/[#*`~]/.test(char)) return baseSpeed * 0.2; // Very fast for markdown
+    // Character-specific speeds (minimal variation for smoothness)
+    if (char === ' ' || char === '\n') {
+      baseSpeed = 10; // Almost instant for spaces
+    } else if (/[a-zA-Z0-9]/.test(char)) {
+      baseSpeed = 15; // Very fast for letters/numbers
+    } else if (/[.,!?;:]/.test(char)) {
+      baseSpeed = 25; // Slight pause for punctuation
+    } else if (/[{}()[\]<>]/.test(char)) {
+      baseSpeed = 12; // Fast for brackets
+    } else if (char === '\t') {
+      baseSpeed = 8; // Very fast for tabs
+    } else if (/[#*`~]/.test(char)) {
+      baseSpeed = 18; // Fast for markdown
+    }
 
-      return baseSpeed * 0.3; // Default fast speed
-    },
-    [minSpeed, maxSpeed, speed],
-  );
+    // Add tiny random variation for natural feel (like typewriter-effect)
+    const variation = (Math.random() - 0.5) * 8; // ±4ms variation
+    baseSpeed += variation;
+
+    // Slightly faster for longer messages (like typewriter-effect)
+    if (messageLength > 200) {
+      baseSpeed *= 0.8;
+    }
+    if (messageLength > 500) {
+      baseSpeed *= 0.7;
+    }
+    if (messageLength > 1000) {
+      baseSpeed *= 0.6;
+    }
+
+    return Math.max(5, baseSpeed); // Minimum 5ms for ultra-smoothness
+  }, []);
 
   useEffect(() => {
     if (!isTyping) {
@@ -55,8 +75,8 @@ export const Typewriter: FC<ITypewriterProps> = ({
       return;
     }
 
-    // Skip animation for very short messages (less than 20 characters) for instant display
-    if (message.length < 20) {
+    // Skip animation only for very short messages (less than 3 characters) for instant display
+    if (message.length < 3) {
       setDisplayedText(message);
       setCurrentIndex(message.length);
       onComplete?.();
@@ -65,10 +85,24 @@ export const Typewriter: FC<ITypewriterProps> = ({
 
     if (currentIndex < message.length) {
       const currentChar = message[currentIndex];
-      const dynamicSpeed = getTypingSpeed(currentChar);
+      const dynamicSpeed = getTypingSpeed(currentChar, message.length);
 
-      // Batch process multiple characters for ultra-fast typing
-      const batchSize = currentChar === ' ' || currentChar === '\n' ? 3 : 1;
+      // Fast typewriter-effect style batching for smooth performance
+      let batchSize = 1;
+
+      // Smart batching based on message length (like typewriter-effect library)
+      if (message.length > 2000) {
+        batchSize = currentChar === ' ' || currentChar === '\n' ? 8 : 3;
+      } else if (message.length > 1000) {
+        batchSize = currentChar === ' ' || currentChar === '\n' ? 6 : 2;
+      } else if (message.length > 500) {
+        batchSize = currentChar === ' ' || currentChar === '\n' ? 4 : 2;
+      } else if (message.length > 200) {
+        batchSize = currentChar === ' ' || currentChar === '\n' ? 3 : 1;
+      } else {
+        batchSize = currentChar === ' ' || currentChar === '\n' ? 2 : 1;
+      }
+
       const charsToAdd = message.slice(currentIndex, currentIndex + batchSize);
 
       const timer = setTimeout(() => {
@@ -108,7 +142,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
 
   return (
     <div className="typewriter-content type-writer-text type-writer-inner w-full text-wrap">
-      <MarkdownRenderer message={message} />
+      <MarkdownRenderer message={displayedText} />
     </div>
   );
 };
