@@ -9,7 +9,7 @@ export * from './file-item-preview';
 export * from './footer';
 export * from './header';
 export * from './markdown-renderer';
-export * from './query-input';
+export * from './input';
 export * from './reply-loader';
 export * from './scroll-to-bottom-button';
 export * from './send-button';
