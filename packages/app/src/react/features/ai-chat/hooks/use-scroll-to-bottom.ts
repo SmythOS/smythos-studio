@@ -1,38 +1,38 @@
 import { RefObject, useCallback, useEffect, useState } from 'react';
 
-export const useScrollToBottom = (containerRef: RefObject<HTMLElement>) => {
+export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const handleScroll = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.toString().length > 0) return;
 
-    if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    if (ref.current) {
+      const { scrollTop, scrollHeight, clientHeight } = ref.current;
       const isScrolledUp = scrollHeight - scrollTop > clientHeight + 100; // 100px threshold
       setShowScrollButton(isScrolledUp);
     }
-  }, [containerRef]);
+  }, [ref]);
 
   const scrollToBottom = useCallback(
     (smooth: boolean = true) => {
-      if (containerRef.current) {
-        containerRef.current.scrollTo({
-          top: containerRef.current.scrollHeight,
+      if (ref.current) {
+        ref.current.scrollTo({
+          top: ref.current.scrollHeight,
           behavior: smooth ? 'smooth' : 'auto',
         });
       }
     },
-    [containerRef],
+    [ref],
   );
 
   useEffect(() => {
-    const container = containerRef.current;
+    const container = ref.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [containerRef, handleScroll]);
+  }, [ref, handleScroll]);
 
   return { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton };
 };

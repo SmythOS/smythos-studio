@@ -45,7 +45,7 @@ const AIChat = () => {
   const agentSettings = settingsData?.settings;
 
   // Custom Hooks - optimized
-  const { setShowScrollButton } = useScrollToBottom(chatContainerRef);
+  const { setShowScrollButton, ...scroll } = useScrollToBottom(chatContainerRef);
 
   const {
     files,
@@ -176,6 +176,7 @@ const AIChat = () => {
         />
 
         <Chats
+          {...scroll}
           agent={agent}
           messages={chatHistoryMessages}
           containerRef={chatContainerRef}

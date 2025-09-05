@@ -174,18 +174,48 @@ export const chatUtils = {
       : `https://${agentId}.${remoteDomain}`;
   },
   splitDataToJSONObjects: (data: string) => {
-    const jsonStrings = data.split('}{').map((str, index, array) => {
-      if (index !== 0) str = '{' + str;
-      if (index !== array.length - 1) str += '}';
-      return str;
-    });
+    // Handle empty or invalid data
+    if (!data || typeof data !== 'string') return [];
+
+    // Clean the data first - remove any incomplete JSON chunks
+    const cleanData = data.trim();
+    if (!cleanData) return [];
+
+    // Split by '}{' but handle edge cases
+    const jsonStrings = cleanData
+      .split('}{')
+      .map((str, index, array) => {
+        let cleanStr = str.trim();
+
+        // Skip empty strings
+        if (!cleanStr) return null;
+
+        // Add opening brace if not first element
+        if (index !== 0 && !cleanStr.startsWith('{')) {
+          cleanStr = '{' + cleanStr;
+        }
+
+        // Add closing brace if not last element
+        if (index !== array.length - 1 && !cleanStr.endsWith('}')) {
+          cleanStr += '}';
+        }
+
+        return cleanStr;
+      })
+      .filter(Boolean) as string[];
 
     const result = jsonStrings
       .map((str) => {
         try {
+          // Additional validation before parsing
+          if (!str || str.length < 2) return null;
+
+          // Check if it looks like JSON
+          if (!str.startsWith('{') || !str.endsWith('}')) return null;
+
           return JSON.parse(str) as ResponseFormat;
         } catch (error) {
-          console.error('Error parsing JSON:', error); // eslint-disable-line no-console
+          // Silently skip invalid JSON instead of logging errors
           return null;
         }
       })
@@ -268,6 +298,7 @@ export const chatUtils = {
         const decodedValue = new TextDecoder().decode(value);
         accumulatedData += decodedValue;
 
+        // Only process if we have complete JSON objects
         const jsonObjects: ResponseFormat[] = chatUtils.splitDataToJSONObjects(accumulatedData);
 
         // First pass: Check for state transitions
@@ -379,7 +410,11 @@ export const chatUtils = {
             // Handle final content transition - only when we're actually getting content
             if (messageState === ('debug' as MessageState)) {
               handleMessageTransition('final');
-              message += message.length > 0 ? '\n' + jsonObject.content : jsonObject.content; // Final response will begin below previous message
+              // Safely concatenate content without causing JSON parsing issues
+              const content = jsonObject.content || '';
+              if (content) {
+                message += message.length > 0 ? '\n' + content : content;
+              }
             }
 
             // Stop all thinking messages when content starts arriving
@@ -405,7 +440,10 @@ export const chatUtils = {
         }
 
         // Clear accumulated data after processing all JSON objects
-        accumulatedData = '';
+        // Only clear if we successfully processed some objects
+        if (jsonObjects.length > 0) {
+          accumulatedData = '';
+        }
       }
     } catch (error) {
       if (error.name === 'AbortError') {

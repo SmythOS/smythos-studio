@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Chat, ScrollToBottomButton } from '@react/features/ai-chat/components';
 import { useChatContext } from '@react/features/ai-chat/contexts';
-import { useDragAndDrop, useScrollToBottom } from '@react/features/ai-chat/hooks';
+import { useDragAndDrop } from '@react/features/ai-chat/hooks';
 import { AgentDetails } from '@src/react/shared/types/agent-data.types';
 import { IChatMessage } from '@src/react/shared/types/chat.types';
 import { FC, MutableRefObject, RefObject, useEffect, useRef } from 'react';
@@ -9,7 +9,10 @@ import { FC, MutableRefObject, RefObject, useEffect, useRef } from 'react';
 interface MessagesProps {
   agent: AgentDetails;
   messages: IChatMessage[];
+  handleScroll: () => void;
+  showScrollButton: boolean;
   containerRef: RefObject<HTMLElement>;
+  scrollToBottom: (smooth?: boolean) => void;
   handleFileDrop: (droppedFiles: File[]) => Promise<void>;
 }
 
@@ -26,11 +29,12 @@ const combineRefs =
   };
 
 export const Chats: FC<MessagesProps> = (props) => {
-  const { agent, messages, containerRef, handleFileDrop } = props;
+  const { agent, messages, containerRef, handleFileDrop, ...scroll } = props;
+  const { handleScroll, scrollToBottom, showScrollButton } = scroll;
+
   const ref = useRef<HTMLDivElement>(null);
   const { isRetrying, retryLastMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
-  const { handleScroll, scrollToBottom, showScrollButton } = useScrollToBottom(containerRef);
 
   useEffect(() => scrollToBottom(), [messages, scrollToBottom]);
   useEffect(() => {
