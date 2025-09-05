@@ -6,6 +6,7 @@ import express from 'express';
 import session from 'express-session';
 import { Server } from 'http';
 import path from 'path';
+import 'source-map-support/register.js';
 import url from 'url';
 
 // Core imports

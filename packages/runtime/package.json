@@ -5,8 +5,8 @@
   "main": "dist/index.cjs",
   "type": "module",
   "scripts": {
-    "dev": "nodemon",
-    "build": "cross-env NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' rollup -c",
+    "dev": "cross-env NODE_ENV=development FORMAT=cjs rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
+    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=4096' rollup -c",
     "start:prod": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",
     "clean": "rm -rf dist",
@@ -45,10 +45,10 @@
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript-paths": "^1.5.0",
+    "supertest": "^6.3.3",
     "typescript": "^5.0.0",
     "vite-tsconfig-paths": "^5.1.2",
-    "vitest": "^2.1.4",
-    "supertest": "^6.3.3"
+    "vitest": "^2.1.4"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
@@ -65,6 +65,7 @@
     "openai": "^4.72.0",
     "openapi-to-postmanv2": "^4.24.0",
     "pkce-challenge": "^5.0.0",
+    "source-map-support": "^0.5.21",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1"
   },

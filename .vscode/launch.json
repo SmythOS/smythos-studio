@@ -32,11 +32,11 @@
       "name": "Launch Runtime Server",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/packages/runtime/dist/index.cjs",
-      "preLaunchTask": "runtime: build",
+      "program": "${workspaceFolder}/packages/runtime/dist/index.dev.cjs",
+      "preLaunchTask": "runtime: build:dev",
       "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.js"],
+      "outFiles": ["${workspaceFolder}/packages/runtime/dist/**/*.cjs"],
       "cwd": "${workspaceFolder}/packages/runtime",
       "env": {
         "NODE_ENV": "development"
