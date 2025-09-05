@@ -5,6 +5,7 @@ import { Logger } from '@smythos/sre';
 
 import config from '@core/config';
 import { getM2MToken } from '@core/helpers/logto.helper';
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 import UserAgentAccessCheck from '@core/middlewares/userAgentAccessCheck.mw';
 import { validate } from '@core/middlewares/validate.mw';
 import { requestContext } from '@core/services/request-context';
@@ -33,7 +34,7 @@ type ChatbotResponse = {
 
 const router = express.Router();
 
-const middlewares = [UserAgentAccessCheck, agentLoader, ChatbotLoader];
+const middlewares = [uploadHandler, UserAgentAccessCheck, agentLoader, ChatbotLoader];
 router.use(middlewares);
 
 const localAgentAuthorizations = {
