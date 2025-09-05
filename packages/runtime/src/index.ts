@@ -151,13 +151,13 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 // Health endpoint
 app.get('/health', (req: any, res) => {
-  let agent_domain = config.env.DEFAULT_AGENT_DOMAIN;
-  if (config.env.AGENT_DOMAIN_PORT) agent_domain += `:${config.env.AGENT_DOMAIN_PORT}`;
+  let agentDomain = config.env.DEFAULT_AGENT_DOMAIN;
+  if (config.env.AGENT_DOMAIN_PORT) agentDomain += `:${config.env.AGENT_DOMAIN_PORT}`;
 
   res.send({
     message: 'Health Check Complete',
     hostname: req.hostname,
-    agent_domain,
+    agent_domain: agentDomain,
     success: true,
     node: port?.toString()?.substr(2),
     name: 'smythos-runtime-server',
