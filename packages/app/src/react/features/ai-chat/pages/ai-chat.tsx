@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-  Container,
   ChatHeader,
   Chats,
+  Container,
   Footer,
   QueryInputRef,
 } from '@react/features/ai-chat/components';
@@ -45,7 +45,7 @@ const AIChat = () => {
   const agentSettings = settingsData?.settings;
 
   // Custom Hooks - optimized
-  const { setShowScrollButton, ...scroll } = useScrollToBottom(chatContainerRef);
+  const { setShowScrollButton } = useScrollToBottom(chatContainerRef);
 
   const {
     files,
@@ -168,29 +168,26 @@ const AIChat = () => {
 
   return (
     <ChatProvider value={chatContextValue}>
-      <div className="w-full h-full max-h-screen bg-white">
+      <Container>
         <ChatHeader
           avatar={agentSettings?.avatar}
           agentName={agent?.name}
           isLoading={isAgentSettingsLoading}
         />
 
-        <Container>
-          <Chats
-            agent={agent}
-            messages={chatHistoryMessages}
-            containerRef={chatContainerRef}
-            handleFileDrop={handleFileDrop}
-            {...scroll}
-          />
-          <Footer
-            uploadError={uploadError}
-            clearError={clearError}
-            queryInputRef={queryInputRef}
-            submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
-          />
-        </Container>
-      </div>
+        <Chats
+          agent={agent}
+          messages={chatHistoryMessages}
+          containerRef={chatContainerRef}
+          handleFileDrop={handleFileDrop}
+        />
+        <Footer
+          uploadError={uploadError}
+          clearError={clearError}
+          queryInputRef={queryInputRef}
+          submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
+        />
+      </Container>
     </ChatProvider>
   );
 };
