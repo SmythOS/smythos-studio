@@ -1,6 +1,7 @@
 import { getOpenAPIJSONForAI } from '@embodiment/helpers/openapi-adapter.helper';
 import { Agent, Conversation } from '@smythos/sre';
 import axios from 'axios';
+
 const SPEAKABLE_FORMAT_PROMPT = 'Return the response in speakable format';
 const ALEXA_BASE_URL = 'https://api.amazonalexa.com';
 const ALEXA_SETTINGS_KEY = 'alexa';
@@ -83,7 +84,7 @@ function buildAlexaResponse(outputSpeech: string, reprompt = '', shouldEndSessio
           text: reprompt,
         },
       },
-      shouldEndSession: shouldEndSession,
+      shouldEndSession,
     },
   };
 }
@@ -94,11 +95,11 @@ export async function createAlexaSkill(agentName: string, accessToken: string, v
       method: 'post',
       url: `${ALEXA_BASE_URL}/v1/skills`,
       headers: {
-        Authorization: 'Bearer ' + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       data: {
-        vendorId: vendorId,
+        vendorId,
         manifest: {
           apis: {
             custom: {
@@ -116,10 +117,10 @@ export async function createAlexaSkill(agentName: string, accessToken: string, v
             locales: {
               'en-US': {
                 description: 'Smythos agent',
-                examplePhrases: ['Alexa open ' + agentName],
+                examplePhrases: [`Alexa open ${agentName}`],
                 keywords: [agentName],
                 name: agentName,
-                summary: 'invoke ' + agentName,
+                summary: `invoke ${agentName}`,
               },
             },
           },
@@ -133,7 +134,7 @@ export async function createAlexaSkill(agentName: string, accessToken: string, v
       method: 'put',
       url: `${ALEXA_BASE_URL}/v1/skills/${skillId}/stages/development/interactionModel/locales/en-US`,
       headers: {
-        Authorization: 'Bearer ' + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       data: {

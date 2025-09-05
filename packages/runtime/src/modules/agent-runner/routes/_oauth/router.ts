@@ -11,7 +11,7 @@ const router = express.Router();
 router.use(agentLoader);
 // @ts-ignore
 router.get('/authorize', async (req: Request, res: Response) => {
-  //@ts-ignore
+  // @ts-ignore
   const agent: Agent = req._agent;
   if (!agent) {
     return res.status(404).json({ error: 'Agent not found' });

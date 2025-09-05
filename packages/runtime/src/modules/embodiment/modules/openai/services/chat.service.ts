@@ -99,7 +99,7 @@ class OpenAIChatService {
         readable.push(`data: ${JSON.stringify(preparedContent)}\n\n`);
       });
 
-      //Removed : passthrough content is now returned as normal content in the content event
+      // Removed : passthrough content is now returned as normal content in the content event
       // conv.on('agentCallback', (content) => {
       //     const now = Date.now();
       //     const preparedContent: OpenAI.Chat.Completions.ChatCompletionChunk = {

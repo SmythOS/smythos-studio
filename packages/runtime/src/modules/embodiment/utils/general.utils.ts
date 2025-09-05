@@ -4,7 +4,7 @@ function uid() {
   return (Date.now() + Math.random()).toString(36).replace('.', '').toUpperCase();
 }
 
-const hasKeyTemplateVar = (str: string = ''): boolean => {
+const hasKeyTemplateVar = (str = ''): boolean => {
   if (!str || typeof str !== 'string') return false;
   return (str?.match(/{{KEY\((.*?)\)}}/g) ?? []).length > 0;
 };
@@ -19,11 +19,9 @@ function parseTemplate(str, obj, { escapeString = true, processUnmatched = true,
 
       if (typeof objVal === 'object') {
         objVal = JSON.stringify(objVal);
-      } else {
-        if (escapeString && typeof objVal === 'string') {
-          //escape double quotes, slashes ...
-          objVal = objVal?.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
-        }
+      } else if (escapeString && typeof objVal === 'string') {
+        // escape double quotes, slashes ...
+        objVal = objVal?.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
       }
 
       // Need to consider boolean 'false' as a valid value
@@ -33,7 +31,7 @@ function parseTemplate(str, obj, { escapeString = true, processUnmatched = true,
       return typeof val == 'string' || typeof val == 'number' ? val : JSON.stringify(val);
     });
 
-    //replace unmached vars with default value, make sure to ignore the key template var
+    // replace unmached vars with default value, make sure to ignore the key template var
     return str == parsed && processUnmatched ? parsed?.replace(/{{(?!KEY\().*?}}/g, unmached) : parsed;
   } catch (err) {
     console.log('Error on parse template: ', err);

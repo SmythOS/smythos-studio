@@ -6,7 +6,7 @@ import { getM2MToken } from '@core/helpers/logto.helper';
 import { SmythConfigs } from '@core/types/general.types';
 
 export class SmythOSSAgentDataConnector extends AgentDataConnector {
-  public name: string = 'SmythOSSAgentData';
+  public name = 'SmythOSSAgentData';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -18,7 +18,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
   constructor(private config: SmythConfigs & OAuthConfig & { agentStageDomain: string; agentProdDomain: string }) {
     super();
-    //if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
+    // if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
     this.oAuthAppId = config.oAuthAppID;
     this.oAuthAppSecret = config.oAuthAppSecret;
     this.oAuthBaseUrl = config.oAuthBaseUrl;
@@ -40,15 +40,14 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
   public async getAgentData(agentId: string, version?: string): Promise<any> {
     try {
-      let agentObj;
-
-      //FIXME : once we have the agent name in deployment api response, we can skip this call
+      // FIXME : once we have the agent name in deployment api response, we can skip this call
       // const response = await mwSysAPI.get(`/ai-agent/${agentID}?include=team.subscription`, includeAuth(token));
       const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}?include=team.subscription`, {
         headers: await this.getSmythRequestHeaders(),
       });
-      agentObj = response.data.agent;
-      const authData = agentObj.data.auth; //use most up to date auth data
+      // eslint-disable-next-line prefer-const
+      let agentObj = response.data.agent;
+      const authData = agentObj.data.auth; // use most up to date auth data
 
       // const tasksResponse = await mwSysAPI.get(`/quota/team/${agentObj.teamId}/tasks/subscription`, includeAuth(token));
       const tasksResponse = await this.smythAPI.get(`/v1/quota/team/${agentObj.teamId}/tasks/subscription`, {
@@ -56,7 +55,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       });
       agentObj.taskData = tasksResponse.data;
 
-      agentObj.data.debugSessionEnabled = agentObj?.data?.debugSessionEnabled && agentObj?.isLocked; //disable debug session if agent is not locked (locked agent means that it's open in the Agent builder)
+      agentObj.data.debugSessionEnabled = agentObj?.data?.debugSessionEnabled && agentObj?.isLocked; // disable debug session if agent is not locked (locked agent means that it's open in the Agent builder)
 
       if (version) {
         // const deploymentsList = await mwSysAPI.get(`/ai-agent/${agentID}/deployments`, includeAuth(token));
@@ -73,45 +72,45 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
             headers: await this.getSmythRequestHeaders(),
           });
           agentObj.data = deployResponse?.data?.deployment?.aiAgentData;
-          agentObj.data.debugSessionEnabled = false; //never enable debug session when using a deployed version
+          agentObj.data.debugSessionEnabled = false; // never enable debug session when using a deployed version
           agentObj.data.agentVersion = deployment.version;
           agentObj.version = deployment.version;
         } else {
-          //if (version !== 'latest') {
+          // if (version !== 'latest') {
           throw new Error(`Requested Deploy Version not found: ${version}`);
-          //} // if version == 'latest' but no deployment is found we just fallback to the agent live data
+          // } // if version == 'latest' but no deployment is found we just fallback to the agent live data
         }
       }
 
-      //TODO: Also include team and subscription info
+      // TODO: Also include team and subscription info
 
-      //agentObj.data.auth = authData;
+      // agentObj.data.auth = authData;
       if (!agentObj?.data?.auth?.method || agentObj?.data?.auth?.method == 'none') agentObj.data.auth = authData;
 
       agentObj.data = this.migrateAgentData(agentObj.data);
 
       return agentObj;
     } catch (error: any) {
-      console.error(error.response?.data, error.message);
-      console.log(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
+      // console.error(error.response?.data, error.message);
+      // console.log(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
     }
   }
 
   public async getAgentIdByDomain(domain: string): Promise<string> {
     let agentId;
-    //first check if this is the internal wildcard agents domain
+    // first check if this is the internal wildcard agents domain
     const isStageWildcardDomain = domain.includes(this.agentStageDomain);
     const isProdWildcardDomain = domain.includes(this.agentProdDomain);
     if (isStageWildcardDomain || isProdWildcardDomain) {
-      //console.log('Internal agent domain detected', domain);
+      // console.log('Internal agent domain detected', domain);
       agentId = domain.split('.')[0];
-      //sanity check
+      // sanity check
       if (`${agentId}.${this.agentStageDomain}` !== domain && `${agentId}.${this.agentProdDomain}` !== domain) {
         throw new Error(`Invalid agent domain: ${domain}`);
       }
 
-      //if this is a stage domain, no more check, return the agentId
+      // if this is a stage domain, no more check, return the agentId
       if (isStageWildcardDomain) return agentId;
     }
 
@@ -126,7 +125,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       throw new Error('Error getting domain info');
     }
 
-    //we have an agentId from the wildcard domain, if this domain is already associated with
+    // we have an agentId from the wildcard domain, if this domain is already associated with
     if (agentId) {
       const hasDomain = result.data.domains.find((domainEntry: any) => domainEntry?.aiAgent?.id === agentId);
       if (hasDomain) {
@@ -136,12 +135,12 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       agentId = result.data.domains.find((domainEntry: any) => domainEntry.name === domain)?.aiAgent?.id;
     }
 
-    //if a custom domain is found, use it, otherwise use the agentId from the wildcard domain
+    // if a custom domain is found, use it, otherwise use the agentId from the wildcard domain
 
     return agentId;
   }
 
-  public async getAgentSettings(agentId: string, version?: string): Promise<any> {
+  public async getAgentSettings(agentId: string, _version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
       const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}/settings`, {
@@ -151,12 +150,12 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return formattedSettings;
     } catch (error) {
-      console.error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
+      // console.error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
     }
   }
 
-  public async getAgentEmbodiments(agentId: string, version?: string): Promise<any> {
+  public async getAgentEmbodiments(agentId: string, _version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
       const response = await this.smythAPI.get(`/v1/embodiments?aiAgentId=${agentId}`, {
@@ -165,7 +164,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return response?.data?.embodiments || [];
     } catch (error) {
-      console.error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
+      // console.error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
     }
   }
@@ -184,7 +183,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return agentsList;
     } catch (error) {
-      console.error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
+      // console.error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
       throw new Error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
     }
   }
@@ -196,7 +195,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       });
       return deploymentsList?.data?.deployments?.length > 0;
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       return false;
     }
   }
@@ -215,10 +214,10 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
   private migrateAgentData(data) {
     if (!data.version) {
-      console.log(`Agent [${data.name}] has an old schema. Migrating to latest version...`);
+      // console.log(`Agent [${data.name}] has an old schema. Migrating to latest version...`);
       // version 0  ===> migrate from receptors/connectors to inputs/outputs
       const newData = JSON.parse(JSON.stringify(data));
-      for (let component of newData.components) {
+      for (const component of newData.components) {
         component.outputs = component.connectors;
         component.inputs = component.receptors;
         component.outputProps = component.connectorProps;
@@ -232,10 +231,10 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
     }
 
     if (data.version === '1.0.0') {
-      //migrate .description to .behavior
+      // migrate .description to .behavior
       if (data.description && !data.behavior) {
-        data.behavior = data.description;
-        //delete newConfig.description;
+        const newData = { ...data, behavior: data.description };
+        return newData;
       }
     }
 

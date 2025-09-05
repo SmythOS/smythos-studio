@@ -13,7 +13,7 @@ export default async function agentLoader(req, res, next) {
     return next();
   }
   let agentId = req.header('X-AGENT-ID');
-  let agentVersion = req.header('X-AGENT-VERSION') || '';
+  const agentVersion = req.header('X-AGENT-VERSION') || '';
   const isAgentChatRequest = req.header('x-conversation-id') !== undefined;
   const isAgentFileParsingRequest = isAgentChatRequest || req.header('X-AGENT-REMOTE-CALL') !== undefined;
   const debugHeader =
@@ -53,7 +53,7 @@ export default async function agentLoader(req, res, next) {
       isTestDomain = true;
     }
     if (agentDomain && !isTestDomain && !version && !debugHeader) {
-      //when using a production domain but no version is specified, use latest
+      // when using a production domain but no version is specified, use latest
       version = 'latest';
     }
     let agentData;

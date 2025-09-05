@@ -6,7 +6,7 @@ import Converter from 'openapi-to-postmanv2';
 const router = express.Router();
 
 router.get('/', agentLoader, async (req: any, res) => {
-  let domain = req.hostname;
+  const domain = req.hostname;
 
   try {
     const openAPISpec = await getOpenAPIJSON(req._rawAgent, domain, req._agentVersion, false).catch(error => {

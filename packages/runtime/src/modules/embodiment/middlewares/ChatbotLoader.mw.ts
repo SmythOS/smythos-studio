@@ -1,16 +1,20 @@
-import { Agent } from '@smythos/sre';
+import { Agent, Logger } from '@smythos/sre';
+
 import Chatbot from '../services/Chatbot.class';
 import ApiError from '../utils/apiError';
-//TODO : handle cache TTL
 
-const __chatbot_cache = { 0: 1 };
+const console = Logger('[Embodiment] Middleware: Chatbot Loader');
+
+// TODO : handle cache TTL
+
+const chatbotCache = { 0: 1 };
 export default async function ChatbotLoader(req, res, next) {
   console.log('ChatbotLoader');
   const agent: Agent = req._agent;
   if (!agent) return next();
   try {
-    if (__chatbot_cache[agent.id] && !agent.usingTestDomain) {
-      const chatBotData = __chatbot_cache[agent.id];
+    if (chatbotCache[agent.id] && !agent.usingTestDomain) {
+      const chatBotData = chatbotCache[agent.id];
       if (chatBotData.agentVersion == agent.version) {
         console.log(`Chatbot loaded from cache, domain=${chatBotData.domain} version=${chatBotData.version}`);
         const chatbot = new Chatbot(req);
@@ -23,7 +27,7 @@ export default async function ChatbotLoader(req, res, next) {
       req._chatbot = chatbot;
 
       await req._chatbot.init();
-      __chatbot_cache[agent.id] = chatbot.serialize(); //we cannot store an object in session, so we serialize it
+      chatbotCache[agent.id] = chatbot.serialize(); // we cannot store an object in session, so we serialize it
     }
   } catch (error) {
     if (error.errKey == 'MODEL_NOT_SUPPORTED') {

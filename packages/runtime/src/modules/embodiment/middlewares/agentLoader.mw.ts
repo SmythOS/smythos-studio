@@ -9,14 +9,14 @@ export default async function agentLoader(req, res, next) {
   console.log('agentLoader', req.path);
   const agentDataConnector = ConnectorService.getAgentDataConnector();
 
-  const isAgentLLMCall = req.body.model ? true : false;
+  const isAgentLLMCall = !!req.body.model;
   const agentFromModel: any = isAgentLLMCall ? getAgentIdAndVersion(req.body.model) : {};
 
   if (req.path.startsWith('/static/')) {
     return next();
   }
   let agentId = req.header('X-AGENT-ID') || agentFromModel.agentId;
-  let agentVersion = req.header('X-AGENT-VERSION') || agentFromModel.version || '';
+  const agentVersion = req.header('X-AGENT-VERSION') || agentFromModel.version || '';
   const isAgentChatRequest = req.header('x-conversation-id') !== undefined;
   const debugHeader =
     req.header('X-DEBUG-STOP') !== undefined ||
@@ -55,7 +55,7 @@ export default async function agentLoader(req, res, next) {
       isTestDomain = true;
     }
     if (agentDomain && !isTestDomain && !version) {
-      //when using a production domain but no version is specified, use latest
+      // when using a production domain but no version is specified, use latest
       version = 'latest';
     }
     let agentData;
@@ -92,7 +92,7 @@ export default async function agentLoader(req, res, next) {
     req.socket.on('close', () => {
       // console.log('Client socket closed, killing agent');
       // Handle the cancellation logic
-      //req._agent.kill();
+      // req._agent.kill();
     });
     // req._agent.auth is empty for sre-embodiment-server; the actual auth data exists in agentData.data.auth or req._agent.data.auth
     // However, the auth middleware in the sre-agent-server project expects auth data in req._agent.auth,
@@ -108,7 +108,7 @@ export default async function agentLoader(req, res, next) {
     req._agent.domain = isAgentLLMCall ? 'AgentLLM' : agentDomain || (await getAgentDomainById(agentId));
     // req._agent.version = version;
     req._agentVersion = version;
-    //req._data1 = 1;
+    // req._data1 = 1;
 
     console.log(`Loaded Agent:${agentId} v=${version} path=${path} isTestDomain=${isTestDomain} domain=${agentDomain}`);
     return next();

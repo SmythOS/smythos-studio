@@ -8,7 +8,7 @@ export async function processAgentRequest(agent: any, req: Request) {
   if (!agent) {
     return { status: 404, data: 'Agent not found' };
   }
-  //const req = agent.agentRequest;
+  // const req = agent.agentRequest;
 
   req.socket.on('close', () => {
     // console.log('Client socket closed, killing agent');
@@ -27,9 +27,9 @@ export async function processAgentRequest(agent: any, req: Request) {
 
 async function runAgentProcess(agent: any, req: any) {
   try {
-    //extract endpoint path
-    //live agents (dev) do not have a version number
-    //deployed agents have a version number
+    // extract endpoint path
+    // live agents (dev) do not have a version number
+    // deployed agents have a version number
     const pathMatches = req.path.match(/(^\/v[0-9]+\.[0-9]+?)?(\/api\/(.+)?)/);
     if (!pathMatches || !pathMatches[2]) {
       return { status: 404, data: { error: 'Endpoint not found' } };

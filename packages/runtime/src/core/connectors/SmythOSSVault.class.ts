@@ -21,7 +21,7 @@ type SmythVaultConfig = {
 
 const console = Logger('SmythOSSVault');
 export class SmythOSSVault extends VaultConnector {
-  public name: string = 'SmythOSSVault';
+  public name = 'SmythOSSVault';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -31,7 +31,7 @@ export class SmythOSSVault extends VaultConnector {
 
   constructor(protected _settings: SmythVaultConfig & OAuthConfig) {
     super(_settings);
-    //if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
+    // if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
 
     this.oAuthAppId = _settings.oAuthAppID;
     this.oAuthAppSecret = _settings.oAuthAppSecret;
@@ -81,12 +81,12 @@ export class SmythOSSVault extends VaultConnector {
     const teamId = await accountConnector.getCandidateTeam(acRequest.candidate);
     const vaultAPIHeaders = await this.getVaultRequestHeaders();
     const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets/${keyId}`, { headers: vaultAPIHeaders });
-    return vaultResponse?.data?.secret ? true : false;
+    return !!vaultResponse?.data?.secret;
   }
 
   @SecureConnector.AccessControl
   protected async listKeys(acRequest: AccessRequest) {
-    //const accountConnector = ConnectorService.getAccountConnector();
+    // const accountConnector = ConnectorService.getAccountConnector();
     const teamId = acRequest.candidate.id;
     const vaultAPIHeaders = await this.getVaultRequestHeaders();
     const vaultResponse = await this.vaultAPI.get(`/vault/${teamId}/secrets`, {

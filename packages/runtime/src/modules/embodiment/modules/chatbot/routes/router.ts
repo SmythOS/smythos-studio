@@ -1,17 +1,19 @@
 import axios from 'axios';
 import express from 'express';
 
-import { AccessCandidate, Agent, BinaryInput } from '@smythos/sre';
-import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
+import { AccessCandidate, Agent, BinaryInput, Logger } from '@smythos/sre';
 
 import config from '@core/config';
 import { readAgentOAuthConfig } from '@core/helpers/agent.helper';
+import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 
 import { EMBODIMENT_TYPES } from '@embodiment/constants';
 import { getChatGPTManifest } from '@embodiment/helpers/chatgpt.helper';
 import agentLoader from '@embodiment/middlewares/agentLoader.mw';
 import ChatbotLoader from '@embodiment/middlewares/ChatbotLoader.mw';
 import { buildConversationId } from '@embodiment/utils/chat.utils';
+
+const console = Logger('[Embodiment] Router: Chatbot');
 
 // Import ChatbotResponse type for proper typing
 type ChatbotResponse = {
@@ -36,7 +38,7 @@ router.use(middleweares);
 
 router.get('/', async (req, res) => {
   const agent: Agent = req._agent;
-  //FIXME : using name as intro message his as a workaround
+  // FIXME : using name as intro message his as a workaround
   const name = agent.name;
   const debugSessionEnabled = agent.debugSessionEnabled;
   const isTestDomain = agent.usingTestDomain;
@@ -44,9 +46,9 @@ router.get('/', async (req, res) => {
   // wait for agent embodiments to be ready
   await agent.agentSettings?.embodiments?.ready();
 
-  const chatbotName = agent.agentSettings?.embodiments?.get(EMBODIMENT_TYPES.ChatBot, 'name') || agent.name;
+  const _chatbotName = agent.agentSettings?.embodiments?.get(EMBODIMENT_TYPES.ChatBot, 'name') || agent.name;
   let introMessage = agent.agentSettings?.embodiments?.get(EMBODIMENT_TYPES.ChatBot, 'introMessage') || '';
-  //escape string for javascript
+  // escape string for javascript
   introMessage = introMessage.replace(/'/g, "\\'").replace(/"/g, '\\"');
 
   const logo = agent.agentSettings?.embodiments?.get(EMBODIMENT_TYPES.ChatBot, 'icon') || 'https://proxy-02.api.smyth.ai/static/img/icon.svg';
@@ -95,7 +97,7 @@ router.get('/chat-configs', async (req: any, res) => {
     return res.status(404).send({ error: 'Chatbot not found' });
   }
   const agent: Agent = req._agent;
-  const pluginManifest = await getChatGPTManifest(agent.domain, agent.version).catch(error => {
+  const pluginManifest = await getChatGPTManifest(agent.domain, agent.version).catch(_error => {
     return null;
   });
 
@@ -128,7 +130,8 @@ router.post('/chat-stream', async (req, res) => {
   const abortController = new AbortController();
 
   try {
-    let { message, attachments = [] } = req.body;
+    let { message } = req.body;
+    const { attachments = [] } = req.body;
     if (attachments.length > 0) {
       message = [message, '###', 'Attachments:', ...attachments.map(attachment => `- ${attachment.url}`)].join('\n');
     }
@@ -141,9 +144,9 @@ router.post('/chat-stream', async (req, res) => {
     const monitorId = req.headers['x-monitor-id'];
     const hasAttachments = attachments?.length > 0;
 
-    //TODO @AK : pass agent id and version in order to allow bypassing http call for agent invocation in conv manager
-    //const headers = { 'X-AGENT-ID': agentId, 'X-AGENT-VERSION': req._agent?.version };
-    const headers = isDebugSession
+    // TODO @AK : pass agent id and version in order to allow bypassing http call for agent invocation in conv manager
+    // const headers = { 'X-AGENT-ID': agentId, 'X-AGENT-VERSION': req._agent?.version };
+    const headers: any = isDebugSession
       ? {
           'X-DEBUG': true,
           'X-AGENT-ID': agentId,
@@ -159,7 +162,7 @@ router.post('/chat-stream', async (req, res) => {
           'x-conversation-id': chatbot.conversationID,
         };
     if (verifiedKey) {
-      headers['Authorization'] = `Bearer ${verifiedKey}`;
+      headers.Authorization = `Bearer ${verifiedKey}`;
     }
 
     // Set up an event listener for client disconnection
@@ -167,7 +170,7 @@ router.post('/chat-stream', async (req, res) => {
       abortController.abort();
     });
 
-    //set response headers
+    // set response headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -213,13 +216,13 @@ router.get('/params', async (req, res) => {
 
   const agent: Agent = req._agent;
 
-  let sessionData = req.session;
+  const sessionData = req.session;
 
   // wait for agent settings and embodiments to be ready
   // await agent.agentSettings?.ready();
   // await agent.agentSettings?.embodiments?.ready();
 
-  let promises = [agent.agentSettings?.ready(), agent.agentSettings?.embodiments?.ready()];
+  const promises = [agent.agentSettings?.ready(), agent.agentSettings?.embodiments?.ready()];
 
   let authInfo;
 
@@ -279,8 +282,8 @@ router.get('/params', async (req, res) => {
       authRequired: isAuthRequired(),
       auth: {
         method: authInfo?.method,
-        redirectUri: redirectUri,
-        authorizationUrl: authorizationUrl,
+        redirectUri,
+        authorizationUrl,
         clientID: authInfo?.provider?.clientID,
         redirectInternalEndpoint: '/chatbot/callback',
       },
@@ -317,7 +320,7 @@ function setSessionToken(req: any, res: any, token: string, authMethod: string) 
   }
   req.session.agentAuthorizations[agentId] = {
     verifiedKey: token,
-    authMethod: authMethod,
+    authMethod,
   };
   req.session.save(err => {
     if (err) {
@@ -334,7 +337,7 @@ function handleLocalAgent(req: any, token: string, authMethod: string) {
     }
     localAgentAuthorizations[agentId] = {
       verifiedKey: token,
-      authMethod: authMethod,
+      authMethod,
     };
   }
 }
@@ -353,7 +356,7 @@ async function handleOAuthCallback(req: any, res: any) {
 
 async function getAuthInfo(req: any) {
   if (req._agent?.data?.auth) {
-    return await readAgentOAuthConfig(req._agent.data);
+    return readAgentOAuthConfig(req._agent.data);
   }
   return null;
 }
@@ -426,6 +429,7 @@ router.post('/verify-chat-key', async (req: any, res) => {
     return res.json({ message: 'Access granted', success: true });
   } catch (error) {
     console.error('Error verifying chat key:', error);
+
     return res.status(500).json({ error: 'Internal server error', success: false });
   }
 });

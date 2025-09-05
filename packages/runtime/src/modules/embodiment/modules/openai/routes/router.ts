@@ -9,6 +9,7 @@ import { Logger } from '@smythos/sre';
 import { Request, Response, Router } from 'express';
 import OpenAI from 'openai';
 import { Readable } from 'stream';
+
 const router = Router();
 const console = Logger('[Embodiment] Router: OpenAI');
 
@@ -35,7 +36,7 @@ router.post('/v1/chat/completions', agentLoader, validate(chatValidations.chatCo
 
     const model = agent.agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_MODEL;
 
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization;
     const apiKey = extractBearerToken(authHeader);
 
     const result = await chatService.chatCompletion({
@@ -57,7 +58,7 @@ router.post('/v1/chat/completions', agentLoader, validate(chatValidations.chatCo
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      let headersSent = false;
+      const headersSent = false;
 
       result.on('error', (error: any) => {
         console.warn('Chat completion error:', error);

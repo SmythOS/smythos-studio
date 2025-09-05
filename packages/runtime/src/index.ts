@@ -37,7 +37,7 @@ const sre = SmythRuntime.Instance.init({
   Storage: {
     Connector: 'LocalStorage',
     Settings: {
-      folder: config.env.DATA_PATH + '/tmp',
+      folder: `${config.env.DATA_PATH}/tmp`,
     },
   },
   Cache: {
@@ -52,7 +52,7 @@ const sre = SmythRuntime.Instance.init({
       oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
       oAuthResource: config.env.LOGTO_API_RESOURCE,
       oAuthScope: '',
-      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + '/_sysapi',
+      smythAPIBaseUrl: `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi`,
     },
   },
   Vault: {
@@ -81,7 +81,7 @@ const sre = SmythRuntime.Instance.init({
       oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
       oAuthResource: config.env.LOGTO_API_RESOURCE,
       oAuthScope: '',
-      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + '/_sysapi',
+      smythAPIBaseUrl: `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi`,
     },
   },
   Log: {

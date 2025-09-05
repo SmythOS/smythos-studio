@@ -1,13 +1,12 @@
 import axios from 'axios';
 import config from '../config';
 
-import { Logger } from '@smythos/sre';
+import { Logger, AccessCandidate, ConnectorService } from '@smythos/sre';
 
 import { includeAuth, mwSysAPI } from '../services/smythAPIReq';
 import { getM2MToken } from './logto.helper';
 
 import { AGENT_AUTH_SETTINGS_KEY, MOCK_DATA_SETTINGS_KEY, PROD_VERSION_VALUES, TEST_VERSION_VALUES } from '@core/constants';
-import { AccessCandidate, ConnectorService } from '@smythos/sre';
 import { defaultFileParsingAgent } from '../default-file-parsing-agent';
 
 const logger = Logger('(Core) Service: Agent Helper');
@@ -109,7 +108,7 @@ export async function getAgentEmbodiments(agentID) {
 
 export async function getAgentIdByDomain(domain = '') {
   let agentId;
-  //first check if this is the internal wildcard agents domain
+  // first check if this is the internal wildcard agents domain
   const isStageWildcardDomain = domain.includes(config.env.DEFAULT_AGENT_DOMAIN);
   const isProdWildcardDomain = domain.includes(config.env.PROD_AGENT_DOMAIN);
   if (isStageWildcardDomain || isProdWildcardDomain) {
@@ -143,7 +142,7 @@ export async function getAgentIdByDomain(domain = '') {
 function migrateAgentData(data) {
   if (!data.version) {
     const newData = JSON.parse(JSON.stringify(data));
-    for (let component of newData.components) {
+    for (const component of newData.components) {
       component.outputs = component.connectors;
       component.inputs = component.receptors;
       component.outputProps = component.connectorProps;

@@ -1,4 +1,5 @@
 import { Agent } from '@smythos/sre';
+
 const MCP_SETTINGS_KEY = 'mcp';
 
 export const isMcpEnabled = (agent: Agent) => {

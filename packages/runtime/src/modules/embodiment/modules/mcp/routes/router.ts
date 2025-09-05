@@ -1,14 +1,14 @@
 import express from 'express';
 import agentLoader from '@embodiment/middlewares/agentLoader.mw';
-import { Agent } from '@smythos/sre';
+import { Agent, AgentProcess } from '@smythos/sre';
 import { getOpenAPIJSON } from '@embodiment/helpers/openapi-adapter.helper';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { AgentProcess } from '@smythos/sre';
 import { extractMCPToolSchema, formatMCPSchemaProperties, isMcpEnabled } from '../services/mcp.services';
+
 const router = express.Router();
-//let transport: SSEServerTransport;
+// let transport: SSEServerTransport;
 const clientTransports = new Map<string, { transport: SSEServerTransport; server: Server }>();
 
 router.get('/sse', agentLoader, async (req: any, res) => {
@@ -74,7 +74,7 @@ router.get('/sse', agentLoader, async (req: any, res) => {
         description: operation.summary || `Endpoint that handles ${method.toUpperCase()} requests to ${endpoint}. ` + `${schema?.description || ''}`,
         inputSchema: {
           type: 'object',
-          properties: properties,
+          properties,
           required: schema?.required || [],
         },
       };
@@ -114,8 +114,8 @@ router.get('/sse', agentLoader, async (req: any, res) => {
 
           // Process the request through the agent
           const result = await AgentProcess.load(agent.data).run({
-            method: method,
-            path: path,
+            method,
+            path,
             body: args,
           });
 

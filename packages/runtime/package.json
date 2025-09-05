@@ -12,9 +12,9 @@
     "clean": "rm -rf dist",
     "lint": "eslint --ext .ts src/",
     "lint-fix": "eslint --ext .ts src/ --fix",
+    "lint-staged": "lint-staged",
     "ts-error-scan": "tsc --noEmit",
     "prettier:format": "prettier --write \"**/*.ts\"",
-    "lint-staged": "lint-staged",
     "bump": "pnpm version patch"
   },
   "author": "Alaa-eddine KADDOURI",

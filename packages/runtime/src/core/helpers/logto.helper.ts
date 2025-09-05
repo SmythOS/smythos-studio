@@ -1,7 +1,7 @@
 import axios from 'axios';
 import qs from 'querystring';
 import config from '../config';
-//M2M test
+// M2M test
 const postData = {
   grant_type: 'client_credentials',
   resource: 'https://default.logto.app/api',
@@ -10,7 +10,7 @@ const postData = {
 
 const base64Credentials = Buffer.from(`${config.env.LOGTO_M2M_APP_ID}:${config.env.LOGTO_M2M_APP_SECRET}`, 'utf8').toString('base64');
 
-let tokenData = {
+const tokenData = {
   access_token: null,
 };
 export function getM2MToken(resource?, scope?) {
@@ -28,7 +28,7 @@ export function getM2MToken(resource?, scope?) {
       method: 'post',
       url: `${config.env.LOGTO_SERVER}/oidc/token`,
       headers: {
-        Authorization: 'Basic ' + base64Credentials,
+        Authorization: `Basic ${base64Credentials}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       data: qs.stringify(body),
@@ -45,4 +45,3 @@ export function getM2MToken(resource?, scope?) {
       });
   });
 }
-

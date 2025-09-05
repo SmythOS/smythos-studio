@@ -56,7 +56,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
     }
   }
 
-  public async getMessage(message_id: string): Promise<any> {
+  public async getMessage(_messageId: string): Promise<any> {
     return {};
   }
 
@@ -67,7 +67,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
       return [];
     }
 
-    const filePath = path.join(folderPath, conversationId + '.json');
+    const filePath = path.join(folderPath, `${conversationId}.json`);
 
     if (!(await fsExists(filePath))) {
       return [];

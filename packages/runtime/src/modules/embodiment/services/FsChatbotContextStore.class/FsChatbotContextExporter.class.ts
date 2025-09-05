@@ -27,8 +27,8 @@ export class FsChatbotContextExporter {
   public async *streamConversations({ dateRange, env }: { dateRange?: string; env?: ChatConversationsEnv }): AsyncGenerator<ConversationStreamYield> {
     // TODO covert to stream-based export. will implement it NOW
     const folderPath = path.join(this.sessionsPath, this.agentId);
-    const testConvprefix = chatUtils.CHAT_PREFIXES['test'];
-    const prodConvprefix = chatUtils.CHAT_PREFIXES['prod'];
+    const testConvprefix = chatUtils.CHAT_PREFIXES.test;
+    const prodConvprefix = chatUtils.CHAT_PREFIXES.prod;
 
     // check if the folder exists
     if (!(await fsExists(folderPath))) return;

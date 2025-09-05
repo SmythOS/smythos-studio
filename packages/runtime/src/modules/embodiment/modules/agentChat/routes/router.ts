@@ -1,6 +1,8 @@
 import express from 'express';
 import Joi from 'joi';
 
+import { Logger } from '@smythos/sre';
+
 import config from '@core/config';
 import { getM2MToken } from '@core/helpers/logto.helper';
 import UserAgentAccessCheck from '@core/middlewares/userAgentAccessCheck.mw';
@@ -12,6 +14,8 @@ import agentLoader from '@embodiment/middlewares/agentLoader.mw';
 import ChatbotLoader from '@embodiment/middlewares/ChatbotLoader.mw';
 import Chatbot from '@embodiment/services/Chatbot.class';
 import { buildConversationId } from '@embodiment/utils/chat.utils';
+
+const console = Logger('[Embodiment] Router: Agent Chat');
 
 // Import ChatbotResponse type for proper typing
 type ChatbotResponse = {
@@ -32,8 +36,8 @@ const router = express.Router();
 const middlewares = [UserAgentAccessCheck, agentLoader, ChatbotLoader];
 router.use(middlewares);
 
-let localAgentAuthorizations = {
-  //FIXME : this seems like a hardcoded value used by Arslan during implementation, should we remove it ?
+const localAgentAuthorizations = {
+  // FIXME : this seems like a hardcoded value used by Arslan during implementation, should we remove it ?
   clzi8yw441kcfblqz6zj9bv1h: {
     verifiedKey: 'SomeRandomToken',
     authMethod: 'api-key-bearer',
@@ -81,7 +85,7 @@ router.post('/stream', async (req, res) => {
 
     const headers: any = {};
     if (verifiedKey) {
-      headers['Authorization'] = `Bearer ${verifiedKey}`;
+      headers.Authorization = `Bearer ${verifiedKey}`;
     }
 
     console.log('headers', {
@@ -96,12 +100,11 @@ router.post('/stream', async (req, res) => {
       return res.status(500).send({ error: 'Data path is not set' });
     }
 
-    //set response headers
+    // set response headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    //const headers = { 'X-AGENT-ID': agentId, 'X-AGENT-VERSION': agentVersion };
     headers['X-AGENT-ID'] = undefined; // because we don't debug with agent chat and this is required to make sre-runtime call the agent via http
     headers['X-AGENT-VERSION'] = agentVersion;
     headers['x-conversation-id'] = chatbot.conversationID;
@@ -143,7 +146,7 @@ router.post('/stream', async (req, res) => {
 router.post('/new', async (req, res) => {
   const { conversation = {} } = req.body;
   const isTestDomain = req.hostname.includes(`.${config.env.DEFAULT_AGENT_DOMAIN}`);
-  let agentId = req.header('X-AGENT-ID');
+  const agentId = req.header('X-AGENT-ID');
 
   const teamDetails = requestContext.get(`team_info:${agentId}`);
   if (!teamDetails?.teamId) return res.status(400).send({ error: 'Internal server error' });

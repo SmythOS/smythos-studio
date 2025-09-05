@@ -1,12 +1,17 @@
+import express from 'express';
+
+import { Logger } from '@smythos/sre';
+
 import { getChatGPTManifest } from '@embodiment/helpers/chatgpt.helper';
 import { getOpenAPIJSON } from '@embodiment/helpers/openapi-adapter.helper';
 import agentLoader from '@embodiment/middlewares/agentLoader.mw';
-import express from 'express';
+
+const console = Logger('[Embodiment] Router: ChatGPT');
 
 const router = express.Router();
 
 router.get('/.well-known/ai-plugin.json', agentLoader, async (req: any, res) => {
-  let domain = req.hostname;
+  const domain = req.hostname;
 
   const manifest = await getChatGPTManifest(req._rawAgent, domain).catch(error => {
     console.error(error);
@@ -17,14 +22,14 @@ router.get('/.well-known/ai-plugin.json', agentLoader, async (req: any, res) => 
     return res.status(500).send({ error: manifest.error });
   }
 
-  console.log(`Manifest requested from domain ${domain} = ` + JSON.stringify(manifest, null, 2));
+  console.log(`Manifest requested from domain ${domain} = ${JSON.stringify(manifest, null, 2)}`);
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(manifest, null, 2));
-  //res.json(manifest);
+  // res.json(manifest);
 });
 
 router.get('/api-docs/openapi-gpt.json', agentLoader, async (req: any, res) => {
-  let domain = req.hostname;
+  const domain = req.hostname;
 
   const openAPIObj = await getOpenAPIJSON(req._rawAgent, domain, req._agentVersion, true).catch(error => {
     console.error(error);
@@ -38,20 +43,24 @@ router.get('/api-docs/openapi-gpt.json', agentLoader, async (req: any, res) => {
   // Transform from 3.0.1 to 3.1.0 format for GPT compatibility
   const transformedSpec = transformOpenAPI301to310(openAPIObj);
 
-  //console.log(`openAPI requested from domain ${domain} = ` + JSON.stringify(transformedSpec, null, 2));
-  //FIXME : should use a more robust solution for limiting the function description length
-  //ChatGPT function description is limited to 300 characters max, but SmythOS are not
+  // console.log(`openAPI requested from domain ${domain} = ` + JSON.stringify(transformedSpec, null, 2));
+  // FIXME : should use a more robust solution for limiting the function description length
+  // ChatGPT function description is limited to 300 characters max, but SmythOS are not
   if ('paths' in transformedSpec) {
-    for (let path in transformedSpec.paths) {
-      const entry = transformedSpec.paths[path];
-      for (let method in entry) {
-        if (!entry[method].summary) continue;
-        // * Improvement: Instead of truncating the summary, we can rephrase it using an LLM.
-        entry[method].summary = splitOnSeparator(entry[method].summary, 300, '.');
+    for (const path in transformedSpec.paths) {
+      if (Object.hasOwn(transformedSpec.paths, path)) {
+        const entry = transformedSpec.paths[path];
+        for (const method in entry) {
+          if (Object.hasOwn(entry, method)) {
+            if (!entry[method].summary) continue;
+            // * Improvement: Instead of truncating the summary, we can rephrase it using an LLM.
+            entry[method].summary = splitOnSeparator(300, entry[method].summary, '.');
+          }
+        }
       }
     }
   }
-  //set application type to json
+  // set application type to json
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(transformedSpec, null, 2));
 });
@@ -84,56 +93,59 @@ function transformOpenAPI301to310(spec: any): any {
   function transformSchema(schema: any): any {
     if (!schema || typeof schema !== 'object') return schema;
 
+    // Create a copy to avoid mutating the parameter
+    const schemaCopy = { ...schema };
+
     // Handle array schemas - ensure items is properly defined
-    if (schema.type === 'array') {
-      if (!schema.items || Object.keys(schema.items).length === 0) {
-        schema.items = { type: 'string' }; // Default to string items
+    if (schemaCopy.type === 'array') {
+      if (!schemaCopy.items || Object.keys(schemaCopy.items).length === 0) {
+        schemaCopy.items = { type: 'string' }; // Default to string items
       } else {
-        schema.items = transformSchema(schema.items);
+        schemaCopy.items = transformSchema(schemaCopy.items);
       }
     }
 
     // Handle object schemas - fix empty additionalProperties
-    if (schema.type === 'object') {
+    if (schemaCopy.type === 'object') {
       if (
-        schema.additionalProperties !== undefined &&
-        typeof schema.additionalProperties === 'object' &&
-        Object.keys(schema.additionalProperties).length === 0
+        schemaCopy.additionalProperties !== undefined &&
+        typeof schemaCopy.additionalProperties === 'object' &&
+        Object.keys(schemaCopy.additionalProperties).length === 0
       ) {
-        schema.additionalProperties = true; // Allow any additional properties
+        schemaCopy.additionalProperties = true; // Allow any additional properties
       }
 
       // Transform nested properties
-      if (schema.properties) {
-        for (const [key, prop] of Object.entries(schema.properties)) {
-          schema.properties[key] = transformSchema(prop);
+      if (schemaCopy.properties) {
+        for (const [key, prop] of Object.entries(schemaCopy.properties)) {
+          schemaCopy.properties[key] = transformSchema(prop);
         }
       }
     }
 
     // Handle binary format - convert to string with contentEncoding
-    if (schema.format === 'binary') {
-      delete schema.format;
-      schema.type = 'string';
-      schema.contentEncoding = 'base64';
+    if (schemaCopy.format === 'binary') {
+      delete schemaCopy.format;
+      schemaCopy.type = 'string';
+      schemaCopy.contentEncoding = 'base64';
     }
 
     // Handle nullable fields (3.0.1 -> 3.1.0)
-    if (schema.nullable === true) {
-      delete schema.nullable;
+    if (schemaCopy.nullable === true) {
+      delete schemaCopy.nullable;
       // Convert to union type with null
-      if (schema.type) {
-        schema.type = Array.isArray(schema.type) ? [...schema.type, 'null'] : [schema.type, 'null'];
+      if (schemaCopy.type) {
+        schemaCopy.type = Array.isArray(schemaCopy.type) ? [...schemaCopy.type, 'null'] : [schemaCopy.type, 'null'];
       }
     }
 
     // Recursively transform nested schemas
-    if (schema.allOf) schema.allOf = schema.allOf.map(transformSchema);
-    if (schema.oneOf) schema.oneOf = schema.oneOf.map(transformSchema);
-    if (schema.anyOf) schema.anyOf = schema.anyOf.map(transformSchema);
-    if (schema.not) schema.not = transformSchema(schema.not);
+    if (schemaCopy.allOf) schemaCopy.allOf = schemaCopy.allOf.map(transformSchema);
+    if (schemaCopy.oneOf) schemaCopy.oneOf = schemaCopy.oneOf.map(transformSchema);
+    if (schemaCopy.anyOf) schemaCopy.anyOf = schemaCopy.anyOf.map(transformSchema);
+    if (schemaCopy.not) schemaCopy.not = transformSchema(schemaCopy.not);
 
-    return schema;
+    return schemaCopy;
   }
 
   // Transform request/response schemas in paths
@@ -170,7 +182,7 @@ function transformOpenAPI301to310(spec: any): any {
         if (op.parameters) {
           op.parameters = op.parameters.map((param: any) => {
             if (param.schema) {
-              param.schema = transformSchema(param.schema);
+              return { ...param, schema: transformSchema(param.schema) };
             }
             return param;
           });
@@ -189,13 +201,13 @@ function transformOpenAPI301to310(spec: any): any {
   return transformed;
 }
 
-function splitOnSeparator(str = '', maxLen: number, separator = ' .') {
+function splitOnSeparator(maxLen: number, str = '', separator = ' .') {
   if (str.length <= maxLen) {
     return str;
   }
 
   // Find the last occurrence of the separator before maxLen
-  let idx = str.lastIndexOf(separator, maxLen);
+  const idx = str.lastIndexOf(separator, maxLen);
 
   // If the separator is not found, return the substring up to maxLen
   if (idx === -1) {

@@ -18,7 +18,7 @@ import { SmythConfigs } from '@core/types/general.types';
 
 const console = Logger('SmythOSSAccount');
 export class SmythOSSAccount extends AccountConnector {
-  public name: string = 'SmythOSSAccount';
+  public name = 'SmythOSSAccount';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -28,7 +28,7 @@ export class SmythOSSAccount extends AccountConnector {
 
   constructor(protected _settings: SmythConfigs & OAuthConfig) {
     super(_settings);
-    //if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
+    // if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
 
     this.oAuthAppId = _settings.oAuthAppID;
     this.oAuthAppSecret = _settings.oAuthAppSecret;

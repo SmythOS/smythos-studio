@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/params', async (req, res) => {
   const agent: Agent = req._agent;
 
-  let promises = [agent.agentSettings?.ready()];
+  const promises = [agent.agentSettings?.ready()];
 
   await Promise.all(promises);
 

@@ -60,13 +60,13 @@ const agentDataConnector = new EmbodimentAgentDataConnector();
  * Constructs the server URL from domain using environment configuration
  */
 function constructServerUrl(domain: string): string {
-  const server_url_scheme =
+  const serverUrlScheme =
     config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN) ? 'http' : 'https';
-  const server_url_port =
+  const serverUrlPort =
     config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)
       ? `:${config.env.AGENT_DOMAIN_PORT}`
       : '';
-  return `${server_url_scheme}://${domain}${server_url_port}`;
+  return `${serverUrlScheme}://${domain}${serverUrlPort}`;
 }
 
 /**
@@ -78,9 +78,9 @@ function constructServerUrl(domain: string): string {
  * @param aiOnly - Whether to include only AI-exposed endpoints
  * @returns Promise<object> - The OpenAPI specification
  */
-export async function getOpenAPIJSON(agent: any, domain: string, version: string, aiOnly: boolean = false): Promise<OpenAPISpec> {
-  const server_url = constructServerUrl(domain);
-  const result = await agentDataConnector.getOpenAPIJSON(agent, server_url, version, aiOnly);
+export async function getOpenAPIJSON(agent: any, domain: string, version: string, aiOnly = false): Promise<OpenAPISpec> {
+  const serverUrl = constructServerUrl(domain);
+  const result = await agentDataConnector.getOpenAPIJSON(agent, serverUrl, version, aiOnly);
   return result;
 }
 
@@ -98,8 +98,8 @@ async function getOpenAPIJSONById(
   agentId: string,
   domain: string,
   version: string,
-  aiOnly: boolean = false,
-  addDefaultFileParsingAgent: boolean = false,
+  aiOnly = false,
+  addDefaultFileParsingAgent = false,
 ): Promise<any> {
   try {
     if (!agentId) {
@@ -121,8 +121,8 @@ async function getOpenAPIJSONById(
       addDefaultComponentsAndConnections(agentData);
     }
 
-    const server_url = constructServerUrl(domain);
-    const result = await agentDataConnector.getOpenAPIJSON(agentData, server_url, version, aiOnly);
+    const serverUrl = constructServerUrl(domain);
+    const result = await agentDataConnector.getOpenAPIJSON(agentData, serverUrl, version, aiOnly);
     return result;
   } catch (error) {
     return { error: error.message || 'OpenAPI generation failed' };
@@ -137,7 +137,7 @@ async function getOpenAPIJSONById(
  * @param addDefaultFileParsingAgent - Whether to add default file parsing components
  * @returns Promise<any> - The OpenAPI specification or error
  */
-export async function getOpenAPIJSONForAI(domain: string, version: string, addDefaultFileParsingAgent: boolean = false): Promise<any> {
+export async function getOpenAPIJSONForAI(domain: string, version: string, addDefaultFileParsingAgent = false): Promise<any> {
   try {
     const agentId = await getAgentIdByDomain(domain);
     if (!agentId) {

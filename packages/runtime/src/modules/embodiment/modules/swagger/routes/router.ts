@@ -11,9 +11,9 @@ const router = express.Router();
 // router.use(swaggerUi.serve);
 
 router.use('/', agentLoader, async (req: any, res) => {
-  //TODO : handle release switch : dev, prod, prod old versions [DONE]
+  // TODO : handle release switch : dev, prod, prod old versions [DONE]
   const agent: Agent = req._agent;
-  let domain = req.hostname;
+  const domain = req.hostname;
   // const debugSessionEnabled = agent.debugSessionEnabled;
   const isTestDomain = agent.usingTestDomain;
   // FIXME : use the right version depending on domain [FIXED]
@@ -45,7 +45,7 @@ initDebug('${config.env.UI_SERVER}', '${agent.id}');
 `;
   }
 
-  //inject the debug script before closing body tag
+  // inject the debug script before closing body tag
   htmlContent = htmlContent.replace('</body>', `${debugScript}</body>`);
   res.send(htmlContent);
 });

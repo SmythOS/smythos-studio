@@ -5,7 +5,7 @@ import { mwUserAPI } from '@core/services/smythAPIReq';
 const console = Logger('(Debugger) Middleware: Team Access Check');
 
 export async function teamAccessCheck(req, res, next) {
-  let teamId = req.params.teamId;
+  const teamId = req.params.teamId;
   const accessToken = req.header('Authorization') ? req.header('Authorization').split(' ')[1] : null;
 
   if (!accessToken) {

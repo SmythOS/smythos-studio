@@ -6,6 +6,7 @@ import { DEFAULT_AGENT_MODEL_SETTINGS_KEY, DEFAULT_MODEL } from '@core/constants
 import agentLoader from '@embodiment/middlewares/agentLoader.mw';
 
 import { createAlexaSkill, handleAlexaRequest, isAlexaEnabled, parseAlexaRequest } from '../services/alexa.service';
+
 const router = express.Router();
 
 router.post('/', agentLoader, async (req: any, res) => {
@@ -33,10 +34,10 @@ router.post('/publish', agentLoader, async (req: any, res) => {
     const agent: Agent = req._agent;
     const agentName = agent.name;
     const agentDomain = agent.domain;
-    let accessToken = req.body.accessToken;
-    let vendorId = req.body.vendorId;
+    const accessToken = req.body.accessToken;
+    const vendorId = req.body.vendorId;
     const scheme = agentDomain.includes(':') ? 'http' : 'https';
-    let endpoint = `${scheme}://${agentDomain}/alexa`;
+    const endpoint = `${scheme}://${agentDomain}/alexa`;
 
     await createAlexaSkill(agentName, accessToken, vendorId, endpoint);
 

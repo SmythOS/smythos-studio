@@ -8,7 +8,7 @@ import { getMockData } from '@core/helpers/agent.helper';
 
 const console = Logger('Service: Agent Request Handler');
 
-const debugPromises: any = {}; //TODO : persist this ?
+const debugPromises: any = {}; // TODO : persist this ?
 const sseConnections = new Map();
 
 export function getDebugSession(id) {
@@ -60,12 +60,12 @@ export async function processAgentRequest(agentId: string, req: any) {
   }
 
   await agentProcess.ready();
-  //const req = agent.agentRequest;
+  // const req = agent.agentRequest;
 
   req.socket.on('close', () => {
     // console.log('Client socket closed, killing agent');
     // Handle the cancellation logic
-    //agentProcess.agent.kill();
+    // agentProcess.agent.kill();
   });
 
   const skipDebug = typeof req.header('X-DEBUG-SKIP') != 'undefined';
@@ -167,7 +167,7 @@ export async function processAgentRequest(agentId: string, req: any) {
 
 async function runAgentProcess(agentId: string, agentProcess: AgentProcess, req: any) {
   try {
-    //const req = agent.agentRequest;
+    // const req = agent.agentRequest;
     const debugPromiseId = `${agentId}`;
 
     if (req.header('X-DEBUG-STOP')) {
@@ -179,16 +179,16 @@ async function runAgentProcess(agentId: string, agentProcess: AgentProcess, req:
       }
     }
 
-    //at this point dbgPromise might not exist yet
+    // at this point dbgPromise might not exist yet
     let dbgPromise = debugPromises[debugPromiseId];
     if (dbgPromise?.sse) {
-      //this sse was set by the runAgentDebug() function
-      //we need to propagate it in order to capture each execution step stream in the same SSE monitor
+      // this sse was set by the runAgentDebug() function
+      // we need to propagate it in order to capture each execution step stream in the same SSE monitor
       agentProcess.agent.addSSE(dbgPromise.sse);
     }
-    //extract endpoint path
-    //live agents (dev) do not have a version number
-    //deployed agents have a version number
+    // extract endpoint path
+    // live agents (dev) do not have a version number
+    // deployed agents have a version number
     const pathMatches = req.path.match(/(^\/v[0-9]+\.[0-9]+?)?(\/api\/(.+)?)/);
     if (!pathMatches || !pathMatches[2]) {
       return { status: 404, data: { error: 'Endpoint not found' } };
@@ -204,31 +204,31 @@ async function runAgentProcess(agentId: string, agentProcess: AgentProcess, req:
         url: undefined,
         headers: {
           ...req.headers,
-          //'X-DEBUG-RUN': '',
+          // 'X-DEBUG-RUN': '',
         },
       })
       .catch(error => ({ data: { error: error.toString() } }));
 
     if (result.error) {
       console.error('ERROR', result.error);
-      //res.status(500).json({ ...result, error: result.error.toString(), agentId: agent.id, agentName: agent.name });
+      // res.status(500).json({ ...result, error: result.error.toString(), agentId: agent.id, agentName: agent.name });
       return {
         status: 500,
         data: {
           ...result,
           error: result.error.toString(),
-          agentId: agentId,
+          agentId,
           // agentName: agent?.name
           agentName: undefined,
         },
       };
     }
-    //handle API embodiments debug response
+    // handle API embodiments debug response
     const dbgSession = result?.dbgSession || result?.expiredDbgSession || '';
     dbgPromise = debugPromises[debugPromiseId];
     if (dbgSession && dbgPromise) {
       if (result.finalResult) {
-        //const result = debugPromises[agent.id].result;
+        // const result = debugPromises[agent.id].result;
         console.log(
           `Debug session for agent ${agentId} with session id ${debugPromiseId} resolved since the final result is available. DELETING PROMISE`,
         );
@@ -251,24 +251,23 @@ async function runAgentProcess(agentId: string, agentProcess: AgentProcess, req:
 }
 async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: Request) {
   try {
-    //const req = agent.agentRequest;
+    // const req = agent.agentRequest;
     const debugPromiseId = `${agentId}`;
 
     const excludedHeaders = ['host', 'content-length', 'accept-encoding'];
     const headers = Object.keys(req.headers)
       .filter(header => !excludedHeaders.includes(header.toLowerCase()))
       .reduce((obj, header) => {
-        obj[header] = req.headers[header];
-        return obj;
+        return { ...obj, [header]: req.headers[header] };
       }, {});
     headers['X-AGENT-ID'] = agentId;
     headers['X-DEBUG-RUN'] = '';
 
-    //'X-DEBUG-RUN': '',
+    // 'X-DEBUG-RUN': '',
     const port = config.env.PORT;
 
-    let url = `http://localhost:${port}${req.path.replace('/debug', '/api')}`;
-    //add query params
+    const url = `http://localhost:${port}${req.path.replace('/debug', '/api')}`;
+    // add query params
     // * query params will add with 'params' property in axios to parse Object type data properly
     /* if (req.query) {
             const query = Object.keys(req.query)
@@ -279,27 +278,29 @@ async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: R
 
     const input = req.method == 'GET' ? req.query : req.body;
 
-    //check if request has form-data
+    // check if request has form-data
 
-    //the following line does not handle get request case
-    //const apiResponse = await axios.post(url, input, { headers }); //call the actual agentAPI locally
+    // the following line does not handle get request case
+    // const apiResponse = await axios.post(url, input, { headers }); //call the actual agentAPI locally
 
     let apiResponse;
-    //make sure to map binary data back to the request body that we'll send to the agent
+    // make sure to map binary data back to the request body that we'll send to the agent
     // @ts-ignore
     if (req.files) {
-      //send request with formData
+      // send request with formData
       const formData = new FormData();
-      //@ts-ignore
-      for (let file of req.files) {
+      // @ts-ignore
+      for (const file of req.files) {
         const fieldname = file.fieldname;
-        //get blob from file.buffer
+        // get blob from file.buffer
         const blob = new Blob([file.buffer], { type: file.mimetype });
 
         formData.append(fieldname, blob, file.originalname);
       }
-      for (let entry in req.body) {
-        formData.append(entry, req.body[entry]);
+      for (const entry in req.body) {
+        if (Object.hasOwn(req.body, entry)) {
+          formData.append(entry, req.body[entry]);
+        }
       }
 
       apiResponse = await axios({
@@ -310,7 +311,7 @@ async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: R
         params: req.query,
       });
     } else {
-      //send request with json body
+      // send request with json body
       apiResponse = await axios({
         method: req.method,
         url,
@@ -319,10 +320,10 @@ async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: R
         params: req.query,
       });
     }
-    //const apiAgentResponse = await runAgentProcess(agent); //TODO : refactor the internal logic to use runAgentProcess() instead of making a post request
+    // const apiAgentResponse = await runAgentProcess(agent); //TODO : refactor the internal logic to use runAgentProcess() instead of making a post request
     const dbgSession = apiResponse?.data?.dbgSession;
     if (dbgSession) {
-      //const agentId = agent.id;
+      // const agentId = agent.id;
       if (debugPromises[debugPromiseId]) {
         console.log(
           `Tried to start a new debug session for agent ${agentId}, but a session is already running. req path ${req.path} and url ${req.url}. DELETING THE OLD PROMISE TO START A NEW ONE`,
@@ -350,12 +351,12 @@ async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: R
           reject,
           sse: agentProcess.agent.sse,
         };
-        //promise expiration
+        // promise expiration
         setTimeout(
           () => {
             console.log(`Debug session for agent ${agentId} with session id ${dbgSession} expired. DELETING PROMISE`);
             delete debugPromises[debugPromiseId];
-            reject({ status: 500, data: 'Debug Session Expired' });
+            reject(new Error('Debug Session Expired'));
           },
           60 * 60 * 1000, // 1 hour
         );
@@ -374,11 +375,11 @@ async function runAgentDebug(agentId: string, agentProcess: AgentProcess, req: R
         };
       }
 
-      let data = finalResult;
+      const data = finalResult;
 
       return { status: 200, data };
     }
-    //res.status(apiResponse.status).send(apiResponse.data);
+    // res.status(apiResponse.status).send(apiResponse.data);
   } catch (error: any) {
     if (error.response) {
       // The request was made, but the server responded with a non-2xx status
