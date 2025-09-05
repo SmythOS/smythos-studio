@@ -21,7 +21,7 @@ export interface IChatMessage {
   isError?: boolean;
   isFirstMessage?: boolean;
   files?: FileWithMetadata[];
-  hideMessageBubble?: boolean;
+  hideMessage?: boolean;
   thinkingMessage?: string; // Inline thinking message to show with system messages
   isLast?: boolean; // Whether this is the last message in the chat
   isRetrying?: boolean; // Whether this message is being retried
