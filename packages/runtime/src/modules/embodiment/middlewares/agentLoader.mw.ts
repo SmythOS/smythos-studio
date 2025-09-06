@@ -26,7 +26,8 @@ export default async function agentLoader(req, res, next) {
 
   let agentDomain: any = '';
   let isTestDomain = false;
-  let { path, version } = extractAgentVerionsAndPath(req.path);
+  const { path, version: extractedVersion } = extractAgentVerionsAndPath(req.path);
+  let version = extractedVersion;
   if (!version) version = agentVersion;
   if (!agentId) {
     const domain = req.hostname;
@@ -75,7 +76,14 @@ export default async function agentLoader(req, res, next) {
       agentData = { error: error.message };
     }
 
-    if (isAgentChatRequest && (path.startsWith('/stream') || path.startsWith('/chat-stream'))) {
+    // Ensure default components for file parsing are added for all agent chat stream routes
+    if (
+      isAgentChatRequest &&
+      (path.startsWith('/stream') ||
+        path.startsWith('/chat-stream') ||
+        path.includes('/v1/emb/chat/stream') ||
+        req.path.includes('/v1/emb/chat/stream'))
+    ) {
       // only add default components and connections for file parsing agent on chat requests
       addDefaultComponentsAndConnections(agentData);
     }
@@ -121,9 +129,11 @@ export default async function agentLoader(req, res, next) {
 function cleanAgentData(agentData) {
   if (agentData) {
     // remove Note components
+    // eslint-disable-next-line no-param-reassign
     agentData.data.components = agentData.data.components.filter(c => c.name != 'Note');
 
     // remove templateInfo
+    // eslint-disable-next-line no-param-reassign
     delete agentData.data?.templateInfo;
 
     // TODO : remove UI attributes

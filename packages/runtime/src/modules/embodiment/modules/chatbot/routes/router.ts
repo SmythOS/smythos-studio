@@ -1,11 +1,12 @@
 import axios from 'axios';
 import express from 'express';
 
-import { AccessCandidate, Agent, BinaryInput, Logger } from '@smythos/sre';
+import { Agent, Logger } from '@smythos/sre';
 
 import config from '@core/config';
 import { readAgentOAuthConfig } from '@core/helpers/agent.helper';
 import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
+import { uploadFile } from '@embodiment/modules/chat/routes/router';
 
 import { EMBODIMENT_TYPES } from '@embodiment/constants';
 import { getChatGPTManifest } from '@embodiment/helpers/chatgpt.helper';
@@ -112,6 +113,7 @@ router.get('/chat-configs', async (req: any, res) => {
   res.send(chatbot.pluginManifest);
 });
 
+// * NOTE: This endpoint will be deprecated and replaced by `/v1/emb/chat/stream`.
 router.post('/chat-stream', async (req, res) => {
   let streamStarted = false;
   const isLocalAgent = req.hostname.includes('localagent');
@@ -439,45 +441,8 @@ router.get('/callback', async (req: any, res) => {
   sendCloseTabResponse(res);
 });
 
-router.post('/upload', uploadHandler, async (req: any, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
-    }
-
-    const agent = req._agent;
-    const uploadedFiles = [];
-
-    for (const file of req.files) {
-      try {
-        const candidate = AccessCandidate.agent(agent.id);
-        const binaryInput = BinaryInput.from(file.buffer, null, file.mimetype, candidate);
-        await binaryInput.ready();
-        // getJsonData implicitly uploads the file to SmythFS
-        const fileData = await binaryInput.getJsonData(candidate, MAX_TTL_CHATBOT_FILE_UPLOAD);
-
-        uploadedFiles.push({
-          size: file.size,
-          url: fileData.url,
-          mimetype: file.mimetype,
-          originalName: file.originalname,
-        });
-      } catch (error) {
-        console.error('Error uploading file:', file.originalname, error);
-      }
-    }
-
-    res.json({
-      success: true,
-      files: uploadedFiles,
-    });
-  } catch (error) {
-    console.error('Error handling file upload:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process file upload',
-    });
-  }
-});
+// Delegate chatbot upload to the unified chat/upload handler
+// * NOTE: This endpoint will be deprecated and replaced by `/v1/emb/chat/upload`.
+router.post('/upload', uploadHandler, uploadFile);
 
 export { router as chatBotRouter };

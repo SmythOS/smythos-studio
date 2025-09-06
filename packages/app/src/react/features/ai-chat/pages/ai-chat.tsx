@@ -87,7 +87,10 @@ const AIChat: FC<AIChatProps> = ({
     clearError,
     isUploadInProgress,
     clearFiles,
-  } = useFileUpload();
+  } = useFileUpload({
+    agentId: agentId || '',
+    chatId: agentSettingsData?.settings?.lastConversationId,
+  });
 
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 

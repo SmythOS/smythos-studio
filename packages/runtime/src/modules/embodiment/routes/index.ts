@@ -6,6 +6,7 @@ import config from '@core/config';
 import { agentChatRouter } from '@embodiment/modules/agentChat/routes/router';
 import { alexaRouter } from '@embodiment/modules/alexa/routes/router';
 import { apiRouter } from '@embodiment/modules/API/routes/router';
+import { chatRouter } from '@embodiment/modules/chat/routes/router';
 import { chatBotRouter } from '@embodiment/modules/chatbot/routes/router';
 import { chatGPTRouter } from '@embodiment/modules/chatGPT/routes/router';
 import { formPreviewRouter } from '@embodiment/modules/formPreview/routes/router';
@@ -55,6 +56,10 @@ const defaultRoutes: Route[] = [
   {
     rootPath: ['/chatbot', 'chatBot', '/emb/chatbot'],
     route: chatBotRouter,
+  },
+  {
+    rootPath: ['/v1/emb/chat'],
+    route: chatRouter,
   },
   {
     rootPath: ['/aichat', '/emb/aichat'],

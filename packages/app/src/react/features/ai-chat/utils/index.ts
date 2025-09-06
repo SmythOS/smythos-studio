@@ -6,7 +6,7 @@ type GenerateResponseInput = {
   agentId: string;
   chatId: string;
   query: string;
-  fileKeys?: string[];
+  attachments?: { url: string; name?: string; type?: string; size?: number }[];
   signal: AbortSignal;
   onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => void;
   onStart: () => void;
@@ -232,7 +232,10 @@ export const chatUtils = {
           'x-conversation-id': input.chatId,
           'x-ai-agent': 'true',
         },
-        body: JSON.stringify({ message: input.query, fileKeys: input.fileKeys }),
+        body: JSON.stringify({
+          message: input.query,
+          attachments: input.attachments,
+        }),
         signal: input.signal,
       });
 

@@ -35,12 +35,6 @@ const port = config.env.PORT;
 registerConnectors();
 
 const sre = SmythRuntime.Instance.init({
-  Storage: {
-    Connector: 'LocalStorage',
-    Settings: {
-      folder: `${config.env.DATA_PATH}/tmp`,
-    },
-  },
   Cache: {
     Connector: 'RAM',
     Settings: {},
