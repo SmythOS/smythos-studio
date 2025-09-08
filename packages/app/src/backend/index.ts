@@ -19,12 +19,18 @@ import session from 'express-session';
 //import FileStoreLib from 'session-file-store';
 import compression from 'compression';
 import RedisStore from 'connect-redis';
+import dotenvFlow from 'dotenv-flow';
 import passport from 'passport';
 import { version } from '../../package.json';
 import { defaultAuthMiddleware } from './middlewares/defaultAuthMiddleware.mw';
 import { initializePassport } from './routes/oauth/helper/passportSetup';
 import { ModelsPollingService } from './services/ModelsPolling.service';
 import { cacheClient } from './services/cache.service';
+
+dotenvFlow.config({
+  files: ['../../.env', '../.env'],
+});
+console.log('process.env', process.env);
 
 const PORT = config.env.PORT || 4000;
 const app = express();

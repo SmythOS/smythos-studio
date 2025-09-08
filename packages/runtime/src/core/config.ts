@@ -1,15 +1,17 @@
-import dotenv from 'dotenv';
+import dotenvFlow from 'dotenv-flow';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-dotenv.config();
+dotenvFlow.config({
+  files: ['../../.env', '../.env'],
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
-    PORT: parseInt(process.env.PORT || '5053'),
+    PORT: parseInt(process.env.PORT || '5053', 10),
     // Required environment variables
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     LOGTO_SERVER: process.env.LOGTO_SERVER,

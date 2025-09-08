@@ -3,10 +3,13 @@ import { LOGGER } from '../config/logging';
 import { prisma } from '../prisma/prisma-client';
 import { appEvents } from './utils/app-events';
 // import { metricsManager } from './metrices';
+import dotenvFlow from 'dotenv-flow';
 import { writeHeapSnapshot } from 'v8';
-import fs from 'fs';
 import { config } from '../config/config';
 import { app } from './app';
+dotenvFlow.config({
+  files: ['../../.env', '../.env'],
+});
 
 let server: Server | null = null;
 const port = config.variables.port || 3000;
