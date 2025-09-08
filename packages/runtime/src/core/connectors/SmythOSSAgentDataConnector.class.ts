@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { AgentDataConnector, OAuthConfig } from '@smythos/sre';
+import { AgentDataConnector, Logger, OAuthConfig } from '@smythos/sre';
 
-import { getM2MToken } from '@core/helpers/logto.helper';
 import { SmythConfigs } from '@core/types/general.types';
 
+const console = Logger('Connector: SmythOSSAgentData');
 export class SmythOSSAgentDataConnector extends AgentDataConnector {
   public name = 'SmythOSSAgentData';
   private oAuthAppId: string;
@@ -45,15 +45,16 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}?include=team.subscription`, {
         headers: await this.getSmythRequestHeaders(),
       });
-      // eslint-disable-next-line prefer-const
-      let agentObj = response.data.agent;
+      const agentObj = response.data.agent;
       const authData = agentObj.data.auth; // use most up to date auth data
 
       // const tasksResponse = await mwSysAPI.get(`/quota/team/${agentObj.teamId}/tasks/subscription`, includeAuth(token));
-      const tasksResponse = await this.smythAPI.get(`/v1/quota/team/${agentObj.teamId}/tasks/subscription`, {
-        headers: await this.getSmythRequestHeaders(),
-      });
-      agentObj.taskData = tasksResponse.data;
+
+      agentObj.taskData = {
+        tasks: 0,
+        maxTasks: Infinity,
+        isFreeUser: false,
+      };
 
       agentObj.data.debugSessionEnabled = agentObj?.data?.debugSessionEnabled && agentObj?.isLocked; // disable debug session if agent is not locked (locked agent means that it's open in the Agent builder)
 
@@ -91,8 +92,8 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return agentObj;
     } catch (error: any) {
-      // console.error(error.response?.data, error.message);
-      // console.log(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
+      console.error(error.response?.data, error.message);
+      console.log(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
     }
   }
@@ -140,7 +141,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
     return agentId;
   }
 
-  public async getAgentSettings(agentId: string, _version?: string): Promise<any> {
+  public async getAgentSettings(agentId: string, version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
       const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}/settings`, {
@@ -150,12 +151,12 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return formattedSettings;
     } catch (error) {
-      // console.error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
+      console.error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
     }
   }
 
-  public async getAgentEmbodiments(agentId: string, _version?: string): Promise<any> {
+  public async getAgentEmbodiments(agentId: string, version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
       const response = await this.smythAPI.get(`/v1/embodiments?aiAgentId=${agentId}`, {
@@ -164,7 +165,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return response?.data?.embodiments || [];
     } catch (error) {
-      // console.error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
+      console.error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
       throw new Error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
     }
   }
@@ -183,7 +184,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       return agentsList;
     } catch (error) {
-      // console.error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
+      console.error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
       throw new Error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
     }
   }
@@ -201,20 +202,14 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
   }
 
   private async getSmythRequestHeaders() {
-    return {
-      Authorization: `Bearer ${await getM2MToken({
-        baseUrl: this.oAuthBaseUrl,
-        oauthAppId: this.oAuthAppId,
-        oauthAppSecret: this.oAuthAppSecret,
-        resource: this.oAuthResource,
-        scope: this.oAuthScope,
-      })}`,
-    };
+    return Promise.resolve({
+      Authorization: `Bearer M2M_TOKEN`,
+    });
   }
 
   private migrateAgentData(data) {
     if (!data.version) {
-      // console.log(`Agent [${data.name}] has an old schema. Migrating to latest version...`);
+      console.log(`Agent [${data.name}] has an old schema. Migrating to latest version...`);
       // version 0  ===> migrate from receptors/connectors to inputs/outputs
       const newData = JSON.parse(JSON.stringify(data));
       for (const component of newData.components) {

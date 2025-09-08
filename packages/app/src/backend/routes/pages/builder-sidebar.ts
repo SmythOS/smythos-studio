@@ -37,7 +37,6 @@ const baseMenu: Menu = {
     { name: 'FSleep', label: 'Sleep', description: '' },
     { name: 'LLMAssistant', description: 'LLM Assistant', label: 'LLM Assistant', icon: '' },
     { name: 'APICall', label: 'APICall' },
-    { name: 'Code', description: 'Code', label: 'Code', icon: '' },
     { name: 'FileStore', label: 'File Store', description: '', icon: 'Memory' },
     { name: 'JSONFilter', label: 'JSON Filter', description: '' },
     { name: 'ForEach', label: 'For Each', description: '' },
@@ -46,10 +45,7 @@ const baseMenu: Menu = {
     { name: 'Await', label: 'Await', description: '' },
   ],
 
-  Tools: [
-    { name: 'ServerlessCode', label: 'NodeJS', description: '', icon: 'Code' },
-    { name: 'MCPClient', label: 'MCP Client', description: '', icon: 'MCP' },
-  ],
+  Tools: [{ name: 'MCPClient', label: 'MCP Client', description: '', icon: 'MCP' }],
   Memory: [
     { name: 'MemoryWriteInput', label: 'Memory Slot Write', icon: 'Memory' },
     { name: 'MemoryWriteKeyVal', label: 'Memory Key Write', icon: 'Memory' },
@@ -63,15 +59,7 @@ const baseMenu: Menu = {
     { name: 'FSign', label: 'F:Sign', description: '' },
     { name: 'FTimestamp', label: 'F:Timestamp', description: '' },
   ],
-  'RAG Data': [
-    {
-      label: 'Manage My Vector DB',
-      externalLink: '/data',
-    },
-    { name: 'DataSourceLookup', label: 'RAG Search', description: '' },
-    { name: 'DataSourceIndexer', label: 'RAG Remember', description: '' },
-    { name: 'DataSourceCleaner', label: 'RAG Forget', description: '' },
-  ],
+  'RAG Data': [],
 
   Logic: [
     { name: 'LogicAND', description: 'AND', label: 'And', icon: 'LogicAND' },
@@ -125,6 +113,7 @@ export const getBuilderSidebarMenu = () => {
         description: string;
         icon: string;
         section: string;
+        externalLink?: string;
       };
     }[]
   )
@@ -137,11 +126,19 @@ export const getBuilderSidebarMenu = () => {
     if (!menuClone[section]) {
       menuClone[section] = [];
     }
-    (menuClone[section] as MenuItem[]).push({
-      name: item.name,
-      label: item.label,
-      description: item.description,
-    });
+
+    if (item.externalLink) {
+      (menuClone[section] as MenuItem[]).push({
+        externalLink: item.externalLink,
+        label: item.label,
+      });
+    } else {
+      (menuClone[section] as MenuItem[]).push({
+        name: item.name,
+        label: item.label,
+        description: item.description,
+      });
+    }
   }
 
   return menuClone;

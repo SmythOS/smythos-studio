@@ -1,17 +1,16 @@
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import cors from 'cors';
 import httpStatus from 'http-status';
+import swaggerUi from 'swagger-ui-express';
+import { config } from '../config/config';
+import systemSwaggerDocument from '../docs/_sysapi.swagger.json';
+import appSwaggerDocument from '../docs/swagger.json';
 import { errorHandler } from './middlewares/error.middleware';
+import { infoLogger } from './middlewares/info-logger.middleware';
 import { routes } from './routes/v1';
 import { systemRoutes } from './routes/v1/_sysapi';
 import ApiError from './utils/apiError';
-import { config } from '../config/config';
-import { infoLogger } from './middlewares/info-logger.middleware';
-import swaggerUi from 'swagger-ui-express';
-import appSwaggerDocument from '../docs/swagger.json';
-import systemSwaggerDocument from '../docs/_sysapi.swagger.json';
-import _ from 'lodash';
 
 const app = express();
 
@@ -68,6 +67,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use((_req, _res, next) => {
+  console.log(`IP ${_req.ip} tried to call ${_req.originalUrl}`);
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from '../config';
 
-import { Logger, AccessCandidate, ConnectorService } from '@smythos/sre';
+import { AccessCandidate, ConnectorService, Logger } from '@smythos/sre';
 
 import { includeAuth, mwSysAPI } from '../services/smythAPIReq';
 import { getM2MToken } from './logto.helper';
@@ -157,7 +157,8 @@ function migrateAgentData(data) {
 
   if (data.version === '1.0.0') {
     if (data.description && !data.behavior) {
-      data.behavior = data.description;
+      const newData = { ...data, behavior: data.description };
+      return newData;
     }
   }
 
@@ -168,14 +169,19 @@ export async function getAgentDataById(agentID, version) {
   try {
     const token = (await getM2MToken('https://api.smyth.ai')) as string;
 
-    let agentObj;
-
     const response = await mwSysAPI.get(`/ai-agent/${agentID}?include=team.subscription`, includeAuth(token));
-    agentObj = response.data.agent;
+    const agentObj = response.data.agent;
     const authData = agentObj.data.auth;
 
-    const tasksResponse = await mwSysAPI.get(`/quota/team/${agentObj.teamId}/tasks/subscription`, includeAuth(token));
-    agentObj.taskData = tasksResponse.data;
+    // const tasksResponse = await mwSysAPI.get(
+    //   `/quota/team/${agentObj.teamId}/tasks/subscription`,
+    //   includeAuth(token)
+    // );
+    agentObj.taskData = {
+      tasks: 0,
+      maxTasks: Infinity,
+      isFreeUser: false,
+    };
 
     agentObj.data.debugSessionEnabled = agentObj?.data?.debugSessionEnabled && agentObj?.isLocked;
 
@@ -213,7 +219,7 @@ export function addDefaultComponentsAndConnections(agentData) {
 
 async function fetchAgentAuthData(agentId: string) {
   const accountConnector = ConnectorService.getAccountConnector();
-  return await accountConnector.user(AccessCandidate.agent(agentId)).getAgentSetting(AGENT_AUTH_SETTINGS_KEY);
+  return accountConnector.user(AccessCandidate.agent(agentId)).getAgentSetting(AGENT_AUTH_SETTINGS_KEY);
 }
 
 async function getAgentAuthData(agentId: string) {

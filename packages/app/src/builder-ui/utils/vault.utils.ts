@@ -340,12 +340,6 @@ const _innerLink = (targetField: HTMLInputElement, message: string = '', keyName
     actionBtn.appendChild(spinner);
     actionBtn.disabled = true;
 
-    const saveBtn = formGroup
-      .closest('#right-sidebar')
-      ?.querySelector('.action-save') as HTMLButtonElement;
-
-    if (saveBtn) saveBtn.disabled = true;
-
     try {
       let selectedText = '';
 

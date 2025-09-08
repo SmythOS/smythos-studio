@@ -1,3 +1,33 @@
+export interface AgentSettings {
+  id: number;
+  key: string;
+  value: string;
+  avatar: string;
+  chatGptModel: string;
+  lastConversationId: string;
+  aiAgentId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface Domain {
+  name: string;
+}
+interface Connection {
+  sourceId: string;
+  sourceIndex: number;
+  targetId: string;
+  targetIndex: number;
+}
+export interface AgentData {
+  version: string;
+  components: Component[];
+  connections: Connection[];
+  description: string;
+  behavior?: string;
+  debugSessionEnabled: boolean;
+  shortDescription: string;
+  ui: { panzoom: { currentPan: { x: number; y: number }; currentZoom: number } };
+}
 export interface Agent {
   id: string;
   name?: string;
@@ -24,7 +54,7 @@ export interface Agent {
   data?: {
     version: string;
     components: Component[];
-    connections: any[];
+    connections: Connection[];
     description: string;
     behavior?: string;
     debugSessionEnabled: boolean;
@@ -39,15 +69,8 @@ export interface Agent {
       };
     };
   };
-  aiAgentSettings?: {
-    id: number;
-    key: string;
-    value: string;
-    aiAgentId: string;
-    createdAt: string;
-    updatedAt: string;
-  }[];
-  domain?: any[];
+  aiAgentSettings?: AgentSettings[];
+  domain?: Domain[];
   isLocked?: boolean;
   _count?: {
     AiAgentDeployment: number;
@@ -120,16 +143,14 @@ export interface AgentDetails {
   id: string;
   name: string;
   description: string;
-  aiAgentSettings: any; // Define more specific type if possible
+  aiAgentSettings: AgentSettings;
   contributors: Contributor[];
   createdAt: string;
   updatedAt: string;
   changeActivity: ChangeActivity[];
-  domain: any[]; // more specific please
+  domain: Domain[];
   lockAt: string;
-  _count: {
-    AiAgentDeployment: number;
-  };
+  _count: { AiAgentDeployment: number };
   isLocked: boolean;
 }
 

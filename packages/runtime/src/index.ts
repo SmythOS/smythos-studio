@@ -1,13 +1,16 @@
-import { Logger, SmythRuntime, version } from '@smythos/sre';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
 import express from 'express';
 import session from 'express-session';
+import fs from 'fs';
 import { Server } from 'http';
+import os from 'os';
 import path from 'path';
 import 'source-map-support/register.js';
 import url from 'url';
+
+import { Logger, SmythRuntime, version } from '@smythos/sre';
 
 // Core imports
 import config from '@core/config';
@@ -31,6 +34,34 @@ import { routes as embodimentRoutes } from '@embodiment/routes';
 const app = express();
 const port = config.env.PORT;
 
+const getDefaultDataPath = () => {
+  const homeDir = os.homedir();
+  return path.join(homeDir, 'smyth-ui-data');
+};
+
+const ensureVaultFileExists = () => {
+  const baseVaultContent = {
+    development: {
+      echo: '',
+      openai: '$env(OPENAI_API_KEY)',
+      anthropic: '',
+      googleai: '',
+      groq: '',
+      togetherai: '',
+      xai: '',
+      deepseek: '',
+      tavily: '',
+      scrapfly: '',
+    },
+  };
+
+  const vaultFilePath = path.join(getDefaultDataPath(), 'vault.json');
+  if (!fs.existsSync(vaultFilePath)) {
+    fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
+  }
+};
+
+ensureVaultFileExists();
 // Register all connectors
 registerConnectors();
 
@@ -53,7 +84,7 @@ const sre = SmythRuntime.Instance.init({
   Vault: {
     Connector: 'JSONFileVault',
     Settings: {
-      file: './data/vault.json',
+      file: path.join(getDefaultDataPath(), 'vault.json'),
       shared: 'development',
     },
   },
@@ -71,11 +102,6 @@ const sre = SmythRuntime.Instance.init({
     Settings: {
       agentStageDomain: config.env.DEFAULT_AGENT_DOMAIN || '',
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || '',
-      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
-      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
-      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
-      oAuthResource: config.env.LOGTO_API_RESOURCE,
-      oAuthScope: '',
       smythAPIBaseUrl: `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi`,
     },
   },

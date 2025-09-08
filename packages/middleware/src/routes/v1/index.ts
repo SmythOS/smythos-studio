@@ -6,6 +6,9 @@ import { embodimentRouter } from '../../modules/embodiment/routes';
 import { subscriptionRouter } from '../../modules/subscription/routes/subscription.route';
 import { teamRouter } from '../../modules/team/routes/team.route';
 import { userRouter } from '../../modules/user/routes';
+
+import { vaultRouter } from '../../modules/vault/routes/vault.route';
+
 const mainRouter = Router();
 
 type Route = {
@@ -38,6 +41,10 @@ const defaultRoutes: Route[] = [
   {
     rootPath: '/',
     route: subscriptionRouter,
+  },
+  {
+    rootPath: '/vault',
+    route: vaultRouter,
   },
 ];
 
