@@ -130,24 +130,27 @@ RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-u
 COPY <<EOF /app/start.sh
 #!/bin/sh
 
-echo "Starting SmythOS services with PM2..."
+# Wait for MySQL to be ready
+echo "Waiting for MySQL to be ready..."
+sleep 10
 
-# Run Prisma migrations first
+# Run Prisma migrations
 echo "Running Prisma migrations..."
 cd /app/packages/middleware
 export PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x"
 pnpm run prisma:deploy
 echo "Migrations completed!"
 
+echo "Starting SmythOS services with PM2..."
 # Start middleware first
 pm2 start /app/ecosystem.config.js --only smythos-middleware
 echo "Waiting for middleware to start..."
-sleep 10
+sleep 2
 
 # Start runtime
 pm2 start /app/ecosystem.config.js --only smythos-runtime
 echo "Waiting for runtime to start..."
-sleep 5
+sleep 2
 
 # Start app last
 pm2 start /app/ecosystem.config.js --only smythos-app
