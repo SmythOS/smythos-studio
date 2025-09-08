@@ -112,7 +112,7 @@ export function createReactRoute(
   args?: object | ((req: express.Request, res: express.Response) => object),
 ) {
   const devServer = {
-    url: process.env.VITE_WEBAPP_V2_URL,
+    url: `http://localhost:${config.env.APP_DEV_SERVER_PORT}`,
     page: 'webappv2',
   };
 
