@@ -48,7 +48,7 @@ const ConfirmModal = (props: Props) => {
           )}
           <button
             type="button"
-            className="absolute right-2 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white -mr-2"
+            className="absolute right-2 inline-flex items-center justify-center w-8 h-8 ml-auto text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white -mr-2 -mt-2"
             onClick={props.onClose}
           >
             <CloseIcon width={16} height={16} />

@@ -1,0 +1,15 @@
+{
+  "project": ["src/**/*.{js,ts,json}"],
+  "ignore": [
+    "src/**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "static/**",
+    "_data/**",
+    "docs/**",
+    ".contentlayer/**"
+  ],
+  "ignoreDependencies": [
+    "pkce-challenge"
+  ]
+}

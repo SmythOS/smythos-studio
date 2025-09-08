@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance } from 'axios';
 
 import {
   AccessRequest,
@@ -11,14 +11,14 @@ import {
   OAuthConfig,
   TAccessLevel,
   TAccessRole,
-} from "@smythos/sre";
+} from '@smythos/sre';
 
-import { getM2MToken } from "@core/helpers/logto.helper";
-import { SmythConfigs } from "@core/types/general.types";
+import { getM2MToken } from '@core/helpers/logto.helper';
+import { SmythConfigs } from '@core/types/general.types';
 
-const console = Logger("SmythOSSAccount");
+const console = Logger('SmythOSSAccount');
 export class SmythOSSAccount extends AccountConnector {
-  public name: string = "SmythOSSAccount";
+  public name = 'SmythOSSAccount';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -28,22 +28,19 @@ export class SmythOSSAccount extends AccountConnector {
 
   constructor(protected _settings: SmythConfigs & OAuthConfig) {
     super(_settings);
-    //if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
+    // if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
 
     this.oAuthAppId = _settings.oAuthAppID;
     this.oAuthAppSecret = _settings.oAuthAppSecret;
     this.oAuthBaseUrl = _settings.oAuthBaseUrl;
-    this.oAuthResource = _settings.oAuthResource || "";
-    this.oAuthScope = _settings.oAuthScope || "";
+    this.oAuthResource = _settings.oAuthResource || '';
+    this.oAuthScope = _settings.oAuthScope || '';
     this.smythAPI = axios.create({
       baseURL: `${_settings.smythAPIBaseUrl}`,
     });
   }
 
-  public async isTeamMember(
-    teamId: string,
-    candidate: IAccessCandidate
-  ): Promise<boolean> {
+  public async isTeamMember(teamId: string, candidate: IAccessCandidate): Promise<boolean> {
     try {
       const candidateTeamId = await this.getCandidateTeam(candidate);
       if (teamId === candidateTeamId) {
@@ -55,9 +52,7 @@ export class SmythOSSAccount extends AccountConnector {
     }
   }
 
-  public async getCandidateTeam(
-    candidate: IAccessCandidate
-  ): Promise<string | undefined> {
+  public async getCandidateTeam(candidate: IAccessCandidate): Promise<string | undefined> {
     if (candidate.role === TAccessRole.Team) {
       return candidate.id;
     }
@@ -76,10 +71,7 @@ export class SmythOSSAccount extends AccountConnector {
     return null;
   }
 
-  public async getAllTeamSettings(
-    acRequest: AccessRequest,
-    teamId: string
-  ): Promise<KeyValueObject | null> {
+  public async getAllTeamSettings(acRequest: AccessRequest, teamId: string): Promise<KeyValueObject | null> {
     try {
       const response = await this.smythAPI.get(`/v1/teams/${teamId}/settings`, {
         headers: await this.getSmythRequestHeaders(),
@@ -98,15 +90,9 @@ export class SmythOSSAccount extends AccountConnector {
     }
   }
 
-  public async getAllUserSettings(
-    acRequest: AccessRequest,
-    accountId: string
-  ): Promise<KeyValueObject | null> {
+  public async getAllUserSettings(acRequest: AccessRequest, accountId: string): Promise<KeyValueObject | null> {
     try {
-      const response = await this.smythAPI.get(
-        `/v1/user/${accountId}/settings`,
-        { headers: await this.getSmythRequestHeaders() }
-      );
+      const response = await this.smythAPI.get(`/v1/user/${accountId}/settings`, { headers: await this.getSmythRequestHeaders() });
 
       if (response?.data?.settings?.length > 0) {
         const settingsObject: KeyValueObject = {};
@@ -121,34 +107,20 @@ export class SmythOSSAccount extends AccountConnector {
     }
   }
 
-  public async getTeamSetting(
-    acRequest: AccessRequest,
-    teamId: string,
-    settingKey: string
-  ): Promise<string> {
+  public async getTeamSetting(acRequest: AccessRequest, teamId: string, settingKey: string): Promise<string> {
     try {
-      const response = await this.smythAPI.get(
-        `/v1/teams/${teamId}/settings/${settingKey}`,
-        { headers: await this.getSmythRequestHeaders() }
-      );
+      const response = await this.smythAPI.get(`/v1/teams/${teamId}/settings/${settingKey}`, { headers: await this.getSmythRequestHeaders() });
       return response?.data?.setting?.settingValue || null;
     } catch (error) {
       return null;
     }
   }
 
-  public async getUserSetting(
-    acRequest: AccessRequest,
-    accountId: string,
-    settingKey: string
-  ): Promise<string> {
+  public async getUserSetting(acRequest: AccessRequest, accountId: string, settingKey: string): Promise<string> {
     try {
-      const response = await this.smythAPI.get(
-        `/v1/user/${accountId}/settings/${settingKey}`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
+      const response = await this.smythAPI.get(`/v1/user/${accountId}/settings/${settingKey}`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
       return response?.data?.setting?.settingValue || null;
     } catch (error) {
       return null;
@@ -156,8 +128,7 @@ export class SmythOSSAccount extends AccountConnector {
   }
 
   public async getResourceACL(resourceId: string, candidate: IAccessCandidate) {
-    const accountConnector =
-      ConnectorService.getAccountConnector("SmythAccount");
+    const accountConnector = ConnectorService.getAccountConnector('SmythAccount');
     const teamId = await accountConnector.getCandidateTeam(candidate);
 
     const acl = new ACL();
@@ -182,30 +153,20 @@ export class SmythOSSAccount extends AccountConnector {
     };
   }
 
-  public async getAgentSetting(
-    acRequest: AccessRequest,
-    agentId: string,
-    settingKey: string
-  ): Promise<string> {
+  public async getAgentSetting(acRequest: AccessRequest, agentId: string, settingKey: string): Promise<string> {
     try {
       // TODO: use following endpoint when Ahmed make it available
       // const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}/settings/${settingKey}`, {
       //     headers: await this.getSmythRequestHeaders(),
       // });
 
-      const response = await this.smythAPI.get(
-        `/v1/ai-agent/${agentId}/settings/`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
-      const setting =
-        response?.data?.settings?.find(
-          (setting: KeyValueObject) => setting?.key === settingKey
-        ) || null;
-      return setting?.value || "";
+      const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}/settings/`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
+      const setting = response?.data?.settings?.find((setting: KeyValueObject) => setting?.key === settingKey) || null;
+      return setting?.value || '';
     } catch (error) {
-      return "";
+      return '';
     }
   }
 }

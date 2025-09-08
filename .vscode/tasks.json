@@ -54,6 +54,17 @@
       "detail": "Build runtime server for production"
     },
     {
+      "label": "runtime: build:dev",
+      "type": "shell",
+      "command": "NODE_ENV=development FORMAT=cjs npx rollup -c",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/runtime"
+      },
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Build runtime server for development with source maps"
+    },
+    {
       "label": "runtime: clean",
       "type": "npm",
       "script": "clean",

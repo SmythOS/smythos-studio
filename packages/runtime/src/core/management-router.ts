@@ -1,15 +1,15 @@
-import express from "express";
-import { app } from "../index.js";
-import { Server } from "http";
-import config from "./config";
+import express from 'express';
+import { app } from '../index.js';
+import { Server } from 'http';
+import config from './config';
 
 const ADMIN_PORT = config.env.ADMIN_PORT || 5054;
 const PORT = config.env.PORT || 5053;
 // eslint-disable-next-line import/no-mutable-exports
 
-export let server: Server;
+let server: Server;
 
-const host = config.env.NODE_ENV === "production" ? "localhost" : "";
+const host = config.env.NODE_ENV === 'production' ? 'localhost' : '';
 
 function enableAppPort() {
   if (server && server.listening) {
@@ -27,34 +27,31 @@ function enableAppPort() {
 // Function to disable port 5000 to stop accepting new connections
 function disableAppPort() {
   server.close(() => {
-    console.info(
-      `App Server listening on port ${PORT} no longer accepting connections`
-    );
+    console.info(`App Server listening on port ${PORT} no longer accepting connections`);
   });
 }
 
 // Management app listening on port 5054
 const managementApp = express();
-export { managementApp };
 
 // Route to handle management operations
-managementApp.get("/", (req, res) => {
-  res.send("Management operations.");
+managementApp.get('/', (req, res) => {
+  res.send('Management operations.');
 });
 
 // Route to enable port 5000 for new connections
-managementApp.get("/enable", (req, res) => {
+managementApp.get('/enable', (req, res) => {
   enableAppPort();
   res.send(`Port ${PORT} enabled for new connections via management port.`);
 });
 
 // Route to disable port 5000 for new connections
-managementApp.get("/disable", (req, res) => {
+managementApp.get('/disable', (req, res) => {
   disableAppPort();
   res.send(`Port ${PORT} disabled for new connections via management port.`);
 });
 
-managementApp.get("/stats", (req, res) => {
+managementApp.get('/stats', (req, res) => {
   server.getConnections((err, count) => {
     if (err) {
       res.status(500).send(err);

@@ -1,22 +1,18 @@
-import { FC, MutableRefObject, RefObject, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-  ChatContainer,
   ChatHeader,
-  ChatHistory,
-  ErrorToast,
-  QueryInput,
-  QueryInputRef,
-  ScrollToBottomButton,
-  WarningInfo,
+  ChatInputRef,
+  Chats,
+  Container,
+  Footer,
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
 import {
   useAgentSettings,
   useChatActions,
   useCreateChatMutation,
-  useDragAndDrop,
   useFileUpload,
   useScrollToBottom,
   useUpdateAgentSettingsMutation,
@@ -26,55 +22,30 @@ import { useAgent } from '@react/shared/hooks/agent';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { Analytics } from '@shared/posthog/services/analytics';
 
-const CHAT_WARNING_INFO =
-  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
-
-interface AIChatProps {
-  givenAgent?: string;
-  isMenuVisible?: boolean;
-  isWarningVisible?: boolean;
-}
-
-/**
- * Combines multiple refs into a single ref callback
- */
-const combineRefs = <T extends HTMLElement>(
-  ...refs: Array<RefObject<T> | MutableRefObject<T | null>>
-) => {
-  return (element: T | null) => {
-    refs.forEach((ref) => {
-      if (!ref) return;
-      (ref as MutableRefObject<T | null>).current = element;
-    });
-  };
-};
-
-const AIChat: FC<AIChatProps> = ({
-  givenAgent,
-  isMenuVisible = false,
-  isWarningVisible = false,
-}) => {
+const AIChat = () => {
   const params = useParams<{ agentId: string }>();
-  const agentId = givenAgent || params?.agentId;
-  const queryInputRef = useRef<QueryInputRef>(null);
+  const agentId = params?.agentId;
+  const chatInputRef = useRef<ChatInputRef>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isFirstMessageSentRef = useRef(false);
   const navigate = useNavigate();
 
   // API Hooks - optimized with minimal dependencies
-  const { data: currentAgent, isLoading: isAgentLoading } = useAgent(agentId || '', {
+  const { data: agent, isLoading: isAgentLoading } = useAgent(agentId || '', {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
     onError: () => navigate('/error/403'),
   });
 
-  const { data: agentSettingsData } = useAgentSettings(agentId || '');
+  const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId || '');
   const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
   const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
 
+  const agentSettings = settingsData?.settings;
+
   // Custom Hooks - optimized
-  const { showScrollButton, handleScroll, scrollToBottom, setShowScrollButton } =
+  const { setShowScrollButton, smartScrollToBottom, ...scroll } =
     useScrollToBottom(chatContainerRef);
 
   const {
@@ -87,14 +58,15 @@ const AIChat: FC<AIChatProps> = ({
     clearError,
     isUploadInProgress,
     clearFiles,
-  } = useFileUpload();
-
-  const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
+  } = useFileUpload({
+    agentId: agentId || '',
+    chatId: agentSettingsData?.settings?.lastConversationId,
+  });
 
   const {
-    chatHistoryMessages,
+    messagesHistory,
     isGenerating,
-    isQueryInputProcessing,
+    isInputProcessing,
     isRetrying,
     sendMessage,
     retryLastMessage,
@@ -102,8 +74,8 @@ const AIChat: FC<AIChatProps> = ({
     clearMessages,
   } = useChatActions({
     agentId: agentId || '',
-    chatId: agentSettingsData?.settings?.lastConversationId,
-    avatar: currentAgent?.aiAgentSettings?.avatar,
+    chatId: agentSettings?.lastConversationId,
+    avatar: agent?.aiAgentSettings?.avatar,
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
         isFirstMessageSentRef.current = true;
@@ -112,8 +84,8 @@ const AIChat: FC<AIChatProps> = ({
   });
 
   // Fast memoized values - minimal dependencies
-  const isQueryInputDisabled = isChatCreating || isAgentLoading || isQueryInputProcessing;
-  const queryInputPlaceholder = currentAgent ? `Message ${currentAgent?.name}...` : 'Message ...';
+  const inputDisabled = isChatCreating || isAgentLoading || isInputProcessing;
+  const queryInputPlaceholder = agent ? `Message ${agent?.name}...` : 'Message ...';
   const isMaxFilesUploaded = files.length >= FILE_LIMITS.MAX_ATTACHED_FILES;
 
   // Fast callbacks - minimal dependencies
@@ -144,29 +116,25 @@ const AIChat: FC<AIChatProps> = ({
     isFirstMessageSentRef.current = false;
     clearMessages();
     await createNewChatSession();
-    queryInputRef.current?.focus();
+    chatInputRef.current?.focus();
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_END);
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
   useEffect(() => {
-    if (agentSettingsData?.settings && currentAgent) {
-      currentAgent.aiAgentSettings = agentSettingsData.settings;
-      currentAgent.id = agentId;
+    if (agentSettings && agent) {
+      agent.aiAgentSettings = agentSettings;
+      agent.id = agentId;
 
-      if (!currentAgent?.aiAgentSettings?.lastConversationId) {
+      if (!agent?.aiAgentSettings?.lastConversationId) {
         createNewChatSession();
       }
     }
-  }, [agentSettingsData, currentAgent, agentId, createNewChatSession]);
+  }, [agentSettings, agent, agentId, createNewChatSession]);
 
   useEffect(() => {
-    if (!isAgentLoading && !isQueryInputDisabled) queryInputRef.current?.focus();
-  }, [isAgentLoading, isQueryInputDisabled]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistoryMessages, scrollToBottom]);
+    if (!isAgentLoading && !inputDisabled) chatInputRef.current?.focus();
+  }, [isAgentLoading, inputDisabled]);
 
   useEffect(() => {
     Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
@@ -189,11 +157,11 @@ const AIChat: FC<AIChatProps> = ({
 
     // Chat state
     isGenerating,
-    isQueryInputProcessing,
+    isInputProcessing,
     isRetrying,
-    chatHistoryMessages,
-    queryInputPlaceholder,
-    isQueryInputDisabled,
+    messagesHistory,
+    inputPlaceholder: queryInputPlaceholder,
+    inputDisabled,
 
     // Chat actions
     sendMessage,
@@ -204,43 +172,29 @@ const AIChat: FC<AIChatProps> = ({
 
   return (
     <ChatProvider value={chatContextValue}>
-      <div className="w-full h-full max-h-screen bg-white">
-        {!isMenuVisible && (
-          <ChatHeader
-            agentName={currentAgent?.name || '...'}
-            avatar={agentSettingsData?.settings?.avatar}
-          />
-        )}
+      <Container>
+        <ChatHeader
+          agentName={agent?.name}
+          avatar={agentSettings?.avatar}
+          isAgentLoading={isAgentLoading}
+          isAvatarLoading={isAgentSettingsLoading}
+        />
 
-        <ChatContainer>
-          <div
-            className="w-full h-full flex justify-center overflow-auto relative scroll-smooth"
-            ref={combineRefs(chatContainerRef, dropzoneRef)}
-            onScroll={handleScroll}
-          >
-            <div className="w-full pt-16 max-w-4xl mt-0">
-              <ChatHistory
-                agent={currentAgent}
-                chatId={agentSettingsData?.settings?.lastConversationId || ''}
-                messages={chatHistoryMessages}
-              />
-            </div>
-            {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}
-          </div>
-          {uploadError.show && (
-            <div className="w-full max-w-4xl">
-              <ErrorToast message={uploadError.message} onClose={clearError} />
-            </div>
-          )}
-          <div className="w-full max-w-4xl mt-[10px]">
-            <QueryInput
-              ref={queryInputRef}
-              submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
-            />
-            {!isWarningVisible && <WarningInfo infoMessage={CHAT_WARNING_INFO} />}
-          </div>
-        </ChatContainer>
-      </div>
+        <Chats
+          {...scroll}
+          agent={agent}
+          messages={messagesHistory}
+          containerRef={chatContainerRef}
+          handleFileDrop={handleFileDrop}
+          smartScrollToBottom={smartScrollToBottom}
+        />
+        <Footer
+          uploadError={uploadError}
+          clearError={clearError}
+          chatInputRef={chatInputRef}
+          submitDisabled={isChatCreating || isAgentLoading || uploadingFiles.size > 0}
+        />
+      </Container>
     </ChatProvider>
   );
 };

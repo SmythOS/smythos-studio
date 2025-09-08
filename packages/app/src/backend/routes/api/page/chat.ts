@@ -2,6 +2,7 @@ import { assetStorage } from '@src/backend/services/storage';
 import axios from 'axios';
 import { randomUUID } from 'crypto';
 import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import config from '../../../config';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import { authHeaders, includeAxiosAuth, md5Hash, posixPath, smythAPIReq } from '../../../utils';
@@ -59,25 +60,18 @@ const uploadFileMw = assetStorage.createUploadMw({
 });
 
 router.post('/stream', async (req, res) => {
-  let { message, fileKeys = [] } = req.body;
+  let { message, attachments = [] } = req.body;
   const userId = req._user?.id;
   const teamId = req._team?.id;
   const token = req.user.accessToken;
   const agentId = req.headers['x-agent-id'];
   const conversationId = req.headers['x-conversation-id'];
   const isAgentChat = req.headers['x-ai-agent'] === 'true';
-  const filePublicUrls = fileKeys.map((key) => assetStorage.getPublicUrl(key));
-
-  if (filePublicUrls.length > 0) {
-    message = [message, '###', 'Attachments:', ...filePublicUrls.map((url) => `- ${url}`)].join(
-      '\n',
-    );
-  }
 
   try {
     const result = await axios.post(
-      getAgentServerURL(agentId as string, isUsingLocalServer) + '/aichat/stream',
-      { message },
+      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stream',
+      { message, attachments: req.body.attachments || [] },
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -215,28 +209,57 @@ router.get('/messages', async (req, res) => {
   }
 });
 
-router.post('/upload', [includeTeamDetails, uploadFileMw.single('file')], async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
+// Upload endpoint: proxy multipart form-data directly to runtime `/aichat/upload`
+router.post('/upload', [includeTeamDetails], (req: any, res, next) => {
+  const token = req.user?.accessToken;
+  const userId = req._user?.id;
+  const teamId = req._team?.id;
+  const headerAgentId = req.headers['x-agent-id'] as string | undefined;
+  const queryAgentId =
+    (req.query.agentId as string | undefined) || (req.query['agent-id'] as string | undefined);
+
+  // Try to extract agentId from Referer URL if not provided directly
+  let refererAgentId: string | undefined;
+  const referer = req.get('referer') || req.get('referrer');
+  if (!headerAgentId && !queryAgentId && referer) {
+    try {
+      const url = new URL(referer);
+      refererAgentId =
+        (url.searchParams.get('agentId') as string | undefined) ||
+        (url.searchParams.get('aiAgentId') as string | undefined) ||
+        (url.searchParams.get('agent-id') as string | undefined);
+    } catch {}
+  }
+  const agentId = headerAgentId || queryAgentId || refererAgentId;
+
+  if (!agentId) {
+    return res
+      .status(400)
+      .json({ error: 'Missing X-AGENT-ID header or ?agentId query param (or Referer agentId)' });
   }
 
-  try {
-    // @ts-ignore
-    const key = req.file.key;
-    const publicUrl = assetStorage.getPublicUrl(key);
+  const target = getAgentServerURL(agentId as string, isUsingLocalServer);
 
-    return res.json({
-      success: true,
-      file: {
-        key: key,
-        url: publicUrl,
-        name: req.file.originalname,
-        type: req.file.mimetype,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ message: 'Failed to upload file' });
-  }
+  const proxyMw = createProxyMiddleware({
+    target,
+    changeOrigin: true,
+    pathRewrite: () => '/v1/emb/chat/upload',
+    onProxyReq: (proxyReq) => {
+      if (token) proxyReq.setHeader('Authorization', 'Bearer ' + token);
+      if (userId) proxyReq.setHeader('x-user-id', userId);
+      if (teamId) {
+        proxyReq.setHeader('x-team-id', teamId);
+        proxyReq.setHeader('x-smyth-team-id', teamId);
+      }
+      // Ensure agent id is forwarded for agent resolution by runtime
+      proxyReq.setHeader('X-AGENT-ID', agentId);
+      proxyReq.setHeader('x-agent-id', agentId);
+      // Ensure cookies aren’t forwarded
+      proxyReq.removeHeader('Cookie');
+    },
+  });
+
+  return proxyMw(req, res, next);
 });
 
 router.delete('/deleteFile', [includeTeamDetails], async (req, res) => {

@@ -1,5 +1,6 @@
-import { Agent } from "@smythos/sre";
-const MCP_SETTINGS_KEY = "mcp";
+import { Agent } from '@smythos/sre';
+
+const MCP_SETTINGS_KEY = 'mcp';
 
 export const isMcpEnabled = (agent: Agent) => {
   if (agent.usingTestDomain) {
@@ -21,15 +22,15 @@ export const isMcpEnabled = (agent: Agent) => {
 };
 
 export function extractMCPToolSchema(jsonSpec: any, method: string) {
-  if (method.toLowerCase() === "get") {
+  if (method.toLowerCase() === 'get') {
     const schema = jsonSpec?.parameters;
     if (!schema) return {};
 
     const properties = {};
     const required = [];
 
-    schema.forEach((param) => {
-      if (param.in === "query") {
+    schema.forEach(param => {
+      if (param.in === 'query') {
         properties[param.name] = param.schema;
         if (param.required) {
           required.push(param.name);
@@ -38,12 +39,12 @@ export function extractMCPToolSchema(jsonSpec: any, method: string) {
     });
 
     return {
-      type: "object",
+      type: 'object',
       properties,
       required,
     };
   }
-  const schema = jsonSpec?.requestBody?.content?.["application/json"]?.schema;
+  const schema = jsonSpec?.requestBody?.content?.['application/json']?.schema;
   return schema;
 }
 
@@ -52,11 +53,11 @@ export function formatMCPSchemaProperties(schema: any) {
   for (const property in properties) {
     const propertySchema = properties[property];
 
-    if (propertySchema.type === "array") {
+    if (propertySchema.type === 'array') {
       properties[property] = {
-        type: "array",
+        type: 'array',
         items: {
-          type: ["string", "number", "boolean", "object", "array"],
+          type: ['string', 'number', 'boolean', 'object', 'array'],
         },
       };
     }

@@ -2077,7 +2077,7 @@ export function openAgentSettingsRightSidebar(state = undefined) {
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
       closeBtn.className =
-        'close-btn items-center py-2 text-xs font-medium text-gray-900 bg-transparent hover:text-gray-600 active:text-gray-900 focus:z-10';
+        'close-btn relative cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2 focus:z-10';
       closeBtn.innerHTML = '<span class="mif-cross"></span>';
 
       // Add click event to close the sidebar
