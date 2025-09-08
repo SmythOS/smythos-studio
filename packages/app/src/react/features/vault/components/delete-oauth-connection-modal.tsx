@@ -1,12 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@src/react/shared/components/ui/dialog';
-import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import type { DeleteOAuthConnectionModalProps } from '../types/oauth-connection';
 
 export function DeleteOAuthConnectionModal({
@@ -22,27 +14,20 @@ export function DeleteOAuthConnectionModal({
     }
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] [&_.absolute.right-6.top-6]:right-4 [&_.absolute.right-6.top-6]:top-4">
-        <DialogHeader className="space-y-4">
-          <DialogTitle>Delete OAuth Connection</DialogTitle>
-          <DialogDescription className="pt-2">
-            Are you sure you want to delete the connection{' '}
-            <span className="font-semibold">{connection?.name || 'this connection'}</span>? This
-            action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <CustomButton
-            variant="primary" // Use destructive variant for delete actions
-            handleClick={handleConfirm}
-            loading={isProcessing}
-            disabled={isProcessing}
-            label="Delete Connection"
-          />
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmModal
+      onClose={onClose}
+      label={isProcessing ? 'Deleting...' : 'Delete'}
+      handleConfirm={handleConfirm}
+      message="Are you sure?"
+      lowMsg="This action cannot be undone. This will permanently delete the OAuth connection."
+      isLoading={isProcessing}
+      width="max-w-[600px] w-[calc(100vw_-_-20px)]"
+      confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"
+    />
   );
 }
