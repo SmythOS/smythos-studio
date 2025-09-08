@@ -161,7 +161,9 @@ export function structureAgentSetting(
       // Add code snippet modal for chat bot (preload when it should be visible)
       // Note: iframe-based components are conditionally rendered to allow reload as requested
       if (
-        (key === EMBODIMENT_TYPE.CHAT_BOT || key === EMBODIMENT_TYPE.FORM) &&
+        (key === EMBODIMENT_TYPE.CHAT_BOT ||
+          key === EMBODIMENT_TYPE.FORM ||
+          key === EMBODIMENT_TYPE.CHAT_GPT) &&
         shouldCodeSnippetVisible(key, agentData)
       ) {
         result.codeSnippetComponent = getCodeSnippetModal(
@@ -188,7 +190,9 @@ const shouldCodeSnippetVisible = (
   },
 ) => {
   return (
-    (embodimentType === EMBODIMENT_TYPE.CHAT_BOT || embodimentType === EMBODIMENT_TYPE.FORM) &&
+    (embodimentType === EMBODIMENT_TYPE.CHAT_BOT ||
+      embodimentType === EMBODIMENT_TYPE.FORM ||
+      embodimentType === EMBODIMENT_TYPE.CHAT_GPT) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
   );
