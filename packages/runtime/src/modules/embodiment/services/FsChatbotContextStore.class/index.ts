@@ -1,12 +1,12 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-import type { ILLMContextStore } from "@smythos/sre";
+import type { ILLMContextStore } from '@smythos/sre';
 
-import { EStorageTypes } from "@embodiment/types/fileStorage.types";
-import { fsExists } from "@embodiment/utils/general.utils";
+import { EStorageTypes } from '@embodiment/types/fileStorage.types';
+import { fsExists } from '@embodiment/utils/general.utils';
 
-import { FsChatbotContextExporter } from "./FsChatbotContextExporter.class";
+import { FsChatbotContextExporter } from './FsChatbotContextExporter.class';
 
 export class FsChatbotContextStore implements ILLMContextStore {
   private agentId: string;
@@ -17,17 +17,9 @@ export class FsChatbotContextStore implements ILLMContextStore {
   storageType = EStorageTypes.Local;
   private sessionsPath: string;
 
-  constructor({
-    agentId,
-    conversationID,
-    dataPath,
-  }: {
-    agentId: string;
-    conversationID: string;
-    dataPath?: string;
-  }) {
+  constructor({ agentId, conversationID, dataPath }: { agentId: string; conversationID: string; dataPath?: string }) {
     if (!dataPath) {
-      throw new Error("dataPath is required.");
+      throw new Error('dataPath is required.');
     }
 
     if (!fs.existsSync(dataPath)) {
@@ -37,7 +29,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
     this.dataFolder = dataPath;
     this.agentId = agentId;
     this.conversationID = conversationID;
-    this.sessionsPath = path.join(dataPath, "chat_sessions");
+    this.sessionsPath = path.join(dataPath, 'chat_sessions');
     this.exporter = new FsChatbotContextExporter({
       sessionsPath: this.sessionsPath,
       agentId,
@@ -46,49 +38,36 @@ export class FsChatbotContextStore implements ILLMContextStore {
 
   public async save(messages: any[]): Promise<void> {
     try {
-      const filePath = this.getConversationFilePath(
-        this.agentId,
-        this.conversationID
-      );
+      const filePath = this.getConversationFilePath(this.agentId, this.conversationID);
       await this.ensureDirectoryExistence(filePath);
-      await fs.promises.writeFile(
-        filePath,
-        JSON.stringify(messages, null, 2),
-        "utf-8"
-      );
+      await fs.promises.writeFile(filePath, JSON.stringify(messages, null, 2), 'utf-8');
     } catch (error) {
       // Saving is not critical, so we can simply log the error and continue without interrupting the process.
-      console.warn("Error saving Conversation: ", error);
+      console.warn('Error saving Conversation: ', error);
     }
   }
   public async load(count?: number): Promise<any[]> {
-    const conversations = await this.getConversationById(
-      this.agentId,
-      this.conversationID
-    );
+    const conversations = await this.getConversationById(this.agentId, this.conversationID);
 
     if (count === undefined) return conversations;
 
-    if (typeof count === "number" && count > 0) {
+    if (typeof count === 'number' && count > 0) {
       return conversations.slice(-count);
     }
   }
 
-  public async getMessage(message_id: string): Promise<any> {
+  public async getMessage(_messageId: string): Promise<any> {
     return {};
   }
 
-  private async getConversationById(
-    agentId: string,
-    conversationId: string
-  ): Promise<Record<string, any>[]> {
+  private async getConversationById(agentId: string, conversationId: string): Promise<Record<string, any>[]> {
     const folderPath = path.join(this.sessionsPath, agentId);
 
     if (!(await fsExists(folderPath))) {
       return [];
     }
 
-    const filePath = path.join(folderPath, conversationId + ".json");
+    const filePath = path.join(folderPath, `${conversationId}.json`);
 
     if (!(await fsExists(filePath))) {
       return [];
@@ -96,7 +75,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
 
     try {
       const fileContent = await fs.promises.readFile(filePath, {
-        encoding: "utf8",
+        encoding: 'utf8',
       });
       return JSON.parse(fileContent);
     } catch (error) {
@@ -104,10 +83,7 @@ export class FsChatbotContextStore implements ILLMContextStore {
     }
   }
 
-  private getConversationFilePath(
-    agentId: string,
-    conversationID: string
-  ): string {
+  private getConversationFilePath(agentId: string, conversationID: string): string {
     return path.join(this.sessionsPath, agentId, `${conversationID}.json`);
   }
 

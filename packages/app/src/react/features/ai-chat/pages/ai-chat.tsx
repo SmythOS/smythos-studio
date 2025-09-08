@@ -58,7 +58,10 @@ const AIChat = () => {
     clearError,
     isUploadInProgress,
     clearFiles,
-  } = useFileUpload();
+  } = useFileUpload({
+    agentId: agentId || '',
+    chatId: agentSettingsData?.settings?.lastConversationId,
+  });
 
   const {
     messagesHistory,

@@ -1,22 +1,22 @@
-import { Request } from "express";
+import { Request } from 'express';
 
-import { Agent, AgentLogger, Conversation } from "@smythos/sre";
+import { Agent, AgentLogger, Conversation } from '@smythos/sre';
 
-import config from "@core/config";
-import { DEFAULT_MODEL } from "@core/constants";
+import config from '@core/config';
+import { DEFAULT_MODEL } from '@core/constants';
 
-import { EMBODIMENT_TYPES } from "@embodiment/constants";
+import { EMBODIMENT_TYPES } from '@embodiment/constants';
+import { ChatConversationsEnv } from '@embodiment/types/chat.types';
 
-import { getOpenAPIJSONForAI } from "../helpers/openapi-adapter.helper";
-import { ChatConversationsEnv } from "../utils/chat.utils";
-import { delay } from "../utils/date-time.utils";
-import { FsChatbotContextStore } from "./FsChatbotContextStore.class";
-import { ConversationStreamYield } from "./FsChatbotContextStore.class/FsChatbotContextExporter.class";
+import { getOpenAPIJSONForAI } from '../helpers/openapi-adapter.helper';
+import { delay } from '../utils/date-time.utils';
+import { FsChatbotContextStore } from './FsChatbotContextStore.class';
+import { ConversationStreamYield } from './FsChatbotContextStore.class/FsChatbotContextExporter.class';
 
 type Headers = {
-  "x-conversation-id": string;
+  'x-conversation-id': string;
   Authorization?: string;
-  "x-forwarded-for"?: string;
+  'x-forwarded-for'?: string;
 };
 
 type ChatbotResponse = {
@@ -30,12 +30,14 @@ type ChatbotResponse = {
   errorType?: string;
 };
 
-function fnv1aHash(str) {
+function fnv1aHash(str: string): string {
   let hash = 0x811c9dc5; // FNV offset basis
   for (let i = 0; i < str.length; i++) {
+    // eslint-disable-next-line no-bitwise
     hash ^= str.charCodeAt(i);
     hash = Math.imul(hash, 0x01000193); // FNV prime
   }
+  // eslint-disable-next-line no-bitwise
   return (hash >>> 0).toString(36).toUpperCase(); // Convert to Base36
 }
 export default class Chatbot {
@@ -46,46 +48,39 @@ export default class Chatbot {
   public embodimentSettings;
 
   private agent: Agent;
-  private systemMessage = "";
+  private systemMessage = '';
   private model = DEFAULT_MODEL;
   private modelInfo: any;
   private function_call_order = 0;
   private contextWindow = 1024 * 128;
   private maxOutputTokens = 4096;
-  private client_ip = "";
-  private toolCallId = "";
-  private logId = "";
-  private teamId = "";
+  private client_ip = '';
+  private toolCallId = '';
+  private logId = '';
+  private teamId = '';
   private passThroughNotifications = {};
   private isAgentChat = false;
 
   constructor(req: Request | any) {
-    this.agentId = req._agent.id; //from AgentLoader middleware
+    this.agentId = req._agent.id; // from AgentLoader middleware
     this.sessionID = req.sessionID;
-    this.conversationID = req.headers["x-conversation-id"] || req.sessionID;
-    this.domain = req._agent.domain; //req.hostname;
+    this.conversationID = req.headers['x-conversation-id'] || req.sessionID;
+    this.domain = req._agent.domain; // req.hostname;
     this.agent = req._agent;
-    this.client_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    this.client_ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     this.teamId = req._agent.teamId;
-    this.isAgentChat = req.headers["x-ai-agent"] === "true";
+    this.isAgentChat = req.headers['x-ai-agent'] === 'true';
   }
   public async init() {
     // wait for agent settings and embodiments to be ready
     await this.agent.agentSettings?.ready();
     await this.agent.agentSettings?.embodiments?.ready();
 
-    this.systemMessage =
-      this.agent.data.behavior ||
-      this.agent.data.description ||
-      this.agent.data.shortDescription ||
-      "";
+    this.systemMessage = this.agent.data.behavior || this.agent.data.description || this.agent.data.shortDescription || '';
 
     this.model =
-      this.agent.agentSettings?.get("chatGptModel") ||
-      this.agent.agentSettings?.embodiments?.get(
-        EMBODIMENT_TYPES.ChatBot,
-        "chatGptModel"
-      ) ||
+      this.agent.agentSettings?.get('chatGptModel') ||
+      this.agent.agentSettings?.embodiments?.get(EMBODIMENT_TYPES.ChatBot, 'chatGptModel') ||
       this.model;
 
     // Initialize basic modelInfo since LLMRegistry is deprecated
@@ -99,7 +94,7 @@ export default class Chatbot {
     // Keep original model ID
     // this.model stays as is since SRE handles model resolution
 
-    console.log("modelInfo", this.model, this.modelInfo);
+    // console.log('modelInfo', this.model, this.modelInfo);
   }
 
   /**
@@ -112,8 +107,8 @@ export default class Chatbot {
       domain: this.domain,
       function_call_order: this.function_call_order,
       agentVersion: this.agent.version,
-      //sessionID: this.sessionID,
-      //conversationID: this.conversationID,
+      // sessionID: this.sessionID,
+      // conversationID: this.conversationID,
       embodimentSettings: this.embodimentSettings,
       systemMessage: this.systemMessage,
       model: this.model,
@@ -131,8 +126,8 @@ export default class Chatbot {
     this.agentId = data.agentId;
     this.domain = data.domain;
     this.function_call_order = data.function_call_order;
-    //this.sessionID = data.sessionID;
-    //this.conversationID = data.conversationID;
+    // this.sessionID = data.sessionID;
+    // this.conversationID = data.conversationID;
     this.embodimentSettings = data.embodimentSettings;
     this.systemMessage = data.systemMessage;
     this.model = data.model;
@@ -147,21 +142,13 @@ export default class Chatbot {
    * @param errorType - Type of error for categorization
    * @param callback - Callback function to send response
    */
-  private sendErrorMessage(
-    error: any,
-    errorType: string,
-    callback: (response: ChatbotResponse) => void
-  ) {
-    const errorMessage =
-      error?.message ||
-      error?.code ||
-      error ||
-      "An error occurred. Please try again later.";
+  private sendErrorMessage(error: any, errorType: string, callback: (response: ChatbotResponse) => void) {
+    const errorMessage = error?.message || error?.code || error || 'An error occurred. Please try again later.';
 
     callback({
       content: errorMessage,
       isError: true,
-      errorType: errorType,
+      errorType,
     });
   }
 
@@ -185,24 +172,20 @@ export default class Chatbot {
     this.function_call_order++;
 
     this.logId = AgentLogger.log(this.agent, null, {
-      sourceId: "chat",
-      componentId: "CHATBOT",
+      sourceId: 'chat',
+      componentId: 'CHATBOT',
       domain: this.domain,
       input: message,
       inputTimestamp: new Date().toISOString(),
       sessionID: conversationID,
     });
 
-    this.toolCallId = Math.round(Math.random() * Math.pow(10, 6))
+    this.toolCallId = Math.round(Math.random() * 10 ** 6)
       .toString(36)
       .toUpperCase();
 
     try {
-      const spec = await getOpenAPIJSONForAI(
-        this.domain,
-        this.agent.usingTestDomain ? "" : "latest",
-        isAgentChatRequest
-      );
+      const spec = await getOpenAPIJSONForAI(this.domain, this.agent.usingTestDomain ? '' : 'latest', isAgentChatRequest);
 
       // Adapt the model based on the user's plan, especially to support certain OpenAI models for legacy users with limited tokens without their own API key.
       const conversation = new Conversation(this.model, spec, {
@@ -212,24 +195,18 @@ export default class Chatbot {
         store: contextStore,
       });
 
-      conversation.on("error", (error) => {
-        console.error("Error in conversation:", error);
+      conversation.on('error', error => {
+        // console.error('Error in conversation:', error);
 
         // Send error as normal content with error flag instead of throwing
-        this.sendErrorMessage(error, "conversation_error", callback);
+        this.sendErrorMessage(error, 'conversation_error', callback);
       });
 
-      conversation.on("toolInfo", (toolInfo) =>
-        this.toolsInfoHandler(toolInfo, callback)
-      );
+      conversation.on('toolInfo', toolInfo => this.toolsInfoHandler(toolInfo, callback));
 
-      conversation.on("beforeToolCall", (toolInfo, llmResponse) =>
-        this.beforeToolCallHandler(toolInfo, llmResponse, callback)
-      );
+      conversation.on('beforeToolCall', (toolInfo, llmResponse) => this.beforeToolCallHandler(toolInfo, llmResponse, callback));
 
-      conversation.on("afterToolCall", (toolInfo, toolResponse) =>
-        this.afterToolCallHandler(toolInfo, toolResponse, callback)
-      );
+      conversation.on('afterToolCall', (toolInfo, toolResponse) => this.afterToolCallHandler(toolInfo, toolResponse, callback));
 
       // TODO: We need to stream the "thinking" content correctly. Currently, when using callback({..., debug: thinking}), it prints each chunk on a separate line, which doesn't preserve the original format. We need to fix this to maintain the original flow of the "thinking" content.
       // conversation.on('thinking', (thinking) => {
@@ -237,37 +214,37 @@ export default class Chatbot {
       // });
 
       // Print the thinking content at once
-      conversation.on("thoughtProcess", (thinking) => {
+      conversation.on('thoughtProcess', thinking => {
         callback({
           title: `[${this.toolCallId}] Thought Process`,
           debug: thinking,
         });
       });
 
-      conversation.on("content", (content) => {
+      conversation.on('content', content => {
         try {
-          if (content?.indexOf("}{") >= 0) {
+          let processedContent = content;
+          if (processedContent?.indexOf('}{') >= 0) {
             // workaround to avoid broken json chunks parsing in the frontend
             // since all the json chunks are streamed in the same response, we use "}{" to separate them
             // if a content is equal to '}{' or contains it, we replace it with '} {' to avoid false new chunk
-            content = content.replace(/}{/g, "} {");
+            processedContent = processedContent.replace(/}{/g, '} {');
           }
-          callback({ content });
+          callback({ content: processedContent });
         } catch (e) {
           // Send content processing error as normal message with error flag
-          this.sendErrorMessage(e, "content_processing_error", callback);
+          this.sendErrorMessage(e, 'content_processing_error', callback);
         }
       });
 
-      const isStickyDebug =
-        this.agent.debugSessionEnabled || headers["X-MONITOR-ID"];
-      const dbgHeaders = isStickyDebug ? { "x-hash-id": this.client_ip } : {};
+      const isStickyDebug = this.agent.debugSessionEnabled || headers['X-MONITOR-ID'];
+      const dbgHeaders = isStickyDebug ? { 'x-hash-id': this.client_ip } : {};
       const concurrentToolCalls = this.agent.debugSessionEnabled ? 1 : 4;
       const result = await conversation.streamPrompt(
         message,
-        { "x-caller-session-id": conversationID, ...headers, ...dbgHeaders },
+        { 'x-caller-session-id': conversationID, ...headers, ...dbgHeaders },
         concurrentToolCalls,
-        abortSignal
+        abortSignal,
       );
 
       if (this.logId)
@@ -278,37 +255,30 @@ export default class Chatbot {
     } catch (error: any) {
       if (this.logId) {
         AgentLogger.log(this.agent, this.logId, {
-          error: typeof error === "object" ? JSON.stringify(error) : error,
+          error: typeof error === 'object' ? JSON.stringify(error) : error,
         });
       }
 
       // Send error message as normal system message with error flag
-      this.sendErrorMessage(error, "system_error", callback);
+      this.sendErrorMessage(error, 'system_error', callback);
     } finally {
-      this.logId = "";
-      this.toolCallId = "";
+      this.logId = '';
+      this.toolCallId = '';
     }
   }
 
-  private async toolsInfoHandler(
-    toolsInfo,
-    callback: (response: ChatbotResponse) => void
-  ) {
+  private async toolsInfoHandler(toolsInfo, callback: (response: ChatbotResponse) => void) {
     if (this.agent.usingTestDomain || this.isAgentChat) {
       for (const tool of toolsInfo) {
         const toolHash = tool.id ? fnv1aHash(tool.id) : this.toolCallId;
         const dbgJson = {
           title: `[${toolHash}] Function Call : ${tool.name}`,
-          debug: `${tool.name} (${
-            tool?.arguments && typeof tool?.arguments === "object"
-              ? JSON.stringify(tool?.arguments)
-              : tool?.arguments
-          })`,
+          debug: `${tool.name} (${tool?.arguments && typeof tool?.arguments === 'object' ? JSON.stringify(tool?.arguments) : tool?.arguments})`,
         };
         if (this.agent.debugSessionEnabled) {
-          //attach to UI debugger
-          dbgJson["function"] = "updateStatus";
-          dbgJson["parameters"] = ["Debugger: Attaching To Agent ..."];
+          // attach to UI debugger
+          (dbgJson as any).function = 'updateStatus';
+          (dbgJson as any).parameters = ['Debugger: Attaching To Agent ...'];
         }
 
         callback(dbgJson);
@@ -320,11 +290,7 @@ export default class Chatbot {
     }
   }
 
-  private async beforeToolCallHandler(
-    { tool, args },
-    llmResponse,
-    callback: (response: ChatbotResponse) => void
-  ) {
+  private async beforeToolCallHandler({ tool, args }, llmResponse, callback: (response: ChatbotResponse) => void) {
     if (this.logId)
       AgentLogger.log(this.agent, this.logId, {
         output: llmResponse,
@@ -334,35 +300,29 @@ export default class Chatbot {
     if (this.agent.usingTestDomain || this.isAgentChat) {
       if (this.agent.debugSessionEnabled) {
         await delay(100);
-        const dbgFunction = `${tool.name} (${
-          args && typeof args === "object" ? JSON.stringify(args) : args
-        })`;
+        const dbgFunction = `${tool.name} (${args && typeof args === 'object' ? JSON.stringify(args) : args})`;
 
-        let dbgJson = {
+        const dbgJson = {
           title: `[${toolHash}] Function Call : ${tool.name}`,
           debug: `Debugging ${dbgFunction.substring(0, 50)} ...`,
         };
-        dbgJson["function"] = "callParentFunction";
-        dbgJson["parameters"] = ["debugLastAction", [], 200];
+        (dbgJson as any).function = 'callParentFunction';
+        (dbgJson as any).parameters = ['debugLastAction', [], 200];
         callback(dbgJson);
       }
     }
 
     if (this.agent.debugSessionEnabled) {
-      await delay(3000); //give some time to the UI debugger to attach - FIXME : find a better way to do this
+      await delay(3000); // give some time to the UI debugger to attach - FIXME : find a better way to do this
     }
   }
 
-  private async afterToolCallHandler(
-    { tool, args },
-    toolResponse,
-    callback: (response: ChatbotResponse) => void
-  ) {
+  private async afterToolCallHandler({ tool }, toolResponse, callback: (response: ChatbotResponse) => void) {
     const toolHash = tool.id ? fnv1aHash(tool.id) : this.toolCallId;
     if (this.agent.usingTestDomain || this.isAgentChat) {
-      //workaround to avoid broken debug message in the frontend
-      //replace all "}{" with "} {";
-      const _toolResponse = toolResponse.replace(/}\{/g, "}_{");
+      // workaround to avoid broken debug message in the frontend
+      // replace all "}{" with "} {";
+      const _toolResponse = toolResponse.replace(/}\{/g, '}_{');
       const chunkSize = 500;
       for (let i = 0, len = _toolResponse.length; i < len; i += chunkSize) {
         const chunk = _toolResponse.substr(i, chunkSize);
@@ -412,13 +372,7 @@ export default class Chatbot {
         return this.processChatMessage({ message, headers, callback, abortSignal });
     } */
 
-  public async *exportAllConversations({
-    dateRange,
-    env,
-  }: {
-    dateRange?: string;
-    env?: string;
-  }): AsyncGenerator<ConversationStreamYield> {
+  public async *exportAllConversations({ dateRange, env }: { dateRange?: string; env?: string }): AsyncGenerator<ConversationStreamYield> {
     const contextStore = new FsChatbotContextStore({
       agentId: this.agentId,
       conversationID: this.conversationID,

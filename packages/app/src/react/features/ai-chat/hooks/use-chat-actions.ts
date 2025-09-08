@@ -112,7 +112,14 @@ export const useChatActions = ({
         await chatUtils.generateResponse({
           agentId,
           query: message,
-          fileKeys: attachedFiles?.map((f) => f.metadata.key).filter(Boolean) as string[],
+          attachments: (attachedFiles || [])
+            .map((f) => ({
+              url: f.metadata.publicUrl,
+              name: f.file?.name,
+              type: f.metadata.fileType,
+              size: f.file?.size,
+            }))
+            .filter((a) => !!a.url),
           chatId,
           signal,
           onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
@@ -272,9 +279,14 @@ export const useChatActions = ({
           await chatUtils.generateResponse({
             agentId,
             query: lastMessage.message,
-            fileKeys: lastMessage.attachedFiles
-              ?.map((f) => f.metadata.key)
-              .filter(Boolean) as string[],
+            attachments: (lastUserMessageRef.current.attachedFiles || [])
+              .map((f) => ({
+                url: f.metadata.publicUrl,
+                name: f.file?.name,
+                type: f.metadata.fileType,
+                size: f.file?.size,
+              }))
+              .filter((a) => !!a.url),
             chatId,
             signal,
             onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {

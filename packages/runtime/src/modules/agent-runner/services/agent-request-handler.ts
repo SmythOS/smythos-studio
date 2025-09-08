@@ -1,30 +1,25 @@
-import { Request } from "express";
+import { Request } from 'express';
 
-import { AgentProcess, Logger } from "@smythos/sre";
+import { AgentProcess, Logger } from '@smythos/sre';
 
-const console = Logger("(Agent Runner) Service: Agent Request Handler");
+const console = Logger('(Agent Runner) Service: Agent Request Handler');
 
 export async function processAgentRequest(agent: any, req: Request) {
   if (!agent) {
-    return { status: 404, data: "Agent not found" };
+    return { status: 404, data: 'Agent not found' };
   }
-  //const req = agent.agentRequest;
+  // const req = agent.agentRequest;
 
-  req.socket.on("close", () => {
+  req.socket.on('close', () => {
     // console.log('Client socket closed, killing agent');
     // Handle the cancellation logic
     // agent.kill();
   });
 
-  const hasDebugHeader = [
-    "X-DEBUG-RUN",
-    "X-DEBUG-READ",
-    "X-DEBUG-INJ",
-    "X-DEBUG-STOP",
-  ].some((header) => req.header(header));
+  const hasDebugHeader = ['X-DEBUG-RUN', 'X-DEBUG-READ', 'X-DEBUG-INJ', 'X-DEBUG-STOP'].some(header => req.header(header));
 
   if (hasDebugHeader) {
-    return { status: 403, data: "Debug functions are not supported" };
+    return { status: 403, data: 'Debug functions are not supported' };
   }
 
   return runAgentProcess(agent, req);
@@ -32,12 +27,12 @@ export async function processAgentRequest(agent: any, req: Request) {
 
 async function runAgentProcess(agent: any, req: any) {
   try {
-    //extract endpoint path
-    //live agents (dev) do not have a version number
-    //deployed agents have a version number
+    // extract endpoint path
+    // live agents (dev) do not have a version number
+    // deployed agents have a version number
     const pathMatches = req.path.match(/(^\/v[0-9]+\.[0-9]+?)?(\/api\/(.+)?)/);
     if (!pathMatches || !pathMatches[2]) {
-      return { status: 404, data: { error: "Endpoint not found" } };
+      return { status: 404, data: { error: 'Endpoint not found' } };
     }
 
     const { data: result } = await AgentProcess.load(req._agent)
@@ -46,10 +41,10 @@ async function runAgentProcess(agent: any, req: any) {
         path: req.path,
         url: undefined,
       })
-      .catch((error) => ({ data: { error: error.toString() } }));
+      .catch(error => ({ data: { error: error.toString() } }));
 
     if (result.error) {
-      console.error("ERROR", result.error);
+      console.error('ERROR', result.error);
       return {
         status: 500,
         data: {
@@ -69,7 +64,7 @@ async function runAgentProcess(agent: any, req: any) {
       return { status: error.response.status, data: error.response.data };
     } else {
       // Some other error occurred
-      return { status: 500, data: "Internal Server Error" };
+      return { status: 500, data: 'Internal Server Error' };
     }
   }
 }

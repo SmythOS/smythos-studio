@@ -32,7 +32,9 @@ const generateUniqueFileId = (file: File): string => {
   return `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-export const useFileUpload = (): UseFileUploadReturn => {
+export const useFileUpload = (params?: { agentId?: string; chatId?: string }): UseFileUploadReturn => {
+  const agentId = params?.agentId || '';
+  const chatId = params?.chatId;
   const [files, setFiles] = useState<FileWithMetadata[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [uploadError, setUploadError] = useState<FileUploadError>({ show: false, message: '' });
@@ -110,9 +112,11 @@ export const useFileUpload = (): UseFileUploadReturn => {
         // Upload files concurrently
         const uploadPromises = filesToUpload.map(async ({ file, id }) => {
           try {
-            const result = await uploadFile(file);
+            const result = await uploadFile(file, agentId, chatId);
 
             if (result.success) {
+              // Normalize response from runtime (/aichat/upload)
+              const runtimeFile = result.data?.files?.[0];
               setFiles((prevFiles) =>
                 prevFiles.map((f) =>
                   f.id === id
@@ -120,9 +124,9 @@ export const useFileUpload = (): UseFileUploadReturn => {
                         ...f,
                         metadata: {
                           ...f.metadata,
-                          key: result.data.file.key,
-                          publicUrl: result.data.file.url,
-                          fileType: result.data.file.type,
+                          // Do not set key for runtime uploads (avoid delete attempts)
+                          publicUrl: runtimeFile?.url || result.data?.file?.url,
+                          fileType: runtimeFile?.mimetype || result.data?.file?.type,
                           isUploading: false,
                         },
                       }
@@ -147,7 +151,7 @@ export const useFileUpload = (): UseFileUploadReturn => {
         await Promise.all(uploadPromises);
       }
     },
-    [files.length],
+    [files.length, agentId, chatId],
   );
 
   const handleFileChange = useCallback(
