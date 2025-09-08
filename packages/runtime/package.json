@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development FORMAT=cjs rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
-    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=4096' rollup -c",
+    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=3096' rollup -c",
     "start:prod": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",
     "clean": "rm -rf dist",

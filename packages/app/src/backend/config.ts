@@ -33,6 +33,9 @@ const config = {
     REDIS_MASTER_NAME: process.env.REDIS_MASTER_NAME,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     PROD_AGENT_DOMAIN: process.env.PROD_AGENT_DOMAIN || 'agent.pstage.smyth.ai',
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
