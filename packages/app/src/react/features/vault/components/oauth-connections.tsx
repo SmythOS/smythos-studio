@@ -1,4 +1,5 @@
 // src/webappv2/pages/vault/oauth-connections.tsx
+import { Button } from '@src/react/shared/components/ui/button'; // Standard Button component for consistency
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
 import { errorToast, successToast } from '@src/shared/components/toast';
 import {
@@ -352,9 +353,9 @@ export function OAuthConnections() {
           <div className="py-4 text-center text-gray-500">No OAuth connections found</div>
         ) : (
           <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <thead className="text-xs text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="py-3">
                   Platform
                 </th>
                 <th scope="col" className="px-4 py-3">
@@ -366,9 +367,7 @@ export function OAuthConnections() {
                 <th scope="col" className="px-4 py-3">
                   Status
                 </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  Actions
-                </th>
+                <th scope="col" className="px-4 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody>
@@ -394,20 +393,20 @@ export function OAuthConnections() {
                 const platformDisplay = getPlatformDisplay(conn);
 
                 return (
-                  <tr key={conn.id} className="bg-white border-b hover:bg-gray-50">
+                  <tr key={conn.id} className="border-t">
                     {/* Platform Column */}
-                    <td className="px-4 py-3 truncate max-w-[150px]" title={platformDisplay}>
+                    <td className="py-2 truncate max-w-[150px]" title={platformDisplay}>
                       {platformDisplay || '-'} {/* Show hyphen if empty */}
                     </td>
                     {/* Name Column */}
                     <td
-                      className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap truncate max-w-[200px]"
+                      className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap truncate max-w-[200px]"
                       title={conn.name}
                     >
                       {conn.name}
                     </td>
                     {/* Type Column */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2">
                       <span
                         className="inline-flex h-5 items-center justify-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]"
                         title={conn.type}
@@ -439,7 +438,7 @@ export function OAuthConnections() {
                       </div>
                     </td>
                     {/* Actions Column */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2">
                       <div className="flex items-center justify-end gap-1">
                         {/* Authentication Buttons */}
                         {conn.oauth_info &&
@@ -469,37 +468,37 @@ export function OAuthConnections() {
                           ))}
 
                         {/* Duplicate Button */}
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDuplicateClick(conn)}
-                          className="h-8 w-8 p-0 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50"
                           title="Duplicate"
                           disabled={isDisabled}
                         >
                           <CopyPlus className="h-4 w-4" />
-                        </button>
+                        </Button>
 
                         {/* Edit Button */}
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEditClick(conn)}
-                          className="h-8 w-8 p-0 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50"
                           title="Edit"
                           disabled={isDisabled}
                         >
                           <Pencil className="h-4 w-4" />
-                        </button>
+                        </Button>
 
                         {/* Delete Button */}
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDeleteClick(conn)}
-                          className="h-8 w-8 p-0 flex items-center justify-center text-gray-500 hover:text-red-500 disabled:opacity-50"
                           title="Delete"
                           disabled={isDisabled}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          <Trash2 className="h-4 w-4 hover:text-red-500" />
+                        </Button>
                       </div>
                     </td>
                   </tr>

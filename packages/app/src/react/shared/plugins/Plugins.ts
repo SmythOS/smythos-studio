@@ -11,6 +11,7 @@ export enum PluginTarget {
   BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
   BuilderSREComponents = 'builder/sreComponents',
   AgentsPageSection = 'agentsPage/section',
+  ShareAgentWithUsers = 'builder/modals/ShareAgentWithUsers',
 }
 
 export enum PluginType {

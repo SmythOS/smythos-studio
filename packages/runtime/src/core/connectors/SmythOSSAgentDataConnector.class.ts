@@ -1,12 +1,11 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance } from 'axios';
 
-import { AgentDataConnector, OAuthConfig } from "@smythos/sre";
+import { AgentDataConnector, OAuthConfig } from '@smythos/sre';
 
-import { getM2MToken } from "@core/helpers/logto.helper";
-import { SmythConfigs } from "@core/types/general.types";
+import { SmythConfigs } from '@core/types/general.types';
 
 export class SmythOSSAgentDataConnector extends AgentDataConnector {
-  public name: string = "SmythOSSAgentData";
+  public name: string = 'SmythOSSAgentData';
   private oAuthAppId: string;
   private oAuthAppSecret: string;
   private oAuthBaseUrl: string;
@@ -16,17 +15,14 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
   private agentStageDomain: string;
   private agentProdDomain: string;
 
-  constructor(
-    private config: SmythConfigs &
-      OAuthConfig & { agentStageDomain: string; agentProdDomain: string }
-  ) {
+  constructor(private config: SmythConfigs & OAuthConfig & { agentStageDomain: string; agentProdDomain: string }) {
     super();
     //if (!SmythRuntime.Instance) throw new Error('SRE not initialized');
     this.oAuthAppId = config.oAuthAppID;
     this.oAuthAppSecret = config.oAuthAppSecret;
     this.oAuthBaseUrl = config.oAuthBaseUrl;
-    this.oAuthResource = config.oAuthResource || "";
-    this.oAuthScope = config.oAuthScope || "";
+    this.oAuthResource = config.oAuthResource || '';
+    this.oAuthScope = config.oAuthScope || '';
     this.smythAPI = axios.create({
       baseURL: `${config.smythAPIBaseUrl}`,
     });
@@ -47,49 +43,36 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
 
       //FIXME : once we have the agent name in deployment api response, we can skip this call
       // const response = await mwSysAPI.get(`/ai-agent/${agentID}?include=team.subscription`, includeAuth(token));
-      const response = await this.smythAPI.get(
-        `/v1/ai-agent/${agentId}?include=team.subscription`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
+      const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}?include=team.subscription`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
       agentObj = response.data.agent;
       const authData = agentObj.data.auth; //use most up to date auth data
 
       // const tasksResponse = await mwSysAPI.get(`/quota/team/${agentObj.teamId}/tasks/subscription`, includeAuth(token));
-      const tasksResponse = await this.smythAPI.get(
-        `/v1/quota/team/${agentObj.teamId}/tasks/subscription`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
-      agentObj.taskData = tasksResponse.data;
 
-      agentObj.data.debugSessionEnabled =
-        agentObj?.data?.debugSessionEnabled && agentObj?.isLocked; //disable debug session if agent is not locked (locked agent means that it's open in the Agent builder)
+      agentObj.taskData = {
+        tasks: 0,
+        maxTasks: Infinity,
+        isFreeUser: false,
+      };
+
+      agentObj.data.debugSessionEnabled = agentObj?.data?.debugSessionEnabled && agentObj?.isLocked; //disable debug session if agent is not locked (locked agent means that it's open in the Agent builder)
 
       if (version) {
         // const deploymentsList = await mwSysAPI.get(`/ai-agent/${agentID}/deployments`, includeAuth(token));
-        const deploymentsList = await this.smythAPI.get(
-          `/v1/ai-agent/${agentId}/deployments`,
-          {
-            headers: await this.getSmythRequestHeaders(),
-          }
-        );
+        const deploymentsList = await this.smythAPI.get(`/v1/ai-agent/${agentId}/deployments`, {
+          headers: await this.getSmythRequestHeaders(),
+        });
         const deployment =
-          version == "latest"
+          version == 'latest'
             ? deploymentsList?.data?.deployments[0]
-            : deploymentsList?.data?.deployments?.find(
-                (deployment) => deployment.version === version
-              );
+            : deploymentsList?.data?.deployments?.find(deployment => deployment.version === version);
         if (deployment) {
           // const deployResponse = await mwSysAPI.get(`/ai-agent/deployments/${deployment.id}`, includeAuth(token));
-          const deployResponse = await this.smythAPI.get(
-            `/v1/ai-agent/deployments/${deployment.id}`,
-            {
-              headers: await this.getSmythRequestHeaders(),
-            }
-          );
+          const deployResponse = await this.smythAPI.get(`/v1/ai-agent/deployments/${deployment.id}`, {
+            headers: await this.getSmythRequestHeaders(),
+          });
           agentObj.data = deployResponse?.data?.deployment?.aiAgentData;
           agentObj.data.debugSessionEnabled = false; //never enable debug session when using a deployed version
           agentObj.data.agentVersion = deployment.version;
@@ -104,23 +87,15 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       //TODO: Also include team and subscription info
 
       //agentObj.data.auth = authData;
-      if (
-        !agentObj?.data?.auth?.method ||
-        agentObj?.data?.auth?.method == "none"
-      )
-        agentObj.data.auth = authData;
+      if (!agentObj?.data?.auth?.method || agentObj?.data?.auth?.method == 'none') agentObj.data.auth = authData;
 
       agentObj.data = this.migrateAgentData(agentObj.data);
 
       return agentObj;
     } catch (error: any) {
       console.error(error.response?.data, error.message);
-      console.log(
-        `Error getting agent data for agentId=${agentId}: ${error?.message}`
-      );
-      throw new Error(
-        `Error getting agent data for agentId=${agentId}: ${error?.message}`
-      );
+      console.log(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
+      throw new Error(`Error getting agent data for agentId=${agentId}: ${error?.message}`);
     }
   }
 
@@ -131,12 +106,9 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
     const isProdWildcardDomain = domain.includes(this.agentProdDomain);
     if (isStageWildcardDomain || isProdWildcardDomain) {
       //console.log('Internal agent domain detected', domain);
-      agentId = domain.split(".")[0];
+      agentId = domain.split('.')[0];
       //sanity check
-      if (
-        `${agentId}.${this.agentStageDomain}` !== domain &&
-        `${agentId}.${this.agentProdDomain}` !== domain
-      ) {
+      if (`${agentId}.${this.agentStageDomain}` !== domain && `${agentId}.${this.agentProdDomain}` !== domain) {
         throw new Error(`Invalid agent domain: ${domain}`);
       }
 
@@ -149,24 +121,20 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       .get(`/v1/domains?verified=true`, {
         headers: await this.getSmythRequestHeaders(),
       })
-      .catch((error) => ({ error }));
+      .catch(error => ({ error }));
 
     if (result.error) {
-      throw new Error("Error getting domain info");
+      throw new Error('Error getting domain info');
     }
 
     //we have an agentId from the wildcard domain, if this domain is already associated with
     if (agentId) {
-      const hasDomain = result.data.domains.find(
-        (domainEntry: any) => domainEntry?.aiAgent?.id === agentId
-      );
+      const hasDomain = result.data.domains.find((domainEntry: any) => domainEntry?.aiAgent?.id === agentId);
       if (hasDomain) {
-        throw new Error("Wrong domain");
+        throw new Error('Wrong domain');
       }
     } else {
-      agentId = result.data.domains.find(
-        (domainEntry: any) => domainEntry.name === domain
-      )?.aiAgent?.id;
+      agentId = result.data.domains.find((domainEntry: any) => domainEntry.name === domain)?.aiAgent?.id;
     }
 
     //if a custom domain is found, use it, otherwise use the agentId from the wildcard domain
@@ -174,95 +142,59 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
     return agentId;
   }
 
-  public async getAgentSettings(
-    agentId: string,
-    version?: string
-  ): Promise<any> {
+  public async getAgentSettings(agentId: string, version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
-      const response = await this.smythAPI.get(
-        `/v1/ai-agent/${agentId}/settings`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
-      const formattedSettings = response.data.settings.reduce(
-        (acc, setting) => ({ ...acc, [setting.key]: setting.value }),
-        {}
-      );
+      const response = await this.smythAPI.get(`/v1/ai-agent/${agentId}/settings`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
+      const formattedSettings = response.data.settings.reduce((acc, setting) => ({ ...acc, [setting.key]: setting.value }), {});
 
       return formattedSettings;
     } catch (error) {
-      console.error(
-        `Error getting agent settings for agentId=${agentId}: ${error?.message}`
-      );
-      throw new Error(
-        `Error getting agent settings for agentId=${agentId}: ${error?.message}`
-      );
+      console.error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
+      throw new Error(`Error getting agent settings for agentId=${agentId}: ${error?.message}`);
     }
   }
 
-  public async getAgentEmbodiments(
-    agentId: string,
-    version?: string
-  ): Promise<any> {
+  public async getAgentEmbodiments(agentId: string, version?: string): Promise<any> {
     try {
       // If no matching deployment found or no deployments at all, return the current live settings
-      const response = await this.smythAPI.get(
-        `/v1/embodiments?aiAgentId=${agentId}`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
+      const response = await this.smythAPI.get(`/v1/embodiments?aiAgentId=${agentId}`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
 
       return response?.data?.embodiments || [];
     } catch (error) {
-      console.error(
-        `Error getting agent embodiments for agentId=${agentId}: ${error?.message}`
-      );
-      throw new Error(
-        `Error getting agent embodiments for agentId=${agentId}: ${error?.message}`
-      );
+      console.error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
+      throw new Error(`Error getting agent embodiments for agentId=${agentId}: ${error?.message}`);
     }
   }
 
-  public async listTeamAgents(
-    teamId: string,
-    deployedOnly?: boolean,
-    includeData?: boolean
-  ): Promise<any[]> {
+  public async listTeamAgents(teamId: string, deployedOnly?: boolean, includeData?: boolean): Promise<any[]> {
     try {
       const headers = await this.getSmythRequestHeaders();
       // If no matching deployment found or no deployments at all, return the current live settings
       const response = await this.smythAPI.get(
-        `/v1/ai-agent/teams/${teamId}/?deployedOnly=${
-          deployedOnly ? "true" : "false"
-        }&includeData=${includeData ? "true" : "false"}`,
+        `/v1/ai-agent/teams/${teamId}/?deployedOnly=${deployedOnly ? 'true' : 'false'}&includeData=${includeData ? 'true' : 'false'}`,
         {
           headers,
-        }
+        },
       );
       const agentsList = response?.data?.agents;
 
       return agentsList;
     } catch (error) {
-      console.error(
-        `Error listing team agents for teamId=${teamId}: ${error?.message}`
-      );
-      throw new Error(
-        `Error listing team agents for teamId=${teamId}: ${error?.message}`
-      );
+      console.error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
+      throw new Error(`Error listing team agents for teamId=${teamId}: ${error?.message}`);
     }
   }
 
   public async isDeployed(agentId: string): Promise<boolean> {
     try {
-      const deploymentsList = await this.smythAPI.get(
-        `/v1/ai-agent/${agentId}/deployments`,
-        {
-          headers: await this.getSmythRequestHeaders(),
-        }
-      );
+      const deploymentsList = await this.smythAPI.get(`/v1/ai-agent/${agentId}/deployments`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
       return deploymentsList?.data?.deployments?.length > 0;
     } catch (error) {
       console.error(error);
@@ -271,22 +203,14 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
   }
 
   private async getSmythRequestHeaders() {
-    return {
-      Authorization: `Bearer ${await getM2MToken({
-        baseUrl: this.oAuthBaseUrl,
-        oauthAppId: this.oAuthAppId,
-        oauthAppSecret: this.oAuthAppSecret,
-        resource: this.oAuthResource,
-        scope: this.oAuthScope,
-      })}`,
-    };
+    return Promise.resolve({
+      Authorization: `Bearer M2M_TOKEN`,
+    });
   }
 
   private migrateAgentData(data) {
     if (!data.version) {
-      console.log(
-        `Agent [${data.name}] has an old schema. Migrating to latest version...`
-      );
+      console.log(`Agent [${data.name}] has an old schema. Migrating to latest version...`);
       // version 0  ===> migrate from receptors/connectors to inputs/outputs
       const newData = JSON.parse(JSON.stringify(data));
       for (let component of newData.components) {
@@ -302,7 +226,7 @@ export class SmythOSSAgentDataConnector extends AgentDataConnector {
       return newData;
     }
 
-    if (data.version === "1.0.0") {
+    if (data.version === '1.0.0') {
       //migrate .description to .behavior
       if (data.description && !data.behavior) {
         data.behavior = data.description;

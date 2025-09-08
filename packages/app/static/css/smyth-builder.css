@@ -811,6 +811,7 @@ body.locked #agent-sidebar-root .restore-button {
   overflow: hidden;
   position: absolute;
   right: -20px;
+  left: unset;
   font-weight: 700;
   border: 2px solid #bbb;
   font-size: 12px;
@@ -823,13 +824,21 @@ body.locked #agent-sidebar-root .restore-button {
   white-space: nowrap;
 }
 
-/* When output is connected, adjust the default value badge position */
+/* When output is connected, show badge on the left for compact mode */
 .output-endpoint.jtk-connected[smt-defaultval]:not([smt-defaultval=''])::after {
   top: 5px;
+  left: 8px;
   right: unset;
   border-width: 1px;
-  transform: translateX(-10px);
+  transform: translateX(0px);
   background-color: #eee;
+
+}
+
+/* Hide badge on hover to show buttons without overlap */
+.output-endpoint.jtk-connected[smt-defaultval]:not([smt-defaultval='']):hover::after {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .output-endpoint.jtk-connected[smt-defaultval]:not([smt-defaultval=''])::before {

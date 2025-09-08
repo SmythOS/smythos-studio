@@ -8,7 +8,7 @@
     "dist/**/*",
     "node_modules/**/*"
   ],
-  "exec": "npm run build:dev && npm run start:dev",
+  "exec": "npm run build && npm run start:prod",
   "env": {
     "NODE_ENV": "development"
   }

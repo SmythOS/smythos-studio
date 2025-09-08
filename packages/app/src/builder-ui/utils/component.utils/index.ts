@@ -255,14 +255,9 @@ export async function promptVaultInfo(
         target.removeAttribute('href');
         target.setAttribute('data-waiting', 'true');
 
-        const sidebarContainer = target.closest('.sidebar-container');
-        const saveBtn = sidebarContainer.querySelector('.action-save') as HTMLButtonElement;
-
         const spinner = createSpinner('black', 'absolute top-[5px] right-[20px]');
         const fieldActions = formGroup.querySelector('.smyth-field-actions');
         fieldActions.prepend(spinner);
-
-        if (saveBtn) saveBtn.disabled = true;
 
         try {
           const result = await addVaultKey(

@@ -6,5 +6,10 @@ declare namespace Express {
     _team: any;
     session: any;
     _usageLimitMessage: string;
+    user?: {
+      id: string;
+      role: 'admin' | 'user';
+      accessToken: string;
+    };
   }
 }
