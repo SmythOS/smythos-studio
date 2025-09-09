@@ -95,12 +95,19 @@ Install the correct pnpm version using `corepack prepare --activate`.
    git remote add upstream https://github.com/SmythOS/smythos-ui.git
    ```
 
-5. Install all dependencies and link packages:
+5. Copy the environment configuration:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit the `.env` file with your specific configuration values.
+
+6. Install all dependencies and link packages:
    ```bash
    pnpm install
    ```
 
-6. Build all packages:
+7. Build all packages:
    ```bash
    pnpm build
    ```
