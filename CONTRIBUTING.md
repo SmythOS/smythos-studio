@@ -134,10 +134,6 @@ pnpm start
    pnpm start
    ```
 4. Write and run tests
-5. Execute the full test suite:
-   ```bash
-   pnpm test
-   ```
 6. Commit your changes and [create a pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
 
 
