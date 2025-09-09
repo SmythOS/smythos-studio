@@ -10,6 +10,7 @@ const base64Credentials = Buffer.from(
 let tokenData = {
   access_token: null,
 };
+// TODO: TO REMOVE ITS DEPENDENCIES & THEN ITS DECLARATION
 export function getM2MToken(resource?, scope?): Promise<string> {
   return new Promise((resolve, reject) => {
     if (tokenData.access_token) {

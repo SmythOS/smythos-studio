@@ -1,4 +1,8 @@
-import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@src/react/shared/constants/style';
+import {
+  DELETE_BUTTON_STYLE,
+  PRIMARY_BUTTON_STYLE,
+  SECONDARY_BUTTON_STYLE,
+} from '@src/react/shared/constants/style';
 import { EMBODIMENT_DESCRIPTIONS, SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { isProdEnv } from '@src/shared/utils';
 import { setCodeEditor } from '../../ui/dom';
@@ -146,15 +150,11 @@ async function populateKeysList() {
             <p class="text-gray-700">Are you sure you want to revoke this API key? This action cannot be undone.</p>
           </div>
         `,
+        onCloseClick: function () {},
         actions: [
           {
-            label: 'Cancel',
-            cssClass: SECONDARY_BUTTON_STYLE,
-            callback: () => {}, // Do nothing on cancel
-          },
-          {
             label: 'Revoke Key',
-            cssClass: PRIMARY_BUTTON_STYLE,
+            cssClass: DELETE_BUTTON_STYLE,
             callback: async () => {
               revokeBtn.disabled = true;
               const agentId = workspace?.agent?.id;
@@ -221,15 +221,10 @@ function attachCreateKeyBtn() {
             </div>
           </div>
         `,
+        onCloseClick: function (dialog) {
+          createKeyBtn.disabled = false;
+        },
         actions: [
-          {
-            label: 'Cancel',
-            cssClass: SECONDARY_BUTTON_STYLE,
-            callback: function (dialog) {
-              // Re-enable the create button
-              createKeyBtn.disabled = false;
-            },
-          },
           {
             label: 'Create',
             cssClass: PRIMARY_BUTTON_STYLE,
@@ -629,7 +624,7 @@ print(response.choices)`,
 
   <div class="flex justify-center">
     <button id="create-new-key-btn"
-      class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${SECONDARY_BUTTON_STYLE} disabled:opacity-50 disabled:cursor-not-allowed">
+      class="h-8 flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-1 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${SECONDARY_BUTTON_STYLE} disabled:opacity-50 disabled:cursor-not-allowed">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>

@@ -10,6 +10,13 @@
   "author": "Ahmed Essam",
   "license": "ISC",
   "packageManager": "pnpm@10.12.2",
+
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -r start"
+
+  },
   "workspaces": [
     "packages/*"
   ],

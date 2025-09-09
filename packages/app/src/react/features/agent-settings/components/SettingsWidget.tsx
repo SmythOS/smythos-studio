@@ -135,7 +135,7 @@ const SettingsWidget = () => {
             theme={{
               header: {
                 close: {
-                  base: 'text-[#1E1E1E] hover:text-gray-700',
+                  base: 'text-[#1E1E1E] hover:text-gray-700 h-8 w-8 p-1.5 hover:bg-gray-200 rounded-lg',
                 },
               },
             }}
@@ -161,7 +161,7 @@ const SettingsWidget = () => {
                 <Button
                   handleClick={handleModalClose}
                   type="button"
-                  className="h-[48px] px-8 rounded-lg ml-auto"
+                  className="px-8 rounded-lg ml-auto"
                 >
                   Done
                 </Button>

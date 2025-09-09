@@ -36,22 +36,16 @@ async function onComponentLoad(sidebar) {
 
   if (component.workspace?.locked) {
     setReadonlyMode(sidebar, ['close-btn', 'action-help']);
-    sidebar.querySelector('.action-save').classList.add('hidden');
-    sidebar.querySelector('.del-btn').classList.add('hidden');
+    sidebar.querySelector('.del-btn')?.classList.add('hidden');
   } else {
     // Always hide the top save button for manual save/cancel flow
-    sidebar.querySelector('.action-save').classList.remove('hidden');
-    sidebar.querySelector('.del-btn').classList.remove('hidden');
-    sidebar.querySelector('.close-btn').classList.remove('hidden');
+    sidebar.querySelector('.del-btn')?.classList.remove('hidden');
+    sidebar.querySelector('.close-btn')?.classList.remove('hidden');
   }
 
   // Keep dynamic draft updates handled by sidebarEditValues(onDraft). Do not write to component data on input/change.
 
   component.emit('settingsOpened', sidebar, this);
-  if (this.loadingIcon) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    this.loadingIcon?.classList?.add('hidden');
-  }
 }
 
 function onTemplateCreateLoad(sidebar) {
@@ -71,9 +65,6 @@ function onTemplateCreateLoad(sidebar) {
 
   const closeButton: HTMLButtonElement = titleRightActions.querySelector('button.close-btn');
   closeButton.classList.remove('hidden');
-
-  const saveButton: HTMLButtonElement = titleRightActions.querySelector('button.action-save');
-  saveButton.classList.add('hidden');
 
   const deleteButton: HTMLButtonElement = actionElement.querySelector('button.del-btn');
   deleteButton.classList.add('hidden');
@@ -260,7 +251,6 @@ async function onSave(values) {
   //console.log('new settings', component.settings);
 
   component.emit('settingsSaved', settingsValues);
-  successToast('Settings saved');
 
   // Also dispatch a global event for tracking
   document.dispatchEvent(
@@ -361,10 +351,9 @@ export async function closeSettings(component: Component, force = false) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
     if (!discard) return;
@@ -441,10 +430,9 @@ export async function editSettings(component: Component) {
       'You have unsaved changes',
       'Are you sure you want to close this without saving?',
       {
-        btnNoLabel: 'Cancel',
         btnYesLabel: 'Discard Changes',
-        btnNoClass: 'h-[48px] rounded-lg px-8',
-        btnYesClass: 'h-[48px] rounded-lg px-8',
+        btnYesClass: 'rounded-lg px-8',
+        btnNoClass: 'hidden',
       },
     );
 
@@ -966,37 +954,13 @@ export async function editSettings(component: Component) {
       helpTooltip = '';
   }
   //show settings
-  // Build bottom actions (Cancel/Save) for component settings
-  const bottomActions = {
-    cancel: {
-      type: 'button',
-      label: 'Cancel',
-      class:
-        'action-cancel items-center ml-2 py-2 text-sm font-medium text-gray-500 bg-transparent hover:text-gray-900',
-      click: () => {
-        const closeBtn: HTMLButtonElement = document.querySelector(
-          '#right-sidebar .close-btn',
-        ) as HTMLButtonElement;
-        closeBtn && closeBtn.click();
-      },
-    },
-    save: {
-      type: 'button',
-      label: 'Save',
-      class:
-        'action-save items-center py-2 text-sm font-medium bg-transparent text-blue-500 hover:text-blue-600',
-      click: () => {},
-    },
-  };
-
-  // Merge template action (if any) with bottom actions
-  const mergedActions = sidebarActions ? { ...sidebarActions, ...bottomActions } : bottomActions;
+  // Remove bottom Save/Cancel actions; saving will be handled by the close 'x' button
 
   sidebarEditValues({
     title: sidebarTitleHTML,
     entriesObject: { Settings: component.settingsEntries },
     features: { templateVars: true },
-    actions: mergedActions,
+    actions: sidebarActions || null,
     onSave: onSave.bind(component),
     onDraft: async function (values) {
       await onDraft.apply(component, [values]);
@@ -1014,7 +978,9 @@ let collectionsCache;
 async function getComponentsCollections() {
   if (collectionsCache) return collectionsCache;
   console.log('getComponentsCollections');
-  const result = await fetch('/api/page/builder/app-config/collections').then((res) => res.json());
+  const result = await fetch('/api/page/builder/app-config/collections')
+    .then((res) => res.json())
+    .catch((err) => []); // for backward compatibility with CE
   if (result.error) {
     errorToast('Error fetching collections');
     return [];
@@ -1186,9 +1152,17 @@ function generateSidebarTitleHTML(component: Component): string {
 
   // Combine the generated icon HTML (if any) and the title text into the final sidebar title structure
   const sidebarTitleHTML = `
-    <div class="flex items-center gap-2">
-      ${iconHTML}
-      <span class="truncate">${templateName}</span>
+    <div class="inline-flex items-center gap-2 max-w-full min-w-0">
+      <span class="shrink-0 inline-flex items-center">${iconHTML}</span>
+      <span class="relative min-w-0 max-w-full flex-1">
+        <span class="truncate block min-w-0 max-w-full leading-tight">${templateName}</span>
+        <div
+          role="tooltip"
+          class="absolute left-0 top-full mt-1 z-50 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible tooltip whitespace-normal break-words text-left max-w-full pointer-events-none"
+        >
+          ${templateName}
+        </div>
+      </span>
     </div>
   `;
 

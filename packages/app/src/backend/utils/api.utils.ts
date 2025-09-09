@@ -19,7 +19,7 @@ export const smythAPI = axios.create({
 });
 
 export const smythVaultAPI = axios.create({
-  baseURL: `${config.env.SMYTH_VAULT_API_BASE_URL}/v1`,
+  baseURL: `${config.env.SMYTH_VAULT_API_BASE_URL}`,
 });
 
 export function includeAxiosAuth(token: string) {

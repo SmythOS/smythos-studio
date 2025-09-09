@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import { Agent } from '../../shared/types/agent-data.types';
-import { Embodiment } from '../../shared/types/api-results.types';
+import { DeploymentWithAgentSnapshot, Embodiment } from '../../shared/types/api-results.types';
 import { getAgentEmbodiments, getAgentSettings } from '../agent-settings/clients';
 import {
   AlwaysAvailableEmbodiments,
@@ -41,7 +41,7 @@ export function structureAgentSetting(
     agentId: string;
     canUseEmbodiments: boolean;
     isReadOnlyAccess: boolean;
-    agentDeployed: boolean;
+    agentDeployed: DeploymentWithAgentSnapshot;
   },
   modalHandlers?: {
     activeModal: string | null;
@@ -161,7 +161,9 @@ export function structureAgentSetting(
       // Add code snippet modal for chat bot (preload when it should be visible)
       // Note: iframe-based components are conditionally rendered to allow reload as requested
       if (
-        (key === EMBODIMENT_TYPE.CHAT_BOT || key === EMBODIMENT_TYPE.FORM) &&
+        (key === EMBODIMENT_TYPE.CHAT_BOT ||
+          key === EMBODIMENT_TYPE.FORM ||
+          key === EMBODIMENT_TYPE.CHAT_GPT) &&
         shouldCodeSnippetVisible(key, agentData)
       ) {
         result.codeSnippetComponent = getCodeSnippetModal(
@@ -188,7 +190,9 @@ const shouldCodeSnippetVisible = (
   },
 ) => {
   return (
-    (embodimentType === EMBODIMENT_TYPE.CHAT_BOT || embodimentType === EMBODIMENT_TYPE.FORM) &&
+    (embodimentType === EMBODIMENT_TYPE.CHAT_BOT ||
+      embodimentType === EMBODIMENT_TYPE.FORM ||
+      embodimentType === EMBODIMENT_TYPE.CHAT_GPT) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
   );

@@ -2,23 +2,23 @@
 /* eslint-disable consistent-return */
 import { NextFunction } from 'express';
 import httpStatus from 'http-status';
-import ApiError from '../../../../utils/apiError';
-import tokenVerStrategies from './strategies';
 import { LOGGER } from '../../../../../config/logging';
+import ApiError from '../../../../utils/apiError';
 import { teamService } from '../../../team/services';
+import tokenVerStrategies from './strategies';
 
 const authMiddlewareFactory = ({ requireTeam = true, allowM2M = false, limitToM2M = false }) => {
   return async (req: any, res: any, next: NextFunction) => {
     try {
-      const token = req.headers.authorization?.split(' ')[1] || req.query.token;
-      const isJWT = token && token.length > 100; // JWT token is longer than 100 chars (not a perfect check)
-      const X_API_KEY = req.headers['x-api-key'];
+      const token: string = req.headers.authorization?.split(' ')[1] || req.query.token;
+      const isM2MToken = token.includes('M2M_TOKEN');
+      const isUIAuthToken = token.includes('UI_AUTH_TOKEN');
 
-      if (isJWT) {
-        LOGGER.info(`M2M JWT auth for token in progress....`);
+      if (isM2MToken) {
+        LOGGER.info(`M2M auth for token in progress....`);
         if (!allowM2M) throw new ApiError(httpStatus.FORBIDDEN, 'M2M is not enabled'); // we only use JWT for M2M
 
-        const { success } = await tokenVerStrategies.jwtM2M.verifyToken(token);
+        const { success } = await tokenVerStrategies.defaultM2MAuth.verifyToken(token);
 
         if (!success) {
           // return res.status(401).json({ error: 'Access token is invalid or expired' });
@@ -27,26 +27,12 @@ const authMiddlewareFactory = ({ requireTeam = true, allowM2M = false, limitToM2
         res.locals.isM2M = true;
 
         return next();
-      } else if (X_API_KEY) {
-        LOGGER.info(`API Key auth for key in progress....`);
-        // X-API-KEY is used for internal requests to do some operations
-        if (!allowM2M) throw new ApiError(httpStatus.FORBIDDEN, 'M2M is not enabled'); // we only use JWT for M2M
-
-        const { success } = await tokenVerStrategies.apiKeyM2M.verifyToken(X_API_KEY);
-
-        if (!success) {
-          // return res.status(401).json({ error: 'API Key is invalid' });
-          return next(new ApiError(httpStatus.UNAUTHORIZED, 'API Key is invalid'));
-        }
-        res.locals.isM2M = true;
-
-        return next();
-      } else {
-        LOGGER.info(`User token auth for token in progress....`);
+      } else if (isUIAuthToken) {
+        LOGGER.info(`User ui token auth for token in progress....`);
         // user token auth
         if (limitToM2M) throw new ApiError(httpStatus.FORBIDDEN, 'User auth is not enabled for this request');
 
-        const { data, success } = await tokenVerStrategies.userToken.verifyToken(token);
+        const { data, success } = await tokenVerStrategies.defaultUIAuth.verifyToken(token);
 
         if (!success) {
           // return res.status(401).json({ error: 'Access token is invalid or expired' });
@@ -87,7 +73,7 @@ const authMiddlewareFactory = ({ requireTeam = true, allowM2M = false, limitToM2
 
 const runLocalsFieldsSanityChecks = (res: any) => {
   if (!res.locals.logtoUser || !res.locals.user || !res.locals.userId) {
-    LOGGER.error(new Error(`CRITICAL SECURITY FLAW: User auth middleware failed to set required fields in res.locals`));
+    LOGGER.error(new Error(`User auth middleware failed to set required fields in res.locals`));
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Something went wrong');
   }
 };

@@ -1,0 +1,18 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "{{human_name}}",
+    "name_for_model": "{{model_name}}",
+    "description_for_human": "{{human_description}}",
+    "description_for_model": "{{model_description}}",
+    "auth": {
+        "type": "none"
+    },
+    "api": {
+        "type": "openapi",
+        "url": "https://{{domain}}/.well-known/openapi.json",
+        "is_user_authenticated": false
+    },
+    "logo_url": "{{icon_url}}",
+    "contact_email": "{{contact_email}}",
+    "legal_info_url": "{{legal_info_url}}"
+}

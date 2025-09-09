@@ -576,6 +576,17 @@
   padding: 8px !important;
 }
 
+/* Ensure tooltip inside right sidebar title is not clipped */
+.right-sidebar .right-sidebar-title .title {
+  overflow: visible !important;
+}
+
+/* Show title tooltip on hover (no JS) */
+.right-sidebar .right-sidebar-title .title:hover [role="tooltip"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 .smt-input-div {
   background-color: #fafafa !important;
   padding: 5px !important;

@@ -1,0 +1,139 @@
+{
+  "Echo": {
+    "provider": "Echo"
+  },
+  "gpt-5": {
+    "label": "GPT 5",
+    "modelId": "gpt-5",
+    "provider": "OpenAI",
+    "features": ["text", "tools", "image", "reasoning", "search"],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 400000,
+      "completionTokens": 128000,
+      "enabled": true
+    },
+    "credentials": "vault",
+    "interface": "responses"
+  },
+  "gpt-5-mini": {
+    "label": "GPT 5 mini",
+    "modelId": "gpt-5-mini",
+    "provider": "OpenAI",
+    "features": ["text", "tools", "image", "reasoning", "search"],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 400000,
+      "completionTokens": 128000,
+      "enabled": true
+    },
+    "credentials": "vault",
+    "interface": "responses",
+    "default": true
+  },
+  "gpt-5-nano": {
+    "label": "GPT 5 nano",
+    "modelId": "gpt-5-nano",
+    "provider": "OpenAI",
+    "features": ["text", "tools", "image", "reasoning"],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 400000,
+      "completionTokens": 128000,
+      "enabled": true
+    },
+    "credentials": "vault",
+    "interface": "responses"
+  },
+  "gpt-5-chat": {
+    "label": "GPT 5 Chat",
+    "modelId": "gpt-5-chat-latest",
+    "provider": "OpenAI",
+    "features": ["text", "image"],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 400000,
+      "completionTokens": 128000,
+      "enabled": true
+    },
+    "credentials": "vault",
+    "interface": "responses"
+  },
+  "claude-opus-4-1": {
+    "label": "Claude Opus 4.1",
+    "modelId": "claude-opus-4-1",
+    "provider": "Anthropic",
+    "features": ["text", "image", "tools", "reasoning"],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 200000,
+      "completionTokens": 32000,
+      "maxReasoningTokens": 32000,
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "gemini-2.5-pro": {
+    "label": "Gemini 2.5 Pro",
+    "modelId": "gemini-2.5-pro",
+    "provider": "GoogleAI",
+    "features": [
+      "text",
+      "image",
+      "audio",
+      "video",
+      "document",
+      "tools",
+      "reasoning"
+    ],
+    "tags": ["Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 1048576,
+      "completionTokens": 65536,
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "gemini-2.5-flash": {
+    "label": "Gemini 2.5 Flash",
+    "modelId": "gemini-2.5-flash",
+    "provider": "GoogleAI",
+    "features": [
+      "text",
+      "image",
+      "audio",
+      "video",
+      "document",
+      "tools",
+      "reasoning"
+    ],
+    "tags": ["New", "Personal"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 1048576,
+      "completionTokens": 65536,
+      "enabled": true
+    },
+    "credentials": "vault"
+  }
+}

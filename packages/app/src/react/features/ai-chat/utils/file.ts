@@ -114,6 +114,8 @@ export const validateSingleFile = (file: File): string | null => {
  */
 export const uploadFile = async (
   file: File,
+  agentId: string,
+  chatId?: string,
 ): Promise<{ success: boolean; data?: any; error?: string }> => {
   try {
     const formData = new FormData();
@@ -122,6 +124,10 @@ export const uploadFile = async (
     const response = await fetch('/api/page/chat/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        'X-AGENT-ID': agentId,
+        ...(chatId ? { 'x-conversation-id': chatId } : {}),
+      },
     });
 
     if (!response.ok) {

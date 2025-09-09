@@ -1,0 +1,63 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": ["airbnb-base", "prettier", "plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
+  "globals": {
+    "NodeJS": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "import"],
+
+  "rules": {
+    "import/prefer-default-export": "off",
+    "class-methods-use-this": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "no-underscore-dangle": "off",
+    "import/no-relative-packages": "off",
+    "import/no-extraneous-dependencies": "off",
+    "consistent-return": "off",
+    "no-plusplus": "off",
+    "eqeqeq": "off",
+    "import/extensions": "off",
+    "import/no-unresolved": "off",
+    "lines-between-class-members": "off",
+    "no-continue": "off",
+    "no-use-before-define": "off",
+    "no-restricted-syntax": "off",
+    "no-unused-vars": "off",
+    "@typescript-eslint/ban-types": "off",
+    "no-await-in-loop": "off",
+    "no-else-return": "off",
+    "no-nested-ternary": "off",
+    "no-extra-boolean-cast": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn", // or "error"
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": ["off"],
+    "import/order": ["off"],
+    "@typescript-eslint/ban-ts-comment": ["off"],
+    "prefer-destructuring": ["off"],
+    "no-shadow": ["off"]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["src"],
+        "extensions": [".js", ".ts", ".d.ts", ".tsx"]
+      }
+    }
+  },
+  "ignorePatterns": ["*.d.ts"]
+}
