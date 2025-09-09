@@ -1,29 +1,42 @@
 import crypto from 'crypto';
-import dotenv from 'dotenv';
+import dotenvFlow from 'dotenv-flow';
 import Joi from 'joi';
 import os from 'os';
 import path from 'path';
 
-dotenv.config();
+dotenvFlow.config({
+  files: ['../../.env', '../.env'],
+});
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
   return path.join(homeDir, 'smyth-ui-data');
 };
 
+const transformEnv = (env: string) => {
+  // backward compatibility
+  const map = { development: 'DEV', production: 'PROD' };
+  return map[env] || env;
+};
+
+const MW_BASE_URL = `http://localhost:${process.env.MIDDLEWARE_API_PORT}`;
+const UI_SERVER =
+  process.env.UI_SERVER || process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}`;
+
+const APP_PORT = +process.env.APP_PORT || +process.env.PORT;
+
 const config = {
   env: {
     // MANDATORY KEYS
-    PORT: +process.env.PORT, // + is for casting to number
-    NODE_ENV: process.env.NODE_ENV,
-    API_SERVER: process.env.API_SERVER || process.env.RUNTIME_API_SERVER,
-    SMYTH_API_BASE_URL: process.env.SMYTH_API_SERVER,
+    PORT: APP_PORT,
+    APP_DEV_SERVER_PORT: +process.env.APP_DEV_SERVER_PORT || APP_PORT + 1,
+    NODE_ENV: transformEnv(process.env.NODE_ENV),
+    API_SERVER: process.env.API_SERVER || `http://localhost:${process.env.RUNTIME_PORT}`,
+    SMYTH_API_BASE_URL: MW_BASE_URL,
 
     // OPTIONAL KEYS
-    UI_SERVER:
-      process.env.UI_SERVER || process.env.DOMAIN || `http://localhost:${process.env.PORT}`,
-    SMYTH_VAULT_API_BASE_URL:
-      process.env.SMYTH_VAULT_API_BASE_URL || `${process.env.SMYTH_API_SERVER}/v1`,
+    UI_SERVER,
+    SMYTH_VAULT_API_BASE_URL: process.env.SMYTH_VAULT_API_BASE_URL || `${MW_BASE_URL}/v1`,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY, // used for some autocompletion
     FALAI_API_KEY: process.env.FALAI_API_KEY, // used for image gen
     DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),
@@ -33,6 +46,9 @@ const config = {
     REDIS_MASTER_NAME: process.env.REDIS_MASTER_NAME,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     PROD_AGENT_DOMAIN: process.env.PROD_AGENT_DOMAIN || 'agent.pstage.smyth.ai',
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
@@ -58,8 +74,8 @@ const config = {
     PUB_API_SERVER: process.env.PUB_API_SERVER,
   },
   api: {
-    SMYTH_USER_API_URL: `${process.env.SMYTH_API_SERVER}/v1`,
-    SMYTH_M2M_API_URL: `${process.env.SMYTH_API_SERVER}/_sysapi/v1`,
+    SMYTH_USER_API_URL: `${MW_BASE_URL}/v1`,
+    SMYTH_M2M_API_URL: `${MW_BASE_URL}/_sysapi/v1`,
   },
 
   flags: {
@@ -67,7 +83,7 @@ const config = {
   },
 
   cache: {
-    STANDARD_MODELS_CACHE_KEY: `__llm_smod_cache_${_generateHash(process.env.UI_SERVER || process.env.DOMAIN)}`,
+    STANDARD_MODELS_CACHE_KEY: `__llm_smod_cache_${_generateHash(UI_SERVER)}`,
     getCustomModelsCacheKey: (teamId: string) => `__llm_cmod_cache_${teamId}`,
   },
 };

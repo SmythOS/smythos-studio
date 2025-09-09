@@ -160,7 +160,7 @@ function Endpoint({ component }: { component: Component }) {
 
               {/* Close button */}
               <div
-                className="absolute top-4 right-4 text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2"
+                className="absolute top-4 right-4 text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2 -mr-2 -mt-2"
                 onClick={() => setIsTriggeringSkill(false)}
               >
                 <CloseIcon width={16} height={16} />

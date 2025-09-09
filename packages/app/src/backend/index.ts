@@ -19,6 +19,7 @@ import session from 'express-session';
 //import FileStoreLib from 'session-file-store';
 import compression from 'compression';
 import RedisStore from 'connect-redis';
+
 import passport from 'passport';
 import { version } from '../../package.json';
 import { defaultAuthMiddleware } from './middlewares/defaultAuthMiddleware.mw';

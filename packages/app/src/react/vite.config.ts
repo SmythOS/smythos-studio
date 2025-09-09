@@ -1,11 +1,13 @@
 import react from '@vitejs/plugin-react-swc';
-import dotenv from 'dotenv';
+import dotenvFlow from 'dotenv-flow';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-dotenv.config({ path: '../../.env' });
+dotenvFlow.config({
+  files: ['../../.env', '../../../../.env'],
+});
+
 // https://vite.dev/config/
-const EXPRESS_SERVER_PORT = parseInt(process.env.PORT || '4000');
 
 const proxyRoutes = ['/api', '/app', '/js', '/css', '/metroui', '/img', '/assets', '/oauth'];
 const redirectRoutes = ['/builder', '/logs', '/logto'];
@@ -27,9 +29,12 @@ const shouldProxy = (pathname: string): boolean => {
   return proxyRoutes.some((route) => pathname.startsWith(route));
 };
 
+const EXPRESS_SERVER_PORT = parseInt(process.env.APP_PORT || process.env.PORT || '4000', 10);
+
 export default defineConfig({
   server: {
-    port: EXPRESS_SERVER_PORT + 2,
+    // port: EXPRESS_SERVER_PORT + 2,
+    port: +process.env.APP_DEV_SERVER_PORT || EXPRESS_SERVER_PORT + 1,
     proxy: Object.fromEntries(
       proxyRoutes.map((route) => [
         route,

@@ -1425,7 +1425,7 @@ export class Component extends EventEmitter {
           // requires a tiny delay to make sure the input is focused
           delay(50).then(() => focusField(nameElm));
         },
-        contentClasses: 'min-h-[425px]',
+        contentClasses: 'min-h-[425px] px-2',
         dialogClasses: 'dialog-center rounded-[18px] p-2 pb-3',
         showCloseButton: true,
       });
@@ -2763,7 +2763,7 @@ export class Component extends EventEmitter {
         // requires a tiny delay to make sure the input is focused
         delay(50).then(() => focusField(nameElm));
       },
-      contentClasses: 'min-h-[425px]',
+      contentClasses: 'min-h-[425px] px-2',
       dialogClasses: 'dialog-center rounded-[18px] p-2 pb-3',
       showCloseButton: true,
     });

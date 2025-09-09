@@ -30,6 +30,24 @@ const OAUTH_SETTING_KEY = 'oauth';
 // ------------------------------
 
 /**
+ * Safely parse JSON string to object, returns object as-is if not a string
+ * @param data - The data to parse (string or object)
+ * @param fallback - Fallback value if parsing fails (default: {})
+ * @param context - Context string for error logging
+ */
+function safeJsonParse(data: any, fallback: any = {}, context: string = ''): any {
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error(`[${context}] Failed to parse JSON string:`, e);
+      return fallback;
+    }
+  }
+  return data || fallback;
+}
+
+/**
  * Flattens legacy auth_settings.oauth_info into auth_settings (new structure),
  * removes disallowed fields, and guarantees the presence of a name key.
  */
@@ -298,7 +316,7 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
               (value.auth_data?.primary && value.auth_data.primary !== '[REDACTED]') ||
               (value.primary && value.primary !== '[REDACTED]');
             if (hasExposedTokens) {
-              console.warn(`[OAuth Security] Connection ${key} has unsanitized tokens - will be sanitized before sending to frontend`);
+              //console.warn(`[OAuth Security] Connection ${key} has unsanitized tokens - will be sanitized before sending to frontend`);
             }
           }
         }
@@ -334,9 +352,11 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
       return res.status(500).json({ success: false, error: 'Failed to retrieve existing OAuth settings.' });
     }
 
-    // 2. Get the specific entry being updated, or default to an empty object
-    const existingEntry = existingSettingsMap[entryId] || {};
-    // 3. Preserve existing auth_data (if it exists) OR migrate from old structure
+    // 2. Get the specific entry being updated, parse if string, or default to an empty object
+    let existingEntry = safeJsonParse(existingSettingsMap[entryId], {}, `OAuth PUT existingEntry ${entryId}`);
+    // 3. Parse incoming newSettings if it's a string (shouldn't happen, but defensive coding)
+    const parsedNewSettings = safeJsonParse(newSettings, newSettings, `OAuth PUT newSettings ${entryId}`);
+    // 4. Preserve existing auth_data (if it exists) OR migrate from old structure
     let preservedAuthData = existingEntry.auth_data || {}; // Keep existing tokens
 
     // If auth_data is empty but tokens exist at root level (old structure), migrate them
@@ -350,16 +370,56 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
       };
     }
 
-    // 4-5. Merge and normalize the settings using helper
-    const mergedAuthSettings = mergeAuthSettings(existingEntry, newSettings);
+    // 5. Merge and normalize the settings using helper (now both are guaranteed to be objects)
+    const mergedAuthSettings = mergeAuthSettings(existingEntry, parsedNewSettings);
+    // 6. Parse preservedAuthData if it's somehow still a string (defensive coding)
+    preservedAuthData = safeJsonParse(preservedAuthData, {}, `OAuth PUT preservedAuthData ${entryId}`);
+    // 7. Check if authentication-critical fields changed - if so, invalidate tokens
+    // Handle both new structure (auth_settings.oauth_info) and legacy structure (oauth_info at root)
+    const existingOAuthInfo = existingEntry.auth_settings?.oauth_info || existingEntry.oauth_info || {};
+    const newOAuthInfo = mergedAuthSettings.oauth_info || mergedAuthSettings.auth_settings?.oauth_info || {};
+    const authCriticalFields = [
+      'clientID', 'clientSecret', 'scope', 'authorizationURL', 'tokenURL',
+      'consumerKey', 'consumerSecret', 'requestTokenURL', 'accessTokenURL', 'userAuthorizationURL',
+      'service'
+    ];
 
-    // 6. Construct the final data object with the new structure
+    // Enhanced comparison for authentication-critical fields
+    const hasAuthCriticalChanges = authCriticalFields.some(field => {
+      // Get values from both possible locations for existing data
+      const oldValueFromOAuthInfo = existingOAuthInfo[field];
+      const oldValueFromRoot = existingEntry[field]; // Legacy structure stores some fields at root
+      const oldValueFromAuthSettings = existingEntry.auth_settings?.[field]; // New structure fields
+      const oldValue = oldValueFromOAuthInfo !== undefined ? oldValueFromOAuthInfo :
+        (oldValueFromAuthSettings !== undefined ? oldValueFromAuthSettings : oldValueFromRoot);
+      // Get values from both possible locations for new data  
+      const newValueFromOAuthInfo = newOAuthInfo[field];
+      const newValueFromSettings = mergedAuthSettings[field]; // New data might be at root of mergedAuthSettings
+      const newValue = newValueFromOAuthInfo !== undefined ? newValueFromOAuthInfo : newValueFromSettings;
+      // Normalize values: treat undefined, null, empty string, and whitespace as equivalent
+      const normalizeValue = (val) => {
+        if (val === undefined || val === null || val === '') return '';
+        const stringVal = String(val).trim();
+        return stringVal === '' ? '' : stringVal;
+      };
+
+      const normalizedOld = normalizeValue(oldValue);
+      const normalizedNew = normalizeValue(newValue);
+
+      const hasChanged = normalizedOld !== normalizedNew;
+
+      return hasChanged;
+    });
+
+
+    // 8. Construct the final data object with the new structure
+    // Clear tokens if auth-critical fields changed, otherwise preserve them
     const finalDataToSave = {
-      auth_data: preservedAuthData, // Preserved tokens
-      auth_settings: mergedAuthSettings, // Merged configuration
+      auth_data: hasAuthCriticalChanges ? {} : preservedAuthData,
+      auth_settings: mergedAuthSettings,
     };
 
-    // 7. Save the updated entry back using saveTeamSettingsObj
+    // 9. Save the updated entry back using saveTeamSettingsObj
     const result = await saveTeamSettingsObj({
       req,
       settingKey: OAUTH_SETTING_KEY,
@@ -367,14 +427,12 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
       data: finalDataToSave,
     });
 
-    // 8. Handle save result
+    // 10. Handle save result
     if (!result.success) {
       console.error(`[PUT /oauth-connections] Failed to save settings for ${entryId}:`, result.error);
       return res.status(500).json({ success: false, error: result.error || 'Failed to save OAuth connection.' });
     }
 
-    // Respond with success and potentially the saved data (or just success status)
-    // Returning the saved data might be useful for the client
     res.json({ success: true, data: finalDataToSave }); // Respond with the data that was saved
 
   } catch (error) {

@@ -142,7 +142,7 @@ const FormPreviewDialog = ({
                   <Dialog.Title className="text-xl font-semibold leading-6 text-[#1E1E1E] mb-4 flex justify-between items-center">
                     <span>Form Preview Configuration</span>
                     <div
-                      className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2"
+                      className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2 -mr-2 -mt-2"
                       onClick={() => closeModal()}
                     >
                       <CloseIcon width={16} height={16} />
