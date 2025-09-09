@@ -1,10 +1,9 @@
-
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
-import { Tooltip } from 'flowbite-react';
-import { FC, useRef, useState } from 'react';
-import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+// import { Tooltip } from 'flowbite-react';
+// import { FC, useRef, useState } from 'react';
+// import { FaCheck, FaRegCopy } from 'react-icons/fa6';
+// import ReactMarkdown from 'react-markdown';
+// import remarkGfm from 'remark-gfm';
 
 import '../styles/index.css';
 
@@ -21,7 +20,6 @@ import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/index.css';
-
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
