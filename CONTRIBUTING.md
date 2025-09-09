@@ -14,7 +14,6 @@ Welcome! We're excited that you want to contribute to SmythOS UI, the comprehens
 			- [pnpm](#pnpm)
 				- [pnpm workspaces](#pnpm-workspaces)
 			- [corepack](#corepack)
-			- [Build Dependencies](#build-dependencies)
 		- [Setting Up SmythOS UI](#setting-up-smythos-ui)
 		- [Starting the Application](#starting-the-application)
 	- [Development Workflow](#development-workflow)
@@ -74,28 +73,6 @@ Install the correct pnpm version using `corepack prepare --activate`.
 **IMPORTANT**: If you installed Node.js via homebrew, run `brew install corepack`, as homebrew excludes `npm` and `corepack` from [the `node` formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/node.rb#L66).
 
 **IMPORTANT**: On Windows, run `corepack enable` and `corepack prepare --activate` in an administrator terminal.
-
-#### Build Dependencies
-
-SmythOS UI requires several build tools depending on your operating system:
-
-**Debian/Ubuntu:**
-```bash
-apt-get install -y build-essential python3
-```
-
-**CentOS/RHEL:**
-```bash
-yum install gcc gcc-c++ make python3
-```
-
-**Windows:**
-```bash
-npm add -g windows-build-tools
-```
-
-**macOS:**
-No additional packages required.
 
 ### Setting Up SmythOS UI
 
