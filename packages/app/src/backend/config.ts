@@ -19,7 +19,8 @@ const transformEnv = (env: string) => {
   return map[env] || env;
 };
 
-const MW_BASE_URL = `http://localhost:${process.env.MIDDLEWARE_API_PORT}`;
+const MW_BASE_URL =
+  process.env.SMYTH_API_SERVER || `http://localhost:${process.env.MIDDLEWARE_API_PORT}`;
 const UI_SERVER =
   process.env.UI_SERVER || process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}`;
 
