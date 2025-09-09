@@ -237,8 +237,6 @@ export const chatUtils = {
       if (messageState === 'initial' && newState === 'debug') {
         // Don't clear message immediately when debug starts - keep the processing message
         // The message will be cleared only when debug ends and content starts arriving
-        // const processingMessage = 'Processing your request...';
-        // input.onResponse(processingMessage);
       } else if (messageState === 'debug' && newState === 'final') {
         // Clear and prepare for final content - only when debug is completely finished
         // console.log('Debug ended - clearing message for final content');
