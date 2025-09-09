@@ -39,7 +39,7 @@ SmythOS UI is organized as a monorepo with multiple packages, each serving speci
 The key directories and packages:
 
 - [/packages](/packages) - All SmythOS UI modules
-- [/packages/app](/packages/app) - Main application containing the UI builder, React frontend, and backend services
+- [/packages/app](/packages/app) - Main application containing the Agent builder workspace, React frontend, and backend services
 - [/packages/app/src/builder-ui](/packages/app/src/builder-ui) - Workflow builder interface for building agents
 - [/packages/app/src/react](/packages/app/src/react) - React-based user interface components and features
 - [/packages/app/src/backend](/packages/app/src/backend) - UI Backend API services and routes
