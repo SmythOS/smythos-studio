@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
-    PORT: parseInt(process.env.PORT || '5053'),
+    PORT: process.env.PORT || 5053,
     // Required environment variables
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     LOGTO_SERVER: process.env.LOGTO_SERVER,
