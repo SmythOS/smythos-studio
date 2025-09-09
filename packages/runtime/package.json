@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development FORMAT=cjs rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
     "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=3096' rollup -c",
+    "start": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "start:prod": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",
     "clean": "rm -rf dist",
@@ -58,6 +59,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "dotenv-flow": "^4.1.0",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "joi": "^17.13.3",

@@ -1,6 +1,5 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable max-classes-per-file */
-import 'dotenv/config';
 import winston from 'winston';
 import Transport from 'winston-transport';
 
