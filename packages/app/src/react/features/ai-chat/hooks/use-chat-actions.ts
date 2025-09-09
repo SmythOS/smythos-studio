@@ -406,7 +406,7 @@ export const useChatActions = ({
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage) {
                 lastMessage.isReplying = false;
-                lastMessage.message = CHAT_ERROR_MESSAGE;
+                lastMessage.message = error.error || error.message || CHAT_ERROR_MESSAGE;
                 lastMessage.isError = true;
               }
               return newMessages;
