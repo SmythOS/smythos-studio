@@ -1288,7 +1288,6 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
     ? getFormattedContent(outputContent, compName)
     : outputContent + '';
 
-  // Use innerHTML but with properly escaped content to maintain original structure
   div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
   div.className = 'dbg-element dbg-output';
 
@@ -1356,7 +1355,6 @@ function showInputInfo(inputEndpoint, inputContent) {
 
   const formattedContent = getFormattedContent(inputContent);
 
-  // Use innerHTML but with properly escaped content to maintain original structure
   div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
   div.className = 'dbg-element dbg-output';
 
