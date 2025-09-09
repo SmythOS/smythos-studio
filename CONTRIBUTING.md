@@ -95,19 +95,50 @@ Install the correct pnpm version using `corepack prepare --activate`.
    git remote add upstream https://github.com/SmythOS/smythos-ui.git
    ```
 
-5. Copy the environment configuration:
+5. **Set up MySQL Database** (Required):
+   
+   SmythOS UI requires a MySQL database. Choose one of the options below:
+   
+   **Option 1: Quick Docker Setup (Recommended)**
+   ```bash
+   docker run --name smythos-mysql \
+     -e MYSQL_ROOT_PASSWORD=smythos_root_pass \
+     -e MYSQL_DATABASE=smythos_db \
+     -e MYSQL_USER=smythos_user \
+     -e MYSQL_PASSWORD=smythos_pass \
+     -p 3306:3306 \
+     -d mysql:8.0
+   ```
+   
+   **Option 2: Use your existing MySQL instance**
+   
+   Ensure you have MySQL 8.0+ running and create a database for SmythOS UI.
+
+6. **Configure Environment Variables** (Critical):
    ```bash
    cp .env.example .env
    ```
    
-   Edit the `.env` file with your specific configuration values.
+   **⚠️ IMPORTANT**: Open the `.env` file and update the `DATABASE_URL` with your MySQL connection details:
+   
+   **For Docker setup (Option 1):**
+   ```env
+   DATABASE_URL="mysql://smythos_user:smythos_pass@localhost:3306/smythos_db"
+   ```
+   
+   **For existing MySQL (Option 2):**
+   ```env
+   DATABASE_URL="mysql://your_username:your_password@localhost:3306/your_database_name"
+   ```
+   
+   > 💡 **Note**: The `DATABASE_URL` is essential for database migrations and application startup. Make sure it matches your MySQL setup exactly.
 
-6. Install all dependencies and link packages:
+7. Install all dependencies and link packages:
    ```bash
    pnpm install
    ```
 
-7. Build all packages:
+8. Build all packages:
    ```bash
    pnpm build
    ```
@@ -166,7 +197,7 @@ pnpm dev
 
 **Example 2: Middleware development**
 ```bash
-# Terminal 1: Watch middleware package
+# Terminal 1: Watch middleware package (migrations run automatically)
 cd packages/middleware
 pnpm dev
 
