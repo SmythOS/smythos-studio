@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import config from '@src/builder-ui/config';
 import { FileWithMetadata } from '@src/react/shared/types/chat.types';
 
@@ -158,6 +159,23 @@ export const chatUtils = {
   thinkingManager: new UnifiedThinkingManager(),
 
   /**
+   * Handles status message display with priority system
+   * @param statusMessage - The status message to display
+   * @param onThinking - Callback function for thinking updates
+   * @returns true if status message was handled, false otherwise
+   */
+  handleStatusMessage: (
+    statusMessage: string | undefined,
+    onThinking: (thinking: { message: string }) => void,
+  ): boolean => {
+    if (statusMessage) {
+      chatUtils.thinkingManager.start('status', onThinking, undefined, statusMessage);
+      return true;
+    }
+    return false;
+  },
+
+  /**
    * Extracts function name from debug message for user-friendly display
    * @param debugContent - The raw debug message content
    * @returns The extracted function name or null if not found
@@ -270,8 +288,12 @@ export const chatUtils = {
         // The message will be cleared only when debug ends and content starts arriving
       } else if (messageState === 'debug' && newState === 'final') {
         // Clear and prepare for final content - only when debug is completely finished
-        // console.log('Debug ended - clearing message for final content');
-        input.onResponse('');
+        // Don't clear message here - let content accumulate naturally
+        // Add a line break to separate thinking from content if message doesn't end with newline
+        if (message.length > 0 && !message.endsWith('\n')) {
+          message = `${message}\n`;
+        }
+        input.onResponse(''); // Clear UI display to show fresh content
       }
       messageState = newState;
     };
@@ -283,56 +305,81 @@ export const chatUtils = {
     };
 
     try {
-      const openAiResponse = await fetch('/api/page/chat/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-AGENT-ID': input.agentId,
-          'x-conversation-id': input.chatId,
-          'x-ai-agent': 'true',
-        },
-        body: JSON.stringify({
-          message: input.query,
-          attachments: input.attachments,
-        }),
-        signal: input.signal,
-      });
-
-      if (!openAiResponse || openAiResponse?.status !== 200) {
-        const { error } = await openAiResponse.json();
-        throw new Error(error || 'Failed to get a valid response');
+      let openAiResponse: Response;
+      try {
+        openAiResponse = await fetch('/api/page/chat/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-AGENT-ID': input.agentId,
+            'x-conversation-id': input.chatId,
+            'x-ai-agent': 'true',
+          },
+          body: JSON.stringify({
+            message: input.query,
+            attachments: input.attachments,
+          }),
+          signal: input.signal,
+        });
+      } catch (fetchError) {
+        throw new Error(`Network request failed: ${fetchError.message}`);
       }
 
-      const reader = openAiResponse.body.getReader();
+      if (!openAiResponse || openAiResponse?.status !== 200) {
+        try {
+          const errorData = await openAiResponse.json();
+          const errorMessage = errorData?.error || 'Failed to get a valid response';
+          throw new Error(errorMessage);
+        } catch (parseError) {
+          // If JSON parsing fails, use a generic error message
+          throw new Error(`HTTP ${openAiResponse?.status}: Failed to get a valid response`);
+        }
+      }
+
+      const reader = openAiResponse.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to get response reader - response body is null');
+      }
       let accumulatedData = '';
 
       input.onStart();
 
-      // Start general thinking messages when response starts
-      if (input.onThinking) {
-        chatUtils.thinkingManager.start('general', input.onThinking);
-      }
-
       while (true) {
-        const { done, value } = await reader.read();
+        try {
+          const { done, value } = await reader.read();
 
-        if (input.signal.aborted) {
+          if (input.signal.aborted) {
+            reader.cancel();
+            throw new DOMException('Aborted', 'AbortError');
+          }
+
+          if (done) break;
+
+          const decodedValue = new TextDecoder().decode(value);
+          accumulatedData += decodedValue;
+        } catch (streamError) {
+          // Handle stream reading errors
           reader.cancel();
-          throw new DOMException('Aborted', 'AbortError');
+          throw new Error(`Stream reading failed: ${streamError.message}`);
         }
 
-        if (done) break;
-
-        const decodedValue = new TextDecoder().decode(value);
-        accumulatedData += decodedValue;
-
         // Only process if we have complete JSON objects
-        const jsonObjects: ResponseFormat[] = chatUtils.splitDataToJSONObjects(accumulatedData);
+        let jsonObjects: ResponseFormat[] = [];
+        try {
+          jsonObjects = chatUtils.splitDataToJSONObjects(accumulatedData);
+        } catch (parseError) {
+          // Handle JSON parsing errors gracefully - skip this chunk and continue processing
+          continue;
+        }
 
-        // First pass: Check for state transitions
+        // First pass: Check for state transitions and start thinking if needed
         for (const jsonObject of jsonObjects) {
           if (jsonObject.debug && messageState === 'initial') {
             handleMessageTransition('debug');
+            // Start general thinking when debug begins
+            if (input.onThinking) {
+              chatUtils.thinkingManager.start('general', input.onThinking);
+            }
             break;
           }
         }
@@ -345,13 +392,12 @@ export const chatUtils = {
           }
 
           // Check for status_message at the top level - highest priority
-          if (jsonObject.status_message) {
-            const statusMessage = jsonObject.status_message;
-
-            // Show status message directly - no interval needed
-            if (input.onThinking) {
-              chatUtils.thinkingManager.start('status', input.onThinking, undefined, statusMessage);
-            }
+          if (
+            input.onThinking &&
+            chatUtils.handleStatusMessage(jsonObject.status_message, input.onThinking)
+          ) {
+            // Status message handled, continue to next object
+            continue;
           }
 
           if (jsonObject.debug) {
@@ -394,18 +440,11 @@ export const chatUtils = {
               }
             } else {
               // Check for status_message first - highest priority
-              const statusMessage = jsonObject.status_message || '';
-
-              if (statusMessage) {
-                // Show status message directly - no interval needed
-                if (input.onThinking) {
-                  chatUtils.thinkingManager.start(
-                    'status',
-                    input.onThinking,
-                    undefined,
-                    statusMessage,
-                  );
-                }
+              if (
+                input.onThinking &&
+                chatUtils.handleStatusMessage(jsonObject.status_message, input.onThinking)
+              ) {
+                // Status message handled, skip function name extraction
               } else {
                 // Try to extract function name from debug title if not found in debug content
                 const debugTitle = jsonObject.title || '';
@@ -431,18 +470,11 @@ export const chatUtils = {
 
           if (jsonObject.function_call) {
             // Check for status_message first - highest priority
-            const statusMessage = jsonObject.status_message || '';
-
-            if (statusMessage) {
-              // Show status message directly - no interval needed
-              if (input.onThinking) {
-                chatUtils.thinkingManager.start(
-                  'status',
-                  input.onThinking,
-                  undefined,
-                  statusMessage,
-                );
-              }
+            if (
+              input.onThinking &&
+              chatUtils.handleStatusMessage(jsonObject.status_message, input.onThinking)
+            ) {
+              // Status message handled, skip function call processing
             } else {
               // Handle function calls with dynamic thinking messages
               const functionName =
@@ -465,18 +497,25 @@ export const chatUtils = {
             // Handle final content transition - only when we're actually getting content
             if (messageState === ('debug' as MessageState)) {
               handleMessageTransition('final');
-              // Safely concatenate content without causing JSON parsing issues
-              const content = jsonObject.content || '';
-              if (content) {
-                message += message.length > 0 ? '\n' + content : content;
-              }
             }
 
             // Stop all thinking messages when content starts arriving
             chatUtils.thinkingManager.stop();
 
-            // Handle regular content - response shows immediately
-            message += jsonObject.content;
+            // Handle streaming content - append to message
+            const content = jsonObject.content || '';
+            if (content) {
+              // For first content after debug, start fresh message with proper line break
+              if (messageState === ('final' as MessageState) && message === '') {
+                message = content;
+              } else if (messageState === 'initial' && message === '') {
+                // For content without any thinking (initial state), start fresh
+                message = content;
+              } else {
+                // Append content to existing message for streaming Response
+                message = message.length > 0 ? `${message}${content}` : content;
+              }
+            }
 
             // INSTANT DISPLAY: Show response immediately with error flags if present
             input.onResponse(message, {
