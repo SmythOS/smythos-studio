@@ -16,15 +16,15 @@ interface ChatProps extends IChatMessage {
 
 export const Chat: FC<ChatProps> = ({
   me,
+  type,
   files,
   avatar,
   message,
-  type,
   isReplying,
   isRetrying,
+  hideMessage,
   onRetryClick,
   isError = false,
-  hideMessage,
   thinkingMessage,
   scrollToBottom,
 }) => {
@@ -32,19 +32,19 @@ export const Chat: FC<ChatProps> = ({
   if (me && !hideMessage) return <UserMessage message={message} files={files} />;
   if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
 
-  return (
-    !hideMessage && (
-      <SystemMessage
-        avatar={avatar}
-        message={message}
-        isError={isError}
-        onRetryClick={onRetryClick}
-        isRetrying={isRetrying}
-        thinkingMessage={thinkingMessage}
-        onTypingProgress={() => scrollToBottom?.()}
-        onTypingComplete={() => scrollToBottom?.()}
-        typingAnimation={!isReplying && !isRetrying && !isError}
-      />
-    )
+  return !hideMessage ? (
+    <SystemMessage
+      avatar={avatar}
+      message={message}
+      isError={isError}
+      onRetryClick={onRetryClick}
+      isRetrying={isRetrying}
+      thinkingMessage={thinkingMessage}
+      onTypingProgress={() => scrollToBottom?.()}
+      onTypingComplete={() => scrollToBottom?.()}
+      typingAnimation={!isReplying && !isRetrying && !isError}
+    />
+  ) : (
+    <SystemMessage message="Something went wrong" />
   );
 };

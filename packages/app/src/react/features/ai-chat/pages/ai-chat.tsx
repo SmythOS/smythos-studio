@@ -60,7 +60,7 @@ const AIChat = () => {
     clearFiles,
   } = useFileUpload({
     agentId: agentId || '',
-    chatId: agentSettingsData?.settings?.lastConversationId,
+    chatId: agentSettings?.lastConversationId,
   });
 
   const {
