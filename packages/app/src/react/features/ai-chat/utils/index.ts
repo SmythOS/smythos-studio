@@ -19,6 +19,7 @@ type ResponseFormat = {
   content?: string;
   debug?: string;
   title?: string;
+  status_message?: string;
   function?: string;
   function_call?: { name?: string; arguments?: any[] };
   error?: string;
@@ -46,83 +47,116 @@ const GENERAL_THINKING_MESSAGES = [
   'This is taking longer than usual. You can try waiting, or refresh the page.',
 ];
 
-export const chatUtils = {
-  // Manages dynamic thinking messages that cycle every 5 seconds for function calls
-  thinkingMessageManager: {
-    currentIndex: 0,
-    intervalId: null as NodeJS.Timeout | null,
-    functionName: '',
+// Thinking message types
+type ThinkingType = 'general' | 'function' | 'status';
 
-    start: function (
-      this: any,
-      functionName: string,
-      onThinking: (thinking: { message: string }) => void,
-    ) {
-      // Clear any existing interval
-      if (this.intervalId) clearInterval(this.intervalId);
+// Unified thinking message manager
+class UnifiedThinkingManager {
+  private currentType: ThinkingType | null = null;
+  private currentIndex: number = 0;
+  private intervalId: NodeJS.Timeout | null = null;
+  private functionName: string = '';
+  private statusMessage: string = '';
+  private onThinking: ((thinking: { message: string }) => void) | null = null;
 
+  start(
+    type: ThinkingType,
+    onThinking: (thinking: { message: string }) => void,
+    functionName?: string,
+    statusMessage?: string,
+  ): void {
+    // Priority system: status > function > general
+    const priorityOrder = { status: 3, function: 2, general: 1 };
+    const currentPriority = this.currentType ? priorityOrder[this.currentType] : 0;
+    const newPriority = priorityOrder[type];
+
+    // Only start new thinking if it has higher or equal priority
+    if (newPriority < currentPriority) {
+      return; // Don't override higher priority thinking
+    }
+
+    // Stop any existing thinking
+    this.stop();
+
+    this.currentType = type;
+    this.onThinking = onThinking;
+    this.currentIndex = 0;
+
+    if (type === 'function' && functionName) {
       this.functionName = functionName;
-      this.currentIndex = 0;
+    }
+    if (type === 'status' && statusMessage) {
+      this.statusMessage = statusMessage;
+    }
 
-      // INSTANT DISPLAY: Show first message immediately
-      const initialMessage = this.getCurrentMessage();
-      onThinking({ message: initialMessage });
+    // Show first message immediately
+    const initialMessage = this.getCurrentMessage();
+    onThinking({ message: initialMessage });
 
-      // Start cycling through messages every 5 seconds (starting from second message)
+    // Start interval only for general and function types
+    if (type !== 'status') {
+      const intervalTime = type === 'function' ? 5000 : 3000;
       this.intervalId = setInterval(() => {
-        this.currentIndex = (this.currentIndex + 1) % FUNCTION_THINKING_MESSAGES.length;
+        this.currentIndex = (this.currentIndex + 1) % this.getMessagesArray().length;
         const message = this.getCurrentMessage();
         onThinking({ message });
-      }, 5000);
-    },
+      }, intervalTime);
+    }
+  }
 
-    stop: function (this: any) {
-      if (this.intervalId) {
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-      }
-    },
+  updateStatus(newStatusMessage: string): void {
+    if (this.currentType === 'status' && this.onThinking) {
+      this.statusMessage = newStatusMessage;
+      this.onThinking({ message: newStatusMessage });
+    }
+  }
 
-    getCurrentMessage: function (this: any): string {
-      const messageTemplate = FUNCTION_THINKING_MESSAGES[this.currentIndex];
+  stop(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    this.currentType = null;
+    this.currentIndex = 0;
+    this.functionName = '';
+    this.statusMessage = '';
+    this.onThinking = null;
+  }
+
+  private getCurrentMessage(): string {
+    if (this.currentType === 'status') {
+      return this.statusMessage;
+    }
+
+    const messages = this.getMessagesArray();
+    const messageTemplate = messages[this.currentIndex];
+
+    if (this.currentType === 'function') {
       return messageTemplate.replace('{functionName}', this.functionName);
-    },
-  },
+    }
 
-  // Manages general thinking messages that cycle every 3 seconds when no function is called
-  generalThinkingMessageManager: {
-    currentIndex: 0,
-    intervalId: null as NodeJS.Timeout | null,
+    return messageTemplate;
+  }
 
-    start: function (this: any, onThinking: (thinking: { message: string }) => void) {
-      // Clear any existing interval
-      if (this.intervalId) clearInterval(this.intervalId);
+  private getMessagesArray(): string[] {
+    switch (this.currentType) {
+      case 'function':
+        return FUNCTION_THINKING_MESSAGES;
+      case 'general':
+        return GENERAL_THINKING_MESSAGES;
+      default:
+        return [];
+    }
+  }
 
-      this.currentIndex = 0;
+  getCurrentType(): ThinkingType | null {
+    return this.currentType;
+  }
+}
 
-      // INSTANT DISPLAY: Show first message immediately
-      const initialMessage = this.getCurrentMessage();
-      onThinking({ message: initialMessage });
-
-      // Start cycling through messages every 3 seconds (starting from second message)
-      this.intervalId = setInterval(() => {
-        this.currentIndex = (this.currentIndex + 1) % GENERAL_THINKING_MESSAGES.length;
-        const message = this.getCurrentMessage();
-        onThinking({ message });
-      }, 3000);
-    },
-
-    stop: function (this: any) {
-      if (this.intervalId) {
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-      }
-    },
-
-    getCurrentMessage: function (this: any): string {
-      return GENERAL_THINKING_MESSAGES[this.currentIndex];
-    },
-  },
+export const chatUtils = {
+  // Unified thinking message manager
+  thinkingManager: new UnifiedThinkingManager(),
 
   /**
    * Extracts function name from debug message for user-friendly display
@@ -225,8 +259,6 @@ export const chatUtils = {
   },
   generateResponse: async (input: GenerateResponseInput) => {
     let message = '';
-    let isFunctionCallActive = false;
-    let isGeneralThinkingActive = false;
 
     // Enhanced Message State Management
     type MessageState = 'initial' | 'debug' | 'final';
@@ -279,8 +311,7 @@ export const chatUtils = {
 
       // Start general thinking messages when response starts
       if (input.onThinking) {
-        isGeneralThinkingActive = true;
-        chatUtils.generalThinkingMessageManager.start(input.onThinking);
+        chatUtils.thinkingManager.start('general', input.onThinking);
       }
 
       let chunkCount = 0;
@@ -317,6 +348,16 @@ export const chatUtils = {
             throw new Error(jsonObject.error);
           }
 
+          // Check for status_message at the top level - highest priority
+          if (jsonObject.status_message) {
+            const statusMessage = jsonObject.status_message;
+
+            // Show status message directly - no interval needed
+            if (input.onThinking) {
+              chatUtils.thinkingManager.start('status', input.onThinking, undefined, statusMessage);
+            }
+          }
+
           if (jsonObject.debug) {
             // Handle debug messages with dynamic thinking system
             const debugContent = jsonObject.debug;
@@ -333,16 +374,13 @@ export const chatUtils = {
               // If we can extract a function name, use dynamic thinking messages
               const formattedFunctionName = chatUtils.formatFunctionNameForDisplay(functionName);
 
-              // Stop general thinking and start function-specific thinking
-              if (isGeneralThinkingActive) {
-                chatUtils.generalThinkingMessageManager.stop();
-                isGeneralThinkingActive = false;
-              }
-
-              // Start dynamic thinking messages if not already active
-              if (!isFunctionCallActive && input.onThinking) {
-                isFunctionCallActive = true;
-                chatUtils.thinkingMessageManager.start(formattedFunctionName, input.onThinking);
+              // Start function-specific thinking
+              if (input.onThinking) {
+                chatUtils.thinkingManager.start(
+                  'function',
+                  input.onThinking,
+                  formattedFunctionName,
+                );
               }
             } else if (jsonObject.function) {
               // If function field exists, use it directly
@@ -350,60 +388,80 @@ export const chatUtils = {
                 jsonObject.function,
               );
 
-              // Stop general thinking and start function-specific thinking
-              if (isGeneralThinkingActive) {
-                chatUtils.generalThinkingMessageManager.stop();
-                isGeneralThinkingActive = false;
-              }
-
-              // Start dynamic thinking messages if not already active
-              if (!isFunctionCallActive && input.onThinking) {
-                isFunctionCallActive = true;
-                chatUtils.thinkingMessageManager.start(formattedFunctionName, input.onThinking);
+              // Start function-specific thinking
+              if (input.onThinking) {
+                chatUtils.thinkingManager.start(
+                  'function',
+                  input.onThinking,
+                  formattedFunctionName,
+                );
               }
             } else {
-              // Try to extract function name from debug title if not found in debug content
-              const debugTitle = jsonObject.title || '';
-              const functionNameFromTitle = chatUtils.extractFunctionNameFromDebug(debugTitle);
+              // Check for status_message first - highest priority
+              const statusMessage = jsonObject.status_message || '';
 
-              if (functionNameFromTitle) {
-                const formattedFunctionName =
-                  chatUtils.formatFunctionNameForDisplay(functionNameFromTitle);
-
-                // Stop general thinking and start function-specific thinking
-                if (isGeneralThinkingActive) {
-                  chatUtils.generalThinkingMessageManager.stop();
-                  isGeneralThinkingActive = false;
-                }
-
-                // Start dynamic thinking messages if not already active
-                if (!isFunctionCallActive && input.onThinking) {
-                  isFunctionCallActive = true;
-                  chatUtils.thinkingMessageManager.start(formattedFunctionName, input.onThinking);
+              if (statusMessage) {
+                // Show status message directly - no interval needed
+                if (input.onThinking) {
+                  chatUtils.thinkingManager.start(
+                    'status',
+                    input.onThinking,
+                    undefined,
+                    statusMessage,
+                  );
                 }
               } else {
-                // If no function name found, continue with general thinking messages
-                // Don't stop general thinking if it's already active
+                // Try to extract function name from debug title if not found in debug content
+                const debugTitle = jsonObject.title || '';
+                const functionNameFromTitle = chatUtils.extractFunctionNameFromDebug(debugTitle);
+
+                if (functionNameFromTitle) {
+                  const formattedFunctionName =
+                    chatUtils.formatFunctionNameForDisplay(functionNameFromTitle);
+
+                  // Start function-specific thinking
+                  if (input.onThinking) {
+                    chatUtils.thinkingManager.start(
+                      'function',
+                      input.onThinking,
+                      formattedFunctionName,
+                    );
+                  }
+                }
+                // If no function name found, continue with current thinking type
               }
             }
           }
 
           if (jsonObject.function_call) {
-            // Handle function calls with dynamic thinking messages
-            const functionName = jsonObject.function || jsonObject.function_call?.name || 'Unknown';
+            // Check for status_message first - highest priority
+            const statusMessage = jsonObject.status_message || '';
 
-            const formattedFunctionName = chatUtils.formatFunctionNameForDisplay(functionName);
+            if (statusMessage) {
+              // Show status message directly - no interval needed
+              if (input.onThinking) {
+                chatUtils.thinkingManager.start(
+                  'status',
+                  input.onThinking,
+                  undefined,
+                  statusMessage,
+                );
+              }
+            } else {
+              // Handle function calls with dynamic thinking messages
+              const functionName =
+                jsonObject.function || jsonObject.function_call?.name || 'Unknown';
 
-            // Stop general thinking and start function-specific thinking
-            if (isGeneralThinkingActive) {
-              chatUtils.generalThinkingMessageManager.stop();
-              isGeneralThinkingActive = false;
-            }
+              const formattedFunctionName = chatUtils.formatFunctionNameForDisplay(functionName);
 
-            // Start dynamic thinking messages if not already active
-            if (!isFunctionCallActive && input.onThinking) {
-              isFunctionCallActive = true;
-              chatUtils.thinkingMessageManager.start(formattedFunctionName, input.onThinking);
+              // Start function-specific thinking
+              if (input.onThinking) {
+                chatUtils.thinkingManager.start(
+                  'function',
+                  input.onThinking,
+                  formattedFunctionName,
+                );
+              }
             }
           }
 
@@ -419,15 +477,7 @@ export const chatUtils = {
             }
 
             // Stop all thinking messages when content starts arriving
-            if (isFunctionCallActive) {
-              chatUtils.thinkingMessageManager.stop();
-              isFunctionCallActive = false;
-            }
-
-            if (isGeneralThinkingActive) {
-              chatUtils.generalThinkingMessageManager.stop();
-              isGeneralThinkingActive = false;
-            }
+            chatUtils.thinkingManager.stop();
 
             // Handle regular content - response shows immediately
             message += jsonObject.content;
@@ -455,14 +505,7 @@ export const chatUtils = {
       throw error;
     } finally {
       // Stop all thinking messages when response ends
-      if (isFunctionCallActive) {
-        chatUtils.thinkingMessageManager.stop();
-      }
-
-      if (isGeneralThinkingActive) {
-        chatUtils.generalThinkingMessageManager.stop();
-      }
-
+      chatUtils.thinkingManager.stop();
       input.onEnd();
     }
 
