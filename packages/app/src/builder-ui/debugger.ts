@@ -7,6 +7,12 @@ import { PostHog } from './services/posthog';
 import { alert, modalDialog } from './ui/dialogs';
 import { twModalDialog } from './ui/tw-dialogs';
 import { delay } from './utils';
+import {
+  cacheFileObjects,
+  getCachedFileObjects,
+  getDebugInputValues,
+  saveDebugInputValues,
+} from './utils/debug-values-cache';
 import { getFileCategory, getMimeTypeFromUrl, isURL } from './utils/general.utils';
 import { Workspace } from './workspace/Workspace.class';
 // import microlight from 'microlight';
@@ -2374,11 +2380,12 @@ export function createDebugInjectDialog(
   operation: 'step' | 'run' = 'step',
   prefillValues?: Record<string, any>,
 ) {
+  const cachedInputValues = getDebugInputValues(component.uid) || {};
+
   const createInputList = (array, type) => {
     return array
       .map((el, index) => {
         if (el.type === 'file') {
-          const prefillValue = prefillValues?.[el.name] || '';
           return `
             <div class="mb-5">
               <div class="flex">
@@ -2393,7 +2400,6 @@ export function createDebugInjectDialog(
                   hover:file:bg-gray-300 pl-5
                 " multiple>
               </div>
-              ${prefillValue ? `<div class="mt-2 text-xs text-gray-600">Previously selected: ${prefillValue.substring(0, 100)}${prefillValue.length > 100 ? '...' : ''}</div>` : ''}
             </div>`;
         } else {
           return `
@@ -2514,10 +2520,16 @@ export function createDebugInjectDialog(
       </div>
     </div>`;
 
-  const handleFileInput = async (fileInput: HTMLInputElement, element: any) => {
+  const handleFileInput = async (fileInput: HTMLInputElement, element: any, inputName?: string) => {
     const files = Array.from(fileInput.files || []);
     element.files = files;
 
+    // Store files directly in memory cache for fast access
+    if (inputName) {
+      cacheFileObjects(component.uid, inputName, files);
+    }
+
+    // Create base64 data URLs for debug system (back to original format)
     const fileValues = await Promise.all(
       files.map((file) => {
         return new Promise((resolve) => {
@@ -2631,6 +2643,38 @@ export function createDebugInjectDialog(
       debugInputs[component.uid].inputs[inputs[index].name] = inputVal;
       return obj;
     }, {});
+
+    // Save input values to session storage for persistence (including files)
+    const inputValuesToSave = inputElementsArray.reduce((obj, el: any, index) => {
+      const fieldName = inputs[index].name;
+      const fieldValue = el.value;
+      const inputType = inputs[index].type;
+
+      // Handle text inputs
+      if (fieldValue && fieldValue.trim() !== '') {
+        obj[fieldName] = fieldValue;
+      }
+
+      // Handle file inputs - store file metadata for cache (actual files stored separately in memory)
+      if (inputType === 'file' && inputFileValue[index]?.files?.length > 0) {
+        const fileData = inputFileValue[index];
+
+        // Store file metadata for cache (actual file data is already cached via cacheFileObjects)
+        obj[fieldName] = {
+          type: 'file_metadata',
+          files: fileData.files.map((file: File) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified,
+          })),
+          // Note: Actual file data is stored separately in memory cache
+        };
+      }
+
+      return obj;
+    }, {});
+    saveDebugInputValues(component.uid, inputValuesToSave);
 
     // --- Add this check for empty inputs ---
     let allInputsEmpty = true;
@@ -2759,7 +2803,9 @@ export function createDebugInjectDialog(
                 </span>`,
         cssClass:
           'border border-[#3b82f6] bg-white hover:bg-[#3b82f6] group transition-all duration-200 !text-[#3b82f6] hover:!text-white',
-        callback: (dialog) => handleDebugAction(component, dialog, 'step'),
+        callback: (dialog) => {
+          return handleDebugAction(component, dialog, 'step');
+        },
       },
       {
         label: `<span class="flex items-center gap-2">
@@ -2768,23 +2814,30 @@ export function createDebugInjectDialog(
                 </span>`,
         cssClass:
           'border border-[#3b82f6] bg-white hover:bg-[#3b82f6] group transition-all duration-200 !text-[#3b82f6] hover:!text-white',
-        callback: (dialog) => handleDebugAction(component, dialog, 'run'),
+        callback: (dialog) => {
+          return handleDebugAction(component, dialog, 'run');
+        },
       },
     ],
     onCloseClick: () => {},
     onDOMReady: function (dialog) {
-      if (debugInputs[component.uid]?.inputs) {
-        //console.log('debugInputs', debugInputs[component.uid]?.inputs);
-        for (let inputName in debugInputs[component.uid]?.inputs) {
+      // Load cached input values from memory cache
+      const cachedInputValues = getDebugInputValues(component.uid);
+
+      if (cachedInputValues) {
+        for (let inputName in cachedInputValues) {
           const inputElement: HTMLInputElement = dialog.querySelector(
             `.inputs-input[name="${inputName}"]`,
           );
 
-          if (!inputElement) continue;
+          if (!inputElement) {
+            console.warn(`Input element not found for: ${inputName}`);
+            continue;
+          }
 
           // setting value to the file type input leads to error
           if (inputElement.type !== 'file') {
-            const value = debugInputs[component.uid]?.inputs[inputName] || '';
+            const value = cachedInputValues[inputName] || '';
             inputElement.value = value;
           }
         }
@@ -2813,22 +2866,70 @@ export function createDebugInjectDialog(
 
       inputs.forEach((input, index) => {
         if (input.type === 'file') {
-          const inputFile = inputsContainer.querySelector(`#inputs-input-${index}`);
+          const inputFile = inputsContainer.querySelector(
+            `#inputs-input-${index}`,
+          ) as HTMLInputElement;
           const element = { domElement: inputFile, value: null, files: [] };
+
+          // Restore cached files directly from memory
+          const cachedFileObjects = getCachedFileObjects(component.uid, input.name);
+
+          if (cachedFileObjects?.length > 0) {
+            try {
+              // Set files directly to DOM input using DataTransfer
+              const dataTransfer = new DataTransfer();
+              cachedFileObjects.forEach((file) => dataTransfer.items.add(file));
+              inputFile.files = dataTransfer.files;
+
+              // Convert cached files back to base64 data URLs for debug system
+              Promise.all(
+                cachedFileObjects.map((file) => {
+                  return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      let result = e.target.result as string;
+                      // Windows markdown file type fix
+                      if (
+                        navigator.userAgent.includes('Windows') &&
+                        file.type === '' &&
+                        file.name.toLowerCase().endsWith('.md')
+                      ) {
+                        result = result.replace(
+                          'data:application/octet-stream;',
+                          'data:text/markdown;',
+                        );
+                      }
+                      resolve(result);
+                    };
+                    reader.readAsDataURL(file);
+                  });
+                }),
+              ).then((fileDataUrls) => {
+                element.value = fileDataUrls.length === 1 ? fileDataUrls[0] : fileDataUrls;
+              });
+
+              element.files = cachedFileObjects;
+            } catch (error) {
+              console.warn('Failed to restore cached files:', error);
+            }
+          }
+
           inputFileValue[index] = element;
           inputFile.addEventListener('change', (e: any) => {
-            handleFileInput(e.target, element);
+            handleFileInput(e.target, element, input.name);
           });
         }
       });
 
       outputs.forEach((output, index) => {
         if (output.type === 'file') {
-          const outputFile = outputsContainer.querySelector(`#outputs-input-${index}`);
+          const outputFile = outputsContainer.querySelector(
+            `#outputs-input-${index}`,
+          ) as HTMLInputElement;
           const element = { domElement: outputFile, value: null, files: [] };
           outputFileValue[index] = element;
           outputFile.addEventListener('change', (e: any) => {
-            handleFileInput(e.target, element);
+            handleFileInput(e.target, element, output.name);
           });
         }
       });
