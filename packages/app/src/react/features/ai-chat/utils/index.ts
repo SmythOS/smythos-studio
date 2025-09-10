@@ -322,7 +322,9 @@ export const chatUtils = {
           signal: input.signal,
         });
       } catch (fetchError) {
-        throw new Error(`Network request failed: ${fetchError.message}`);
+        throw new Error(
+          `Network request failed: ${fetchError.message || fetchError.error || 'Unknown error'}`,
+        );
       }
 
       if (!openAiResponse || openAiResponse?.status !== 200) {
