@@ -167,17 +167,17 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
       e.preventDefault();
       const pasted = e.clipboardData.getData('text/plain');
-      const text = message ? `${message} ${pasted}` : pasted;
+
       if (pasted.length >= LARGE_TEXT_THRESHOLD) {
-        const file = createFileFromText(text);
+        const file = createFileFromText(pasted);
         handleFileDrop([file.file]);
         setMessage('');
-      } else setMessage(text);
+      } else setMessage(pasted);
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.scrollTop = inputRef.current.scrollHeight;
           inputRef.current.selectionStart = inputRef.current.selectionEnd =
-            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : text.length;
+            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : pasted.length;
         }
       }, 0);
     };
