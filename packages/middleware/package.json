@@ -19,7 +19,7 @@
     "prisma:deploy": "env-cmd -f ../../.env prisma migrate deploy --schema ./prisma/schema.prisma",
     "build": "rollup -c",
     "dev": "pnpm prisma:migrate && nodemon",
-    "start": "pnpm run load-shared-env && node -r esbuild-register dist/index.js",
+    "start": "node -r esbuild-register dist/index.js",
     "start:prod": "node -r esbuild-register dist/index.js",
     "script": "node -r esbuild-register",
     "format": "prettier --write \"**/*.ts\"",
