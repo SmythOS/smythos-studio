@@ -164,23 +164,52 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       }
     }, []);
 
-    const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
-      e.preventDefault();
-      const pasted = e.clipboardData.getData('text/plain');
+    /**
+     * Professional paste handler that mimics default browser behavior
+     * with additional large text file attachment feature
+     */
+    const handlePaste = useCallback(
+      (e: ClipboardEvent<HTMLTextAreaElement>) => {
+        // Get pasted text first
+        const pastedText = e.clipboardData?.getData('text/plain') || '';
 
-      if (pasted.length >= LARGE_TEXT_THRESHOLD) {
-        const file = createFileFromText(pasted);
-        handleFileDrop([file.file]);
-        setMessage('');
-      } else setMessage(pasted);
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.scrollTop = inputRef.current.scrollHeight;
-          inputRef.current.selectionStart = inputRef.current.selectionEnd =
-            pasted.length >= LARGE_TEXT_THRESHOLD ? 0 : pasted.length;
+        // Check if it's large text that should become a file attachment
+        if (pastedText.length >= LARGE_TEXT_THRESHOLD) {
+          e.preventDefault();
+
+          try {
+            const file = createFileFromText(pastedText);
+            handleFileDrop([file.file]);
+            // Don't clear the message - keep existing content
+            // The pasted text will be handled as file attachment
+
+            // Focus and maintain cursor position after file creation
+            requestAnimationFrame(() => {
+              const textarea = inputRef.current;
+              if (textarea) {
+                textarea.focus();
+                // Keep cursor at current position, don't reset to 0
+                const currentPos = textarea.selectionStart || 0;
+                textarea.selectionStart = currentPos;
+                textarea.selectionEnd = currentPos;
+              }
+            });
+          } catch {
+            // Fallback: let browser handle it normally if file creation fails
+            return;
+          }
+        } else {
+          // For normal text, let the browser handle it naturally
+          // This preserves all default browser behavior including:
+          // - Natural cursor positioning
+          // - Text selection replacement
+          // - Undo/redo support
+          // - Native textarea behavior
+          return;
         }
-      }, 0);
-    };
+      },
+      [handleFileDrop],
+    );
 
     const isMaxLengthReached = message.length === maxLength;
     const canSubmit =
