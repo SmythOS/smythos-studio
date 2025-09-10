@@ -12,7 +12,7 @@ interface CacheEntry {
 const debugInputsCache = new Map<string, CacheEntry>();
 const MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_SINGLE_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-const CACHE_EXPIRY_TIME = 4 * 60 * 60 * 1000; // 4 hours
+const CACHE_EXPIRY_TIME = 24 * 60 * 60 * 1000; // 4 hours
 let currentCacheSize = 0;
 
 // Utility functions
