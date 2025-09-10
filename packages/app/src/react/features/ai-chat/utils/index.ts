@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any  */
 import config from '@src/builder-ui/config';
 import { FileWithMetadata } from '@src/react/shared/types/chat.types';
 
@@ -314,10 +313,7 @@ export const chatUtils = {
         chatUtils.thinkingManager.start('general', input.onThinking);
       }
 
-      let chunkCount = 0;
       while (true) {
-        chunkCount++;
-
         const { done, value } = await reader.read();
 
         if (input.signal.aborted) {
