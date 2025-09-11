@@ -160,6 +160,7 @@ router.get('/status', includeTeamDetails, async (req, res) => {
         dbg_url: `${config.env.UI_SERVER}/dbg`,
         doc_url: config.env.DOC_SERVER,
         prod_agent_domain: config.env.PROD_AGENT_DOMAIN,
+        embodiment_url: config.env.EMBODIMENT_SERVER_BASE_URL,
       },
     });
   } catch (error) {

@@ -1,12 +1,13 @@
 // serverStatusSlice.ts
 import { StateCreator } from 'zustand';
-import { BuilderStore } from '../store'; // important: import the final store type
 import { Slice } from '../..';
+import { BuilderStore } from '../store'; // important: import the final store type
 
 export interface ServerStatus {
   baseUrl: string;
   frontUrl: string;
   debugUrl: string;
+  embodimentUrl: string;
   docUrl: string;
   dbgUrl: string;
   agent_domain: string;
@@ -52,6 +53,7 @@ export const serverStatusSlice: StateCreator<BuilderStore, [], [], ServerStatusS
           agent_domain: data.agent_domain,
           env: data.env,
           status: data.server,
+          embodimentUrl: data.embodiment_url,
           prod_agent_domain: data.prod_agent_domain,
           user: data.user,
           userData: data.user,
