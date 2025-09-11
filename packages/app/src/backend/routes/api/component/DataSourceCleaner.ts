@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { smythAPIReq, authHeaders } from '../../../utils';
+import { authHeaders, smythAPIReq } from '../../../utils';
 
 const router = Router();
 
@@ -8,7 +8,7 @@ router.get('/namespaces', async (req, res) => {
     const result = await smythAPIReq.get('/vectors/namespaces', await authHeaders(req));
     return res.json(result.data.namespaces);
   } catch (error) {
-    console.log('error', error);
+    // console.log('error', error);
     return res.status(500).json({ error });
   }
 });

@@ -1,7 +1,9 @@
+import httpStatus from 'http-status';
 import { ExpressHandlerWithParams } from '../../../../../types';
 import { userService, userSettingsService } from '../../services';
 
 import { UserSetting } from '@prisma/client';
+import ApiError from '../../../../utils/apiError';
 
 export const getSettings: ExpressHandlerWithParams<
   { userId: number },
@@ -79,6 +81,9 @@ export const getUser: ExpressHandlerWithParams<
   }
 > = async (req, res) => {
   const { userId } = req.params;
+  if (typeof userId !== 'number') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User ID must be a number');
+  }
   const user = await userService.getUserInfoByIdM2M({ userId });
   res.json({
     message: 'User retrieved successfully',

@@ -143,8 +143,8 @@ export const forwardToSmythAPIMiddleware = (options?: {
         url: options?.endpointBuilder
           ? options.endpointBuilder(req)
           : options?.useFullEndpoint
-          ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
-          : req.url,
+            ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
+            : req.url,
         data: req.body,
         ...(await authHeaders(req)),
       };
@@ -180,8 +180,8 @@ export const forwardToSmythM2MAPIMiddleware = (options?: {
         url: options?.endpointBuilder
           ? options.endpointBuilder(req)
           : options?.useFullEndpoint
-          ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
-          : req.url,
+            ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
+            : req.url,
         data: req.body,
         ...includeAxiosAuth(token),
       };

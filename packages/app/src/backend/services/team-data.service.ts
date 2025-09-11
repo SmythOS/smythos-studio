@@ -238,7 +238,7 @@ export async function getAllTeamsSecrets(skip: number, limit: number, token: str
 
     return res?.data?.settings || [];
   } catch (error) {
-    console.log('Error in getAllTeamsSecrets', error);
+    // console.log('Error in getAllTeamsSecrets', error);
     return null;
   }
 }

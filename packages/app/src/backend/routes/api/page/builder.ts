@@ -55,7 +55,7 @@ router.get('/domains', async (req, res) => {
     const result = await smythAPIReq.get('/domains?verified=true', await authHeaders(req));
     return res.json(result.data.domains);
   } catch (error) {
-    console.log('error', error);
+    // console.log('error', error);
     return res.status(error?.response?.status || 500).json({ error: error?.message });
   }
 });
@@ -448,7 +448,7 @@ router.post('/data/generate-form-data', generateFormDataRateLim, async (req, res
     const response = await smythAPIReq
       .get(`/ai-agent/${agentId}`, await authHeaders(req))
       .catch((error) => {
-        console.error('Error getting agent data:', error);
+        // console.error('Error getting agent data:', error);
         throw error;
       });
 
