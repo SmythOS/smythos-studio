@@ -1,7 +1,6 @@
 /* eslint-disable vars-on-top */
 /* eslint-disable no-var */
-import { PrismaClient } from '@~internal/prisma/client/index.js';
-import { config } from '../config/config';
+import { PrismaClient } from '@prisma/client';
 
 // declare global {
 //   var prisma: PrismaClient; // Use 'var' to declare a global variable

@@ -4,7 +4,6 @@ import { prisma } from '../prisma/prisma-client';
 import { appEvents } from './utils/app-events';
 // import { metricsManager } from './metrices';
 import { writeHeapSnapshot } from 'v8';
-import fs from 'fs';
 import { config } from '../config/config';
 import { app } from './app';
 

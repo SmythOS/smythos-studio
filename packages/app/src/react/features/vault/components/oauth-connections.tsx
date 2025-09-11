@@ -340,170 +340,158 @@ export function OAuthConnections() {
   }
 
   return (
-    <div className="w-full p-6 rounded-lg border border-solid border-[#d9d9d9] flex-col justify-start items-start gap-6 flex">
-      <div className="self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
-        OAuth Connections
-      </div>
-      <div className="w-full">
-        {' '}
-        {/* Container for the table and button */}
-        {isLoading ? (
-          <div>Loading connections...</div>
-        ) : connections.length === 0 ? (
-          <div className="py-4 text-center text-gray-500">No OAuth connections found</div>
-        ) : (
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" className="py-3">
-                  Platform
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Connection Name
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Type
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Status
-                </th>
-                <th scope="col" className="px-4 py-3 text-right"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {connections.map((conn) => {
-                const isCheckingStatus =
-                  checkAuthMutation.isLoading &&
-                  checkAuthMutation.variables?.oauth_keys_prefix ===
-                    conn.oauth_info.oauth_keys_prefix;
+    <div className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
+          <h2 className="text-lg font-semibold">OAuth Connections</h2>
+        </div>
+        <div className="overflow-x-auto">
+          {/* Table */}
+          {isLoading ? (
+            <div>Loading connections...</div>
+          ) : connections.length === 0 ? (
+            <div className="py-4 text-center text-muted-foreground">No OAuth connections found</div>
+          ) : (
+            <table className="w-full min-w-[500px] text-sm text-left table-fixed">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th className="pr-4 py-2 w-1/6">Platform</th>
+                  <th className="px-4 py-2 w-1/3">Connection Name</th>
+                  <th className="px-4 py-2 w-1/6">Type</th>
+                  <th className="px-4 py-2 w-1/6">Status</th>
+                  <th className="px-4 py-2 w-1/6 text-right"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {connections.map((conn) => {
+                  const isCheckingStatus =
+                    checkAuthMutation.isLoading &&
+                    checkAuthMutation.variables?.oauth_keys_prefix ===
+                      conn.oauth_info.oauth_keys_prefix;
 
-                // Derive local active state when server status is unknown
-                const isClientCreds = conn.type === 'oauth2_client_credentials';
-                const isActive = Boolean(
-                  (typeof conn.isAuthenticated === 'boolean' ? conn.isAuthenticated : false) ||
-                    (isClientCreds && conn.primary),
-                );
-                const isProcessingAny =
-                  isProcessing ||
-                  duplicateMutation.isLoading ||
-                  deleteMutation.isLoading ||
-                  signOutMutation.isLoading ||
-                  initiateAuthMutation.isLoading;
-                const isDisabled = isProcessingAny || isCheckingStatus;
-                const platformDisplay = getPlatformDisplay(conn);
+                  // Derive local active state when server status is unknown
+                  const isClientCreds = conn.type === 'oauth2_client_credentials';
+                  const isActive = Boolean(
+                    (typeof conn.isAuthenticated === 'boolean' ? conn.isAuthenticated : false) ||
+                      (isClientCreds && conn.primary),
+                  );
+                  const isProcessingAny =
+                    isProcessing ||
+                    duplicateMutation.isLoading ||
+                    deleteMutation.isLoading ||
+                    signOutMutation.isLoading ||
+                    initiateAuthMutation.isLoading;
+                  const isDisabled = isProcessingAny || isCheckingStatus;
+                  const platformDisplay = getPlatformDisplay(conn);
 
-                return (
-                  <tr key={conn.id} className="border-t">
-                    {/* Platform Column */}
-                    <td className="py-2 truncate max-w-[150px]" title={platformDisplay}>
-                      {platformDisplay || '-'} {/* Show hyphen if empty */}
-                    </td>
-                    {/* Name Column */}
-                    <td
-                      className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap truncate max-w-[200px]"
-                      title={conn.name}
-                    >
-                      {conn.name}
-                    </td>
-                    {/* Type Column */}
-                    <td className="px-4 py-2">
-                      <span
-                        className="inline-flex h-5 items-center justify-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]"
-                        title={conn.type}
-                      >
-                        {mapOAuthTypeDisplay(conn.type)}
-                      </span>
-                    </td>
-                    {/* Status Column */}
-                    <td className="px-8 py-2">
-                      <div className="flex" title={isActive ? 'Active' : 'Inactive'}>
-                        {isCheckingStatus ? (
-                          <div
-                            className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-gray-400"
-                            title="Checking..."
-                          ></div>
-                        ) : (
-                          <Circle
-                            className={`h-3 w-3 ${
-                              isActive
-                                ? 'fill-green-500 text-green-500'
-                                : 'fill-gray-400 text-gray-400'
-                            }`}
-                          />
-                        )}
-                        {/* Removed status text as requested */}
-                      </div>
-                    </td>
-                    {/* Actions Column */}
-                    <td className="px-4 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        {/* Authentication Buttons */}
-                        {conn.oauth_info &&
-                          (conn.isAuthenticated ||
-                          (conn.type === 'oauth2_client_credentials' && conn.primary) ? (
-                            <button
-                              type="button"
-                              onClick={() => handleSignOutClick(conn)}
-                              disabled={
-                                signOutMutation.isLoading || isProcessing || isCheckingStatus
-                              }
-                              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3"
-                            >
-                              Sign Out
-                            </button>
+                  return (
+                    <tr key={conn.id} className="border-t">
+                      {/* Platform Column */}
+                      <td className="pr-4 py-2 truncate" title={platformDisplay}>
+                        {platformDisplay || '-'}
+                      </td>
+                      {/* Name Column */}
+                      <td className="px-4 py-2 truncate" title={conn.name}>
+                        {conn.name}
+                      </td>
+                      {/* Type Column */}
+                      <td className="px-4 py-2">
+                        <span
+                          className="inline-flex h-5 items-center justify-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280]"
+                          title={conn.type}
+                        >
+                          {mapOAuthTypeDisplay(conn.type)}
+                        </span>
+                      </td>
+                      {/* Status Column */}
+                      <td className="px-4 py-2">
+                        <div className="flex" title={isActive ? 'Active' : 'Inactive'}>
+                          {isCheckingStatus ? (
+                            <div
+                              className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-gray-400"
+                              title="Checking..."
+                            ></div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleAuthenticateClick(conn)}
-                              disabled={
-                                initiateAuthMutation.isLoading || isProcessing || isCheckingStatus
-                              }
-                              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3"
-                            >
-                              Authenticate
-                            </button>
-                          ))}
+                            <Circle
+                              className={`h-3 w-3 ${
+                                isActive
+                                  ? 'fill-green-500 text-green-500'
+                                  : 'fill-gray-400 text-gray-400'
+                              }`}
+                            />
+                          )}
+                        </div>
+                      </td>
+                      {/* Actions Column */}
+                      <td className="pl-4 py-2">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Authentication Buttons */}
+                          {conn.oauth_info &&
+                            (conn.isAuthenticated ||
+                            (conn.type === 'oauth2_client_credentials' && conn.primary) ? (
+                              <CustomButton
+                                variant="secondary"
+                                handleClick={() => handleSignOutClick(conn)}
+                                disabled={
+                                  signOutMutation.isLoading || isProcessing || isCheckingStatus
+                                }
+                                label="Sign Out"
+                                className="h-8 px-3 text-xs whitespace-nowrap"
+                              />
+                            ) : (
+                              <CustomButton
+                                variant="secondary"
+                                handleClick={() => handleAuthenticateClick(conn)}
+                                disabled={
+                                  initiateAuthMutation.isLoading || isProcessing || isCheckingStatus
+                                }
+                                label="Authenticate"
+                                className="h-8 px-3 text-xs whitespace-nowrap"
+                              />
+                            ))}
 
-                        {/* Duplicate Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDuplicateClick(conn)}
-                          title="Duplicate"
-                          disabled={isDisabled}
-                        >
-                          <CopyPlus className="h-4 w-4" />
-                        </Button>
+                          {/* Duplicate Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDuplicateClick(conn)}
+                            title="Duplicate"
+                            disabled={isDisabled}
+                          >
+                            <CopyPlus className="h-4 w-4" />
+                          </Button>
 
-                        {/* Edit Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditClick(conn)}
-                          title="Edit"
-                          disabled={isDisabled}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                          {/* Edit Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(conn)}
+                            title="Edit"
+                            disabled={isDisabled}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
 
-                        {/* Delete Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(conn)}
-                          title="Delete"
-                          disabled={isDisabled}
-                        >
-                          <Trash2 className="h-4 w-4 hover:text-red-500" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+                          {/* Delete Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(conn)}
+                            title="Delete"
+                            disabled={isDisabled}
+                          >
+                            <Trash2 className="h-4 w-4 hover:text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         {/* Add Button - Placed below the table */}
         <div className="w-full flex justify-center mt-4">
           <CustomButton

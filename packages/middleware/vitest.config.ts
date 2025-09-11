@@ -8,7 +8,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@~internal': '/node_modules/@~internal',
+      // Removed @~internal alias as it was pointing to a non-existent path
     },
   },
 });

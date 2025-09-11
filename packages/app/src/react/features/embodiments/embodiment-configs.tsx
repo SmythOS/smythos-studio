@@ -5,8 +5,9 @@ import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
-import ChatbotCodeSnippetModal from '../agent-settings/modals/chatbotCode.modal';
+import ChatbotEmbodimentModal from './chatbot-embodiment-modal';
 import FormEmbodimentModal from './form-embodiment-modal';
+import GptEmbodimentModal from './gpt-embodiment-modal';
 
 export const AlwaysAvailableEmbodiments = [
   'API',
@@ -166,14 +167,13 @@ export const getFormPreviewDialog = (
       activeAgent={agent}
       agentId={agentId}
       currentData={currentData}
-      refreshEmbodiments={() => refreshEmbodiments()}
       style={{}}
     />
   );
 };
 
 export const getCodeSnippetModal = (
-  embodimentType: EMBODIMENT_TYPE.FORM | EMBODIMENT_TYPE.CHAT_BOT,
+  embodimentType: EMBODIMENT_TYPE.FORM | EMBODIMENT_TYPE.CHAT_BOT | EMBODIMENT_TYPE.CHAT_GPT,
   isOpen: boolean,
   closeModal: () => void,
   agent,
@@ -188,7 +188,7 @@ export const getCodeSnippetModal = (
 
   if (embodimentType === EMBODIMENT_TYPE.CHAT_BOT) {
     return createPortal(
-      <ChatbotCodeSnippetModal
+      <ChatbotEmbodimentModal
         onClose={closeModal}
         domain={agent?.domain?.[0]?.name}
         embodimentData={embodimentsData?.find(
@@ -197,6 +197,10 @@ export const getCodeSnippetModal = (
       />,
       document.body,
     );
+  }
+
+  if (embodimentType === EMBODIMENT_TYPE.CHAT_GPT) {
+    return createPortal(<GptEmbodimentModal onClose={closeModal} />, document.body);
   }
 
   if (embodimentType === EMBODIMENT_TYPE.FORM) {

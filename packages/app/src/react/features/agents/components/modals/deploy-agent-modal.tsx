@@ -545,7 +545,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <div
-                      className="text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2"
+                      className="text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2 -mr-2 -mt-2"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleDeployModal();
@@ -560,14 +560,6 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                 <div className="relative bg-white rounded-2xl shadow-lg w-[480px] p-6 flex flex-col flex-none gap-2 overflow-auto max-h-[90vh]">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                      {hasDeployment && (
-                        <div
-                          className="text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2"
-                          onClick={handleCollapseModal}
-                        >
-                          <CloseIcon width={16} height={16} />
-                        </div>
-                      )}
                       <h2 className="text-xl font-semibold text-[#1E1E1E] flex items-center gap-1">
                         Deploy Agent
                         <Tooltip
@@ -594,7 +586,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       </h2>
                     </div>
                     <div
-                      className="text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2"
+                      className="text-[#1E1E1E] hover:text-gray-500 cursor-pointer hover:bg-gray-100 rounded-lg p-2 -mr-2 -mt-2"
                       onClick={toggleDeployModal}
                     >
                       <CloseIcon width={16} height={16} />

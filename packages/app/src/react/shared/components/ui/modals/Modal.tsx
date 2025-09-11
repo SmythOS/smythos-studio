@@ -83,7 +83,7 @@ const Modal = ({
                         <div className="flex items-center gap-1">
                           {onBack && (
                             <div
-                              className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2 flex items-center justify-center"
+                              className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2 flex items-center justify-center"
                               onClick={onBack}
                             >
                               <BackButtonWithTail width={16} height={16} />
@@ -96,7 +96,7 @@ const Modal = ({
 
                       {!hideCloseIcon && (
                         <div
-                          className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 p-2 flex items-center justify-center"
+                          className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2 flex items-center justify-center -mr-2 -mt-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             onClose();

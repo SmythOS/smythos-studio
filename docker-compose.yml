@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: smythos-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: smythos_root_password
+      MYSQL_DATABASE: smythos_db
+      MYSQL_USER: smythos_user
+      MYSQL_PASSWORD: smythos_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - smythos-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: smythos-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - smythos-network
+    command: redis-server --appendonly yes
+
+  # SmythOS Application
+  smythos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smythos-app
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      # Override database URL to use internal MySQL container
+      DATABASE_URL: mysql://smythos_user:smythos_password@mysql:3306/smythos_db
+      # Override Redis to use internal Redis container (standalone mode)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_SENTINEL_HOSTS: ""
+      REDIS_MASTER_NAME: ""
+      OPENAI_API_KEY: '{YOUR_OPENAI_API_KEY}'
+
+    volumes:
+      - smythos_data:/app/data
+      - smythos_middleware_data:/app/packages/middleware/data
+      - smythos_runtime_data:/app/packages/runtime/data
+    networks:
+      - smythos-network
+    depends_on:
+      - mysql
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  smythos-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  smythos_data:
+    driver: local
+  smythos_middleware_data:
+    driver: local
+  smythos_runtime_data:
+    driver: local

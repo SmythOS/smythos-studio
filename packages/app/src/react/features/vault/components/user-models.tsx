@@ -67,7 +67,7 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
     }
 
     addUserModelKey(
-      { modelId: model.id, keyName: model.name, apiKey: apiKey.trim() },
+      { modelId: model.id, keyName: model.id, apiKey: apiKey.trim() },
       {
         onSuccess: () => {
           successToast(`API key ${isEdit ? 'updated' : 'added'} successfully`);
