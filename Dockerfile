@@ -42,30 +42,13 @@ RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x" pnpm run prisma:g
 
 RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-ui-data/vault.json
 
-# Create startup script
-COPY <<EOF /app/start.sh
-#!/bin/sh
+# RUN <<EOF
+# cat > /app/start.sh <<'SCRIPT'
 
-# Wait for MySQL to be ready
-echo "Waiting for MySQL to be ready..."
-sleep 10
+# EOF
 
-# Run Prisma migrations
-echo "Running Prisma migrations..."
-cd /app/packages/middleware
-export PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x"
-pnpm run prisma:deploy
-echo "Migrations completed!"
+COPY docker-endpoint.sh /app/start.sh
 
-echo "Starting SmythOS services"
-cd /app/
-pnpm start
-
-echo "All services started!"
-
-EOF
-
-# Make startup script executable
 RUN chmod +x /app/start.sh
 
 # Expose only the app port
