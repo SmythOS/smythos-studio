@@ -88,7 +88,7 @@ export const getUserCurrentTeamId = async (
       userSelectedTeam: userSelectedTeam || userTeam?.id || null,
     };
   } catch (error) {
-    console.error('Error fetching user current team ID:', error);
+    // console.error('Error fetching user current team ID:', error?.message);
     // throw new Error('Failed to fetch user current team ID');
     return emptyResponse;
   }

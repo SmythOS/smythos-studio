@@ -51,7 +51,7 @@ export default class LocalStorage implements StaticStorage {
 
       logger.info('Storage directories created successfully');
     } catch (error) {
-      logger.error('Failed to create storage directories:', error);
+      logger.error('Failed to create storage directories:', error?.message);
       throw error;
     }
   }
@@ -65,7 +65,7 @@ export default class LocalStorage implements StaticStorage {
       await fsPromises.mkdir(this.publicPath, { recursive: true });
       await fsPromises.mkdir(this.privatePath, { recursive: true });
     } catch (error) {
-      logger.error('Failed to create storage directories:', error);
+      logger.error('Failed to create storage directories:', error?.message);
       throw error;
     }
   }

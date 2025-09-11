@@ -1,7 +1,7 @@
-import Joi from 'joi';
 import { Request } from 'express';
-import { vault } from '../../services/SmythVault.class';
+import Joi from 'joi';
 import { type VaultKeyObj } from '../../../shared/types';
+import { vault } from '../../services/SmythVault.class';
 
 // * Refined implementation of vault.utils.ts
 
@@ -49,7 +49,7 @@ export const setVaultKeys = async ({
   const { error } = schemaToSet.validate(keyEntries);
 
   if (error) {
-    console.log('Error validating request: ', error);
+    console.log('Error validating request: ', error?.message);
     return { success: false, error: 'Invalid request.' };
   }
 

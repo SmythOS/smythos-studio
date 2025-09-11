@@ -1,6 +1,6 @@
 import passport from 'passport';
-import { strategyConfig } from '../routes/oauth/helper/strategyConfig';
 import { replaceTemplateVariablesOptimized } from '../routes/oauth/helper/oauthHelper';
+import { strategyConfig } from '../routes/oauth/helper/strategyConfig';
 
 export const oauthStrategyInitialization = async (req, res, next) => {
   const { service, scope } = req.body;
@@ -31,7 +31,7 @@ export const oauthStrategyInitialization = async (req, res, next) => {
     let config: any = { ...defaultConfig }; // Spread operator for shallow clone
     // Override default config with body parameters
     const updatedReqBody = await replaceTemplateVariablesOptimized(req).catch((error) => {
-      console.log('error', error);
+      console.log('error', error?.message);
       return { error };
     });
 
@@ -49,7 +49,11 @@ export const oauthStrategyInitialization = async (req, res, next) => {
         const origin = req.headers?.origin || `${req.protocol}://${req.get('host')}`;
         const internalService = String(service).toLowerCase();
         const isOAuth2 = ['google', 'linkedin', 'oauth2'].includes(internalService);
-        const provider = isOAuth2 ? (internalService === 'oauth2' ? 'oauth2' : internalService) : 'oauth1';
+        const provider = isOAuth2
+          ? internalService === 'oauth2'
+            ? 'oauth2'
+            : internalService
+          : 'oauth1';
         config['callbackURL'] = `${origin}/oauth/${provider}/callback`;
       } catch (e) {
         // leave as undefined if cannot derive
@@ -76,7 +80,7 @@ export const oauthStrategyInitialization = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error configuring authentication strategy:', error);
+    console.error('Error configuring authentication strategy:', error?.message);
     return res
       .status(500)
       .send({ error: 'Internal server error while setting up authentication.' });

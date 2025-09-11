@@ -1,6 +1,6 @@
 import express from 'express';
-import * as userData from '../../../services/user-data.service';
 import { userSettingKeys } from '../../../../shared/userSettingKeys';
+import * as userData from '../../../services/user-data.service';
 import { getUserCurrentTeamId, getUserSettingsByKey } from '../../../utils/api.utils';
 export const userSettingsRouter = express.Router();
 
@@ -11,7 +11,7 @@ userSettingsRouter.get(`/${userSettingKeys.USER_TEAM}`, async (req, res) => {
     const { userSelectedTeam } = await getUserCurrentTeamId(token);
     res.json({ userSelectedTeam });
   } catch (error) {
-    console.error('Failed to fetch user team settings:', error);
+    console.error('Failed to fetch user team settings:', error?.message);
     res.status(500).json({ error: 'Failed to fetch user team settings' });
   }
 });
