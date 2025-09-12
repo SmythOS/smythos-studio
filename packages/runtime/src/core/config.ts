@@ -36,7 +36,7 @@ const config = {
     UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../data'),
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../../data'),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },
