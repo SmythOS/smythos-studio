@@ -21,7 +21,7 @@ COPY tsconfig.json ./
 RUN npm install -g pnpm@10.12.2
 
 # Set environment for Prisma to use the correct binary
-ENV PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x"
+ENV PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x"
 
 # Copy all package source code
 COPY packages/ ./packages/  
@@ -38,14 +38,10 @@ RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.
 
 # Generate Prisma client for Alpine Linux with correct binary target
 WORKDIR /app/packages/middleware
-RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x" pnpm run prisma:generate
+RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x" pnpm run prisma:generate
 
 RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-ui-data/vault.json
 
-# RUN <<EOF
-# cat > /app/start.sh <<'SCRIPT'
-
-# EOF
 
 COPY docker-endpoint.sh /app/start.sh
 
