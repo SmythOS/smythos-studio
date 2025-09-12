@@ -248,8 +248,6 @@
 
 /* Base positioning for markdown content */
 .Note .note-markdown {
-  padding: 10px;
-  margin-top: 10px;
   overflow: auto;
   max-height: calc(100% - 120px);
   box-sizing: border-box;
