@@ -5,7 +5,7 @@ sleep 10
 
 echo "Running Prisma migrations..."
 cd /app/packages/middleware
-export PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x"
+export PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x"
 pnpm run prisma:deploy
 echo "Migrations completed!"
 
