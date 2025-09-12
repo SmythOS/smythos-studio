@@ -9,6 +9,7 @@ const { data, error, isLoading, refetch, invalidate, setData  } = useAgentSettin
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteAgentSettings, updateAgentSettings } from '@react/features/ai-chat/clients';
+import { AgentSettings } from '@src/react/shared/types/agent-data.types';
 
 export const useAgentSettings = (agentId: string) => {
   const queryResult = useQuery({
@@ -23,7 +24,7 @@ export const useAgentSettings = (agentId: string) => {
               {},
             ),
           };
-        }) as Promise<{ settings: { [key: string]: string } }>,
+        }) as Promise<{ settings: AgentSettings }>,
     refetchInterval: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -38,7 +39,7 @@ export const useUpdateAgentSettingsMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation(
-    (params: { agentId: string; settings: { key: string; value: any } }) =>
+    (params: { agentId: string; settings: { key: string; value: string } }) =>
       updateAgentSettings(params.agentId, params.settings),
     {
       onSuccess: (_, variables) => {

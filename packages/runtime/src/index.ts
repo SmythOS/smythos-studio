@@ -1,4 +1,3 @@
-import { Logger, SmythRuntime, version } from '@smythos/sre';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
@@ -8,7 +7,10 @@ import fs from 'fs';
 import { Server } from 'http';
 import os from 'os';
 import path from 'path';
+import 'source-map-support/register.js';
 import url from 'url';
+
+import { Logger, SmythRuntime, version } from '@smythos/sre';
 
 // Core imports
 import config from '@core/config';
@@ -17,7 +19,6 @@ import { startServers } from '@core/management-router';
 import cors from '@core/middlewares/cors.mw';
 import { errorHandler, notFoundHandler } from '@core/middlewares/error.mw';
 import RateLimiter from '@core/middlewares/rateLimiter.mw';
-import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
 import { requestContext } from '@core/services/request-context';
 
 import { registerConnectors } from '@core/connectors/connectorRegistry';
@@ -72,7 +73,12 @@ const sre = SmythRuntime.Instance.init({
   Account: {
     Connector: 'SmythOSSAccount',
     Settings: {
-      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + '/_sysapi',
+      oAuthAppID: config.env.LOGTO_M2M_APP_ID,
+      oAuthAppSecret: config.env.LOGTO_M2M_APP_SECRET,
+      oAuthBaseUrl: `${config.env.LOGTO_SERVER}/oidc/token`,
+      oAuthResource: config.env.LOGTO_API_RESOURCE,
+      oAuthScope: '',
+      smythAPIBaseUrl: `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi`,
     },
   },
   Vault: {
@@ -96,7 +102,7 @@ const sre = SmythRuntime.Instance.init({
     Settings: {
       agentStageDomain: config.env.DEFAULT_AGENT_DOMAIN || '',
       agentProdDomain: config.env.PROD_AGENT_DOMAIN || '',
-      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL + '/_sysapi',
+      smythAPIBaseUrl: `${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi`,
     },
   },
   Log: {
@@ -160,20 +166,19 @@ app.use(
   }),
 );
 
-app.use(uploadHandler);
 app.use(RateLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 // Health endpoint
 app.get('/health', (req: any, res) => {
-  let agent_domain = config.env.DEFAULT_AGENT_DOMAIN;
-  if (config.env.AGENT_DOMAIN_PORT) agent_domain += `:${config.env.AGENT_DOMAIN_PORT}`;
+  let agentDomain = config.env.DEFAULT_AGENT_DOMAIN;
+  if (config.env.AGENT_DOMAIN_PORT) agentDomain += `:${config.env.AGENT_DOMAIN_PORT}`;
 
   res.send({
     message: 'Health Check Complete',
     hostname: req.hostname,
-    agent_domain,
+    agent_domain: agentDomain,
     success: true,
     node: port?.toString()?.substr(2),
     name: 'smythos-runtime-server',

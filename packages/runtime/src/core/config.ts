@@ -1,41 +1,44 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+import dotenvFlow from 'dotenv-flow';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+dotenvFlow.config({
+  files: ['../../.env', '../.env'],
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const config = {
   env: {
-    PORT: parseInt(process.env.PORT || "5053"),
+    PORT: parseInt(process.env.RUNTIME_PORT || '5053', 10),
     // Required environment variables
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     LOGTO_SERVER: process.env.LOGTO_SERVER,
     LOGTO_API_RESOURCE: process.env.LOGTO_API_RESOURCE,
-    MIDDLEWARE_API_BASE_URL: process.env.MIDDLEWARE_API_BASE_URL,
-    NODE_ENV: process.env?.NODE_ENV || "development",
+    MIDDLEWARE_API_BASE_URL: `http://localhost:${process.env.MIDDLEWARE_API_PORT}`,
+    NODE_ENV: process.env?.NODE_ENV || 'development',
 
     ADMIN_PORT: process.env.ADMIN_PORT || 5054,
 
-    BASE_URL: process.env.BASE_URL || "http://localhost:5053",
+    BASE_URL: process.env.RUNTIME_DOMAIN || `http://localhost:${process.env.RUNTIME_PORT}`,
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
     DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN || 'localagent.stage.smyth.ai',
-    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT || 5053,
+    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT || process.env.RUNTIME_PORT,
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
 
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,
     MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 10,
 
-    UI_SERVER: process.env.UI_SERVER || "http://localhost:4000",
+    // UI_SERVER: process.env.UI_SERVER || 'http://localhost:4000',
+    UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, "../../data"),
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../data'),
 
-    SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || "combined",
+    SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },
 };
 

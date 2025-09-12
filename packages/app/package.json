@@ -10,8 +10,10 @@
     "build:backend:prod": "rollup --config ./scripts/build/prod/rollup-be.config.mjs",
     "build:css": "tailwindcss build -i src/builder-ui/styles/tailwind-v2.css -o dist/assets/css/tailwind-v2.css -c ./scripts/build/shared/tailwind-v2.config.js",
     "preview": "node ./dist/server/index.js",
+    "start": "cross-env LOCAL_MODE=false NODE_ENV=production node ./dist/server/index.js",
     "bundle:prod": "pnpm run build:backend:prod && pnpm run build:css && pnpm run build:frontend:prod",
     "bundle:dev": "pnpm run build:backend && pnpm run build:css && pnpm run build:frontend",
+    "build": "pnpm run bundle:prod",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "knip": "knip",
     "prepare:staging": "pnpm version patch --no-git-tag-version",
@@ -19,7 +21,7 @@
     "type-check": "tsc --noEmit --skipLibCheck",
     "type-check:all": "tsc --noEmit --skipLibCheck && tsc --noEmit --skipLibCheck ",
     "dev:react": "cd src/react && pnpm run dev",
-    "dev": "concurrently --kill-others-on-fail -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan,magenta \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
+    "dev": "cross-env LOCAL_MODE=true concurrently --kill-others-on-fail -n VIEWS,SERVER,BUILDER-UI,REACT -c blue,magenta,green,cyan \"nodemon --config ./scripts/watch/nodemon-views.json\" \"nodemon --config ./scripts/watch/nodemon-be.json\" \"nodemon --config ./scripts/watch/nodemon-vanilla.json\" \"pnpm run dev:react\""
   },
   "type": "module",
   "author": "Alaa-eddine KADDOURI",
@@ -67,6 +69,7 @@
     "cronstrue": "^2.50.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.3.1",
+    "dotenv-flow": "^4.1.0",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-rate-limit": "^7.2.0",

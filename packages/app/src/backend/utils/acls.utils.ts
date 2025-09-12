@@ -1,10 +1,8 @@
 import Joi from 'joi';
+import { cloneDeep } from 'lodash-es';
 import { AclRule, CombinedAclRules, DefaultRole } from '../../shared/constants/acl.constant';
 import config from '../config';
-import { cloneDeep } from 'lodash-es';
-import templateAcls from '../../shared/constants/acl.constant.json';
-export { isDefaultRole } from './default.acls';
-export { getDefaultRoleAcls } from './default.acls';
+export { getDefaultRoleAcls, isDefaultRole } from './default.acls';
 
 type Rules = {
   [key: string]: AclRule;
@@ -157,7 +155,7 @@ export function getObjValue(obj: { [key: string]: any }, key: string): any {
         }
       }
     } catch (error) {
-      console.error('Error creating regex from path:', error);
+      console.error('Error creating regex from path:', error?.message);
       // Fallback to simple prefix matching if regex fails
       for (const objKey in obj) {
         if (objKey.startsWith(key)) {

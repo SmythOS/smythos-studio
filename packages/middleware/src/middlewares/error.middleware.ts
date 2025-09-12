@@ -1,6 +1,5 @@
-import httpStatus from 'http-status';
 import { ErrorRequestHandler } from 'express';
-import { LOGGER } from '../../config/logging';
+import httpStatus from 'http-status';
 import { config } from '../../config/config';
 // import trafficCustomMetrics from '../metrices/custom/traffic.custom.metrices';
 
@@ -22,7 +21,7 @@ const errorHandler: ErrorRequestHandler = (err: any, _req, res, _next: any) => {
     ...(errKey && { errKey }),
   };
 
-  LOGGER.error(new Error(`[${err.statusCode}] ${err.message} ${err.stack}`));
+  // LOGGER.error(new Error(`[${err.statusCode}] ${err.message} ${err.stack}`));
 
   // trafficCustomMetrics.errorCounter.labels({ method: _req.method, path: _req.path, status: statusCode ?? httpStatus.INTERNAL_SERVER_ERROR }).inc();
 

@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import winston from 'winston';
 
 function createBaseLogger() {
@@ -38,4 +37,4 @@ LOGGER.on('error', err => {
   console.error(err);
 });
 
-export { LOGGER, createLabeledLogger };
+export { createLabeledLogger, LOGGER };

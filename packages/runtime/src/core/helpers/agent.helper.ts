@@ -1,13 +1,12 @@
 import axios from 'axios';
 import config from '../config';
 
-import { Logger } from '@smythos/sre';
+import { AccessCandidate, ConnectorService, Logger } from '@smythos/sre';
 
 import { includeAuth, mwSysAPI } from '../services/smythAPIReq';
 import { getM2MToken } from './logto.helper';
 
 import { AGENT_AUTH_SETTINGS_KEY, MOCK_DATA_SETTINGS_KEY, PROD_VERSION_VALUES, TEST_VERSION_VALUES } from '@core/constants';
-import { AccessCandidate, ConnectorService } from '@smythos/sre';
 import { defaultFileParsingAgent } from '../default-file-parsing-agent';
 
 const logger = Logger('(Core) Service: Agent Helper');
@@ -109,7 +108,7 @@ export async function getAgentEmbodiments(agentID) {
 
 export async function getAgentIdByDomain(domain = '') {
   let agentId;
-  //first check if this is the internal wildcard agents domain
+  // first check if this is the internal wildcard agents domain
   const isStageWildcardDomain = domain.includes(config.env.DEFAULT_AGENT_DOMAIN);
   const isProdWildcardDomain = domain.includes(config.env.PROD_AGENT_DOMAIN);
   if (isStageWildcardDomain || isProdWildcardDomain) {
@@ -143,7 +142,7 @@ export async function getAgentIdByDomain(domain = '') {
 function migrateAgentData(data) {
   if (!data.version) {
     const newData = JSON.parse(JSON.stringify(data));
-    for (let component of newData.components) {
+    for (const component of newData.components) {
       component.outputs = component.connectors;
       component.inputs = component.receptors;
       component.outputProps = component.connectorProps;
@@ -158,7 +157,8 @@ function migrateAgentData(data) {
 
   if (data.version === '1.0.0') {
     if (data.description && !data.behavior) {
-      data.behavior = data.description;
+      const newData = { ...data, behavior: data.description };
+      return newData;
     }
   }
 
@@ -169,10 +169,8 @@ export async function getAgentDataById(agentID, version) {
   try {
     const token = (await getM2MToken('https://api.smyth.ai')) as string;
 
-    let agentObj;
-
     const response = await mwSysAPI.get(`/ai-agent/${agentID}?include=team.subscription`, includeAuth(token));
-    agentObj = response.data.agent;
+    const agentObj = response.data.agent;
     const authData = agentObj.data.auth;
 
     // const tasksResponse = await mwSysAPI.get(
@@ -221,10 +219,10 @@ export function addDefaultComponentsAndConnections(agentData) {
 
 async function fetchAgentAuthData(agentId: string) {
   const accountConnector = ConnectorService.getAccountConnector();
-  return await accountConnector.user(AccessCandidate.agent(agentId)).getAgentSetting(AGENT_AUTH_SETTINGS_KEY);
+  return accountConnector.user(AccessCandidate.agent(agentId)).getAgentSetting(AGENT_AUTH_SETTINGS_KEY);
 }
 
-export async function getAgentAuthData(agentId: string) {
+async function getAgentAuthData(agentId: string) {
   const freshSettings = await fetchAgentAuthData(agentId);
   return JSON.parse(freshSettings || '{}');
 }

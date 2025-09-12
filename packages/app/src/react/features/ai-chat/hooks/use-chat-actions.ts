@@ -12,9 +12,9 @@ interface UseChatActionsProps {
 }
 
 interface UseChatActionsReturn {
-  chatHistoryMessages: IChatMessage[];
+  messagesHistory: IChatMessage[];
   isGenerating: boolean;
-  isQueryInputProcessing: boolean;
+  isInputProcessing: boolean;
   isRetrying: boolean;
   sendMessage: (message: string, attachedFiles?: FileWithMetadata[]) => Promise<void>; // eslint-disable-line no-unused-vars
   retryLastMessage: () => void;
@@ -34,9 +34,9 @@ export const useChatActions = ({
   avatar,
   onChatComplete,
 }: UseChatActionsProps): UseChatActionsReturn => {
-  const [chatHistoryMessages, setChatHistoryMessages] = useState<IChatMessage[]>([]);
+  const [messagesHistory, setMessagesHistory] = useState<IChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isQueryInputProcessing, setIsQueryInputProcessing] = useState(false);
+  const [isInputProcessing, setIsInputProcessing] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Store both message and attached files for retry functionality
@@ -44,7 +44,7 @@ export const useChatActions = ({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const clearMessages = useCallback(() => {
-    setChatHistoryMessages([]);
+    setMessagesHistory([]);
     lastUserMessageRef.current = { message: '', attachedFiles: [] };
   }, []);
 
@@ -54,7 +54,7 @@ export const useChatActions = ({
       abortControllerRef.current = null;
     }
     setIsGenerating(false);
-    setIsQueryInputProcessing(false);
+    setIsInputProcessing(false);
   }, []);
 
   const sendMessage = useCallback(
@@ -69,7 +69,7 @@ export const useChatActions = ({
 
       // Add user message to chat history
       if (message.trim()) {
-        setChatHistoryMessages((prev) => {
+        setMessagesHistory((prev) => {
           const newMessage: IChatMessage = {
             me: true,
             message: message.replace(/\n/g, '\n'),
@@ -79,13 +79,13 @@ export const useChatActions = ({
           return [...prev, newMessage];
         });
       } else if (attachedFiles?.length) {
-        setChatHistoryMessages((prev) => {
+        setMessagesHistory((prev) => {
           const newMessage: IChatMessage = {
             me: true,
             message: '',
             type: 'user',
             files: attachedFiles,
-            hideMessageBubble: true,
+            hideMessage: true,
           };
           return [...prev, newMessage];
         });
@@ -100,10 +100,10 @@ export const useChatActions = ({
         isReplying: true,
       };
 
-      setChatHistoryMessages((prev) => [...prev, replyMessage]);
+      setMessagesHistory((prev) => [...prev, replyMessage]);
 
       try {
-        setIsQueryInputProcessing(true);
+        setIsInputProcessing(true);
         setIsGenerating(true);
 
         abortControllerRef.current = new AbortController();
@@ -112,13 +112,19 @@ export const useChatActions = ({
         await chatUtils.generateResponse({
           agentId,
           query: message,
-          fileKeys: attachedFiles?.map((f) => f.metadata.key).filter(Boolean) as string[],
+          attachments: (attachedFiles || [])
+            .map((f) => ({
+              url: f.metadata.publicUrl,
+              name: f.file?.name,
+              type: f.metadata.fileType,
+              size: f.file?.size,
+            }))
+            .filter((a) => !!a.url),
           chatId,
           signal,
           onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
-            setChatHistoryMessages((bubbles) => {
-              // Only remove thinking messages and clean message when we have actual content
-              // This ensures debug messages are preserved until content starts arriving
+            setMessagesHistory((bubbles) => {
+              // Only remove thinking messages if we have actual content
               if (value && value.trim() !== '') {
                 const filteredBubbles = bubbles.filter((msg) => msg.type !== 'thinking');
 
@@ -135,7 +141,7 @@ export const useChatActions = ({
                   updatedBubbles[lastSystemMessageIndex].message = value;
                   updatedBubbles[lastSystemMessageIndex].isReplying = false;
                   updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
-                  updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false; // Show the message bubble
+                  updatedBubbles[lastSystemMessageIndex].hideMessage = false; // Show the message bubble
                   updatedBubbles[lastSystemMessageIndex].thinkingMessage = undefined; // Clear thinking message
                   return updatedBubbles;
                 }
@@ -147,7 +153,7 @@ export const useChatActions = ({
             });
           },
           onThinking: (thinking) => {
-            setChatHistoryMessages((bubbles) => {
+            setMessagesHistory((bubbles) => {
               // Find the last system message index
               const lastSystemIndex =
                 bubbles
@@ -167,7 +173,7 @@ export const useChatActions = ({
             });
           },
           onStart: () => {
-            setChatHistoryMessages((prev) => {
+            setMessagesHistory((prev) => {
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage && lastMessage.type === 'system') {
@@ -179,7 +185,7 @@ export const useChatActions = ({
             });
           },
           onEnd: () => {
-            setChatHistoryMessages((prev) => {
+            setMessagesHistory((prev) => {
               // Remove thinking messages when response is complete
               const filteredMessages = prev.filter((msg) => msg.type !== 'thinking');
               const newMessages = [...filteredMessages];
@@ -205,7 +211,7 @@ export const useChatActions = ({
         });
       } catch (error) {
         if (error.name === 'AbortError') {
-          setChatHistoryMessages((prev) => {
+          setMessagesHistory((prev) => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];
             if (lastMessage) {
@@ -215,7 +221,7 @@ export const useChatActions = ({
             return newMessages;
           });
         } else {
-          setChatHistoryMessages((prev) => {
+          setMessagesHistory((prev) => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];
             if (lastMessage) {
@@ -227,7 +233,7 @@ export const useChatActions = ({
           });
         }
       } finally {
-        setIsQueryInputProcessing(false);
+        setIsInputProcessing(false);
         setIsRetrying(false);
         setIsGenerating(false);
       }
@@ -241,10 +247,8 @@ export const useChatActions = ({
       lastMessage.message ||
       (lastMessage.attachedFiles && lastMessage.attachedFiles.length > 0)
     ) {
-      setIsRetrying(true);
-
       // Remove the last error message and replace it with a new AI response message
-      setChatHistoryMessages((prev) => {
+      setMessagesHistory((prev) => {
         const newMessages = [...prev];
         const lastMessageIndex = newMessages.length - 1;
 
@@ -266,7 +270,7 @@ export const useChatActions = ({
       // Retry the API call without adding a new user message
       const retryApiCall = async () => {
         try {
-          setIsQueryInputProcessing(true);
+          setIsInputProcessing(true);
           setIsGenerating(true);
 
           abortControllerRef.current = new AbortController();
@@ -275,13 +279,18 @@ export const useChatActions = ({
           await chatUtils.generateResponse({
             agentId,
             query: lastMessage.message,
-            fileKeys: lastMessage.attachedFiles
-              ?.map((f) => f.metadata.key)
-              .filter(Boolean) as string[],
+            attachments: (lastUserMessageRef.current.attachedFiles || [])
+              .map((f) => ({
+                url: f.metadata.publicUrl,
+                name: f.file?.name,
+                type: f.metadata.fileType,
+                size: f.file?.size,
+              }))
+              .filter((a) => !!a.url),
             chatId,
             signal,
             onResponse: (value: string, errorInfo?: { isError?: boolean; errorType?: string }) => {
-              setChatHistoryMessages((bubbles) => {
+              setMessagesHistory((bubbles) => {
                 // Only remove thinking messages if we have actual content
                 if (value && value.trim() !== '') {
                   const filteredBubbles = bubbles.filter((msg) => msg.type !== 'thinking');
@@ -299,7 +308,7 @@ export const useChatActions = ({
                     updatedBubbles[lastSystemMessageIndex].message = value;
                     updatedBubbles[lastSystemMessageIndex].isReplying = false;
                     updatedBubbles[lastSystemMessageIndex].isError = errorInfo?.isError || false;
-                    updatedBubbles[lastSystemMessageIndex].hideMessageBubble = false;
+                    updatedBubbles[lastSystemMessageIndex].hideMessage = false;
                     return updatedBubbles;
                   }
                   return filteredBubbles;
@@ -310,7 +319,7 @@ export const useChatActions = ({
               });
             },
             onThinking: (thinking) => {
-              setChatHistoryMessages((bubbles) => {
+              setMessagesHistory((bubbles) => {
                 // Find the last system message index
                 const lastSystemIndex =
                   bubbles
@@ -342,7 +351,7 @@ export const useChatActions = ({
                     // Insert after the last system message
                     newBubbles.splice(lastSystemIndex + 1, 0, thinkingMessage);
                     // Hide the system message when thinking starts
-                    newBubbles[lastSystemIndex].hideMessageBubble = true;
+                    newBubbles[lastSystemIndex].hideMessage = true;
                     newBubbles[lastSystemIndex].isReplying = false;
                   } else {
                     // Add at the end if no system message
@@ -354,7 +363,7 @@ export const useChatActions = ({
               });
             },
             onStart: () => {
-              setChatHistoryMessages((prev) => {
+              setMessagesHistory((prev) => {
                 const newMessages = [...prev];
                 const lastMessage = newMessages[newMessages.length - 1];
                 if (lastMessage && lastMessage.type === 'system') {
@@ -364,7 +373,7 @@ export const useChatActions = ({
               });
             },
             onEnd: () => {
-              setChatHistoryMessages((prev) => {
+              setMessagesHistory((prev) => {
                 // Remove thinking messages when response is complete
                 const filteredMessages = prev.filter((msg) => msg.type !== 'thinking');
                 const newMessages = [...filteredMessages];
@@ -382,7 +391,7 @@ export const useChatActions = ({
           });
         } catch (error) {
           if (error.name === 'AbortError') {
-            setChatHistoryMessages((prev) => {
+            setMessagesHistory((prev) => {
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage) {
@@ -392,32 +401,33 @@ export const useChatActions = ({
               return newMessages;
             });
           } else {
-            setChatHistoryMessages((prev) => {
+            setMessagesHistory((prev) => {
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage) {
                 lastMessage.isReplying = false;
-                lastMessage.message = CHAT_ERROR_MESSAGE;
+                lastMessage.message = error.error || error.message || CHAT_ERROR_MESSAGE;
                 lastMessage.isError = true;
               }
               return newMessages;
             });
           }
         } finally {
-          setIsQueryInputProcessing(false);
+          setIsInputProcessing(false);
           setIsRetrying(false);
           setIsGenerating(false);
         }
       };
 
       retryApiCall();
+      setIsRetrying(false);
     }
   }, [agentId, chatId, avatar, onChatComplete]);
 
   return {
-    chatHistoryMessages,
+    messagesHistory,
     isGenerating,
-    isQueryInputProcessing,
+    isInputProcessing,
     isRetrying,
     sendMessage,
     retryLastMessage,

@@ -130,9 +130,7 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
       res.end();
     });
 
-    proxyRes.on('error', (error: Error) => {
-      console.error('SSE Response stream error:', error);
-    });
+    proxyRes.on('error', (error: Error) => {});
 
     // Monitor client disconnection
     req.on('close', () => {});
@@ -140,7 +138,7 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
 
   // Error handling
   onError: (err: Error, req: any, res: any) => {
-    console.error('SSE Proxy Error:', err);
+    // console.error('SSE Proxy Error:', err);
 
     if (!res.headersSent) {
       res.writeHead(200, {
@@ -154,7 +152,7 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
       message: 'Proxy connection error',
       details: err.message,
     })}\n\n`;
-    console.log('Sending error message:', errorMessage);
+    // console.log('Sending error message:', errorMessage);
     res.write(errorMessage);
   },
 
@@ -243,7 +241,7 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
     await pipelineAsync(fileStream, res);
   } catch (error: any) {
     // if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
-    console.error('Error streaming file:', error);
+    console.error('Error streaming file /file-proxy:', error?.message);
     if (!res.headersSent) res.status(500).send('Error streaming file');
     // }
   }
