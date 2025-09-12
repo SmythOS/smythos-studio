@@ -1971,15 +1971,21 @@ export class Workspace extends EventEmitter {
     const viewport = document.querySelector('#workspace-container'); // Adjust if the ID is different
     const viewportRect = viewport.getBoundingClientRect();
 
-    // Check if component is not in the viewport
+    // Check if component is not in the viewport or behind left sidebar
+    const isLeftSidebarOpen =
+      window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
+    const isBehindSidebar = isLeftSidebarOpen && componentRect.left < viewportRect.left + 400;
+
     if (
       componentRect.top < viewportRect.top ||
       componentRect.left < viewportRect.left ||
       componentRect.bottom > viewportRect.bottom ||
-      componentRect.right > viewportRect.right
+      componentRect.right > viewportRect.right ||
+      isBehindSidebar
     ) {
       // Calculate the difference in position and adjust by the scale
-      const deltaX = (viewportRect.left - componentRect.left + 100) / scale;
+      const sidebarOffset = isLeftSidebarOpen ? 400 : 0;
+      const deltaX = (viewportRect.left - componentRect.left + 100 + sidebarOffset) / scale;
       const deltaY = (viewportRect.top - componentRect.top + 100) / scale;
 
       // Get the current Panzoom translation values
