@@ -320,11 +320,22 @@ export class StateManager {
       //FIXME: find a better way to do wait for endpoints to be created
 
       let restorableConnections = [];
-      //combine saveConnections and state.remove?.connections and deduplicate them
+      // Combine connections captured before deletion with those recorded in state
       restorableConnections.push(...saveConnections, ...state.remove?.connections);
+      // Deduplicate using component ids AND endpoint indexes.
+      // Previously, we only keyed by sourceId/targetId which collapsed multiple edges
+      // between the same two components (e.g., Output[0]->Input[0], Output[1]->Input[1]).
+      // Including indexes guarantees each distinct edge is restored.
       restorableConnections = restorableConnections.filter(
         (c, index, self) =>
-          index === self.findIndex((t) => t.sourceId === c.sourceId && t.targetId === c.targetId),
+          index ===
+          self.findIndex(
+            (t) =>
+              t.sourceId === c.sourceId &&
+              t.targetId === c.targetId &&
+              t.sourceIndex === c.sourceIndex &&
+              t.targetIndex === c.targetIndex,
+          ),
       );
 
       //restore saved connections of updated components

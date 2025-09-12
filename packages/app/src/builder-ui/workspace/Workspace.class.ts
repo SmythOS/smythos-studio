@@ -1718,11 +1718,44 @@ export class Workspace extends EventEmitter {
         const conId = `${connection.sourceId}.${connection.sourceIndex}:${connection.targetId}.${connection.targetIndex}`;
         if (connections[conId]) return; //skip existing connections ==> avoid duplicate connections
 
+        /**
+         * Resolve endpoint identifiers by endpoint name during import.
+         *
+         * Background:
+         * - Connections are persisted using numeric endpoint indices (DOM order).
+         * - After users reorder inputs/outputs, DOM order can differ on reload.
+         * - Restoring by indices alone may connect wrong endpoints.
+         *
+         * Approach:
+         * - Translate saved indices to endpoint names using the saved components arrays.
+         * - Prefer names when calling addConnection (names are stable across reorder).
+         * - Fall back to indices if name lookup fails (backward compatibility / robustness).
+         */
+        // Build component id => component config map lazily (cached on configuration)
+        if (!(<any>configuration)._compById) {
+          (<any>configuration)._compById = Object.fromEntries(
+            configuration.components.map((c) => [c.id, c]),
+          );
+        }
+        const compById: Record<string, any> = (<any>configuration)._compById;
+
+        // Prefer resolving to endpoint names from saved components; if not found, keep the numeric index
+        const resolvedSource =
+          typeof connection.sourceIndex === 'number'
+            ? compById?.[connection.sourceId]?.outputs?.[connection.sourceIndex]?.name ??
+            connection.sourceIndex
+            : connection.sourceIndex;
+        const resolvedTarget =
+          typeof connection.targetIndex === 'number'
+            ? compById?.[connection.targetId]?.inputs?.[connection.targetIndex]?.name ??
+            connection.targetIndex
+            : connection.targetIndex;
+
         const con = this.addConnection(
           connection.sourceId,
           connection.targetId,
-          connection.sourceIndex,
-          connection.targetIndex,
+          resolvedSource,
+          resolvedTarget,
           false,
         );
         connections[conId] = con;
