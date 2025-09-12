@@ -1,3 +1,4 @@
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useRef, useState } from 'react';
 import { CopyKeyIcon, DeleteKeyIcon, InfoIcon } from '../../shared/components/svgs';
@@ -165,10 +166,7 @@ const LlmEmbodimentModal: React.FC<LlmEmbodimentModalProps> = ({
   const codeRef = useRef<HTMLTextAreaElement>(null);
 
   // --- Constants ---
-  const baseUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'https://llm.emb.smyth.ai'
-      : 'https://llm.emb-stg.smyth.ai';
+  const baseUrl = builderStore.getState().serverStatus.embodimentUrl;
   const agentId = agent.id;
   const queryClient = useQueryClient();
 

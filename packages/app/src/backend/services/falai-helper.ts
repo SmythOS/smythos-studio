@@ -81,14 +81,18 @@ export async function autoGenerateAvatarForAgent(req, agentId: string, teamId: s
   const publicUrl = uploaded.url;
 
   // save the avatar in the agent settings
-  await smythAPIReq.put(
-    `/ai-agent/${agentId}/settings`,
-    {
-      key: 'avatar',
-      value: publicUrl,
-    },
-    await authHeaders(req),
-  );
+  await smythAPIReq
+    .put(
+      `/ai-agent/${agentId}/settings`,
+      {
+        key: 'avatar',
+        value: publicUrl,
+      },
+      await authHeaders(req),
+    )
+    .catch((error) => {
+      console.error('Error saving avatar to agent settings', error?.message);
+    });
 
   return publicUrl;
 }

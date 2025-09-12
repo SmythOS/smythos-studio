@@ -33,6 +33,11 @@ const config = {
     APP_DEV_SERVER_PORT: +process.env.APP_DEV_SERVER_PORT || APP_PORT + 1,
     NODE_ENV: transformEnv(process.env.NODE_ENV),
     API_SERVER: process.env.API_SERVER || `http://localhost:${process.env.RUNTIME_PORT}`,
+    EMBODIMENT_SERVER_BASE_URL:
+      process.env.EMBODIMENT_SERVER_BASE_URL ||
+      process.env.API_SERVER ||
+      `http://localhost:${process.env.RUNTIME_PORT}`,
+
     SMYTH_API_BASE_URL: MW_BASE_URL,
 
     // OPTIONAL KEYS

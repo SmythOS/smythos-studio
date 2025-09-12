@@ -3,24 +3,22 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "Ahmed Essam",
   "license": "ISC",
   "packageManager": "pnpm@10.12.2",
 
   "scripts": {
-    "dev": "pnpm -r dev",
-    "build": "pnpm -r build",
-    "start": "pnpm -r start"
-
+   
+    "dev": "pnpm --parallel --recursive dev",
+    "build": "pnpm --parallel --recursive build",
+    "start": "pnpm --parallel --recursive start"
   },
   "workspaces": [
     "packages/*"
   ],
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "concurrently": "^9.1.0"
   }
 }

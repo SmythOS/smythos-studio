@@ -92,7 +92,7 @@ router.post('/checkAuth', includeTeamDetails, async (req, res) => {
       res.status(404).send('No existing OAuth settings found.');
     }
   } catch (error) {
-    console.error('Error during comparing oauth values:', error);
+    console.error('Error during comparing oauth values:', error?.message);
     // Send a 500 Internal Server Error response with an error message.
     res.status(500).send('Failed to compare oauth values.');
   }
@@ -158,7 +158,8 @@ router.post('/init', includeTeamDetails, oauthStrategyInitialization, async (req
 
       if (requestTokenURL) oauthParams.requestTokenURL = encodeURIComponent(requestTokenURL);
       if (accessTokenURL) oauthParams.accessTokenURL = encodeURIComponent(accessTokenURL);
-      if (userAuthorizationURL) oauthParams.userAuthorizationURL = encodeURIComponent(userAuthorizationURL);
+      if (userAuthorizationURL)
+        oauthParams.userAuthorizationURL = encodeURIComponent(userAuthorizationURL);
 
       authUrl +=
         '?' +
@@ -172,7 +173,7 @@ router.post('/init', includeTeamDetails, oauthStrategyInitialization, async (req
     // console.log({ authUrl })
     res.json({ authUrl });
   } catch (error) {
-    console.error('Error in /init route:', error);
+    console.error('Error in /init route:', error?.message);
     res.status(500).json({ error: 'Failed to initialize authentication' });
   }
 });
@@ -241,7 +242,7 @@ router.get('/:provider', async (req, res, next) => {
       // For example, redirect or respond with a message
     })(req, res, next);
   } catch (error) {
-    console.error('Error during authentication process:', error);
+    console.error('Error during authentication process:', error?.message);
     return res.status(500).send('Failed to initiate authentication.');
   }
 });
@@ -272,8 +273,8 @@ function getCallbackOrigin(req: express.Request): string {
   }
 
   // For development, if running on localhost:4000 (backend), assume frontend is on 4002
-  const callbackUrl = req.session?.oauth_info?.oauth2CallbackURL ||
-    req.session?.oauth_info?.oauth1CallbackURL;
+  const callbackUrl =
+    req.session?.oauth_info?.oauth2CallbackURL || req.session?.oauth_info?.oauth1CallbackURL;
 
   if (callbackUrl && callbackUrl.includes('localhost:4000')) {
     return 'http://localhost:4002';
@@ -350,7 +351,7 @@ router.get('/:provider/callback', async (req, res, next) => {
       await handleTokenStorage(req.session, user, req);
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error);
+      console.error('Error exchanging code for tokens:', error?.message);
       const origin = getCallbackOrigin(req);
       res.send(`
         <script>
@@ -400,7 +401,7 @@ router.get('/:provider/callback', async (req, res, next) => {
         await handleTokenStorage(req.session, user, req);
         handleSuccessfulAuthentication(req.session.strategyType, res);
       } catch (error) {
-        console.error('Error in callback route:', error);
+        console.error('Error in callback route:', error?.message);
         const errorMessage = `${error.message || 'Unknown error'}.`;
         const origin = getCallbackOrigin(req);
         const errorScript = `
@@ -478,12 +479,17 @@ async function handleTokenStorage(session, oauthUser, req) {
     const settingKey = 'oauth';
     await handleOAuthOperation(settingKey, entryId, tokensData, req);
   } catch (error) {
-    console.error('Error in handleTokenStorage:', error);
+    console.error('Error in handleTokenStorage:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
 
-async function handleOAuthOperation(settingKey: string, entryId: string, newDataFromAuthFlow: any, req: express.Request) {
+async function handleOAuthOperation(
+  settingKey: string,
+  entryId: string,
+  newDataFromAuthFlow: any,
+  req: express.Request,
+) {
   try {
     const existingSettings = await getTeamSettingsObj(req, settingKey);
     const existingEntryData = existingSettings?.[entryId] || {};
@@ -514,15 +520,19 @@ async function handleOAuthOperation(settingKey: string, entryId: string, newData
 
     // Ensure oauth_info is merged correctly if it exists in both
     if ((baseSettings as any).oauth_info && newSettingsFromAuthFlow.oauth_info) {
-      mergedSettings.oauth_info = { ...(baseSettings as any).oauth_info, ...newSettingsFromAuthFlow.oauth_info };
+      mergedSettings.oauth_info = {
+        ...(baseSettings as any).oauth_info,
+        ...newSettingsFromAuthFlow.oauth_info,
+      };
     }
 
     // Preserve existing display metadata if missing in incoming data
-    if ((baseSettings as any).name && !mergedSettings.name) mergedSettings.name = (baseSettings as any).name;
-    if ((baseSettings as any).platform && !mergedSettings.platform) mergedSettings.platform = (baseSettings as any).platform;
+    if ((baseSettings as any).name && !mergedSettings.name)
+      mergedSettings.name = (baseSettings as any).name;
+    if ((baseSettings as any).platform && !mergedSettings.platform)
+      mergedSettings.platform = (baseSettings as any).platform;
     // Ensure name key exists to classify as named (even if empty)
     if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
-
 
     // Normalize
     mergedSettings = normalizeAuthSettings(mergedSettings);
@@ -574,7 +584,7 @@ function handleSuccessfulAuthentication(strategyType, res) {
       }, 500);
     </script>`);
   } catch (error) {
-    console.error('Error in handleSuccessfulAuthentication:', error);
+    console.error('Error in handleSuccessfulAuthentication:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
@@ -591,7 +601,7 @@ async function compareOAuthDetails(existing: Record<string, any>, req: express.R
   try {
     connectionData = typeof entryData === 'string' ? JSON.parse(entryData) : entryData;
   } catch (error) {
-    console.error('Error parsing target object:', error);
+    console.error('Error parsing target object:', error?.message);
     return false;
   }
 
@@ -628,7 +638,9 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
 
     const settings = await getTeamSettingsObj(req, 'oauth');
     if (!settings || !settings[entryId]) {
-      return res.status(404).json({ error: 'No existing OAuth settings found for the provided prefix.' });
+      return res
+        .status(404)
+        .json({ error: 'No existing OAuth settings found for the provided prefix.' });
     }
 
     // Parse existing data if it's a string
@@ -636,7 +648,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     try {
       existingData = typeof existingData === 'string' ? JSON.parse(existingData) : existingData;
     } catch (error) {
-      console.error('Error parsing existing settings:', error);
+      console.error('Error parsing existing settings:', error?.message);
       return res.status(500).json({ error: 'Invalid settings format' });
     }
 
@@ -666,7 +678,6 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
       if (updatedData.auth_data.expires_in === undefined) {
         delete updatedData.auth_data.expires_in;
       }
-
     } else {
       // Old structure: Clear tokens at the top level
       updatedData = {
@@ -681,12 +692,15 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     }
 
     // If tokens were already empty, respond without saving (optional optimization)
-    const currentPrimary = existingData.auth_data ? existingData.auth_data.primary : existingData.primary;
-    const currentSecondary = existingData.auth_data ? existingData.auth_data.secondary : existingData.secondary;
+    const currentPrimary = existingData.auth_data
+      ? existingData.auth_data.primary
+      : existingData.primary;
+    const currentSecondary = existingData.auth_data
+      ? existingData.auth_data.secondary
+      : existingData.secondary;
     if (currentPrimary === '' && currentSecondary === '') {
       return res.json({ invalidate: true, message: 'Already signed out.' });
     }
-
 
     // Save the updated settings
     const saveResult = await saveTeamSettingsObj({
@@ -703,12 +717,10 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
 
     return res.json({ invalidate: true, message: 'Signed out successfully.' });
   } catch (error) {
-    console.error('Error during sign out:', error);
+    console.error('Error during sign out:', error?.message);
     return res.status(500).json({ error: 'Failed to process Sign out. ' + error.message });
   }
 });
-
-
 
 async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
   try {
@@ -762,7 +774,7 @@ router.post('/client_credentials', includeTeamDetails, async (req, res) => {
 
     res.json({ success: true, message: 'OAuth2 Authentication was successful' });
   } catch (error) {
-    console.error('Error in client_credentials route:', error);
+    console.error('Error in client_credentials route:', error?.message);
     res.status(500).json({
       success: false,
       message: `OAuth2 Authentication was unsuccessful: ${error.message}`,

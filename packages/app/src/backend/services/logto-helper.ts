@@ -42,7 +42,7 @@ export function getM2MToken(resource?, scope?): Promise<string> {
         resolve(tokenData.access_token);
       })
       .catch((error) => {
-        reject({ error: error.response.data });
+        reject({ error: error?.response?.data });
       });
   });
 }

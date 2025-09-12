@@ -1,14 +1,14 @@
+import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
 import { createFilter } from '@rollup/pluginutils';
 import path from 'path';
+import copy from 'rollup-plugin-copy';
 import esbuild from 'rollup-plugin-esbuild';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import typescriptPaths from 'rollup-plugin-typescript-paths';
-import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
 import pkg from './package.json';
-import copy from 'rollup-plugin-copy';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const format = process.env.FORMAT || 'es';
@@ -139,6 +139,9 @@ if (format === 'cjs') {
 }
 
 const config = isProduction ? prodConfig : devConfig;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+config.onwarn = (warning, warn) => {};
 
 export default config;
 

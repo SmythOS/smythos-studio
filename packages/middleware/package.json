@@ -1,5 +1,5 @@
 {
-  "name": "smythos-core-api",
+  "name": "middleware",
   "version": "1.4.281",
   "description": "",
   "main": "index.js",
@@ -19,7 +19,7 @@
     "prisma:deploy": "env-cmd -f ../../.env prisma migrate deploy --schema ./prisma/schema.prisma",
     "build": "rollup -c",
     "dev": "pnpm prisma:migrate && nodemon",
-    "start": "node -r esbuild-register dist/index.js",
+    "start": "pnpm prisma:migrate && node -r esbuild-register dist/index.js",
     "start:prod": "node -r esbuild-register dist/index.js",
     "script": "node -r esbuild-register",
     "format": "prettier --write \"**/*.ts\"",

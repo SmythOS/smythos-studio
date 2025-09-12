@@ -88,7 +88,7 @@ export const getUserCurrentTeamId = async (
       userSelectedTeam: userSelectedTeam || userTeam?.id || null,
     };
   } catch (error) {
-    console.error('Error fetching user current team ID:', error);
+    // console.error('Error fetching user current team ID:', error?.message);
     // throw new Error('Failed to fetch user current team ID');
     return emptyResponse;
   }
@@ -143,8 +143,8 @@ export const forwardToSmythAPIMiddleware = (options?: {
         url: options?.endpointBuilder
           ? options.endpointBuilder(req)
           : options?.useFullEndpoint
-          ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
-          : req.url,
+            ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
+            : req.url,
         data: req.body,
         ...(await authHeaders(req)),
       };
@@ -180,8 +180,8 @@ export const forwardToSmythM2MAPIMiddleware = (options?: {
         url: options?.endpointBuilder
           ? options.endpointBuilder(req)
           : options?.useFullEndpoint
-          ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
-          : req.url,
+            ? req.originalUrl.replace('/api/page', '') //! SHOULD BE HANDLED IN A CONFIG FILE OR SOMETHING
+            : req.url,
         data: req.body,
         ...includeAxiosAuth(token),
       };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { google, sheets_v4, Auth } from 'googleapis';
+import { Auth, google, sheets_v4 } from 'googleapis';
 import config from '../../../config';
 
 const router: Router = Router();
@@ -76,7 +76,7 @@ router.post('/getSheetNames', async (req: any, res: any) => {
 
     res.json(sheetNamesAndIds);
   } catch (error) {
-    console.error('Error fetching sheet names:', error);
+    console.error('Error fetching sheet names:', error?.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 }); // function ends here

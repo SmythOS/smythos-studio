@@ -80,7 +80,7 @@ async function getUserLLMModels(req: Request) {
       models[modelId] = modelTpl;
     }
   } catch (error) {
-    console.error('Error getting User LLMs', error);
+    console.error('Error getting User LLMs', error?.message);
   }
 
   return models;

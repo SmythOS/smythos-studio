@@ -1,6 +1,6 @@
 import express from 'express';
-import { authHeaders, smythAPIReq } from '../utils';
 import { Team, TeamUserRole } from '../types/smyth-middleware';
+import { authHeaders, smythAPIReq } from '../utils';
 
 export async function pageAuth(
   req: express.Request | any,
@@ -49,7 +49,7 @@ export async function includeTeamDetails(req: any, res: any, next: any) {
     req._team = team;
     next();
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }

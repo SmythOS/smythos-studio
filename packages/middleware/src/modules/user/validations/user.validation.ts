@@ -51,6 +51,6 @@ export const getSettingsM2M = {
 
 export const getUserM2M = {
   params: Joi.object({
-    userId: Joi.number().required(),
+    userId: Joi.alternatives().try(Joi.number(), Joi.string()).required(),
   }),
 };
