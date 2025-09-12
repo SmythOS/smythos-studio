@@ -15,6 +15,7 @@ export enum FEATURE_FLAGS {
   ONBOARDING_CALLS_FOR_BUILDER_PLAN = 'onboarding-calls-for-builder-plan',
   GO_TO_DASHBOARD_FROM_ONBOARDING = 'go-to-dashboard-from-onboarding',
   TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT = 'test-form-try-debug-button-experiment',
+  TEST_WITH_DEBUG_COMPONENT_SIDEBAR = 'test-with-debug-component-sidebar',
 }
 
 export const FEATURE_FLAG_PAYLOAD_RELEASE_TYPE = {
