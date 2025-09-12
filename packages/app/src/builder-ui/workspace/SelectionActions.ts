@@ -22,10 +22,24 @@ export function isInteractionContextOK(): boolean {
 
 export function isOverDebugOutput(): boolean {
   const active = document.activeElement as HTMLElement | null;
-  if (!active) return true; // safety
-  if (active === document.body) return true; // same as before
-  // check if focus is inside our debug output consider
-  return !!active.closest('.dbg-element .dbg-textarea');
+
+  // Check if the active element is inside a debug textarea
+  if (active && active.closest('.dbg-element .dbg-textarea')) {
+    return true;
+  }
+
+  // Also check if the current selection is within a debug textarea
+  const selection = window.getSelection();
+  if (selection && selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const element = container.nodeType === Node.ELEMENT_NODE ? container as Element : container.parentElement;
+    if (element && element.closest('.dbg-textarea')) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function hasSelectedText(): boolean {
@@ -58,11 +72,16 @@ export function hasComponentSelection(): boolean {
 
 export function canCopy(workspace: Workspace): boolean {
   if (workspace.locked) return false;
-  // If text is selected in the debug output, allow copying
+
+  // Priority 1: If text is selected in the debug output (hover windows), allow copying
   if (isOverDebugOutput() && hasSelectedText()) return true;
 
   if (!isInteractionContextOK()) return false;
-  if (isEditableHover(workspace)) return false;
+
+  // Priority 2: Don't block copying if we're over debug output (hover windows)
+  // This fixes the issue where Ctrl+C didn't work in hover windows
+  if (isEditableHover(workspace) && !isOverDebugOutput()) return false;
+
   if (hasSelectedText()) return false;
   if (!hasComponentSelection()) return false;
   return true;

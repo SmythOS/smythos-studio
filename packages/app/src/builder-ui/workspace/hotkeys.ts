@@ -7,6 +7,9 @@ import {
   canPaste,
   copySelection,
   deleteSelectionWithConfirm,
+  hasSelectedText,
+  isOverDebugOutput,
+  isSelectionInEditable,
 } from './SelectionActions';
 import { Workspace } from './Workspace.class';
 
@@ -71,8 +74,15 @@ export function registerHotkeys(workspace: Workspace) {
     //workspace.saveAgent();
   });
   hotkey(keys.copy, (event, handler) => {
+    // Allow native copy inside editable fields and debug/hover windows
+    if (isSelectionInEditable()) return; // let browser handle default copy
+    if (isOverDebugOutput() && hasSelectedText()) return; // let browser handle default copy
+
     if (!canCopy(workspace)) return false;
+    event.preventDefault();
+    event.stopPropagation();
     copySelection(workspace);
+    return false;
   });
   hotkey(keys.paste, async (event, handler) => {
     if (!(await canPaste(workspace))) return false;
