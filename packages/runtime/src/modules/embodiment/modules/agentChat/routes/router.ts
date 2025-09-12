@@ -58,7 +58,21 @@ const validations = {
   },
 };
 
+/**
+ * @deprecated This endpoint is deprecated. Use '/v1/emb/chat/stream' instead.
+ * This endpoint will be removed in a future version.
+ */
 router.post('/stream', async (req, res) => {
+  // Add deprecation warning to response headers
+  res.setHeader('X-Deprecated', 'true');
+  res.setHeader('X-Deprecation-Warning', `This endpoint is deprecated. Use '/v1/emb/chat/stream' instead`);
+  res.setHeader('Deprecation', 'true');
+
+  // Log deprecation warning
+  console.warn(
+    `DEPRECATED: /stream endpoint called from ${req.ip}. Use '/v1/emb/chat/stream' instead. This endpoint will be removed in a future version.`,
+  );
+
   let streamStarted = false;
   const isLocalAgent = req.hostname.includes('localagent');
   const agentId = req._agent?.id;
