@@ -1,4 +1,7 @@
 // Shared OAuth helpers used across Builder UI and React Vault
+// Updated to use centralized OAuth services configuration
+
+import { OAuthServicesRegistry } from './oauth-services.helper';
 
 export interface OAuthInfoLike {
   authorizationURL?: string;
@@ -8,48 +11,19 @@ export interface OAuthInfoLike {
   tokenURL?: string;
 }
 
-// OAuth Service Constants
-export const OAUTH_SERVICES = [
-  'None',
-  'Google',
-  'Twitter',
-  'LinkedIn',
-  'Custom OAuth2.0',
-  'Custom OAuth1.0',
-  'OAuth2 Client Credentials',
-] as const;
+// OAuth Service Constants - now derived from centralized configuration
+export const OAUTH_SERVICES = OAuthServicesRegistry.getAllServiceNames() as readonly string[];
 
-export type OAuthServiceType = typeof OAUTH_SERVICES[number];
-
-// Service name mappings
-const SERVICE_TO_INTERNAL_MAP: Record<string, string> = {
-  'Google': 'google',
-  'Twitter': 'twitter',
-  'LinkedIn': 'linkedin',
-  'Custom OAuth2.0': 'oauth2',
-  'Custom OAuth1.0': 'oauth1',
-  'OAuth2 Client Credentials': 'oauth2_client_credentials',
-  'None': 'none',
-};
-
-const INTERNAL_TO_SERVICE_MAP: Record<string, string> = {
-  'google': 'Google',
-  'twitter': 'Twitter',
-  'linkedin': 'LinkedIn',
-  'oauth2': 'Custom OAuth2.0',
-  'oauth1': 'Custom OAuth1.0',
-  'oauth2_client_credentials': 'OAuth2 Client Credentials',
-  'none': 'None',
-};
+export type OAuthServiceType = (typeof OAUTH_SERVICES)[number];
 
 // Maps the user-facing service name to the internal service identifier
 export function mapServiceNameToInternal(serviceName: string): string {
-  return SERVICE_TO_INTERNAL_MAP[serviceName] || serviceName.toLowerCase();
+  return OAuthServicesRegistry.mapServiceNameToInternal(serviceName);
 }
 
 // Maps the internal service identifier back to the user-facing service name
 export function mapInternalToServiceName(internalName: string): string {
-  return INTERNAL_TO_SERVICE_MAP[internalName] || internalName;
+  return OAuthServicesRegistry.mapInternalToServiceName(internalName);
 }
 
 // Gets the backend origin for OAuth callbacks
@@ -67,10 +41,7 @@ export function getBackendOrigin(): string {
 }
 
 // Derives the callback URL based on service and OAuth type
-export function deriveCallbackUrl(
-  service: string,
-  type: 'oauth' | 'oauth2'
-): string | undefined {
+export function deriveCallbackUrl(service: string, type: 'oauth' | 'oauth2'): string | undefined {
   if (service === 'none') return undefined;
 
   const baseUrl = getBackendOrigin();
@@ -85,42 +56,25 @@ export function deriveCallbackUrl(
 }
 
 // Determines OAuth type from service name
-export function getOAuthTypeFromService(service: string): 'oauth' | 'oauth2' | 'oauth2_client_credentials' | 'none' {
-  const internalService = typeof SERVICE_TO_INTERNAL_MAP[service] !== 'undefined'
-    ? SERVICE_TO_INTERNAL_MAP[service]
-    : service;
-
-  if (['oauth1', 'twitter'].includes(internalService)) return 'oauth';
-  if (internalService === 'oauth2_client_credentials') return 'oauth2_client_credentials';
-  if (['google', 'linkedin', 'oauth2'].includes(internalService)) return 'oauth2';
-  if (internalService === 'none') return 'none';
-
-  // Default fallback
-  return 'oauth2';
+export function getOAuthTypeFromService(
+  service: string,
+): 'oauth' | 'oauth2' | 'oauth2_client_credentials' | 'none' {
+  return OAuthServicesRegistry.getOAuthFlowType(service);
 }
 
 // Check if service uses OAuth1
 export function isOAuth1Service(service: string): boolean {
-  const internalService = typeof SERVICE_TO_INTERNAL_MAP[service] !== 'undefined'
-    ? SERVICE_TO_INTERNAL_MAP[service]
-    : service;
-  return ['oauth1', 'twitter', 'oauth'].includes(internalService);
+  return OAuthServicesRegistry.isOAuth1Service(service);
 }
 
 // Check if service uses OAuth2
 export function isOAuth2Service(service: string): boolean {
-  const internalService = typeof SERVICE_TO_INTERNAL_MAP[service] !== 'undefined'
-    ? SERVICE_TO_INTERNAL_MAP[service]
-    : service;
-  return ['google', 'linkedin', 'oauth2'].includes(internalService);
+  return OAuthServicesRegistry.isOAuth2Service(service);
 }
 
 // Check if service uses Client Credentials
 export function isClientCredentialsService(service: string): boolean {
-  const internalService = typeof SERVICE_TO_INTERNAL_MAP[service] !== 'undefined'
-    ? SERVICE_TO_INTERNAL_MAP[service]
-    : service;
-  return internalService === 'oauth2_client_credentials';
+  return OAuthServicesRegistry.isClientCredentialsService(service);
 }
 
 // Attempts to extract a provider/service name from a URL's hostname
@@ -239,5 +193,3 @@ export function mapStatusCodeToMessage(statusCode: number): string {
       return 'An unexpected error occurred. Please try again.';
   }
 }
-
-
