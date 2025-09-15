@@ -145,12 +145,13 @@ export class Component extends EventEmitter {
       editConfig: {
         type: 'textarea',
         label: 'Default Value',
-        fieldCls: 'min-h-[50px] px-3 py-1 resize-y',
+        fieldCls:
+          'bg-white border text-gray-900 rounded block w-full outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 transition-all duration-150 ease-in-out border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500',
         attributes: {
           'data-agent-vars': 'true',
-          'data-auto-size': 'false',
-          style: 'height: 34px;',
-        }, // 'data-auto-size': 'false' to prevent set auto height initially
+          'data-auto-size': 'true',
+          rows: '2',
+        }, // Enable auto-size for consistent UX with 2-line default
         section: 'Advanced_Options',
         hint: 'Value assigned if no specific value provided by user.',
         hintPosition: 'after_label',
@@ -3500,6 +3501,9 @@ function addMissingKey({
         const actionsWrapper = dialog.querySelector('.__actions');
         actionsWrapper?.classList.remove('justify-center');
         actionsWrapper?.classList.add('justify-between');
+
+        // Initialize auto-resize for textareas with data-auto-size="true"
+        setTimeout(() => initializeTextareaAutoresize(dialog), 100);
       },
     },
     'auto',
@@ -3512,6 +3516,41 @@ function addMissingKey({
 
 function formatKeyAsClassName(keyName: string) {
   return '_comp_message_' + keyName.replace(/\+/g, '_').replace(/\s+/g, '_').toLowerCase();
+}
+
+/**
+ * Simple auto-resize for textareas - let the browser handle scrollbars naturally
+ */
+function initializeTextareaAutoresize(container: HTMLElement = document.body) {
+  const textareas = container.querySelectorAll(
+    'textarea[data-auto-size="true"]',
+  ) as NodeListOf<HTMLTextAreaElement>;
+
+  textareas.forEach((textarea) => {
+    if (textarea.hasAttribute('data-autoresize-initialized')) return;
+
+    // Mark as initialized
+    textarea.setAttribute('data-autoresize-initialized', 'true');
+
+    // Set simple CSS properties and let browser handle the rest
+    textarea.style.minHeight = '56px'; // 2 rows
+    textarea.style.maxHeight = '176px'; // 8 rows
+    textarea.style.height = '56px'; // Start with 2 rows
+    textarea.style.overflowY = 'auto'; // Let browser show scrollbar when needed
+    textarea.style.resize = 'none';
+    textarea.style.lineHeight = '20px';
+  });
+}
+
+// Global initialization when DOM is ready
+if (typeof window !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeTextareaAutoresize();
+  });
+
+  if (document.readyState !== 'loading') {
+    initializeTextareaAutoresize();
+  }
 }
 
 //#region Missing Key Click Handler

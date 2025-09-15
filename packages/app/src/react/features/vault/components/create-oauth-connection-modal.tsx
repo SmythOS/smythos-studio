@@ -9,6 +9,7 @@ import {
 import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@src/react/shared/components/ui/select';
-import { Textarea } from '@src/react/shared/components/ui/textarea';
 import {
   OAUTH_SERVICES,
   deriveCallbackUrl,
@@ -442,7 +442,7 @@ export function CreateOAuthConnectionModal({
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="scope">Scopes</Label>
                     <div className="col-span-3">
-                      <Textarea
+                      <TextArea
                         id="scope"
                         name="scope"
                         value={formData.scope || ''}

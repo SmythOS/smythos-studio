@@ -5,6 +5,7 @@ import * as agentSettingsUtils from '@src/react/features/agents/utils';
 import { CloseIcon, GlobalVariableIcon } from '@src/react/shared/components/svgs';
 import { Input } from '@src/react/shared/components/ui/input';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { errKeys } from '@src/react/shared/constants';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
@@ -371,8 +372,12 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
       return;
     }
 
-    textarea.style.height = '40px'; // Reset tominimum height first
-    textarea.style.height = `${Math.max(40, textarea.scrollHeight)}px`; // Ensure minimum height of 40px
+    textarea.style.height = '40px'; // Reset to minimum height first
+    const newHeight = Math.max(40, Math.min(textarea.scrollHeight, 154)); // Min 40px, Max 154px
+    textarea.style.height = `${newHeight}px`;
+
+    // Show scrollbar if content exceeds max height
+    textarea.style.overflowY = textarea.scrollHeight > 154 ? 'auto' : 'hidden';
   };
 
   const handleClose = () => {
@@ -514,7 +519,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
               </div>
               <div className="relative w-1/2">
                 <div className="relative">
-                  <textarea
+                  <TextArea
                     ref={(el) => (textareaRefs.current[index] = el)}
                     placeholder="Value"
                     value={pair.value}
@@ -529,8 +534,11 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     style={{
                       height: '40px',
                       minHeight: '40px',
+                      maxHeight: '154px',
                       lineHeight: '1.25rem',
                     }}
+                    autoGrow={false}
+                    rows={1}
                   />
                   <button
                     onClick={() => {
@@ -543,7 +551,6 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                   >
                     <IoKeyOutline className="text-[#424242]  scale-x-[-1]" />
                   </button>
-                  <div className="absolute bottom-[7px] left-2 w-[calc(100%-16px)] h-1 bg-white"></div>
                 </div>
                 {showVaultKeys === index && (
                   <div className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow-lg vault-keys-dropdown">

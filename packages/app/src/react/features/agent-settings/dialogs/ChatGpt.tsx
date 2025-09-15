@@ -8,13 +8,14 @@ import {
 import { mapGptEmbodimentProperties } from '@react/features/agent-settings/utils';
 import { CloseIcon } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { validateURL } from '@react/shared/utils/utils';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 interface IFormValues {
   humanName: string;
@@ -53,11 +54,47 @@ const ChatGptDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
+  // Refs for textarea height synchronization
+  const humanDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const modelDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const [syncHeight, setSyncHeight] = useState<string>('56px');
+
+  // Function to synchronize textarea heights
+  const synchronizeTextareaHeights = () => {
+    const humanTextarea = humanDescriptionRef.current;
+    const modelTextarea = modelDescriptionRef.current;
+
+    if (humanTextarea && modelTextarea) {
+      // Reset heights to get accurate scrollHeight
+      humanTextarea.style.height = 'auto';
+      modelTextarea.style.height = 'auto';
+
+      // Get the maximum scrollHeight between both textareas
+      const maxHeight = Math.max(
+        Math.max(56, Math.min(humanTextarea.scrollHeight, 88)), // Min 56px (2 rows), Max 88px to match maxHeight prop
+        Math.max(56, Math.min(modelTextarea.scrollHeight, 88)),
+      );
+
+      // Apply the synchronized height to both textareas
+      const newHeight = `${maxHeight}px`;
+      setSyncHeight(newHeight);
+      humanTextarea.style.height = newHeight;
+      modelTextarea.style.height = newHeight;
+    }
+  };
+
   useEffect(() => {
     const properties = currentData?.properties;
     const _activeData = mapGptEmbodimentProperties(properties, activeAgent);
     setActiveData(_activeData);
   }, [currentData, activeAgent]);
+
+  // Synchronize heights when activeData changes or component mounts
+  useEffect(() => {
+    if (activeData) {
+      setTimeout(synchronizeTextareaHeights, 100);
+    }
+  }, [activeData]);
 
   const submitForm = async (data) => {
     if (isSubmitting) {
@@ -245,41 +282,28 @@ const ChatGptDialog = ({
                           </div>
                           <div className="flex gap-5 justify-between items-center mt-2">
                             <div className="flex-1 mb-2">
-                              <label
-                                htmlFor="humanDescription"
-                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
-                              >
-                                Description for Human:
-                              </label>
-                              <Field
-                                as="textarea"
-                                rows={2}
-                                className="bg-white 
-                                  border
-                                  text-gray-900
-                                  rounded
-                                  block 
-                                  w-full
-                                  outline-none
-                                  focus:outline-none
-                                  focus:ring-0
-                                  focus:ring-offset-0
-                                  focus:ring-shadow-none
-                                  text-sm 
-                                  font-normal
-                                  placeholder:text-sm
-                                  placeholder:font-normal
-                                border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+                              <TextArea
+                                ref={humanDescriptionRef}
+                                label="Description for Human:"
+                                labelClassName="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 name="humanDescription"
+                                id="humanDescription"
+                                rows={2}
+                                maxHeight={88}
                                 onChange={(e) => {
                                   // Check if the new length doesn't exceed the limit
                                   if (e.target.value.length <= HUMAN_DESCRIPTION_LIMIT) {
                                     props.handleChange(e);
+                                    // Synchronize heights after content change
+                                    setTimeout(synchronizeTextareaHeights, 0);
                                   }
                                 }}
                                 onBlur={props.handleBlur}
                                 value={props.values?.humanDescription}
                                 placeholder="Enter Human Description"
+                                fullWidth
+                                autoGrow={false}
+                                style={{ height: syncHeight }}
                               />
                               <div className="text-sm mb-4 text-right">
                                 <span
@@ -300,41 +324,28 @@ const ChatGptDialog = ({
                               </div>
                             </div>
                             <div className="flex-1 mb-2">
-                              <label
-                                htmlFor="modelDescription"
-                                className="block text-[#1E1E1E] mb-1 text-base font-normal"
-                              >
-                                Description for Model:
-                              </label>
-                              <Field
-                                as="textarea"
-                                rows={2}
-                                className="bg-white 
-                                  border
-                                  text-gray-900
-                                  rounded
-                                  block 
-                                  w-full
-                                  outline-none
-                                  focus:outline-none
-                                  focus:ring-0
-                                  focus:ring-offset-0
-                                  focus:ring-shadow-none
-                                  text-sm 
-                                  font-normal
-                                  placeholder:text-sm
-                                  placeholder:font-normal
-                                border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+                              <TextArea
+                                ref={modelDescriptionRef}
+                                label="Description for Model:"
+                                labelClassName="block text-[#1E1E1E] mb-1 text-base font-normal"
                                 name="modelDescription"
+                                id="modelDescription"
+                                rows={2}
+                                maxHeight={88}
                                 onChange={(e) => {
                                   // Check if the new length doesn't exceed the limit
                                   if (e.target.value.length <= MODEL_DESCRIPTION_LIMIT) {
                                     props.handleChange(e);
+                                    // Synchronize heights after content change
+                                    setTimeout(synchronizeTextareaHeights, 0);
                                   }
                                 }}
                                 onBlur={props.handleBlur}
                                 value={props.values?.modelDescription}
                                 placeholder="Enter Model Description"
+                                fullWidth
+                                autoGrow={false}
+                                style={{ height: syncHeight }}
                               />
                               <div className="text-sm mb-4 text-right">
                                 <span
