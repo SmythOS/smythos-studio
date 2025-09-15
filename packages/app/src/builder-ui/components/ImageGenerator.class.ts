@@ -381,7 +381,10 @@ function getGoogleAISettings(savedData: Record<string, any>) {
         { text: 'Tall (4:3)', value: '4:3' },
       ],
       section: 'Advanced',
-      attributes: { 'data-supported-models': LLM_PROVIDERS.GOOGLEAI },
+      attributes: {
+        'data-supported-models': LLM_PROVIDERS.GOOGLEAI,
+        'data-excluded-models': 'gemini-2.5-flash-image',
+      },
     },
     personGeneration: {
       type: 'select',
@@ -397,7 +400,10 @@ function getGoogleAISettings(savedData: Record<string, any>) {
         { text: 'Allow All', value: 'allow_all' },
       ],
       section: 'Advanced',
-      attributes: { 'data-supported-models': LLM_PROVIDERS.GOOGLEAI },
+      attributes: {
+        'data-supported-models': LLM_PROVIDERS.GOOGLEAI,
+        'data-excluded-models': 'gemini-2.5-flash-image',
+      },
     },
   };
 }
