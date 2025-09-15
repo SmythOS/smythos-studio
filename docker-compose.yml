@@ -11,26 +11,34 @@ services:
       MYSQL_DATABASE: smythos_db
       MYSQL_USER: smythos_user
       MYSQL_PASSWORD: smythos_password
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - smythos-network
     command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psmythos_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: smythos-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
       - smythos-network
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   # SmythOS Application
   smythos:
@@ -40,7 +48,8 @@ services:
     container_name: smythos-app
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "5050:5050"
+      - "5053:5053"
     env_file:
       - .env
     environment:
@@ -51,28 +60,23 @@ services:
       REDIS_PORT: 6379
       REDIS_SENTINEL_HOSTS: ""
       REDIS_MASTER_NAME: ""
-      OPENAI_API_KEY: '{YOUR_OPENAI_API_KEY}'
-      # Default port configurations (can be overridden by .env file)
-      MIDDLEWARE_API_PORT: ${MIDDLEWARE_API_PORT:-5000}
-      APP_PORT: ${APP_PORT:-4000}
-      APP_DEV_SERVER_PORT: ${APP_DEV_SERVER_PORT:-4001}
-      RUNTIME_PORT: ${RUNTIME_PORT:-5053}
-      APP_DOMAIN: ${APP_DOMAIN:-http://localhost:4000}
-      RUNTIME_DOMAIN: ${RUNTIME_DOMAIN:-http://localhost:5053}
 
     volumes:
       - smythos_data:/root/smythos-data
     networks:
       - smythos-network
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:5050/health && wget --no-verbose --tries=1 --spider http://localhost:5053/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+      
 
 networks:
   smythos-network:

@@ -56,6 +56,9 @@ const ensureVaultFileExists = () => {
   };
 
   const vaultFilePath = path.join(getDefaultDataPath(), 'vault.json');
+  const dir = path.dirname(vaultFilePath);
+  fs.mkdirSync(dir, { recursive: true });
+
   if (!fs.existsSync(vaultFilePath)) {
     fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
   }

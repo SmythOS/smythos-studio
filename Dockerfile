@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     openssl \
     openssl-dev \
     libc6-compat \
-    ca-certificates
+    ca-certificates \
+    curl
 
 # Set working directory
 WORKDIR /app
@@ -43,11 +44,11 @@ RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x" pnpm run prisma:generat
 RUN mkdir -p /root  && mkdir -p /root/smythos-data && echo '{}' > /root/smythos-data/vault.json
 
 
-COPY docker-endpoint.sh /app/start.sh
+COPY docker-entrypoint.sh /app/start.sh
 RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
-# Expose only the app port
-EXPOSE 4000
+# Expose app port + runtime port
+EXPOSE 5050 5053
 
 # Start the application
 CMD ["/app/start.sh"]
