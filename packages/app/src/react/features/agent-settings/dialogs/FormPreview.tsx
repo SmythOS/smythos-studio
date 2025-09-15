@@ -291,7 +291,7 @@ const FormPreviewDialog = ({
                                   className="w-60 text-center"
                                   content={
                                     <div>
-                                      Enabling output preview will show the download and copy
+                                      Enabling output preview will hide the download and copy
                                       options for the output.
                                     </div>
                                   }
