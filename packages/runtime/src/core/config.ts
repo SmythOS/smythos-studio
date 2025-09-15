@@ -1,4 +1,5 @@
 import dotenvFlow from 'dotenv-flow';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,6 +9,11 @@ dotenvFlow.config({
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const getDefaultDataPath = () => {
+  const homeDir = os.homedir();
+  return path.join(homeDir, 'smythos-data');
+};
 
 const config = {
   env: {
@@ -19,7 +25,7 @@ const config = {
     MIDDLEWARE_API_BASE_URL: `http://localhost:${process.env.MIDDLEWARE_API_PORT}`,
     NODE_ENV: process.env?.NODE_ENV || 'development',
 
-    ADMIN_PORT: process.env.ADMIN_PORT || 5054,
+    ADMIN_PORT: process.env.RUNTIME_ADMIN_PORT || process.env.ADMIN_PORT || 5054,
 
     BASE_URL: process.env.RUNTIME_DOMAIN || `http://localhost:${process.env.RUNTIME_PORT}`,
 
@@ -36,7 +42,7 @@ const config = {
     UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../../data'),
+    DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },

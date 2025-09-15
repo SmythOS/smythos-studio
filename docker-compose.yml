@@ -61,9 +61,7 @@ services:
       RUNTIME_DOMAIN: ${RUNTIME_DOMAIN:-http://localhost:5053}
 
     volumes:
-      - smythos_data:/app/data
-      - smythos_middleware_data:/app/packages/middleware/data
-      - smythos_runtime_data:/app/packages/runtime/data
+      - smythos_data:/root/smythos-data
     networks:
       - smythos-network
     depends_on:
@@ -87,7 +85,4 @@ volumes:
     driver: local
   smythos_data:
     driver: local
-  smythos_middleware_data:
-    driver: local
-  smythos_runtime_data:
-    driver: local
+

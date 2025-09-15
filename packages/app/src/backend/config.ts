@@ -10,7 +10,7 @@ dotenvFlow.config({
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
-  return path.join(homeDir, 'smyth-ui-data');
+  return path.join(homeDir, 'smythos-data');
 };
 
 const transformEnv = (env: string) => {

@@ -18,12 +18,12 @@ if (!rootPath) {
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
-  return path.join(homeDir, 'smyth-ui-data');
+  return path.join(homeDir, 'smythos-data');
 };
 
+const dataPath = process.env.DATA_PATH || getDefaultDataPath();
+
 // Default to SQLite if no DATABASE_URL is provided (not working yet)
-// dotenv.config({ path: path.join(getDirname(), '../.env') });
-// const defaultSqliteUrl = `file:${path.join(rootPath, 'data', 'dev.db')}`;
 
 export const config = {
   variables: {
@@ -31,7 +31,7 @@ export const config = {
     port: process.env.MIDDLEWARE_API_PORT,
 
     DATABASE_URL: process.env.DATABASE_URL,
-    VAULT_FILE_PATH: path.join(getDefaultDataPath(), 'vault.json'),
+    VAULT_FILE_PATH: path.join(dataPath, 'vault.json'),
   },
 
   package: {

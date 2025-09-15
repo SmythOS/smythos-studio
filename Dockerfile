@@ -40,7 +40,7 @@ RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.
 WORKDIR /app/packages/middleware
 RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x" pnpm run prisma:generate
 
-RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-ui-data/vault.json
+RUN mkdir -p /root  && mkdir -p /root/smythos-data && echo '{}' > /root/smythos-data/vault.json
 
 
 COPY docker-endpoint.sh /app/start.sh
