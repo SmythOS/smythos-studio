@@ -6,18 +6,20 @@ services:
     image: mysql:8.0
     container_name: smythos-mysql
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: smythos_root_password
-      MYSQL_DATABASE: smythos_db
-      MYSQL_USER: smythos_user
-      MYSQL_PASSWORD: smythos_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-$$(openssl rand -base64 32)}
+      MYSQL_DATABASE: ${DATABASE_NAME:-smythos_db}
+      MYSQL_USER: ${DATABASE_USER:-smythos_user}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-smythos_password}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - smythos-network
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psmythos_root_password"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DATABASE_USER:-smythos_user}", "-p${DATABASE_PASSWORD:-smythos_password}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,9 +34,25 @@ services:
       - redis_data:/data
     networks:
       - smythos-network
-    command: redis-server --appendonly yes
+    env_file:
+      - .env
+    command: >
+      sh -c "
+      if [ -n '${REDIS_PASSWORD:-}' ]; then
+        redis-server --appendonly yes --requirepass '${REDIS_PASSWORD}'
+      else
+        redis-server --appendonly yes
+      fi
+      "
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: >
+        sh -c "
+        if [ -n '${REDIS_PASSWORD:-}' ]; then
+          redis-cli -a '${REDIS_PASSWORD}' ping
+        else
+          redis-cli ping
+        fi
+        "
       interval: 10s
       timeout: 3s
       retries: 5
@@ -53,13 +71,12 @@ services:
     env_file:
       - .env
     environment:
-      # Override database URL to use internal MySQL container
-      DATABASE_URL: mysql://smythos_user:smythos_password@mysql:3306/smythos_db
+      # Override database URL to use internal MySQL container with dynamic credentials
+      DATABASE_URL: mysql://${DATABASE_USER:-smythos_user}:${DATABASE_PASSWORD:-smythos_password}@mysql:3306/${DATABASE_NAME:-smythos_db}
       # Override Redis to use internal Redis container (standalone mode)
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_SENTINEL_HOSTS: ""
-      REDIS_MASTER_NAME: ""
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
 
     volumes:
       - smythos_data:/root/smythos-data

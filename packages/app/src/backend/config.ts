@@ -88,7 +88,7 @@ const config = {
   },
 
   flags: {
-    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS),
+    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS || process.env.REDIS_HOST),
   },
 
   cache: {
