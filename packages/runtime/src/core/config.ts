@@ -30,13 +30,13 @@ const config = {
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
 
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,
-    MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 10,
+    MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 50,
 
     // UI_SERVER: process.env.UI_SERVER || 'http://localhost:4000',
     UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../data'),
+    DATA_PATH: process.env.DATA_PATH || path.resolve(__dirname, '../../../data'),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },
