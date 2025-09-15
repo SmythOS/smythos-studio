@@ -52,6 +52,13 @@ services:
       REDIS_SENTINEL_HOSTS: ""
       REDIS_MASTER_NAME: ""
       OPENAI_API_KEY: '{YOUR_OPENAI_API_KEY}'
+      # Default port configurations (can be overridden by .env file)
+      MIDDLEWARE_API_PORT: ${MIDDLEWARE_API_PORT:-5000}
+      APP_PORT: ${APP_PORT:-4000}
+      APP_DEV_SERVER_PORT: ${APP_DEV_SERVER_PORT:-4001}
+      RUNTIME_PORT: ${RUNTIME_PORT:-5053}
+      APP_DOMAIN: ${APP_DOMAIN:-http://localhost:4000}
+      RUNTIME_DOMAIN: ${RUNTIME_DOMAIN:-http://localhost:5053}
 
     volumes:
       - smythos_data:/app/data

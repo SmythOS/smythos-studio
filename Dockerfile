@@ -44,8 +44,7 @@ RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-u
 
 
 COPY docker-endpoint.sh /app/start.sh
-
-RUN chmod +x /app/start.sh
+RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
 # Expose only the app port
 EXPOSE 4000
