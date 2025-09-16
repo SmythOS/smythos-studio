@@ -1,11 +1,11 @@
 import express from 'express';
-import { HUBSPOT_PORTAL_ID } from '../../../constants';
 import * as userData from '../../../../backend/services/user-data.service';
+import { HUBSPOT_PORTAL_ID } from '../../../constants';
 import {
-  IUserMarketingMetadata,
-  UserSettingsKey,
   IUserBuildingType,
+  IUserMarketingMetadata,
   IUserTeamData,
+  UserSettingsKey,
 } from '../../../types/user-data';
 
 const router = express.Router();
@@ -109,7 +109,8 @@ router.post('/update-onboarding-task-list', async (req, res) => {
 router.post('/store-team-type', async (req, res) => {
   try {
     const { accessToken } = req.user;
-    const { jobRoleLabel, jobRoleValue, jobtype, name, email, firstname, lastname } = req.body;
+    const { jobRoleLabel, jobRoleValue, jobtype, name, email, firstname, lastname, mobileNumber } =
+      req.body;
 
     await userData.putUserSettings<IUserTeamData>(
       accessToken,
@@ -121,6 +122,7 @@ router.post('/store-team-type', async (req, res) => {
         jobtype,
         jobRoleLabel,
         jobRoleValue,
+        ...(mobileNumber && { mobileNumber }),
       },
     );
 
@@ -131,6 +133,7 @@ router.post('/store-team-type', async (req, res) => {
       name,
       jobtype,
       jobrole: jobRoleLabel,
+      ...(mobileNumber && { phone: mobileNumber }),
     });
 
     res.send({ success: response.status === 200 });
