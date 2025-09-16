@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     openssl \
     openssl-dev \
     libc6-compat \
-    ca-certificates
+    ca-certificates \
+    curl
 
 # Set working directory
 WORKDIR /app
@@ -33,22 +34,23 @@ RUN pnpm install
 RUN pnpm run build
 
 # Patch the app to bind to 0.0.0.0 instead of localhost
-WORKDIR /app/packages/app
-RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.0",/g' dist/server/index.js
+# WORKDIR /app/packages/app
+# RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.0",/g' dist/server/index.js
+
+
 
 # Generate Prisma client for Alpine Linux with correct binary target
 WORKDIR /app/packages/middleware
 RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x" pnpm run prisma:generate
 
-RUN mkdir -p /root  && mkdir -p /root/smyth-ui-data && echo '{}' > /root/smyth-ui-data/vault.json
+RUN mkdir -p /root  && mkdir -p /root/smythos-data && echo '{}' > /root/smythos-data/vault.json
 
 
-COPY docker-endpoint.sh /app/start.sh
+COPY docker-entrypoint.sh /app/start.sh
+RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
-RUN chmod +x /app/start.sh
-
-# Expose only the app port
-EXPOSE 4000
+# Expose app port + runtime port
+EXPOSE 5050 5053
 
 # Start the application
 CMD ["/app/start.sh"]

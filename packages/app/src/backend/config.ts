@@ -1,16 +1,19 @@
 import crypto from 'crypto';
+import expandEnv from 'dotenv-expand';
 import dotenvFlow from 'dotenv-flow';
 import Joi from 'joi';
 import os from 'os';
 import path from 'path';
 
-dotenvFlow.config({
-  files: ['../../.env', '../.env'],
-});
+expandEnv.expand(
+  dotenvFlow.config({
+    files: ['../../.env', '../.env'],
+  }),
+);
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
-  return path.join(homeDir, 'smyth-ui-data');
+  return path.join(homeDir, 'smythos-data');
 };
 
 const transformEnv = (env: string) => {
@@ -85,7 +88,7 @@ const config = {
   },
 
   flags: {
-    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS),
+    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS || process.env.REDIS_HOST),
   },
 
   cache: {

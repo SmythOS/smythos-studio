@@ -1,6 +1,6 @@
 import express from 'express';
-import { app } from '../index.js';
 import { Server } from 'http';
+import { app } from '../index.js';
 import config from './config';
 
 const ADMIN_PORT = config.env.ADMIN_PORT || 5054;
@@ -9,15 +9,13 @@ const PORT = config.env.PORT || 5053;
 
 let server: Server;
 
-const host = config.env.NODE_ENV === 'production' ? 'localhost' : '';
-
 function enableAppPort() {
   if (server && server.listening) {
     console.info(`Server is already running at http://localhost:${PORT}`);
     return server;
   }
 
-  server = app.listen(PORT, host, () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     console.info(`Server is running at http://localhost:${PORT}`);
   });
 
@@ -68,7 +66,7 @@ managementApp.get('/stats', (req, res) => {
 // });
 
 export function startServers() {
-  managementApp.listen(ADMIN_PORT, host, () => {
+  managementApp.listen(ADMIN_PORT, 'localhost', () => {
     console.info(`Management server listening on port ${ADMIN_PORT}`);
   });
 

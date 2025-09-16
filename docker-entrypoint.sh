@@ -1,7 +1,7 @@
 #!/bin/sh
 
-echo "Waiting for MySQL to be ready..."
-sleep 10
+# echo "Waiting for MySQL to be ready..."
+# sleep 10
 
 echo "Running Prisma migrations..."
 cd /app/packages/middleware
