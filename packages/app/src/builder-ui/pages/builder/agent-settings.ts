@@ -936,6 +936,7 @@ export async function openAlexaEmbodiment() {
     return;
   }
 
+  const voiceUrl = testDomain ? `${scheme}://${testDomain}/emb/voice` : '';
   const testUrl = testDomain ? `${scheme}://${testDomain}/alexa` : '';
   const prodUrl = prodDomain ? `${scheme}://${prodDomain}/alexa` : 'Agent is not deployed yet';
 
@@ -999,8 +1000,24 @@ export async function openAlexaEmbodiment() {
   </button>`;
 
   const content = wrapContent(`<div class="emb-instructions p-4 flex-row">
-        <div class="flex items-center gap-2 mb-4">
-          <p class="text-gray-700">Publish your agent as an Alexa Skill. You can publish your skill to the Alexa Skill Store or use it in your own Alexa devices.</p>
+        <div>
+           <div class="flex items-center justify-between">
+           <label class="block text-sm font-medium text-gray-700 mb-1">Talk to Agent</label>
+           <a href="${voiceUrl}" target="_blank" rel="noopener noreferrer">
+            <div class="text-[#3C89F9] text-[13px] font-medium cursor-pointer flex items-center gap-1">Start Voice Chat
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6.74674 2.3335H5.34389C3.49341 2.3335 2.33301 3.64376 2.33301 5.49802V10.5023C2.33301 12.3566 3.48775 13.6668 5.34389 13.6668H10.6542C12.5109 13.6668 13.6663 12.3566 13.6663 10.5023V9.4061" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13.6668 5.38279V2.3335M13.6668 2.3335H10.6176M13.6668 2.3335L8.91309 7.08723" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+           </a>
+           </div>
+           <p class="text-gray-700 font-normal">Starts a live voice session with the agent.</p>
+        </div>
+        <hr class="my-4"/>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Alexa Integration</label>
+          <p class="text-gray-700 font-normal">Publish as an Alexa Skill or deploy across managed Echo devices</p>
         </div>
         <div class="space-x-3 justify-between">
          <div class="space-y-4">
@@ -1057,7 +1074,6 @@ export async function openAlexaEmbodiment() {
       </div>
         </div>
         &nbsp;<br />
-        <hr />
 
         <!-- Modal -->
         <div id="alexa-publish-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">

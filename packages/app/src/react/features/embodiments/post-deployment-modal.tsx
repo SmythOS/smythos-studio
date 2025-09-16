@@ -62,7 +62,7 @@ interface Props {
    */
   onOpenCodeSnippetModal: (key: string) => void;
   /**
-   * Called when the user requests to open the Alexa panel.
+   * Called when the user requests to open the Voice panel.
    */
   onOpenAlexaPanel: () => void;
   /**

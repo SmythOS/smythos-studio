@@ -33,7 +33,7 @@ import { CloseIcon } from '../../../../shared/components/svgs';
 import Modal from '../../../../shared/components/ui/modals/Modal';
 import { EMBODIMENT_TYPE } from '../../../../shared/enums';
 import { Embodiment } from '../../../../shared/types/api-results.types';
-import AlexaEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
+import VoiceEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
 import ApiEmbodimentModal from '../../../embodiments/api-embodiment-modal';
 import ChatbotEmbodimentModal from '../../../embodiments/chatbot-embodiment-modal';
 import { globalModalManager } from '../../../embodiments/embodiment-settings';
@@ -160,8 +160,8 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       }
     : undefined;
 
-  // Get domain for chatbot integration
-  const chatbotDomain =
+  // Get domain for chatbot/voice/form integration
+  const agentDomain =
     workspace.agent.domain ||
     `${workspace.agent.id}.${statusInfoQuery.data?.status?.prod_agent_domain}`;
 
@@ -439,12 +439,14 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   return (
     <>
-      {openPanel === 'alexa' && <AlexaEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === 'alexa' && (
+        <VoiceEmbodimentModal domain={agentDomain} onClose={handleClosePanel} />
+      )}
       {openPanel === 'gpt' && <GptEmbodimentModal onClose={handleClosePanel} />}
       {openPanel === 'chatbot' && (
         <ChatbotEmbodimentModal
           onClose={handleClosePanel}
-          domain={chatbotDomain}
+          domain={agentDomain}
           embodimentData={chatbotEmbodimentData}
           isLoading={isLoadingEmbodiments}
         />
@@ -452,7 +454,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       {openPanel === 'form' && (
         <FormEmbodimentModal
           onClose={handleClosePanel}
-          domain={chatbotDomain}
+          domain={agentDomain}
           isLoading={isLoadingEmbodiments}
         />
       )}
