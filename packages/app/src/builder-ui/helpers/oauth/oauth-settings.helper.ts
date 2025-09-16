@@ -25,6 +25,45 @@ export class oAuthSettings {
   }
 
   /**
+   * Public: Add component-level Authenticate button if not authenticated.
+   * Minimal integration so other components can just call oauth.checkSettings().
+   */
+  public async checkSettings(): Promise<void> {
+    const connectionId: string | undefined = this.component?.data?.oauth_con_id;
+    const existingBtn = this.component?.domElement?.querySelector('button.oauthButton') as HTMLButtonElement || null;
+
+    // If no connection chosen, remove component-level button (if any) and exit
+    if (!connectionId || connectionId === 'None') {
+      if (existingBtn) this.component.clearComponentMessages();
+      return;
+    }
+
+    // Show temporary checking status while verifying auth
+    this.component.clearComponentMessages();
+    this.component.addComponentMessage('Checking Auth Info...', 'info text-center');
+
+    // If authenticated, ensure no redundant component-level button remains
+    const authed = await this.checkAuthentication();
+
+    // Clear the temporary message
+    this.component.clearComponentMessages();
+
+    if (authed) {
+      return;
+    }
+
+    // Show component-level Authenticate button only if not already present
+    if (existingBtn) return;
+
+    this.component.addComponentButton(
+      '<div class="fa-solid fa-user-shield"></div><p class="">Authenticate</p>',
+      'warning',
+      { class: 'oauthButton' },
+      this.collectAndConsoleOAuthValues.bind(this),
+    );
+  }
+
+  /**
    * Initialize OAuth services and load connections
    */
   async initialize(): Promise<void> {

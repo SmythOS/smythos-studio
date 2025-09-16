@@ -47,6 +47,10 @@ export class GmailTrigger extends Trigger {
     this.drawSettings.color = '#ff00f2';
   }
 
+  public async checkSettings(): Promise<void> {
+    await this.oauth?.checkSettings();
+  }
+
   /**
    * Clean up event listeners and resources
    */
