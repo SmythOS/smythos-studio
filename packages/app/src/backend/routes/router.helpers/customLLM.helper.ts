@@ -1,18 +1,18 @@
-import Joi, { custom } from 'joi';
+import Joi from 'joi';
 
+import { Request } from 'express';
 import {
-  CUSTOM_LLM_PROVIDERS,
   BEDROCK_REGIONS,
   CUSTOM_LLM_FEATURES,
+  CUSTOM_LLM_PROVIDERS,
   VERTEX_AI_REGIONS,
 } from '../../../shared/constants/custom-llm.constants';
-import { vault } from '../../services/SmythVault.class';
-import { setVaultKeys } from '../router.helpers/vault.helper';
-import * as teamData from '../../services/team-data.service';
-import { CUSTOM_LLM_SETTINGS_KEY } from '../../constants';
-import { Request } from 'express';
-import { uid } from '../../services/utils.service';
 import { customModels } from '../../../shared/custom-models';
+import { CUSTOM_LLM_SETTINGS_KEY } from '../../constants';
+import { vault } from '../../services/SmythVault.class';
+import * as teamData from '../../services/team-data.service';
+import { uid } from '../../services/utils.service';
+import { setVaultKeys } from '../router.helpers/vault.helper';
 
 interface AuthInfo {
   accessToken: string;
@@ -312,7 +312,7 @@ async function _saveBedrockModel(req: Request, params: BedrockModelInputParams) 
 
     return { data: { id: entryId, name, provider } };
   } catch (error) {
-    console.error('Error saving Bedrock model:', error);
+    console.error('Error saving Bedrock model:', error?.message);
     throw error;
   }
 }
@@ -390,7 +390,7 @@ async function _saveVertexAIModel(req: Request, params: VertexAIModelInputParams
 
     return { data: { id: entryId, name, provider } };
   } catch (error) {
-    console.error('Error saving VertexAI model:', error);
+    console.error('Error saving VertexAI model:', error?.message);
     throw error;
   }
 }
@@ -472,5 +472,5 @@ export const customLLMHelper = {
   deleteCustomLLM,
   getCustomLLMWithCredentials,
   getCustomLLMByName,
-  getCustomLLMByEntryId
+  getCustomLLMByEntryId,
 };

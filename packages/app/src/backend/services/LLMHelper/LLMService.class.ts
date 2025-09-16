@@ -43,7 +43,7 @@ export class LLMService {
 
       this.cacheModels(latestModels, config.cache.getCustomModelsCacheKey(teamId)).catch(
         (error) => {
-          console.error('Error caching models', error);
+          console.error('Error caching models', error?.message);
         },
       );
 
@@ -65,7 +65,7 @@ export class LLMService {
 
       return result?.data || {};
     } catch (error) {
-      console.warn('Error getting fresh models', error);
+      console.warn('Error getting fresh models', error?.message);
       return {};
     }
   }
@@ -80,7 +80,7 @@ export class LLMService {
       });
       return result?.data || {};
     } catch (error) {
-      console.warn('Error getting fresh custom models', error);
+      console.warn('Error getting fresh custom models', error?.message);
       return {};
     }
   }
@@ -97,7 +97,7 @@ export class LLMService {
 
       if (latestModels && Object.keys(latestModels).length > 0) {
         this.cacheModels(latestModels, config.cache.STANDARD_MODELS_CACHE_KEY).catch((error) => {
-          console.error('Error caching models', error);
+          console.error('Error caching models', error?.message);
         });
       }
 

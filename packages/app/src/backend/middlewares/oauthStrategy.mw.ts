@@ -31,6 +31,7 @@ export const oauthStrategyInitialization = async (req, res, next) => {
     // Prepare the configuration
     let config: any = { ...defaultConfig }; // Spread operator for shallow clone
 
+
     // Use session-stored configuration instead of URL parameters
     if (isOAuth2 && req.session.oauth2Config) {
       const oauth2Config = req.session.oauth2Config;
@@ -95,12 +96,15 @@ export const oauthStrategyInitialization = async (req, res, next) => {
       });
     }
 
+
     // Derive callback URL when missing
     if (!config['callbackURL']) {
       try {
         const origin = req.headers?.origin || `${req.protocol}://${req.get('host')}`;
         const internalService = String(service).toLowerCase();
+
         const isOAuth2 = OAuthServicesRegistry.isOAuth2Service(internalService);
+
         const provider = isOAuth2
           ? internalService === 'oauth2'
             ? 'oauth2'
@@ -138,7 +142,7 @@ export const oauthStrategyInitialization = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error configuring authentication strategy:', error);
+    console.error('Error configuring authentication strategy:', error?.message);
     return res
       .status(500)
       .send({ error: 'Internal server error while setting up authentication.' });

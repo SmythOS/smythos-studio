@@ -1,8 +1,8 @@
-import Joi from 'joi';
 import { Request } from 'express';
-import { vault } from '../../services/SmythVault.class';
-import { type VaultKeyObj } from '../../../shared/types';
+import Joi from 'joi';
 import { VAULT_SCOPE_AGENT_LLM } from '../../../shared/constants/general';
+import { type VaultKeyObj } from '../../../shared/types';
+import { vault } from '../../services/SmythVault.class';
 
 // TODO: Move all functions to vault.helpers.ts
 
@@ -81,7 +81,7 @@ export async function getVaultKeys(req: Request) {
   const { error } = schemaToGet.validate({ ...args });
 
   if (error) {
-    console.log('Error validating request: ', error);
+    console.log('Error validating request: ', error?.message);
     return {};
   }
   const allKeys = await vault.get(args, req);
@@ -109,7 +109,7 @@ export const setVaultKey = async (req, keyId = '') => {
   const { error } = schemaToSet.validate({ key, keyName, scope });
 
   if (error) {
-    console.log('Error validating request: ', error);
+    console.log('Error validating request: ', error?.message);
     return { success: false, error: 'Invalid request.' };
   }
 
@@ -146,10 +146,8 @@ export const setVaultKey = async (req, keyId = '') => {
   return { success: true, data: { keyId: setKey?.data } };
 };
 
-export const countVaultKeys = (
-  teamId: string,
-  req: Request,
-): Promise<number> => vault.count(teamId, req);
+export const countVaultKeys = (teamId: string, req: Request): Promise<number> =>
+  vault.count(teamId, req);
 
 export type VaultSecret = {
   key: string;

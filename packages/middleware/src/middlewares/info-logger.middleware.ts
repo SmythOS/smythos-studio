@@ -1,5 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
-import { LOGGER } from '../../config/logging';
+import { NextFunction, Request, Response } from 'express';
 // import trafficCustomMetrics from '../metrices/custom/traffic.custom.metrices';
 
 export const infoLogger = (req: Request, _res: Response, next: NextFunction) => {
@@ -12,12 +11,13 @@ export const infoLogger = (req: Request, _res: Response, next: NextFunction) => 
   _res.on('finish', () => {
     const elapsedHrTime = process.hrtime(startHrTime);
     const elapsedTimeInSec = elapsedHrTime[0] + elapsedHrTime[1] / 1e9;
-    LOGGER.info(`${req.method} ${req.path} - ${elapsedTimeInSec} sec (${elapsedTimeInSec * 1000} ms)`);
+    // LOGGER.info(`${req.method} ${req.path} - ${elapsedTimeInSec} sec (${elapsedTimeInSec * 1000} ms)`);
 
     // endDuration();
     // trafficCustomMetrics.responseTime.observe({ method: req.method, path: req.path }, elapsedTimeInSec);
   });
 
-  LOGGER.info(`Request from ${forwardedIp} to ${req.originalUrl}`);
+  // disabled for now
+  // LOGGER.info(`Request from ${forwardedIp} to ${req.originalUrl}`);
   next();
 };

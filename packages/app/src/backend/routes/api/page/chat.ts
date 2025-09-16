@@ -273,7 +273,7 @@ router.delete('/deleteFile', [includeTeamDetails], async (req, res) => {
     await assetStorage.deleteContent({ key });
     return res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error('Error deleting file:', error?.message);
     return res.status(500).json({ error: 'Failed to delete file' });
   }
 });

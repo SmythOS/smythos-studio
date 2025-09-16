@@ -131,7 +131,7 @@ export async function pageACLCheck(
   if (rule?.access === 'rw' || rule?.access === 'r') {
     next();
   } else {
-    console.log('Forbidden: No valid access', req.url, rule);
+    // console.log('Forbidden: No valid access', req.url, rule);
     return renderErrorPage(res, req, 403, 'Forbidden');
   }
 }

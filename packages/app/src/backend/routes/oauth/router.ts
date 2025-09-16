@@ -109,7 +109,7 @@ router.post('/checkAuth', includeTeamDetails, async (req, res) => {
       res.status(404).send('No existing OAuth settings found.');
     }
   } catch (error) {
-    console.error('Error during comparing oauth values:', error);
+    console.error('Error during comparing oauth values:', error?.message);
     // Send a 500 Internal Server Error response with an error message.
     res.status(500).send('Failed to compare oauth values.');
   }
@@ -177,6 +177,7 @@ router.post(
         }
       };
 
+
       try {
         if (authorizationURL) validateURL(authorizationURL, 'authorizationURL');
         if (tokenURL) validateURL(tokenURL, 'tokenURL');
@@ -191,6 +192,7 @@ router.post(
 
       if (OAuthServicesRegistry.isOAuth2Service(service) || service === 'oauth2') {
         // OAuth2 flow - Store sensitive data in session, return clean URL
+
 
         // Validate required OAuth2 fields
         if (!clientID || !clientSecret) {
@@ -252,8 +254,10 @@ router.post(
       console.error('Error in /init route:', error);
       res.status(500).json({ error: 'Failed to initialize authentication' });
     }
+
   },
 );
+
 
 router.get('/:provider', async (req, res, next) => {
   try {
@@ -319,7 +323,7 @@ router.get('/:provider', async (req, res, next) => {
       // For example, redirect or respond with a message
     })(req, res, next);
   } catch (error) {
-    console.error('Error during authentication process:', error);
+    console.error('Error during authentication process:', error?.message);
     return res.status(500).send('Failed to initiate authentication.');
   }
 });
@@ -428,7 +432,7 @@ router.get('/:provider/callback', async (req, res, next) => {
       await handleTokenStorage(req.session, user, req);
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error);
+      console.error('Error exchanging code for tokens:', error?.message);
       const origin = getCallbackOrigin(req);
       res.send(`
         <script>
@@ -478,7 +482,7 @@ router.get('/:provider/callback', async (req, res, next) => {
         await handleTokenStorage(req.session, user, req);
         handleSuccessfulAuthentication(req.session.strategyType, res);
       } catch (error) {
-        console.error('Error in callback route:', error);
+        console.error('Error in callback route:', error?.message);
         const errorMessage = `${error.message || 'Unknown error'}.`;
         const origin = getCallbackOrigin(req);
         const errorScript = `
@@ -556,7 +560,7 @@ async function handleTokenStorage(session, oauthUser, req) {
     const settingKey = 'oauth';
     await handleOAuthOperation(settingKey, entryId, tokensData, req);
   } catch (error) {
-    console.error('Error in handleTokenStorage:', error);
+    console.error('Error in handleTokenStorage:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
@@ -661,7 +665,7 @@ function handleSuccessfulAuthentication(strategyType, res) {
       }, 500);
     </script>`);
   } catch (error) {
-    console.error('Error in handleSuccessfulAuthentication:', error);
+    console.error('Error in handleSuccessfulAuthentication:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
@@ -678,7 +682,7 @@ async function compareOAuthDetails(existing: Record<string, any>, req: express.R
   try {
     connectionData = typeof entryData === 'string' ? JSON.parse(entryData) : entryData;
   } catch (error) {
-    console.error('Error parsing target object:', error);
+    console.error('Error parsing target object:', error?.message);
     return false;
   }
 
@@ -725,7 +729,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     try {
       existingData = typeof existingData === 'string' ? JSON.parse(existingData) : existingData;
     } catch (error) {
-      console.error('Error parsing existing settings:', error);
+      console.error('Error parsing existing settings:', error?.message);
       return res.status(500).json({ error: 'Invalid settings format' });
     }
 
@@ -794,7 +798,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
 
     return res.json({ invalidate: true, message: 'Signed out successfully.' });
   } catch (error) {
-    console.error('Error during sign out:', error);
+    console.error('Error during sign out:', error?.message);
     return res.status(500).json({ error: 'Failed to process Sign out. ' + error.message });
   }
 });
@@ -851,7 +855,7 @@ router.post('/client_credentials', includeTeamDetails, async (req, res) => {
 
     res.json({ success: true, message: 'OAuth2 Authentication was successful' });
   } catch (error) {
-    console.error('Error in client_credentials route:', error);
+    console.error('Error in client_credentials route:', error?.message);
     res.status(500).json({
       success: false,
       message: `OAuth2 Authentication was unsuccessful: ${error.message}`,

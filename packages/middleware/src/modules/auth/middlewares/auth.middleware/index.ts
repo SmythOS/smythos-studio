@@ -15,7 +15,7 @@ const authMiddlewareFactory = ({ requireTeam = true, allowM2M = false, limitToM2
       const isUIAuthToken = token.includes('UI_AUTH_TOKEN');
 
       if (isM2MToken) {
-        LOGGER.info(`M2M auth for token in progress....`);
+        // LOGGER.info(`M2M auth for token in progress....`);
         if (!allowM2M) throw new ApiError(httpStatus.FORBIDDEN, 'M2M is not enabled'); // we only use JWT for M2M
 
         const { success } = await tokenVerStrategies.defaultM2MAuth.verifyToken(token);
@@ -28,7 +28,7 @@ const authMiddlewareFactory = ({ requireTeam = true, allowM2M = false, limitToM2
 
         return next();
       } else if (isUIAuthToken) {
-        LOGGER.info(`User ui token auth for token in progress....`);
+        // LOGGER.info(`User ui token auth for token in progress....`);
         // user token auth
         if (limitToM2M) throw new ApiError(httpStatus.FORBIDDEN, 'User auth is not enabled for this request');
 

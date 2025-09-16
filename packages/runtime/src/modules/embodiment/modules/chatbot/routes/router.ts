@@ -30,8 +30,6 @@ type ChatbotResponse = {
 
 const router = express.Router();
 
-const MAX_TTL_CHATBOT_FILE_UPLOAD = 60 * 60 * 24 * 1; // 1 day
-
 let localAgentAuthorizations = {};
 
 const middleweares = [agentLoader, ChatbotLoader];

@@ -4,7 +4,7 @@ import {
   SECONDARY_BUTTON_STYLE,
 } from '@src/react/shared/constants/style';
 import { EMBODIMENT_DESCRIPTIONS, SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { isProdEnv } from '@src/shared/utils';
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { setCodeEditor } from '../../ui/dom';
 import { twModalDialog } from '../../ui/tw-dialogs';
 import { Workspace } from '../../workspace/Workspace.class';
@@ -481,7 +481,7 @@ function updateCodeDisplay(
   apiKey?: string,
   version: string = 'dev',
 ): void {
-  const baseUrl = isProdEnv() ? 'https://llm.emb.smyth.ai' : 'https://llm.emb-stg.smyth.ai';
+  const baseUrl = builderStore.getState().serverStatus.embodimentUrl;
   const agentId = window.workspace?.agent?.id;
 
   if (!agentId) {
@@ -499,7 +499,8 @@ export async function openLLMEmbodiment(
   workspace: Workspace,
   openEmbodimentDialog: (code: string, options: any, title: string, tooltip: string) => void,
 ) {
-  const baseUrl = isProdEnv() ? 'https://llm.emb.smyth.ai' : 'https://llm.emb-stg.smyth.ai';
+  // const baseUrl = isProdEnv() ? 'https://llm.emb.smyth.ai' : 'https://llm.emb-stg.smyth.ai';
+  const baseUrl = builderStore.getState().serverStatus.embodimentUrl;
   const agentId = `${workspace.agent.id}@dev`;
 
   const codeSamples = {

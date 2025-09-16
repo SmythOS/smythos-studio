@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
       agents: agents || [],
     });
   } catch (error) {
-    console.error('Error fetching agents:', error);
+    console.error('Error fetching agents:', error?.message);
     res.status(500).send('Error fetching agents');
   }
 });
@@ -90,7 +90,7 @@ router.get('/builder/:agentId', llmModelsLoaderMiddleware, async (req, res) => {
       const { agent } = await userData.getAgent(req, agentId);
       agentData = { ...agent };
     } catch (error) {
-      console.error('Error fetching agent:', error);
+      console.error('Error fetching agent:', error?.message);
     }
 
     res.render('index', {
@@ -103,7 +103,7 @@ router.get('/builder/:agentId', llmModelsLoaderMiddleware, async (req, res) => {
       ...res.locals.ejsOnboardingData,
     });
   } catch (error) {
-    console.error('Error fetching agent:', error);
+    console.error('Error fetching agent:', error?.message);
     res.status(500).send('Error fetching agent');
   }
 });
@@ -167,7 +167,7 @@ router.get(
         }
       }
     } catch (error) {
-      console.error('Error in /agents route:', error);
+      console.error('Error in /agents route:', error?.message);
       return next(error);
     }
     return next();
@@ -176,7 +176,7 @@ router.get(
     try {
       return createReactRoute()(req, res);
     } catch (error) {
-      console.error('Error in /agents route:', error);
+      console.error('Error in /agents route:', error?.message);
       return next(error);
     }
   },

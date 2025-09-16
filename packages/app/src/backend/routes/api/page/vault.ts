@@ -238,9 +238,18 @@ function sanitizeOAuthConnections(connections: any): any {
       if (!obj || typeof obj !== 'object') return;
 
       // List of sensitive field names to sanitize
-      const sensitiveFields = ['primary', 'secondary', 'expires_in', 'refresh_token',
-        'access_token', 'accessToken', 'refreshToken', 'token',
-        'tokenSecret', 'accessTokenSecret'];
+      const sensitiveFields = [
+        'primary',
+        'secondary',
+        'expires_in',
+        'refresh_token',
+        'access_token',
+        'accessToken',
+        'refreshToken',
+        'token',
+        'tokenSecret',
+        'accessTokenSecret',
+      ];
 
       for (const field of sensitiveFields) {
         if (obj[field] && typeof obj[field] === 'string' && obj[field] !== '[REDACTED]') {
@@ -250,18 +259,34 @@ function sanitizeOAuthConnections(connections: any): any {
 
       // Also check for any field that looks like a token (JWT pattern or long string)
       // Exclude fields that are meant to be visible like clientID, clientSecret, consumerKey, etc.
-      const excludedFields = ['clientID', 'clientSecret', 'consumerKey', 'consumerSecret',
-        'oauth_keys_prefix', 'name', 'platform', 'service', 'type',
-        'scope', 'authorizationURL', 'tokenURL', 'requestTokenURL',
-        'accessTokenURL', 'userAuthorizationURL'];
+      const excludedFields = [
+        'clientID',
+        'clientSecret',
+        'consumerKey',
+        'consumerSecret',
+        'oauth_keys_prefix',
+        'name',
+        'platform',
+        'service',
+        'type',
+        'scope',
+        'authorizationURL',
+        'tokenURL',
+        'requestTokenURL',
+        'accessTokenURL',
+        'userAuthorizationURL',
+      ];
 
       for (const [fieldName, fieldValue] of Object.entries(obj)) {
-        if (typeof fieldValue === 'string' &&
+        if (
+          typeof fieldValue === 'string' &&
           fieldValue.length > 40 &&
           !excludedFields.includes(fieldName) &&
-          fieldValue !== '[REDACTED]') {
+          fieldValue !== '[REDACTED]'
+        ) {
           // This might be a token - check for JWT pattern or OAuth token pattern
-          const looksLikeToken = fieldValue.includes('.') || // JWT (has dots)
+          const looksLikeToken =
+            fieldValue.includes('.') || // JWT (has dots)
             fieldValue.match(/^[A-Za-z0-9_-]{40,}$/); // OAuth token pattern
           if (looksLikeToken) {
             obj[fieldName] = '[REDACTED]';
@@ -276,7 +301,10 @@ function sanitizeOAuthConnections(connections: any): any {
     }
 
     // Sanitize auth_settings (might exist in legacy or contain misplaced tokens)
-    if (sanitizedConnection.auth_settings && typeof sanitizedConnection.auth_settings === 'object') {
+    if (
+      sanitizedConnection.auth_settings &&
+      typeof sanitizedConnection.auth_settings === 'object'
+    ) {
       sanitizeTokenFields(sanitizedConnection.auth_settings, 'auth_settings');
     }
 
@@ -294,7 +322,9 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
     const settings = await getTeamSettingsObj(req, OAUTH_SETTING_KEY);
     if (settings === null) {
       console.error('Failed to get OAuth settings due to an internal error.');
-      return res.status(500).json({ success: false, error: 'Failed to retrieve OAuth connections.' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'Failed to retrieve OAuth connections.' });
     }
 
     // Parse any stringified entries before sanitization
@@ -327,8 +357,13 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
     const sanitizedSettings = sanitizeOAuthConnections(parsedSettings);
     res.json(sanitizedSettings);
   } catch (error) {
-    console.error('Error fetching OAuth connections:', error);
-    res.status(500).json({ success: false, error: 'An unexpected error occurred while fetching OAuth connections.' });
+    console.error('Error fetching OAuth connections:', error?.message);
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while fetching OAuth connections.',
+      });
   }
 });
 
@@ -336,12 +371,19 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
   const { entryId, data: newSettings } = req.body;
 
   // Validate entryId format
-  if (!entryId || typeof entryId !== 'string' || !entryId.startsWith('OAUTH_') || !entryId.endsWith('_TOKENS')) {
+  if (
+    !entryId ||
+    typeof entryId !== 'string' ||
+    !entryId.startsWith('OAUTH_') ||
+    !entryId.endsWith('_TOKENS')
+  ) {
     return res.status(400).json({ success: false, error: 'Invalid or missing entryId.' });
   }
   // Validate incoming settings data (basic check)
   if (!newSettings || typeof newSettings !== 'object' || Array.isArray(newSettings)) {
-    return res.status(400).json({ success: false, error: 'Invalid or missing connection settings data.' });
+    return res
+      .status(400)
+      .json({ success: false, error: 'Invalid or missing connection settings data.' });
   }
 
   try {
@@ -349,53 +391,85 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
     const existingSettingsMap = await getTeamSettingsObj(req, OAUTH_SETTING_KEY);
     if (existingSettingsMap === null) {
       // Handle case where fetching settings failed (getTeamSettingsObj handles internal errors)
-      return res.status(500).json({ success: false, error: 'Failed to retrieve existing OAuth settings.' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'Failed to retrieve existing OAuth settings.' });
     }
 
     // 2. Get the specific entry being updated, parse if string, or default to an empty object
-    let existingEntry = safeJsonParse(existingSettingsMap[entryId], {}, `OAuth PUT existingEntry ${entryId}`);
+    let existingEntry = safeJsonParse(
+      existingSettingsMap[entryId],
+      {},
+      `OAuth PUT existingEntry ${entryId}`,
+    );
     // 3. Parse incoming newSettings if it's a string (shouldn't happen, but defensive coding)
-    const parsedNewSettings = safeJsonParse(newSettings, newSettings, `OAuth PUT newSettings ${entryId}`);
+    const parsedNewSettings = safeJsonParse(
+      newSettings,
+      newSettings,
+      `OAuth PUT newSettings ${entryId}`,
+    );
     // 4. Preserve existing auth_data (if it exists) OR migrate from old structure
     let preservedAuthData = existingEntry.auth_data || {}; // Keep existing tokens
 
     // If auth_data is empty but tokens exist at root level (old structure), migrate them
-    if ((!preservedAuthData.primary && !preservedAuthData.secondary) &&
-      (existingEntry.primary || existingEntry.secondary)) {
+    if (
+      !preservedAuthData.primary &&
+      !preservedAuthData.secondary &&
+      (existingEntry.primary || existingEntry.secondary)
+    ) {
       // console.log('[OAuth Edit] Migrating tokens from old structure to new auth_data');
       preservedAuthData = {
         primary: existingEntry.primary || '',
         secondary: existingEntry.secondary || '',
-        expires_in: existingEntry.expires_in || ''
+        expires_in: existingEntry.expires_in || '',
       };
     }
 
     // 5. Merge and normalize the settings using helper (now both are guaranteed to be objects)
     const mergedAuthSettings = mergeAuthSettings(existingEntry, parsedNewSettings);
     // 6. Parse preservedAuthData if it's somehow still a string (defensive coding)
-    preservedAuthData = safeJsonParse(preservedAuthData, {}, `OAuth PUT preservedAuthData ${entryId}`);
+    preservedAuthData = safeJsonParse(
+      preservedAuthData,
+      {},
+      `OAuth PUT preservedAuthData ${entryId}`,
+    );
     // 7. Check if authentication-critical fields changed - if so, invalidate tokens
     // Handle both new structure (auth_settings.oauth_info) and legacy structure (oauth_info at root)
-    const existingOAuthInfo = existingEntry.auth_settings?.oauth_info || existingEntry.oauth_info || {};
-    const newOAuthInfo = mergedAuthSettings.oauth_info || mergedAuthSettings.auth_settings?.oauth_info || {};
+    const existingOAuthInfo =
+      existingEntry.auth_settings?.oauth_info || existingEntry.oauth_info || {};
+    const newOAuthInfo =
+      mergedAuthSettings.oauth_info || mergedAuthSettings.auth_settings?.oauth_info || {};
     const authCriticalFields = [
-      'clientID', 'clientSecret', 'scope', 'authorizationURL', 'tokenURL',
-      'consumerKey', 'consumerSecret', 'requestTokenURL', 'accessTokenURL', 'userAuthorizationURL',
-      'service'
+      'clientID',
+      'clientSecret',
+      'scope',
+      'authorizationURL',
+      'tokenURL',
+      'consumerKey',
+      'consumerSecret',
+      'requestTokenURL',
+      'accessTokenURL',
+      'userAuthorizationURL',
+      'service',
     ];
 
     // Enhanced comparison for authentication-critical fields
-    const hasAuthCriticalChanges = authCriticalFields.some(field => {
+    const hasAuthCriticalChanges = authCriticalFields.some((field) => {
       // Get values from both possible locations for existing data
       const oldValueFromOAuthInfo = existingOAuthInfo[field];
       const oldValueFromRoot = existingEntry[field]; // Legacy structure stores some fields at root
       const oldValueFromAuthSettings = existingEntry.auth_settings?.[field]; // New structure fields
-      const oldValue = oldValueFromOAuthInfo !== undefined ? oldValueFromOAuthInfo :
-        (oldValueFromAuthSettings !== undefined ? oldValueFromAuthSettings : oldValueFromRoot);
-      // Get values from both possible locations for new data  
+      const oldValue =
+        oldValueFromOAuthInfo !== undefined
+          ? oldValueFromOAuthInfo
+          : oldValueFromAuthSettings !== undefined
+            ? oldValueFromAuthSettings
+            : oldValueFromRoot;
+      // Get values from both possible locations for new data
       const newValueFromOAuthInfo = newOAuthInfo[field];
       const newValueFromSettings = mergedAuthSettings[field]; // New data might be at root of mergedAuthSettings
-      const newValue = newValueFromOAuthInfo !== undefined ? newValueFromOAuthInfo : newValueFromSettings;
+      const newValue =
+        newValueFromOAuthInfo !== undefined ? newValueFromOAuthInfo : newValueFromSettings;
       // Normalize values: treat undefined, null, empty string, and whitespace as equivalent
       const normalizeValue = (val) => {
         if (val === undefined || val === null || val === '') return '';
@@ -410,7 +484,6 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
 
       return hasChanged;
     });
-
 
     // 8. Construct the final data object with the new structure
     // Clear tokens if auth-critical fields changed, otherwise preserve them
@@ -429,36 +502,59 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
 
     // 10. Handle save result
     if (!result.success) {
-      console.error(`[PUT /oauth-connections] Failed to save settings for ${entryId}:`, result.error);
-      return res.status(500).json({ success: false, error: result.error || 'Failed to save OAuth connection.' });
+      console.error(
+        `[PUT /oauth-connections] Failed to save settings for ${entryId}:`,
+        result.error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, error: result.error || 'Failed to save OAuth connection.' });
     }
 
     res.json({ success: true, data: finalDataToSave }); // Respond with the data that was saved
-
   } catch (error) {
     console.error(`[PUT /oauth-connections] Error processing request for ${entryId}:`, error);
-    res.status(500).json({ success: false, error: 'An unexpected error occurred while saving the OAuth connection.' });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while saving the OAuth connection.',
+      });
   }
 });
 
 router.delete('/oauth-connections/:connectionId', includeTeamDetails, async (req, res) => {
   const { connectionId } = req.params;
 
-  if (!connectionId || typeof connectionId !== 'string' || !connectionId.startsWith('OAUTH_') || !connectionId.endsWith('_TOKENS')) {
-    return res.status(400).json({ success: false, error: 'Invalid or missing connectionId parameter.' });
+  if (
+    !connectionId ||
+    typeof connectionId !== 'string' ||
+    !connectionId.startsWith('OAUTH_') ||
+    !connectionId.endsWith('_TOKENS')
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, error: 'Invalid or missing connectionId parameter.' });
   }
 
   try {
     const result = await deleteTeamSettingsObj(req, OAUTH_SETTING_KEY, connectionId);
 
     if (!result.success) {
-      return res.status(500).json({ success: false, error: result.error || 'Failed to delete OAuth connection.' });
+      return res
+        .status(500)
+        .json({ success: false, error: result.error || 'Failed to delete OAuth connection.' });
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
     console.error(`Error deleting OAuth connection ${connectionId}:`, error);
-    res.status(500).json({ success: false, error: 'An unexpected error occurred while deleting the OAuth connection.' });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while deleting the OAuth connection.',
+      });
   }
 });
 
@@ -548,12 +644,12 @@ const handleCustomLLMSave = async (req, res) => {
 
     // delete the custom LLM model cache
     await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-      console.warn('Error deleting custom LLM model cache:', error);
+      console.warn('Error deleting custom LLM model cache:', error?.message);
     });
 
     res.status(200).json({ success: true, data: saveCustomLLM.data });
   } catch (error) {
-    console.error('Error saving custom LLM model:', error);
+    console.error('Error saving custom LLM model:', error?.message);
     res.status(500).json({ success: false, error: 'Error saving custom LLM model.' });
   }
 };
@@ -628,7 +724,7 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
 
     // delete the custom LLM model cache
     await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-      console.warn('Error deleting custom LLM model cache:', error);
+      console.warn('Error deleting custom LLM model cache:', error?.message);
     });
 
     res.status(200).json({ success: true, data: deleteModel.data });
