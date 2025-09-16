@@ -2,10 +2,19 @@ import { Component } from '../Component.class';
 
 export class Trigger extends Component {
   protected async init() {
-    this.settings = {};
+    this.settings = {
+      triggerEndpoint: {
+        type: 'input',
+        label: 'Trigger Endpoint',
+        hint: 'Trigger Endpoint',
+        validate: `required maxlength=50 custom=isValidEndpoint`,
+        validateMessage: `Provide a valid endpoint that only contains 'a-z', 'A-Z', '0-9', '-', '_' , without leading or trailing spaces. Length should be less than 50 characters.`,
+        attributes: { 'data-template-vars': 'true' },
+      },
+    };
 
     // #region [ I/O config ] ==================
-    this.properties.defaultOutputs = ['_'];
+    this.properties.defaultOutputs = ['Payload'];
     this.properties.defaultInputs = [];
     // #endregion
 
@@ -20,5 +29,13 @@ export class Trigger extends Component {
     this.drawSettings.shortDescription = 'Trigger';
     this.drawSettings.color = '#ff00f2';
     // #endregion
+  }
+
+  public redraw(triggerSettings?: boolean): any {
+    super.redraw(triggerSettings);
+
+    // add new connection endpoint
+    this.domElement.classList.add('Trigger');
+    this.domElement.setAttribute('smt-trigger', '');
   }
 }

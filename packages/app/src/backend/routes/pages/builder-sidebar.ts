@@ -94,7 +94,8 @@ const baseMenu: Menu = {
     { name: 'VisionLLM', description: 'Vision LLM', label: 'Vision LLM' },
   ],
 
-  Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
+  //hide triggers for now
+  //Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
   Integrations: [],
 };
 

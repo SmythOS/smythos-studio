@@ -1369,7 +1369,16 @@ export class Workspace extends EventEmitter {
         );
       }
     } else {
-      targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
+      //handle the special case of triggers connecting to APIEndpoints
+
+      if (
+        sourceComponent.classList.contains('Trigger') &&
+        targetComponent.classList.contains('APIEndpoint')
+      ) {
+        targetEndpoint = targetComponent.querySelector(`.endpoint-connection`);
+      } else {
+        targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
+      }
     }
 
     // @ts-ignore

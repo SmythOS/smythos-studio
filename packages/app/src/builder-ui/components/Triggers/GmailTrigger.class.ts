@@ -30,15 +30,17 @@ export class GmailTrigger extends Trigger {
 
     // Set up component settings with OAuth configuration
     this.settings = {
+      ...this.settings,
       interval: {
         type: 'range',
         label: 'Interval',
         min: 1,
         max: 720,
-        value: 1,
+        value: 5,
         step: 1,
         validate: 'min=1 max=720',
         validateMessage: 'Allowed range 1 to 720',
+        desc: 'Interval in minutes',
       },
       ...this.oauth?.configure(),
     };

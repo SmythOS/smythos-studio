@@ -285,11 +285,14 @@ export class APIEndpoint extends Component {
       });
     } else {
       // Sync default values from inputs to outputs in compact mode
-      this.domElement?.querySelectorAll('.input-endpoint[smt-defaultVal]:not([smt-defaultVal=""])')
+      this.domElement
+        ?.querySelectorAll('.input-endpoint[smt-defaultVal]:not([smt-defaultVal=""])')
         .forEach((inputDiv: HTMLElement) => {
           const inputName = inputDiv.getAttribute('smt-name');
           if (!this.properties.defaultOutputs.includes(inputName)) {
-            const outputDiv = this.domElement?.querySelector(`.output-endpoint[smt-name="${inputName}"]`) as HTMLElement;
+            const outputDiv = this.domElement?.querySelector(
+              `.output-endpoint[smt-name="${inputName}"]`,
+            ) as HTMLElement;
             if (outputDiv) {
               const defaultValue = inputDiv.getAttribute('smt-defaultVal');
               this.syncDefaultValue(outputDiv, defaultValue);
@@ -464,7 +467,8 @@ export class APIEndpoint extends Component {
     const inputProps = this.properties.inputProps?.find((c) => c.name === name);
 
     // Get the default value from input properties or existing attributes
-    const defaultValue = inputProperties?.defaultVal || inputDiv.getAttribute('smt-defaultVal') || '';
+    const defaultValue =
+      inputProperties?.defaultVal || inputDiv.getAttribute('smt-defaultVal') || '';
 
     const outputDiv: any = await super.addOutput(
       outputParent,
@@ -560,7 +564,6 @@ export class APIEndpoint extends Component {
       );
       optionalOutputs.forEach((output) => output.classList.remove('marked-optional'));
       // this.settings.method.readonly = false;
-
     } else {
       advancedItems.forEach((item) => item.classList.add('hidden'));
       // In simple mode, restore optional visual state for outputs from optional inputs
@@ -870,7 +873,7 @@ export class APIEndpoint extends Component {
       maxConnections: -1,
       cssClass: 'exclude-panzoom',
     });
-    titleWrapper.classList.add('agent-card-connection');
+    titleWrapper.classList.add('agent-card-connection', 'endpoint-connection');
     // @ts-ignore
     titleWrapper.endpoint = newEndpoint;
     newEndpoint['_domElement'] = titleWrapper;
