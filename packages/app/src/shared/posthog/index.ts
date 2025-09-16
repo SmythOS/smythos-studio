@@ -62,9 +62,6 @@ export const PostHog = {
     if (!initialized) {
       lazyInit();
     }
-    if (featureFlag == 'experiment-mobile-number-in-onboarding') {
-      return 'variant_2';
-    }
     return posthog.getFeatureFlag(featureFlag);
   },
 
