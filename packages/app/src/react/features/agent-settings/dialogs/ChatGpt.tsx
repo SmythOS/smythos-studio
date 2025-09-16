@@ -57,31 +57,50 @@ const ChatGptDialog = ({
   // Refs for textarea height synchronization
   const humanDescriptionRef = useRef<HTMLTextAreaElement>(null);
   const modelDescriptionRef = useRef<HTMLTextAreaElement>(null);
-  const [syncHeight, setSyncHeight] = useState<string>('56px');
+  const [syncMinHeight, setSyncMinHeight] = useState<string>('56px');
 
-  // Function to synchronize textarea heights
+  // Function to synchronize textarea minimum heights
   const synchronizeTextareaHeights = () => {
     const humanTextarea = humanDescriptionRef.current;
     const modelTextarea = modelDescriptionRef.current;
 
     if (humanTextarea && modelTextarea) {
-      // Reset heights to get accurate scrollHeight
-      humanTextarea.style.height = 'auto';
-      modelTextarea.style.height = 'auto';
+      // Get the current computed heights of both textareas
+      const humanHeight = humanTextarea.getBoundingClientRect().height;
+      const modelHeight = modelTextarea.getBoundingClientRect().height;
 
-      // Get the maximum scrollHeight between both textareas
-      const maxHeight = Math.max(
-        Math.max(56, Math.min(humanTextarea.scrollHeight, 88)), // Min 56px (2 rows), Max 88px to match maxHeight prop
-        Math.max(56, Math.min(modelTextarea.scrollHeight, 88)),
-      );
+      // Set minimum height to the larger of the two (with 56px minimum)
+      const maxHeight = Math.max(56, humanHeight, modelHeight);
+      const newMinHeight = `${Math.min(maxHeight, 136)}px`; // Cap at maxHeight limit
 
-      // Apply the synchronized height to both textareas
-      const newHeight = `${maxHeight}px`;
-      setSyncHeight(newHeight);
-      humanTextarea.style.height = newHeight;
-      modelTextarea.style.height = newHeight;
+      setSyncMinHeight(newMinHeight);
     }
   };
+
+  // Reset textarea heights when modal opens/closes
+  const resetTextareaHeights = () => {
+    setSyncMinHeight('56px');
+
+    // Force reset the actual textarea heights after a short delay
+    setTimeout(() => {
+      const humanTextarea = humanDescriptionRef.current;
+      const modelTextarea = modelDescriptionRef.current;
+
+      if (humanTextarea) {
+        humanTextarea.style.height = '56px';
+      }
+      if (modelTextarea) {
+        modelTextarea.style.height = '56px';
+      }
+    }, 0);
+  };
+
+  // Reset heights when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      resetTextareaHeights();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const properties = currentData?.properties;
@@ -91,10 +110,15 @@ const ChatGptDialog = ({
 
   // Synchronize heights when activeData changes or component mounts
   useEffect(() => {
-    if (activeData) {
-      setTimeout(synchronizeTextareaHeights, 100);
+    if (activeData && isOpen) {
+      // Check if both description values are empty, if so, reset heights
+      if (!activeData.humanDescription && !activeData.modelDescription) {
+        resetTextareaHeights();
+      } else {
+        setTimeout(synchronizeTextareaHeights, 100);
+      }
     }
-  }, [activeData]);
+  }, [activeData, isOpen]);
 
   const submitForm = async (data) => {
     if (isSubmitting) {
@@ -289,7 +313,7 @@ const ChatGptDialog = ({
                                 name="humanDescription"
                                 id="humanDescription"
                                 rows={2}
-                                maxHeight={88}
+                                maxHeight={136}
                                 onChange={(e) => {
                                   // Check if the new length doesn't exceed the limit
                                   if (e.target.value.length <= HUMAN_DESCRIPTION_LIMIT) {
@@ -302,8 +326,8 @@ const ChatGptDialog = ({
                                 value={props.values?.humanDescription}
                                 placeholder="Enter Human Description"
                                 fullWidth
-                                autoGrow={false}
-                                style={{ height: syncHeight }}
+                                autoGrow={true}
+                                style={{ minHeight: syncMinHeight }}
                               />
                               <div className="text-sm mb-4 text-right">
                                 <span
@@ -331,7 +355,7 @@ const ChatGptDialog = ({
                                 name="modelDescription"
                                 id="modelDescription"
                                 rows={2}
-                                maxHeight={88}
+                                maxHeight={136}
                                 onChange={(e) => {
                                   // Check if the new length doesn't exceed the limit
                                   if (e.target.value.length <= MODEL_DESCRIPTION_LIMIT) {
@@ -344,8 +368,8 @@ const ChatGptDialog = ({
                                 value={props.values?.modelDescription}
                                 placeholder="Enter Model Description"
                                 fullWidth
-                                autoGrow={false}
-                                style={{ height: syncHeight }}
+                                autoGrow={true}
+                                style={{ minHeight: syncMinHeight }}
                               />
                               <div className="text-sm mb-4 text-right">
                                 <span

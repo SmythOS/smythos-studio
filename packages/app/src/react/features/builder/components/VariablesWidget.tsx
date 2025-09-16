@@ -526,18 +526,17 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     onChange={(e) => handleInputChange(index, 'value', e.target.value)}
                     onFocus={(e) => adjustTextareaHeight(e.target, true)}
                     onBlur={(e) => adjustTextareaHeight(e.target, false)}
-                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal ${
+                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 ${
                       pair.error
                         ? '!border-smyth-red focus:border-smyth-red'
                         : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
                     } pr-10`}
                     style={{
-                      height: '40px',
-                      minHeight: '40px',
-                      maxHeight: '154px',
+                      minHeight: '36px',
                       lineHeight: '1.25rem',
                     }}
                     autoGrow={false}
+                    maxHeight={154}
                     rows={1}
                   />
                   <button

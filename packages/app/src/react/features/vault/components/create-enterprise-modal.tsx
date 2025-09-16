@@ -547,9 +547,7 @@ const JsonCredentialsField = ({ form }) => (
     <TextArea
       id="settings.jsonCredentials"
       {...form.register('settings.jsonCredentials')}
-      className={`min-h-[100px] ${
-        form.formState.errors.settings?.jsonCredentials ? 'border-red-500' : ''
-      }`}
+      className={`${form.formState.errors.settings?.jsonCredentials ? 'border-red-500' : ''}`}
       fullWidth
     />
     {form.formState.errors.settings?.jsonCredentials && (

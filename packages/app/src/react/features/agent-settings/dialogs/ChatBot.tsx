@@ -381,7 +381,7 @@ const ChatBotDialog = ({
                                   name="personality"
                                   id="personality"
                                   rows={2}
-                                  maxHeight={88}
+                                  maxHeight={136}
                                   onChange={(e) => {
                                     // Check if the new length doesn't exceed the limit
                                     if (e.target.value.length <= MODEL_DESCRIPTION_LIMIT) {

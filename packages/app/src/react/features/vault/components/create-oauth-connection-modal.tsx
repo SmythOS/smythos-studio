@@ -447,7 +447,6 @@ export function CreateOAuthConnectionModal({
                         name="scope"
                         value={formData.scope || ''}
                         onChange={handleChange}
-                        className="min-h-[70px] h-[70px] resize-none"
                         placeholder="Enter scopes separated by space"
                         disabled={isProcessing}
                         fullWidth={true}

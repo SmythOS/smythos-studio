@@ -104,12 +104,21 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, CustomTextAreaProp
     const adjustHeight = (element: HTMLTextAreaElement) => {
       if (!autoGrow) return;
 
+      // For empty content, reset to minimum height immediately
+      if (!element.value || element.value.trim() === '') {
+        const computedStyle = window.getComputedStyle(element);
+        const minHeight = parseInt(computedStyle.minHeight) || 56; // Default 2-row minimum
+        element.style.height = `${minHeight}px`;
+        element.style.overflowY = 'hidden';
+        return;
+      }
+
       // Reset height to auto to get the correct scrollHeight
       element.style.height = 'auto';
 
       // Get the computed min-height to respect CSS constraints
       const computedStyle = window.getComputedStyle(element);
-      const minHeight = parseInt(computedStyle.minHeight) || 0;
+      const minHeight = parseInt(computedStyle.minHeight) || 56;
 
       // Calculate the new height, respecting both minHeight and maxHeight
       const contentHeight = element.scrollHeight;
@@ -117,8 +126,6 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, CustomTextAreaProp
 
       // Set the new height
       element.style.height = `${newHeight}px`;
-
-      // Only show scrollbar when content actually exceeds maxHeight (9th row)
       element.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
     };
 
@@ -177,12 +184,12 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, CustomTextAreaProp
             id={id}
             rows={autoGrow ? undefined : rows} // Don't set rows if auto-grow is enabled
             className={cn(
-              'bg-white border text-gray-900 rounded block w-full outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 transition-all duration-150 ease-in-out',
+              'resize-none bg-white border text-gray-900 rounded block w-full outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 transition-all duration-150 ease-in-out',
               error
                 ? '!border-[#C50F1F] focus:border-[#C50F1F]'
                 : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500',
               disabled ? 'text-gray-400 border-gray-200' : '',
-              autoGrow ? 'resize-none' : 'resize-vertical', // Remove overflow-hidden to allow JS control
+              // resize-none is now applied by default in base classes above
               className,
             )}
             placeholder={placeholder}
