@@ -34,8 +34,10 @@ RUN pnpm install
 RUN pnpm run build
 
 # Patch the app to bind to 0.0.0.0 instead of localhost
-WORKDIR /app/packages/app
-RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.0",/g' dist/server/index.js
+# WORKDIR /app/packages/app
+# RUN sed -i 's/listen(PORT, "localhost",/listen(PORT, process.env.HOST || "0.0.0.0",/g' dist/server/index.js
+
+
 
 # Generate Prisma client for Alpine Linux with correct binary target
 WORKDIR /app/packages/middleware
