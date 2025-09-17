@@ -175,12 +175,12 @@ export class oAuthSettings {
    */
   private async handleAuthSuccess(type: string): Promise<void> {
     successToast(`${type} authentication was successful`);
+    this.component.checkSettings();
     this.uiHelper?.updateSidebarForOAuth();
     await this.updateOAuthConnectionOptions();
     this.component.refreshSettingsSidebar();
     this.uiHelper?.updateOAuthActionButtons(this.hasValidConnection());
     await this.updateAuthenticationButtonState();
-    this.component.checkSettings();
     window.removeEventListener('message', this.boundHandleAuthMessage);
   }
 

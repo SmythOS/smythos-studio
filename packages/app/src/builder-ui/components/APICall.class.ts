@@ -867,7 +867,6 @@ export class APICall extends Component {
       case 'oauth':
         // console.log('Authentication was successful');
         successToast(`${event.data.type} authentication was successful`);
-
         // Clear auth check cache for the current connection after successful auth
         if (this.data.oauth_con_id) {
           this.authCheckPromises.delete(this.data.oauth_con_id);
@@ -892,10 +891,8 @@ export class APICall extends Component {
           this.updateOAuthActionButton();
           // Update authentication button state after sidebar refresh
           await this.updateAuthenticationButtonState();
-
-          // Update component's button state
-          this.checkSettings();
         });
+        this.checkSettings();
         window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
 
@@ -908,6 +905,8 @@ export class APICall extends Component {
             'alert',
           );
         }
+        this.checkSettings();
+        window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
 
       default:
