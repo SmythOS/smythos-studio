@@ -7,7 +7,6 @@ services:
     container_name: smythos-traefik
     restart: unless-stopped
     command:
-      # Enable Docker provider
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=smythos-network
@@ -20,8 +19,7 @@ services:
       # Enable access logs (optional)
       - --accesslog=true
       # Configure Let's Encrypt for automatic SSL (optional)
-   # Let's Encrypt configuration
-      - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:-admin@example.com}" # replace with your actual email
+      - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:-admin@example.com}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       # Global redirect from HTTP to HTTPS (optional)
@@ -45,6 +43,9 @@ services:
       # Dashboard configuration (optional)
       - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
       - traefik.http.routers.traefik.service=api@internal
+    depends_on:
+      smythos:
+        condition: service_healthy
 
   # MySQL Database
   mysql:
@@ -134,8 +135,11 @@ services:
       - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
       - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-app.service=smythos-app"
-      # - "traefik.http.routers.smythos-app.tls=true"
+      - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
+      - "traefik.http.routers.smythos-app.tls=true"
       - "traefik.http.routers.smythos-app.tls.certresolver=le"
+      
+     
       
       # Service definition
       - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
@@ -162,16 +166,15 @@ services:
       - "traefik.http.routers.smythos-default-agents.service=smythos-runtime"
       - "traefik.http.routers.smythos-default-agents.tls=true"
       - "traefik.http.routers.smythos-default-agents.tls.certresolver=le"
-    
-
-      - traefik.http.middlewares.smythos.headers.SSLRedirect=true
-      - traefik.http.middlewares.smythos.headers.STSSeconds=315360000
-      - traefik.http.middlewares.smythos.headers.SSLHost=${APP_DOMAIN:-localhost}
-      - traefik.http.middlewares.smythos.headers.STSPreload=true
-      - traefik.http.middlewares.smythos.headers.browserXSSFilter=true
-      - traefik.http.middlewares.smythos.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.smythos.headers.forceSTSHeader=true
-      - traefik.http.middlewares.smythos.headers.STSIncludeSubdomains=true
+      
+      # Security Headers Middleware
+      - "traefik.http.middlewares.smythos.headers.STSSeconds=315360000"
+      - "traefik.http.middlewares.smythos.headers.STSPreload=true"
+      - "traefik.http.middlewares.smythos.headers.BrowserXSSFilter=true"
+      - "traefik.http.middlewares.smythos.headers.ContentTypeNosniff=true"
+      - "traefik.http.middlewares.smythos.headers.ForceSTSHeader=true"
+      - "traefik.http.middlewares.smythos.headers.STSIncludeSubdomains=true"
+      - "traefik.http.middlewares.smythos.headers.ReferrerPolicy=strict-origin-when-cross-origin"
 
     volumes:
       - smythos_data:/root/smythos-data
@@ -182,8 +185,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      traefik:
-        condition: service_started
     healthcheck:
       test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:5050/health && wget --no-verbose --tries=1 --spider http://localhost:5053/health"]
       interval: 30s
