@@ -55,7 +55,7 @@ services:
     env_file:
       - .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-$$(openssl rand -base64 32)}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-smythos_root_password}
       MYSQL_DATABASE: ${DATABASE_NAME:-smythos_db}
       MYSQL_USER: ${DATABASE_USER:-smythos_user}
       MYSQL_PASSWORD: ${DATABASE_PASSWORD:-smythos_password}
