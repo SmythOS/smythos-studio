@@ -3,8 +3,7 @@ import {
   handleApiResponse,
   isOAuth1Service,
   isOAuth2Service,
-  mapInternalToServiceName
-} from '@src/shared/utils/oauth.utils';
+} from '@src/shared/helpers/oauth/oauth.utils';
 
 /**
  * Extract OAuth info from connection data supporting both old and new structures
@@ -25,13 +24,22 @@ export function getConnectionOauthInfo(connection: any, connectionId?: string): 
       // Backend has flattened oauth_info to auth_settings root, reconstruct it
       const reconstructed: any = {};
       const oauthFields = [
-        'oauth_keys_prefix', 'service', 'platform', 'scope',
-        'authorizationURL', 'tokenURL', 'clientID', 'clientSecret',
-        'requestTokenURL', 'accessTokenURL', 'userAuthorizationURL',
-        'consumerKey', 'consumerSecret'
+        'oauth_keys_prefix',
+        'service',
+        'platform',
+        'scope',
+        'authorizationURL',
+        'tokenURL',
+        'clientID',
+        'clientSecret',
+        'requestTokenURL',
+        'accessTokenURL',
+        'userAuthorizationURL',
+        'consumerKey',
+        'consumerSecret',
       ];
 
-      oauthFields.forEach(field => {
+      oauthFields.forEach((field) => {
         if (connection.auth_settings[field] !== undefined) {
           reconstructed[field] = connection.auth_settings[field];
         }
@@ -54,13 +62,22 @@ export function getConnectionOauthInfo(connection: any, connectionId?: string): 
   // Legacy: construct oauth_info from flat fields
   const oauthInfo: any = {};
   const fields = [
-    'oauth_keys_prefix', 'service', 'platform', 'scope',
-    'authorizationURL', 'tokenURL', 'clientID', 'clientSecret',
-    'requestTokenURL', 'accessTokenURL', 'userAuthorizationURL',
-    'consumerKey', 'consumerSecret'
+    'oauth_keys_prefix',
+    'service',
+    'platform',
+    'scope',
+    'authorizationURL',
+    'tokenURL',
+    'clientID',
+    'clientSecret',
+    'requestTokenURL',
+    'accessTokenURL',
+    'userAuthorizationURL',
+    'consumerKey',
+    'consumerSecret',
   ];
 
-  fields.forEach(field => {
+  fields.forEach((field) => {
     if (connection[field] !== undefined) {
       oauthInfo[field] = connection[field];
     }
@@ -84,102 +101,107 @@ export function extractServiceFromConnection(connection: any): string {
   return oauthInfo?.service || '';
 }
 
-/**
- * Derive service name from OAuth info URLs
- */
-export function deriveServiceFromOauthInfo(oauthInfo: any): string {
-  if (!oauthInfo) return '';
+// /**
+//  * Derive service name from OAuth info URLs
+//  */
+// export function deriveServiceFromOauthInfo(oauthInfo: any): string {
+//   if (!oauthInfo) return '';
 
-  // Check authorization URL first
-  if (oauthInfo.authorizationURL?.includes('google')) return 'Google';
-  if (oauthInfo.authorizationURL?.includes('linkedin')) return 'LinkedIn';
-  if (oauthInfo.authorizationURL?.includes('twitter') || oauthInfo.authorizationURL?.includes('x.com')) return 'Twitter/X';
+//   // Check authorization URL first
+//   if (oauthInfo.authorizationURL?.includes('google')) return 'Google';
+//   if (oauthInfo.authorizationURL?.includes('linkedin')) return 'LinkedIn';
+//   if (
+//     oauthInfo.authorizationURL?.includes('twitter') ||
+//     oauthInfo.authorizationURL?.includes('x.com')
+//   )
+//     return 'Twitter/X';
 
-  // Check other URLs
-  if (oauthInfo.userAuthorizationURL?.includes('twitter') || oauthInfo.userAuthorizationURL?.includes('x.com')) return 'Twitter/X';
-  if (oauthInfo.tokenURL?.includes('google')) return 'Google';
-  if (oauthInfo.tokenURL?.includes('linkedin')) return 'LinkedIn';
+//   // Check other URLs
+//   if (
+//     oauthInfo.userAuthorizationURL?.includes('twitter') ||
+//     oauthInfo.userAuthorizationURL?.includes('x.com')
+//   )
+//     return 'Twitter/X';
+//   if (oauthInfo.tokenURL?.includes('google')) return 'Google';
+//   if (oauthInfo.tokenURL?.includes('linkedin')) return 'LinkedIn';
 
-  return '';
-}
+//   return '';
+// }
 
-/**
- * Build OAuth select options from connections with unified name detection
- */
-export function buildOAuthSelectOptions(
-  connections: Record<string, any>,
-  componentSpecificId?: string,
-  logPrefix?: string
-): Array<{ label: string; value: string }> {
-  const connectionOptions: Array<{ label: string; value: string }> = [
-    { label: 'None', value: 'None' }
-  ];
+// /**
+//  * Build OAuth select options from connections with unified name detection
+//  */
+// export function buildOAuthSelectOptions(
+//   connections: Record<string, any>,
+//   componentSpecificId?: string,
+//   logPrefix?: string,
+// ): Array<{ label: string; value: string }> {
+//   const connectionOptions: Array<{ label: string; value: string }> = [
+//     { label: 'None', value: 'None' },
+//   ];
 
-  if (!connections || typeof connections !== 'object') {
-    return connectionOptions;
-  }
+//   if (!connections || typeof connections !== 'object') {
+//     return connectionOptions;
+//   }
 
-  for (const [id, connection] of Object.entries(connections)) {
-    if (!id.startsWith('OAUTH_') || !id.endsWith('_TOKENS')) continue;
+//   for (const [id, connection] of Object.entries(connections)) {
+//     if (!id.startsWith('OAUTH_') || !id.endsWith('_TOKENS')) continue;
 
-    try {
-      // Parse if stringified
-      const parsedConnection = typeof connection === 'string' ? JSON.parse(connection) : connection;
+//     try {
+//       // Parse if stringified
+//       const parsedConnection = typeof connection === 'string' ? JSON.parse(connection) : connection;
 
-      // Support both new and old structures
-      const isNewStructure = parsedConnection.auth_data && parsedConnection.auth_settings;
-      const settingsPart = isNewStructure ? parsedConnection.auth_settings : parsedConnection;
+//       // Support both new and old structures
+//       const isNewStructure = parsedConnection.auth_data && parsedConnection.auth_settings;
+//       const settingsPart = isNewStructure ? parsedConnection.auth_settings : parsedConnection;
 
-      // Extract name with multiple fallback options
-      let name = settingsPart?.name || '';
+//       // Extract name with multiple fallback options
+//       let name = settingsPart?.name || '';
 
-      if (!name) {
-        // Try to derive from oauth_info
-        const oauthInfo = getConnectionOauthInfo(parsedConnection, id);
-        name = oauthInfo?.name || '';
+//       if (!name) {
+//         // Try to derive from oauth_info
+//         const oauthInfo = getConnectionOauthInfo(parsedConnection, id);
+//         name = oauthInfo?.name || '';
 
-        if (!name && oauthInfo?.service) {
-          // Use service name as fallback
-          const serviceName = mapInternalToServiceName(oauthInfo.service);
-          name = serviceName !== oauthInfo.service ? serviceName : '';
-        }
+//         if (!name && oauthInfo?.service) {
+//           // Use service name as fallback
+//           const serviceName = mapInternalToServiceName(oauthInfo.service);
+//           name = serviceName !== oauthInfo.service ? serviceName : '';
+//         }
 
-        if (!name) {
-          // Try to derive from platform
-          name = oauthInfo?.platform || deriveServiceFromOauthInfo(oauthInfo) || '';
-        }
-      }
+//         if (!name) {
+//           // Try to derive from platform
+//           name = oauthInfo?.platform || deriveServiceFromOauthInfo(oauthInfo) || '';
+//         }
+//       }
 
-      // Create label with ID prefix if needed
-      const label = name ? `${name} (${id.substring(0, 15)}...)` : id;
+//       // Create label with ID prefix if needed
+//       const label = name ? `${name} (${id.substring(0, 15)}...)` : id;
 
-      connectionOptions.push({
-        label,
-        value: id
-      });
+//       connectionOptions.push({
+//         label,
+//         value: id,
+//       });
 
-      if (logPrefix) {
-        // console.log(`${logPrefix} Added option:`, { id, name, label });
-      }
+//       if (logPrefix) {
+//         // console.log(`${logPrefix} Added option:`, { id, name, label });
+//       }
+//     } catch (error) {
+//       console.error(`Error processing connection ${id}:`, error);
+//       connectionOptions.push({
+//         label: id,
+//         value: id,
+//       });
+//     }
+//   }
 
-    } catch (error) {
-      console.error(`Error processing connection ${id}:`, error);
-      connectionOptions.push({
-        label: id,
-        value: id
-      });
-    }
-  }
-
-  return connectionOptions;
-}
+//   return connectionOptions;
+// }
 
 /**
  * Check if an OAuth connection is authenticated
  */
-export async function checkOAuthAuthentication(
-  oauthInfo: any
-): Promise<{ success: boolean }> {
+export async function checkOAuthAuthentication(oauthInfo: any): Promise<{ success: boolean }> {
   try {
     const response = await fetch('/oauth/checkAuth', {
       method: 'POST',
@@ -205,7 +227,7 @@ export async function checkOAuthAuthentication(
  */
 export async function initiateOAuthFlow(
   oauthInfo: any,
-  openPopup: boolean = true
+  openPopup: boolean = true,
 ): Promise<{ authUrl?: string }> {
   // Enhance payload with callback URLs if needed
   const service = oauthInfo.service;
@@ -242,7 +264,7 @@ export async function initiateOAuthFlow(
     window.open(
       data.authUrl,
       'oauth_popup',
-      `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
+      `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`,
     );
   }
 
@@ -254,7 +276,7 @@ export async function initiateOAuthFlow(
  */
 export async function signOutOAuthConnection(
   connectionId: string,
-  invalidateAuthentication: boolean = true
+  invalidateAuthentication: boolean = true,
 ): Promise<{ invalidate: boolean }> {
   const response = await fetch('/oauth/signOut', {
     method: 'POST',
@@ -281,10 +303,7 @@ export async function signOutOAuthConnection(
 /**
  * Save OAuth connection to backend
  */
-export async function saveOAuthConnection(
-  connectionId: string,
-  authSettings: any
-): Promise<void> {
+export async function saveOAuthConnection(connectionId: string, authSettings: any): Promise<void> {
   const response = await fetch('/api/page/vault/oauth-connections', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -297,7 +316,7 @@ export async function saveOAuthConnection(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.error || `Failed to save OAuth connection (Status: ${response.status})`
+      errorData.error || `Failed to save OAuth connection (Status: ${response.status})`,
     );
   }
 }
@@ -313,7 +332,7 @@ export async function deleteOAuthConnection(connectionId: string): Promise<void>
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.error || `Failed to delete OAuth connection (Status: ${response.status})`
+      errorData.error || `Failed to delete OAuth connection (Status: ${response.status})`,
     );
   }
 }
@@ -350,7 +369,9 @@ export async function fetchOAuthConnections(): Promise<Record<string, any>> {
 /**
  * Authenticate OAuth2 Client Credentials
  */
-export async function authenticateClientCredentials(oauthInfo: any): Promise<{ success: boolean; message: string }> {
+export async function authenticateClientCredentials(
+  oauthInfo: any,
+): Promise<{ success: boolean; message: string }> {
   const response = await fetch('/oauth/client_credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

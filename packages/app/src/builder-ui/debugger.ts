@@ -3191,9 +3191,9 @@ function resetComponentsState({
   });
 
   // Redraw workspace on next tick to ensure DOM updates are complete
-  // requestAnimationFrame(() => {
-  //   workspace.redraw();
-  // });
+  requestAnimationFrame(() => {
+    workspace.redraw();
+  });
 }
 
 /**

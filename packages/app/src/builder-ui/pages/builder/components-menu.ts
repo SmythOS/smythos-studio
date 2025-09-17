@@ -33,6 +33,42 @@ export function setupComponentsScripts(_workspace: Workspace) {
   safe(() => setupBuilderMenuDragDrop(), 'setupBuilderMenuDragDrop');
 }
 
+/**
+ * Delegated handler to collapse all Alpine groups within a container selector.
+ * This uses event delegation on document so it survives DOM replacements.
+ */
+export function bindDelegatedCollapseAll(
+  triggerSelector: string,
+  groupsContainerSelector: string,
+): void {
+  // Avoid duplicate listeners by using a single capturing listener per selector pair
+  const key = `collapseAll:${triggerSelector}|${groupsContainerSelector}`;
+  const win = window as unknown as { __smythDelegated?: Record<string, boolean> };
+  if (!win.__smythDelegated) win.__smythDelegated = {};
+  if (win.__smythDelegated[key]) return;
+  win.__smythDelegated[key] = true;
+
+  document.addEventListener(
+    'click',
+    (evt) => {
+      const target = evt.target as HTMLElement | null;
+      if (!target) return;
+      const trigger = target.closest(triggerSelector) as HTMLElement | null;
+      if (!trigger) return;
+
+      const containers = document.querySelectorAll(
+        `${groupsContainerSelector} .items-group-container`,
+      );
+      containers.forEach((container: Element) => {
+        if ((window as any).Alpine && typeof (window as any).Alpine.evaluate === 'function') {
+          (window as any).Alpine.evaluate(container, 'open = false');
+        }
+      });
+    },
+    true,
+  );
+}
+
 function handleWorkspaceEvents(workspace: Workspace) {
   const CmpToggleBtn: HTMLButtonElement = document.querySelector('#cmp-collapse-btn');
   const CmpToggleBtnIcon = CmpToggleBtn?.querySelector('.icon');
@@ -966,20 +1002,8 @@ function renderCompUpgradeModal({
 }
 
 function setupCollapseAllButton() {
-  const collapseAllBtn = document.getElementById('collapse-all-btn');
-
-  collapseAllBtn?.addEventListener('click', () => {
-    const containers = document.querySelectorAll(
-      '#left-sidebar-integrations-menu .items-group-container',
-    );
-
-    containers.forEach((container: HTMLElement) => {
-      // Using Alpine.js to set the open state to false
-      if ((window as any).Alpine) {
-        (window as any).Alpine.evaluate(container, 'open = false');
-      }
-    });
-  });
+  // Keep backwards compatibility by binding delegated handler for integrations collapse
+  bindDelegatedCollapseAll('#collapse-all-btn', '#left-sidebar-integrations-menu');
 }
 
 function setupPrettifyButton() {
@@ -1145,16 +1169,5 @@ function renderRestrictedAccessModalWebTools() {
 }
 
 function setupComponentsCollapseAllButton() {
-  const collapseAllBtn = document.getElementById('components-collapse-all-btn');
-
-  collapseAllBtn?.addEventListener('click', () => {
-    const containers = document.querySelectorAll('#left-menu .items-group-container');
-
-    containers.forEach((container: HTMLElement) => {
-      // Using Alpine.js to set the open state to false
-      if ((window as any).Alpine) {
-        (window as any).Alpine.evaluate(container, 'open = false');
-      }
-    });
-  });
+  bindDelegatedCollapseAll('#components-collapse-all-btn', '#left-menu');
 }

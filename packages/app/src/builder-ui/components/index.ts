@@ -61,6 +61,8 @@ import { Twitter } from './Twitter.class';
 import { VisionLLM } from './VisionLLM.class';
 import { ZapierAction } from './ZapierAction.class';
 
+import { GmailTrigger } from './Triggers/GmailTrigger.class';
+
 const baseComponents = {
   Component,
   Classifier,
@@ -128,6 +130,7 @@ const baseComponents = {
   Inpainting,
   AgentCard,
   MCPClient,
+  GmailTrigger,
 };
 
 export const getBuilderComponents = () => {
