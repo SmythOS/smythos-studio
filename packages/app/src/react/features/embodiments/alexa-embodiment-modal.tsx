@@ -74,7 +74,6 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   <script>
         VoiceEmbodiment.init({
             domain: '${domain}',
-            // ... additional settings ...
         });
   </script>`;
 
@@ -92,8 +91,8 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
 
         {codeSnippet && (
           <>
-            <div className="flex items-center justify-between my-2 mt-4">
-              <label htmlFor="code-snippet" className="block text-base font-semibold text-gray-700">
+            <div className="flex items-center justify-between mt-4">
+              <label className="block text-base font-semibold text-gray-700">
                 Voice Integration
               </label>
               <a
@@ -105,7 +104,20 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
                 Preview <ArrowRightIcon className="w-4 h-4" />
               </a>
             </div>
-            <p className="text-sm text-gray-700 mb-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 my-2 mb-4">
+              <p className="text-amber-800 text-xs">
+                <strong>Note:</strong> To use voice embodiment, you need to provide personal OpenAI
+                API key via{' '}
+                <a href="/vault" target="_blank" rel="noopener noreferrer" className="underline">
+                  Vault
+                </a>
+                .
+              </p>
+            </div>
+            <label htmlFor="code-snippet" className="text-sm text-gray-900">
+              Code Snippet
+            </label>
+            <p className="text-sm text-gray-700 my-2">
               To integrate voice embodiment, copy and paste this snippet into your website before
               the closing <code>&lt;/body&gt;</code> tag.
             </p>
@@ -130,7 +142,7 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
         )}
 
         <hr className="my-4" />
-        <label className="block text-base font-semibold text-gray-700 my-2">
+        <label className="block text-base font-semibold text-gray-700 mb-2">
           Alexa Integration
         </label>
         {/* Description */}
