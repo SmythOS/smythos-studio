@@ -17,6 +17,7 @@ export enum FEATURE_FLAGS {
   TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT = 'test-form-try-debug-button-experiment',
   TEST_WITH_DEBUG_COMPONENT_SIDEBAR = 'test-with-debug-component-sidebar',
   WEAVER_NEXT_STEPS_WITH_DEBUG_DEPLOY = 'weaver-next-steps-with-debug-deploy',
+  EXPERIMENT_MOBILE_NUMBER_IN_ONBOARDING = 'experiment-mobile-number-in-onboarding',
 }
 
 export const FEATURE_FLAG_PAYLOAD_RELEASE_TYPE = {
