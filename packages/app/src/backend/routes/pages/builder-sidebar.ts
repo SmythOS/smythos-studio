@@ -94,12 +94,15 @@ const baseMenu: Menu = {
     { name: 'VisionLLM', description: 'Vision LLM', label: 'Vision LLM' },
   ],
 
+  //hide triggers for now
+  //Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
   Integrations: [],
 };
 
 if (config.env.NODE_ENV === 'PROD') {
   //remove memory section
   delete baseMenu.Memory;
+  delete baseMenu.Triggers;
 }
 
 export const getBuilderSidebarMenu = () => {

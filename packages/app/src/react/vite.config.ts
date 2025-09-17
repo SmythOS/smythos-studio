@@ -1,11 +1,14 @@
 import react from '@vitejs/plugin-react-swc';
+import expandEnv from 'dotenv-expand';
 import dotenvFlow from 'dotenv-flow';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-dotenvFlow.config({
-  files: ['../../.env', '../../../../.env'],
-});
+expandEnv.expand(
+  dotenvFlow.config({
+    files: ['../../.env', '../../../../.env'],
+  }),
+);
 
 // https://vite.dev/config/
 

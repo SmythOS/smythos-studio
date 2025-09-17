@@ -36,7 +36,7 @@ const port = config.env.PORT;
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
-  return path.join(homeDir, 'smyth-ui-data');
+  return path.join(homeDir, 'smythos-data');
 };
 
 const ensureVaultFileExists = () => {
@@ -56,6 +56,9 @@ const ensureVaultFileExists = () => {
   };
 
   const vaultFilePath = path.join(getDefaultDataPath(), 'vault.json');
+  const dir = path.dirname(vaultFilePath);
+  fs.mkdirSync(dir, { recursive: true });
+
   if (!fs.existsSync(vaultFilePath)) {
     fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
   }

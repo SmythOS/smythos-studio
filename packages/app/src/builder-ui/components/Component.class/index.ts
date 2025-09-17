@@ -2217,7 +2217,7 @@ export class Component extends EventEmitter {
     const inputsControl = document.createElement('div');
     inputsControl.className = 'ep-control inputs px-2';
     inputsControl.innerHTML = `<span>${
-      this.drawSettings.addInputButtonLabel || this.drawSettings.addInputButton
+      this.drawSettings.addInputButtonLabel || this.drawSettings.addInputButton || ''
     }</span>`;
     div.appendChild(inputsControl);
 
@@ -2231,7 +2231,7 @@ export class Component extends EventEmitter {
       inputsControl.appendChild(addInputButton);
       const spanLabel = document.createElement('span');
       spanLabel.innerHTML =
-        this.drawSettings.addInputButtonLabel || this.drawSettings.addInputButton;
+        this.drawSettings.addInputButtonLabel || this.drawSettings.addInputButton || '';
       inputsControl.appendChild(spanLabel);
       //buttonContainer.appendChild(addInputButton);
       addInputButton.onclick = (event) => {
@@ -2248,7 +2248,7 @@ export class Component extends EventEmitter {
     const outputsControl = document.createElement('div');
     outputsControl.className = 'ep-control outputs px-2';
     outputsControl.innerHTML = `<span>${
-      this.drawSettings.addOutputButtonLabel || this.drawSettings.addOutputButton
+      this.drawSettings.addOutputButtonLabel || this.drawSettings.addOutputButton || ''
     }</span>`;
     div.appendChild(outputsControl);
 
@@ -2263,7 +2263,7 @@ export class Component extends EventEmitter {
 
       const spanLabel = document.createElement('span');
       spanLabel.innerHTML =
-        this.drawSettings.addOutputButtonLabel || this.drawSettings.addOutputButton;
+        this.drawSettings.addOutputButtonLabel || this.drawSettings.addOutputButton || '';
       outputsControl.appendChild(spanLabel);
 
       //buttonContainer.appendChild(addOutputButton);

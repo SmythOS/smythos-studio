@@ -6,14 +6,15 @@ import {
   fetchOAuthConnections as fetchOAuthConnectionsShared,
   initiateOAuthFlow as initiateOAuthFlowShared,
   saveOAuthConnection as saveOAuthConnectionShared,
-  signOutOAuthConnection as signOutOAuthConnectionShared
-} from '@src/shared/helpers/oauth-api.helper';
+  signOutOAuthConnection as signOutOAuthConnectionShared,
+} from '@src/shared/helpers/oauth/oauth-api.helper';
+import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
 import {
   generateOAuthId,
   isOAuth1Service,
   mapInternalToServiceName,
-  mapServiceNameToInternal
-} from '@src/shared/utils/oauth.utils';
+  mapServiceNameToInternal,
+} from '@src/shared/helpers/oauth/oauth.utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AuthenticateOAuthPayload,
@@ -24,7 +25,7 @@ import type {
   OAuthInfo,
   OAuthSettings,
   SignOutOAuthPayload,
-  UpdateOAuthConnectionPayload
+  UpdateOAuthConnectionPayload,
 } from '../types/oauth-connection';
 
 export const OAUTH_QUERY_KEY = ['oauthConnections'];
@@ -63,7 +64,7 @@ function isTokenCurrentlyValid(expiresAtMs: number | null, bufferSeconds: number
  * - oauth2: primary token present; if expiry provided, ensure not expired; otherwise unknown
  * - oauth (OAuth1): require both primary and secondary (token + tokenSecret)
  * Returns true/false when determinable from local data, otherwise undefined to trigger server check.
- * 
+ *
  * When tokens are redacted, we assume they're valid to prevent infinite auth check loops.
  */
 function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean | undefined {
@@ -101,10 +102,6 @@ function computeLocalAuthStatus(connection: Partial<OAuthConnection>): boolean |
   return undefined;
 }
 
-
-
-
-
 /**
  * Fetches all OAuth connection settings by calling the backend API.
  * Assumes the backend endpoint GET /vault/oauth-connections uses getTeamSettingsObj(req, 'oauth').
@@ -133,7 +130,10 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
       try {
         connectionData = JSON.parse(connectionData);
       } catch (e) {
-        console.warn(`[fetchOAuthConnections] Could not parse stringified connection for id=${id}:`, e);
+        console.warn(
+          `[fetchOAuthConnections] Could not parse stringified connection for id=${id}:`,
+          e,
+        );
         return null;
       }
     }
@@ -148,7 +148,7 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
     let runtimeConnectionData: Partial<OAuthConnection> = {};
     if (connectionData.auth_data && connectionData.auth_settings) {
       runtimeConnectionData = {
-        ...(connectionData.auth_settings),
+        ...connectionData.auth_settings,
         primary: connectionData.auth_data.primary,
         secondary: connectionData.auth_data.secondary,
         expires_in: connectionData.auth_data.expires_in,
@@ -164,9 +164,19 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
 
     // Synthesize oauth_info for runtime consumers
     const synthKeys = [
-      'oauth_keys_prefix', 'service', 'platform', 'scope', 'authorizationURL', 'tokenURL',
-      'clientID', 'clientSecret', 'requestTokenURL', 'accessTokenURL', 'userAuthorizationURL',
-      'consumerKey', 'consumerSecret'
+      'oauth_keys_prefix',
+      'service',
+      'platform',
+      'scope',
+      'authorizationURL',
+      'tokenURL',
+      'clientID',
+      'clientSecret',
+      'requestTokenURL',
+      'accessTokenURL',
+      'userAuthorizationURL',
+      'consumerKey',
+      'consumerSecret',
     ];
     const existingOauthInfo = (runtimeConnectionData as any).oauth_info;
     const oauthInfoSynth: any = existingOauthInfo ? { ...existingOauthInfo } : {};
@@ -191,9 +201,7 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
 
     // Get the actual name value (could be empty string, but must exist)
     const actualName =
-      runtimeConnectionData.name ??
-      connectionData.name ??
-      connectionData.auth_settings?.name;
+      runtimeConnectionData.name ?? connectionData.name ?? connectionData.auth_settings?.name;
 
     // Ensure name is a string (even if empty)
     if (typeof actualName !== 'string') {
@@ -323,7 +331,10 @@ export function useOAuthConnections() {
 
 // Helper function to get relevant CONFIGURATION fields for oauth_info based on type
 // It now expects the form payload (`rest`) as input data.
-const getRelevantOAuthInfoFields = (type: 'oauth' | 'oauth2' | 'oauth2_client_credentials', formData: Record<string, any>): Partial<OAuthInfo> => {
+const getRelevantOAuthInfoFields = (
+  type: 'oauth' | 'oauth2' | 'oauth2_client_credentials',
+  formData: Record<string, any>,
+): Partial<OAuthInfo> => {
   const relevantInfo: Partial<OAuthInfo> = {};
 
   // *** ADDED: Always include platform if provided ***
@@ -334,18 +345,24 @@ const getRelevantOAuthInfoFields = (type: 'oauth' | 'oauth2' | 'oauth2_client_cr
 
   if (type === 'oauth2') {
     // OAuth2 specific config fields from the form
-    ['authorizationURL', 'tokenURL', 'clientID', 'clientSecret'].forEach(key => {
+    ['authorizationURL', 'tokenURL', 'clientID', 'clientSecret'].forEach((key) => {
       if (formData[key] !== undefined) relevantInfo[key] = formData[key];
     });
     // oauth2CallbackURL is derived, not directly from form data passed here
   } else if (type === 'oauth2_client_credentials') {
     // Client Credentials specific config fields from the form
-    ['tokenURL', 'clientID', 'clientSecret'].forEach(key => {
+    ['tokenURL', 'clientID', 'clientSecret'].forEach((key) => {
       if (formData[key] !== undefined) relevantInfo[key] = formData[key];
     });
   } else if (type === 'oauth') {
     // OAuth 1.0a specific config fields from the form
-    ['requestTokenURL', 'accessTokenURL', 'userAuthorizationURL', 'consumerKey', 'consumerSecret'].forEach(key => {
+    [
+      'requestTokenURL',
+      'accessTokenURL',
+      'userAuthorizationURL',
+      'consumerKey',
+      'consumerSecret',
+    ].forEach((key) => {
       if (formData[key] !== undefined) relevantInfo[key] = formData[key];
     });
     // oauth1CallbackURL is derived, not directly from form data passed here
@@ -364,10 +381,10 @@ export function useCreateOAuthConnection() {
       const connectionId = `OAUTH_${generateOAuthId()}_TOKENS`;
       const { oauthService, name, platform, ...rest } = payload;
 
-      // Determine type and internal service name
-      const type = ['Custom OAuth1.0', 'Twitter'].includes(oauthService)
+      // Determine type and internal service name using centralized configuration
+      const type = OAuthServicesRegistry.isOAuth1Service(oauthService)
         ? 'oauth'
-        : oauthService === 'OAuth2 Client Credentials'
+        : OAuthServicesRegistry.isClientCredentialsService(oauthService)
           ? 'oauth2_client_credentials'
           : 'oauth2';
       const internalService = mapServiceNameToInternal(oauthService);
@@ -392,7 +409,10 @@ export function useCreateOAuthConnection() {
       const authSettings = {
         name: name,
         type: type,
-        tokenURL: (type === 'oauth2' || type === 'oauth2_client_credentials') ? oauthInfoData.tokenURL : undefined,
+        tokenURL:
+          type === 'oauth2' || type === 'oauth2_client_credentials'
+            ? oauthInfoData.tokenURL
+            : undefined,
         oauth_info: oauthInfoData,
         // team: undefined, // Team is typically added by the backend if needed
       };
@@ -431,11 +451,11 @@ export function useUpdateOAuthConnection() {
         ? mapServiceNameToInternal(oauthService)
         : currentData.oauth_info.service;
       const finalType = oauthService
-        ? (isOAuth1Service(finalInternalService)
+        ? isOAuth1Service(finalInternalService)
           ? 'oauth'
           : finalInternalService === 'oauth2_client_credentials'
             ? 'oauth2_client_credentials'
-            : 'oauth2')
+            : 'oauth2'
         : currentData.type;
 
       // Build the updated oauth_info object
@@ -499,7 +519,10 @@ export function useUpdateOAuthConnection() {
       const updatedAuthSettings = {
         name: updatedOAuthInfo.name, // Use the potentially updated name
         type: finalType, // Use the potentially updated type
-        tokenURL: (finalType === 'oauth2' || finalType === 'oauth2_client_credentials') ? updatedOAuthInfo.tokenURL : undefined,
+        tokenURL:
+          finalType === 'oauth2' || finalType === 'oauth2_client_credentials'
+            ? updatedOAuthInfo.tokenURL
+            : undefined,
         oauth_info: updatedOAuthInfo, // Include the fully updated oauth_info
       };
 
@@ -518,7 +541,7 @@ export function useUpdateOAuthConnection() {
     },
     onError: (error, variables) => {
       console.error(`Error updating connection ${variables.connectionId}:`, error);
-    }
+    },
   });
 }
 
@@ -585,7 +608,6 @@ export function useDuplicateOAuthConnection() {
   });
 }
 
-
 /**
  * Hook to initiate OAuth authentication flow.
  * @returns Mutation object for initiating OAuth flow.
@@ -607,7 +629,7 @@ export function useInitiateOAuth() {
         window.open(
           data.authUrl,
           '_blank',
-          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`,
         );
         // Add listener here or manage globally? Usually managed where the hook is called.
       } else {
@@ -726,7 +748,9 @@ export function useSignOutOAuth() {
   });
 }
 
-const authenticateClientCredentials = async (payload: OAuthInfo): Promise<{ success: boolean; message: string }> => {
+const authenticateClientCredentials = async (
+  payload: OAuthInfo,
+): Promise<{ success: boolean; message: string }> => {
   return authenticateClientCredentialsShared(payload);
 };
 
@@ -742,4 +766,3 @@ export function useAuthenticateClientCredentials() {
     },
   });
 }
-
