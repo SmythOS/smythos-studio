@@ -100,7 +100,7 @@ app.use('/', pagesRouter);
 //error handling middlewares
 app.use(errorHandler);
 
-let server = app.listen(PORT, 'localhost', () => {
+let server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Listening on port ${PORT}`);
 });
 

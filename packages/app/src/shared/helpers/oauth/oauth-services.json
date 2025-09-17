@@ -1,0 +1,119 @@
+{
+  "services": {
+    "Google": {
+      "displayName": "Google",
+      "internalName": "google",
+      "type": "oauth2",
+      "category": "predefined",
+      "config": {
+        "authorizationURL": "https://accounts.google.com/o/oauth2/v2/auth",
+        "tokenURL": "https://oauth2.googleapis.com/token",
+        "scope": "https://www.googleapis.com/auth/gmail.readonly"
+      },
+      "callbackPath": "/oauth/google/callback",
+      "validation": {
+        "required": ["clientID", "clientSecret", "authorizationURL", "tokenURL", "scope"]
+      }
+    },
+    "LinkedIn": {
+      "displayName": "LinkedIn",
+      "internalName": "linkedin",
+      "type": "oauth2",
+      "category": "predefined",
+      "config": {
+        "authorizationURL": "https://www.linkedin.com/oauth/v2/authorization",
+        "tokenURL": "https://www.linkedin.com/oauth/v2/accessToken",
+        "scope": "r_liteprofile r_emailaddress"
+      },
+      "callbackPath": "/oauth/linkedin/callback",
+      "validation": {
+        "required": ["clientID", "clientSecret", "authorizationURL", "tokenURL", "scope"]
+      }
+    },
+    "Twitter": {
+      "displayName": "Twitter",
+      "internalName": "twitter",
+      "type": "oauth1",
+      "category": "predefined",
+      "config": {
+        "requestTokenURL": "https://api.twitter.com/oauth/request_token",
+        "accessTokenURL": "https://api.twitter.com/oauth/access_token",
+        "userAuthorizationURL": "https://api.twitter.com/oauth/authorize"
+      },
+      "callbackPath": "/oauth/oauth1/callback",
+      "validation": {
+        "required": [
+          "consumerKey",
+          "consumerSecret",
+          "requestTokenURL",
+          "accessTokenURL",
+          "userAuthorizationURL"
+        ]
+      }
+    },
+    "Custom OAuth2.0": {
+      "displayName": "Custom OAuth2.0",
+      "internalName": "oauth2",
+      "type": "oauth2",
+      "category": "custom",
+      "config": {},
+      "callbackPath": "/oauth/oauth2/callback",
+      "validation": {
+        "required": ["clientID", "clientSecret", "authorizationURL", "tokenURL", "scope"]
+      }
+    },
+    "Custom OAuth1.0": {
+      "displayName": "Custom OAuth1.0",
+      "internalName": "oauth1",
+      "type": "oauth1",
+      "category": "custom",
+      "config": {},
+      "callbackPath": "/oauth/oauth1/callback",
+      "validation": {
+        "required": [
+          "consumerKey",
+          "consumerSecret",
+          "requestTokenURL",
+          "accessTokenURL",
+          "userAuthorizationURL"
+        ]
+      }
+    },
+    "OAuth2 Client Credentials": {
+      "displayName": "OAuth2 Client Credentials",
+      "internalName": "oauth2_client_credentials",
+      "type": "oauth2_client_credentials",
+      "category": "custom",
+      "config": {},
+      "callbackPath": "/oauth/oauth2/callback",
+      "validation": {
+        "required": ["clientID", "clientSecret", "tokenURL"]
+      }
+    },
+    "None": {
+      "displayName": "None",
+      "internalName": "none",
+      "type": "none",
+      "category": "system",
+      "config": {},
+      "callbackPath": "",
+      "validation": {
+        "required": []
+      }
+    }
+  },
+  "categories": {
+    "predefined": {
+      "label": "Popular Services",
+      "description": "Pre-configured OAuth services"
+    },
+    "custom": {
+      "label": "Custom OAuth",
+      "description": "Custom OAuth configurations"
+    },
+    "system": {
+      "label": "System",
+      "description": "System options"
+    }
+  }
+}

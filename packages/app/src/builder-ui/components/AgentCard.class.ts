@@ -702,9 +702,11 @@ export class AgentCard extends EventEmitter {
       }
 
       // Trigger a custom event for React components to listen to
-      window.dispatchEvent(new CustomEvent('agentAvatarUpdated', { 
-        detail: { agentId: this.workspace.agent?.id, avatarUrl: url } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('agentAvatarUpdated', {
+          detail: { agentId: this.workspace.agent?.id, avatarUrl: url },
+        }),
+      );
     });
   }
 
@@ -883,10 +885,8 @@ export class AgentCard extends EventEmitter {
   static checkConnValidity(info: any) {
     // if (!info.source.classList.contains('agent-card-connection')) return true;
     if (
-      (!info.target.classList.contains('agent-card-connection') &&
-        info.source.classList.contains('agent-card-connection')) ||
-      (!info.source.classList.contains('agent-card-connection') &&
-        info.target.classList.contains('agent-card-connection'))
+      !info.target.classList.contains('agent-card-connection') &&
+      info.source.classList.contains('agent-card-connection')
     ) {
       alert(
         'Unsupported Connection',

@@ -2,6 +2,7 @@ import { Agent, AgentRequest, AgentSettings, ConnectorService, Logger } from '@s
 
 import config from '@core/config';
 import { addDefaultComponentsAndConnections, extractAgentVerionsAndPath, getAgentDomainById, getAgentIdAndVersion } from '@core/helpers/agent.helper';
+import { requestContext } from '@core/services/request-context';
 
 const console = Logger('[Embodiment] Middleware: Agent Loader');
 
@@ -96,6 +97,11 @@ export default async function agentLoader(req, res, next) {
     const agentRequest = new AgentRequest(req);
     req._agent = new Agent(agentId, agentData, agentSettings, agentRequest);
     req._rawAgent = agentData;
+
+    const parentTeamId = agentData.data?.parentTeamId;
+    const teamId = agentData.data?.teamId;
+
+    requestContext.set(`team_info:${agentId}`, { planInfo: req._plan, parentTeamId, teamId });
 
     req.socket.on('close', () => {
       // console.log('Client socket closed, killing agent');

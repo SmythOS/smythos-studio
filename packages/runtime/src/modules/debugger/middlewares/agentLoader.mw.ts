@@ -24,7 +24,9 @@ export default async function agentLoader(req, res, next) {
 
   let agentDomain: any = '';
   let isTestDomain = false;
-  let { path, version } = extractAgentVerionsAndPath(req.path);
+  const extracted = extractAgentVerionsAndPath(req.path);
+  const path = extracted.path;
+  let version = extracted.version;
   if (!version) version = agentVersion;
   const domain = req.hostname;
   const method = req.method;
@@ -109,9 +111,11 @@ export default async function agentLoader(req, res, next) {
 function cleanAgentData(agentData) {
   if (agentData) {
     // remove Note components
+    // eslint-disable-next-line no-param-reassign
     agentData.data.components = agentData.data.components.filter(c => c.name != 'Note');
 
     // remove templateInfo
+    // eslint-disable-next-line no-param-reassign
     delete agentData.data?.templateInfo;
 
     // TODO : remove UI attributes

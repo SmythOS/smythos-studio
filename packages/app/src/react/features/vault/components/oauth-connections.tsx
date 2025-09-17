@@ -6,7 +6,7 @@ import {
   extractPlatformFromUrl,
   getBackendOrigin,
   mapOAuthTypeDisplay,
-} from '@src/shared/utils/oauth.utils';
+} from '@src/shared/helpers/oauth/oauth.utils';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 import { Circle, CopyPlus, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
