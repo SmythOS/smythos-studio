@@ -1,4 +1,3 @@
-import { Component } from './Component.class';
 import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
@@ -11,14 +10,14 @@ export class FSign extends FunctionComponent {
       signMethod: {
         type: 'select',
         label: 'Signature Method',
-        //hint: 'Action to perform',
+        help: 'Choose HMAC with a shared secret or RSA with a private key.',
         value: 'HMAC',
         options: ['HMAC', 'RSA'],
       },
       dataTransform: {
         type: 'select',
         label: 'Data Transform',
-        help: 'If the provided data is not a string, it will be transformed using the selected method before signing',
+        help: 'Prepare the data to sign: raw bytes, JSON stringify, or a canonical form. <a href="https://smythos.com/docs/agent-studio/components/crypto/sign/?utm_source=studio&utm_medium=tooltip&utm_campaign=sign&utm_content=data-transform#data-canonicalization" target="_blank" class="text-blue-600 hover:text-blue-800">See canonical formats</a>',
         //hint: 'Action to perform',
         value: 'Stringify',
         options: ['Stringify', 'Querystring'],
@@ -27,7 +26,7 @@ export class FSign extends FunctionComponent {
         type: 'textarea',
         label: 'Key / Secret',
         attributes: { 'data-template-vars': 'true', 'data-vault': `APICall,ALL_NON_GLOBAL_KEYS` },
-        hint: 'This will be used if the input key is not supplied as input',
+        help: 'Provide the signing secret or private key; store in Vault, not in code.',
         value: '',
       },
       keyMessage: {
@@ -40,6 +39,7 @@ export class FSign extends FunctionComponent {
         label: 'Hash Type',
         value: 'md5',
         options: ['md5', 'sha1', 'sha256', 'sha512'],
+        help: 'Select the digest used inside the method, for example SHA-256.',
       },
       RSA_padding: {
         type: 'select',
@@ -57,7 +57,7 @@ export class FSign extends FunctionComponent {
       encoding: {
         type: 'select',
         label: 'Output encoding',
-        //hint: 'Output encoding',
+        help: 'Choose how the signature is returned: hex, Base64, or Base64URL.',
         value: 'hex',
         options: ['hex', 'base64', 'base64url', 'latin1', 'utf8'],
       },
@@ -91,17 +91,15 @@ export class FSign extends FunctionComponent {
     this.drawSettings.color = '#0083ff';
     // #endregion
 
-    this.properties.title = `${this.data.signMethod.toUpperCase()}-${this.data.hashType.toUpperCase()} :: ${
-      this.data.encoding
-    }`;
+    this.properties.title = `${this.data.signMethod.toUpperCase()}-${this.data.hashType.toUpperCase()} :: ${this.data.encoding
+      }`;
     this.drawSettings.displayName = 'F:Sign';
   }
   protected async run() {
     if (!this.domElement.style.width) this.domElement.style.width = '130px';
     this.addEventListener('settingsSaved', async () => {
-      this.title = `${this.data.signMethod.toUpperCase()}-${this.data.hashType.toUpperCase()} :: ${
-        this.data.encoding
-      }`;
+      this.title = `${this.data.signMethod.toUpperCase()}-${this.data.hashType.toUpperCase()} :: ${this.data.encoding
+        }`;
       this.domElement.querySelector('.title .text').textContent = this.title;
     });
 

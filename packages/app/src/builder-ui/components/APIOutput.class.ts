@@ -9,7 +9,7 @@ export class APIOutput extends Component {
         label: 'Output Format',
         value: 'full',
         options: ['full', 'minimal', 'raw'],
-        help: 'API Output component refines and standardizes output data, ensuring relevance and clarity for user requirements.',
+        help: 'Choose the response shape: Full adds metadata; Minimal returns mapped fields; Raw passes the source. <a href="https://smythos.com/docs/agent-studio/components/base/api-output/#step-2-select-an-output-format" target="_blank" class="text-blue-600 hover:text-blue-800">See response examples</a>',
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',

@@ -1,5 +1,3 @@
-import { Component } from './Component.class';
-import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
 const hashAlgos = [
@@ -29,6 +27,7 @@ export class FHash extends FunctionComponent {
         //hint: 'Action to perform',
         value: 'md5',
         options: hashAlgos,
+        help: 'Choose the hash function, like SHA-256 for integrity; avoid MD5 for security. <a href="https://smythos.com/docs/agent-studio/components/crypto/hash/?utm_source=studio&utm_medium=tooltip&utm_campaign=hash&utm_content=hash-algorithm#step-1-select-an-algorithm-and-encoding" target="_blank" class="text-blue-600 hover:text-blue-800">See algorithm guidance</a>',
       },
       encoding: {
         type: 'select',
@@ -36,6 +35,7 @@ export class FHash extends FunctionComponent {
         //hint: 'Output encoding',
         value: 'hex',
         options: encodings,
+        help: 'Choose how the hash is returned: hex for readability or Base64 for compact size.',
       },
     };
 

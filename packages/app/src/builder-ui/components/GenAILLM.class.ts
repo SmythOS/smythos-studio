@@ -10,7 +10,6 @@ import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // Since getWebSearchFields is called multiple times, using a static import is more efficient than a lazy import.
-import { SMYTHOS_DOCS_URL } from '../../shared/constants/general';
 import ianaTimezones from '../params/IANA-time-zones';
 import isoCountryCodes from '../params/ISO-country-code';
 
@@ -342,7 +341,7 @@ export class GenAILLM extends Component {
       model: {
         type: 'select',
         label: 'Select a Model',
-        help: 'Choose an AI model to process the prompt.',
+        help: 'Choose the model that will generate and interpret text. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=model#step-1-choose-a-model" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
         hintPosition: 'after_label',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -491,7 +490,7 @@ export class GenAILLM extends Component {
         validate: `required`, // Omit maximum length, as the tokens counted in backend may be different from the frontend.
         validateMessage: `Please provide a prompt. It's required!`,
         value: defaultPromptValue,
-        hint: `Your prompt is aware of any files you add to the Attachment or Binary type input.\nSee <a href="${SMYTHOS_DOCS_URL}/agent-studio/components/base/gen-ai-llm" class="underline" target="_blank">documentation</a>.`,
+        help: 'Write clear instructions with placeholders (e.g., {{input}}) and state the expected format. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=prompt#step-2-write-your-prompt" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
         hintPosition: 'after_label',
         attributes: {
           'data-template-vars': 'true',
@@ -512,9 +511,8 @@ export class GenAILLM extends Component {
       },
       maxContextTokens: {
         type: 'div',
-        html: `<strong class="px-2">Context window size: <span class="tokens_num">${
-          allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
-        }</span> tokens</strong>`,
+        html: `<strong class="px-2">Context window size: <span class="tokens_num">${allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
+          }</span> tokens</strong>`,
         cls: 'mb-0',
         attributes: {
           'data-supported-models':
@@ -529,9 +527,8 @@ export class GenAILLM extends Component {
       },
       webSearchContextSizeInfo: {
         type: 'div',
-        html: `<strong class="px-2">Search Context Size: <span class="tokens_num">${
-          allowedWebSearchContextTokens ? allowedWebSearchContextTokens.toLocaleString() : 'Unknown'
-        }</span> tokens</strong>`,
+        html: `<strong class="px-2">Search Context Size: <span class="tokens_num">${allowedWebSearchContextTokens ? allowedWebSearchContextTokens.toLocaleString() : 'Unknown'
+          }</span> tokens</strong>`,
         attributes: {
           'data-supported-models': [...this.searchModels].join(','),
         },
@@ -581,7 +578,7 @@ export class GenAILLM extends Component {
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere',
         },
         section: 'Advanced',
-        help: hint.maxTokens,
+        help: 'Limit reply length to manage cost and avoid cutoffs. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=context-window-size#step-4-configure-advanced-settings" target="_blank" class="text-blue-600 hover:text-blue-800">See token limits</a>',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -600,7 +597,7 @@ export class GenAILLM extends Component {
           ].join(','),
         },
         section: 'Advanced',
-        help: hint.stopSequences,
+        help: 'End output when any of the stop strings (sequence of up to 4 strings) appear. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=stop-sequence#step-4-configure-advanced-settings" target="_blank" class="text-blue-600 hover:text-blue-800">See stopping examples</a>',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         hint: 'Input a sequence and press Enter, Space, or Comma to add it to the list.',
@@ -628,7 +625,7 @@ export class GenAILLM extends Component {
           ].join(','),
         },
         section: 'Advanced',
-        help: hint.topP,
+        help: 'Control variety by sampling from the smallest set of likely words that reach probability P.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -646,7 +643,7 @@ export class GenAILLM extends Component {
           'data-excluded-models': this.anthropicThinkingModels.join(','),
         },
         section: 'Advanced',
-        help: hint.topK,
+        help: 'Restrict generation to the top K most likely words to reduce randomness.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -668,7 +665,7 @@ export class GenAILLM extends Component {
           ].join(','),
         },
         section: 'Advanced',
-        help: hint.frequencyPenalty,
+        help: 'Reduce repeats by penalising words already used in the reply.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -690,7 +687,7 @@ export class GenAILLM extends Component {
           ].join(','),
         },
         section: 'Advanced',
-        help: hint.presencePenalty,
+        help: 'Encourage new topics by penalising words seen in the input.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -706,7 +703,7 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models': this.gpt5Models.join(','),
         },
-        help: "Controls the verbosity of the model's response. Lower values result in more concise responses, while higher values result in more verbose responses. Currently supported by GPT-5 models.",
+        help: 'Control how much reasoning detail appears in the response.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         section: 'Advanced',
@@ -719,7 +716,7 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,cohere,Echo',
         }, // TODO: After implementing stream request with Perplexity, we can say 'all' for the supported models
-        help: 'If the component is running under a chatbot or agentLLM, The generated output will be directly streamed to the chat output',
+        help: 'Stream the response live to chat, or turn off for batch runs. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=passthrough#step-4-configure-advanced-settings" target="_blank" class="text-blue-600 hover:text-blue-800">See passthrough details</a>',
         section: 'Advanced',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -734,7 +731,7 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,cohere',
         }, // TODO: After implementing stream request with Perplexity, we can say 'all' for the supported models
-        help: 'The running Agent system prompt will be passed as a system prompt to this component',
+        help: 'Apply the agent\'s rules and tone to this call for consistency.',
         section: 'Advanced',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -747,7 +744,7 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,cohere',
         }, // TODO: After implementing stream request with Perplexity, we can say 'all' for the supported models
-        help: 'The running Agent context window will be passed as a context window to this component',
+        help: 'Include recent chat history when responses depend on prior turns.',
         section: 'Advanced',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -791,7 +788,7 @@ export class GenAILLM extends Component {
             ...this.groqReasoningModels,
           ].join(','),
         },
-        help: 'Enable thinking capabilities to allow the model to break down complex problems into steps and think through solutions methodically',
+        help: 'Enable step-by-step reasoning for complex or multi-step tasks.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         section: 'Advanced',
@@ -831,7 +828,7 @@ export class GenAILLM extends Component {
           this.getReasoningEffortOptions(this.data.model || this.defaultModel),
         ),
         options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
-        help: 'Controls the level of effort the model will put into reasoning. GPT-OSS models support low/medium/high levels, while Qwen models support none/default.',
+        help: 'Set how deeply the model reasons; higher is slower but more accurate.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         section: 'Advanced',
@@ -895,7 +892,7 @@ export class GenAILLM extends Component {
         label: 'Use Web Search',
         value: false,
         attributes: openAIAttributes,
-        help: 'Allow models to search the web for the latest information before generating a response.',
+        help: 'Allow the model to fetch fresh, real-time information.',
         section: 'Advanced',
         events: {
           change: (event) => {
@@ -1585,18 +1582,18 @@ export class GenAILLM extends Component {
         // Fallback to input value if MetroUI component not available
         return input.value
           ? input.value
-              .split(',')
-              .map((tag) => tag.trim())
-              .filter((tag) => tag)
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag)
           : [];
       } catch (error) {
         console.warn('Error getting tag input value:', error);
         // Final fallback to input value
         return input.value
           ? input.value
-              .split(',')
-              .map((tag) => tag.trim())
-              .filter((tag) => tag)
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag)
           : [];
       }
     };
@@ -1814,18 +1811,18 @@ export class GenAILLM extends Component {
         // Fallback to input value if MetroUI component not available
         return input.value
           ? input.value
-              .split(',')
-              .map((tag) => tag.trim())
-              .filter((tag) => tag)
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag)
           : [];
       } catch (error) {
         console.warn('Error getting tag input value:', error);
         // Final fallback to input value
         return input.value
           ? input.value
-              .split(',')
-              .map((tag) => tag.trim())
-              .filter((tag) => tag)
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag)
           : [];
       }
     };

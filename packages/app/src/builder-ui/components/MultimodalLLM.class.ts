@@ -111,7 +111,7 @@ export class MultimodalLLM extends Component {
       model: {
         type: 'select',
         label: 'Model',
-        hint: 'Model name',
+        help: 'Select a multimodal model for text plus images, audio, or video. <a href="https://smythos.com/docs/agent-studio/components/legacy/multimodal-llm/?utm_source=app&utm_medium=tooltip&utm_campaign=docs&utm_content=multimodal-llm" target="_blank" class="text-blue-600 hover:text-blue-800">See Model details</a>',
         value: this.defaultModel,
         options: this.modelOptions,
         events: {
@@ -127,13 +127,13 @@ export class MultimodalLLM extends Component {
         validate: `required`, // Omit maximum length, as the tokens counted in backend may be different from the frontend.
         validateMessage: `Please provide a prompt. It's required!`,
         value: 'What is the video about?',
+        help: 'Describe the task and how the attached media is used (e.g., extract, compare, caption).',
         attributes: { 'data-template-vars': 'true' },
       },
       maxContextTokens: {
         type: 'div',
-        html: `<strong class="px-2">Context window size: <span class="tokens_num">${
-          allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
-        }</span> tokens</strong><br/>`,
+        html: `<strong class="px-2">Context window size: <span class="tokens_num">${allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
+          }</span> tokens</strong><br/>`,
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,cohere',

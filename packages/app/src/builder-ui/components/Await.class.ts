@@ -10,6 +10,7 @@ export class Await extends Component {
       jobs_count: {
         type: 'range',
         label: 'Minimum Jobs Count',
+        help: 'Resume when at least this many async jobs finish; set 1 to continue on the first result.',
         min: 1,
         max: 100,
         value: 1,
@@ -20,6 +21,7 @@ export class Await extends Component {
       max_time: {
         type: 'range',
         label: 'Maximum wait time in seconds',
+        help: 'Stop waiting after this many seconds and continue with any finished jobs.',
         min: 1,
         max: 10800,
         value: 1,

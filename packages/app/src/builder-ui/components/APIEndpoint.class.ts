@@ -57,6 +57,7 @@ export class APIEndpoint extends Component {
         value: '',
         validate: `required maxlength=50 custom=isValidEndpoint`,
         validateMessage: `Provide a valid endpoint that only contains 'a-z', 'A-Z', '0-9', '-', '_' , without leading or trailing spaces. Length should be less than 50 characters.`,
+        help: 'Give the skill a unique, valid name using letters, numbers, hyphens, or underscores for workflows to call on.',
         events: {
           input: (e) => {
             const endpointLabelText = document.querySelector(
@@ -130,7 +131,7 @@ export class APIEndpoint extends Component {
         type: 'textarea',
         label: 'Instructions',
         value: '',
-        help: 'Instructions for AI Agent, Describes how to use this endpoint when exposed to an LLM',
+        help: 'Define when to run the skill, what inputs it needs, and the results it should return. <a href="https://smythos.com/docs/agent-studio/components/base/agent-skill/#step-1-define-the-skills-core-details" target="_blank" class="text-blue-600 hover:text-blue-800">See skill guidelines</a>',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         validate: `maxlength=5000`,
@@ -140,7 +141,7 @@ export class APIEndpoint extends Component {
         type: 'toggle',
         label: 'Expose to AI',
         value: true,
-        help: 'If enabled, the endpoint can be discovered and used as a skill by AI (E.g. ChatGPT, chatbot, AgentLLM ...)',
+        help: 'Make the skill available for autonomous use by chat agents.',
         tooltipClasses: 'w-64 ',
         arrowClasses: '-ml-11',
         display: 'inline',
@@ -153,7 +154,7 @@ export class APIEndpoint extends Component {
         type: 'textarea',
         label: 'Description',
         value: '',
-        help: 'Short description of the endpoint, used for documentation',
+        help: 'Provide a short overview for teammates and AI to understand the skill\'s purpose.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         validate: `maxlength=1000`,
@@ -166,7 +167,7 @@ export class APIEndpoint extends Component {
         label: 'Advanced Request Parts',
         value: this.isOnAdvancedMode || false,
         display: 'inline',
-        help: 'Enabling this option will permanently expose HTTP headers, request body, and query parameters. This cannot be undone.',
+        help: 'Lock this skill into a fixed API-style request with details like headers, methods, and body. <a href="https://smythos.com/docs/agent-studio/components/base/agent-skill/#step-3-configure-advanced-options" target="_blank" class="text-blue-600 hover:text-blue-800">See details</a>',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         section: 'Advanced',

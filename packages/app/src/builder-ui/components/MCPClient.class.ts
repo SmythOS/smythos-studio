@@ -51,6 +51,7 @@ export class MCPClient extends Component {
         value: '',
         validate: `required`,
         label: 'MCP URL',
+        help: 'Enter the MCP server URL so the client can list the tools it offers.',
         validateMessage: 'MCP URL is required',
       },
       prompt: {
@@ -59,6 +60,7 @@ export class MCPClient extends Component {
         value: '{{Prompt}}',
         validate: `required`,
         validateMessage: 'Prompt is required',
+        help: 'Tell the tool what to do and what to return; name the tool and key parameters. <a href="https://smythos.com/docs/agent-studio/components/tools/mcp-client/?utm_source=studio&utm_medium=tooltip&utm_campaign=mcp-client&utm_content=prompt#step-3-provide-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt patterns</a>',
         attributes: {
           'data-template-vars': 'true',
           'data-template-excluded-vars': 'Attachment',
@@ -69,13 +71,14 @@ export class MCPClient extends Component {
       model: {
         type: 'select',
         label: 'Model',
+        help: 'Choose the model that will plan and call tools; larger models help with long or multi step tasks.',
         value: this.defaultModel,
         options: this.modelOptions,
       },
       descForModel: {
         type: 'textarea',
         label: 'System Prompt',
-        hint: 'The system prompt can be used to customize the behavior of your MCP',
+        help: 'Set rules for all calls, like allowed tools, tone, and required output format.',
         section: 'Advanced',
         value: this.descForModel,
         validate: `maxlength=5000`,

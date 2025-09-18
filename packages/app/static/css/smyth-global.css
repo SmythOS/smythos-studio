@@ -1206,6 +1206,33 @@ html {
 .tooltip-pill.tooltip-trigger[data-tooltip-position='right']::after {
   border-right-color: #000;
 }
+
+/* Ensure tooltip links stay on one line */
+.tooltip a,
+[role="tooltip"] a,
+.smt-hint a {
+  white-space: nowrap !important;
+  display: inline-block;
+  text-decoration: underline;
+  color: inherit;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.tooltip a:hover,
+[role="tooltip"] a:hover,
+.smt-hint a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Ensure tooltip containers can accommodate longer links */
+.smt-hint {
+  max-width: 400px !important;
+  min-width: 200px;
+  word-break: normal;
+}
+
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top']::after,
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top-left']::after,
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top-right']::after {

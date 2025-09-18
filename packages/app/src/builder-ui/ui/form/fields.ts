@@ -187,7 +187,14 @@ export function createInfoButton(
   },
   entryIndex = 0,
 ) {
+  // Calculate width based on text length, but allow more space for tooltips with links
+  const hasLinks = text.includes('<a ');
   let estimatedWidth = text.length * 2 > 48 ? 48 : text.length * 2;
+
+  // If tooltip contains links, use a more generous width calculation
+  if (hasLinks) {
+    estimatedWidth = Math.min(60, Math.max(40, text.length * 1.8));
+  }
   // TODO: This is a temporary fix to avoid the tooltip being cutoff in the sidebar and showing it on the top.
   // if (entryIndex < 2) {
   //   position = position || 'bottom';
@@ -221,7 +228,7 @@ export function createInfoButton(
         }),
         placement: position as any,
         className:
-          clsHint + ' whitespace-normal text-xs ' + (tooltipClasses || `w-${estimatedWidth}`),
+          clsHint + ' whitespace-normal text-xs ' + (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) + ' [&_a]:whitespace-nowrap [&_a]:inline-block',
         style: 'dark',
         arrow: true,
       },

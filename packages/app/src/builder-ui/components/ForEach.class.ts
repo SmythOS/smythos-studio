@@ -6,6 +6,7 @@ export class ForEach extends Component {
       format: {
         type: 'select',
         label: 'Output Format',
+        help: 'Choose Full for item plus metadata, Minimal for the last step\'s output only, or Array of Results for a simple list. <a href="https://smythos.com/docs/agent-studio/components/advanced/for-each/?utm_source=studio&utm_medium=tooltip&utm_campaign=for-each&utm_content=output-format#step-3-select-an-output-format" target="_blank" class="text-blue-600 hover:text-blue-800">See format examples</a>',
         value: 'full',
         options: [
           { text: 'Full', value: 'full' },
