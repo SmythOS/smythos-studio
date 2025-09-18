@@ -4,20 +4,13 @@ export class MemoryDeleteKey extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {
-      name: {
+      memoryName: {
         type: 'input',
         label: 'name',
         value: '',
         hint: 'Enter memory name',
-        validate: `maxlength=50`,
-        validateMessage: 'Enter a non-empty name, not more than 50 characters.',
-      },
-      scope: {
-        type: 'select',
-        label: 'Scope',
-        hint: 'Memory Scope',
-        value: 'Session',
-        options: ['Session'],
+        validate: `required maxlength=100`,
+        validateMessage: 'Enter a non-empty name, not more than 100 characters.',
       },
     };
 
@@ -26,11 +19,11 @@ export class MemoryDeleteKey extends Component {
     //     if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     // }
 
-    this.data = {};
+    //this.data = {};
     // #endregion
 
     // #region [ I/O config ] ==================
-    this.properties.defaultOutputs = [];
+    this.properties.defaultOutputs = ['Key'];
     this.properties.defaultInputs = ['Key'];
     // #endregion
 

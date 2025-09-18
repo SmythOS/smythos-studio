@@ -4,21 +4,25 @@ export class MemoryReadKeyVal extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {
-      name: {
+      memoryName: {
         type: 'input',
         label: 'name',
         value: '',
         hint: 'Enter memory name',
-        validate: `maxlength=50`,
-        validateMessage: 'Enter a non-empty name, not more than 50 characters.',
+        validate: `required maxlength=100`,
+        validateMessage: 'Enter a non-empty name, not more than 100 characters.',
       },
-      scope: {
-        type: 'select',
-        label: 'Scope',
-        hint: 'Memory Scope',
-        value: 'Session',
-        options: ['Session'],
-      },
+      // scope: {
+      //   type: 'select',
+      //   label: 'Scope',
+      //   hint: 'Memory Scope',
+      //   value: 'Session',
+      //   options: [
+      //     { value: 'session', text: 'Session' },
+      //     { value: 'workflow', text: 'Workflow' },
+      //     { value: 'ttl', text: 'TTL' },
+      //   ],
+      // },
     };
 
     // const dataEntries = ['ttl'];
@@ -26,7 +30,7 @@ export class MemoryReadKeyVal extends Component {
     //     if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     // }
 
-    this.data = {};
+    //this.data = {};
     // #endregion
 
     // #region [ I/O config ] ==================
