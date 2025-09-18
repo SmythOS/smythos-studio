@@ -10,7 +10,6 @@ export enum PluginTarget {
   BuilderSidebarComponentItems = 'builder/sidebarComponentItems',
   BuilderSREComponents = 'builder/sreComponents',
   AgentsPageSection = 'agentsPage/section',
-  ShareAgentWithUsers = 'builder/modals/ShareAgentWithUsers',
   AgentsPageGenerateAgentForm = 'agentsPage/generateAgentForm',
   AgentsPageOnboardingTasks = 'agentsPage/onboardingTasks',
 }
