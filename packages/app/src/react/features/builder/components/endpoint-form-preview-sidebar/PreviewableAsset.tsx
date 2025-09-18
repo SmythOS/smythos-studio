@@ -1,4 +1,5 @@
 import { getFileCategory, getMimeTypeFromUrl } from '@src/react/features/builder/utils';
+import { Spinner } from '@src/react/shared/components/ui/spinner';
 import classNames from 'classnames';
 import { TextInput } from 'flowbite-react';
 import { useEffect, useState } from 'react';
@@ -112,14 +113,8 @@ const PreviewableAsset = ({ asset }: { asset: string }) => {
   return (
     <div className="mt-5 relative">
       {!stateProps.isContentLoaded && (
-        <div className="h-1 mt-1">
-          <div
-            data-role="progress"
-            data-type="line"
-            data-small="true"
-            data-cls-back="bg-gray-300"
-            className="file-preloader h-1"
-          ></div>
+        <div className="flex justify-center items-center h-8 mt-1">
+          <Spinner size="sm" />
         </div>
       )}
 

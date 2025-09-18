@@ -582,7 +582,7 @@
 }
 
 /* Show title tooltip on hover (no JS) */
-.right-sidebar .right-sidebar-title .title:hover [role="tooltip"] {
+.right-sidebar .right-sidebar-title .title:hover [role='tooltip'] {
   opacity: 1 !important;
   visibility: visible !important;
 }
@@ -1070,8 +1070,12 @@ code.language-plan.done::before {
   font-weight: normal;
   line-height: 1.25rem;
   outline: none;
-  min-height: 80px;
-  transition: border-bottom-color 0.3s ease-in-out;
+  min-height: 56px !important; /* 2 row minimum height */
+  max-height: 176px !important; /* 8 row maximum height */
+  transition: all 0.15s ease-in-out;
+  resize: none !important;
+  overflow: hidden;
+  overflow-y: auto !important;
 }
 
 .dlg-form .textarea textarea:focus,

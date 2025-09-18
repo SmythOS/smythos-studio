@@ -1,5 +1,6 @@
 import { CloseIcon } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import { useRef } from 'react';
 import { FaCircleInfo, FaCopy } from 'react-icons/fa6';
 type Props = {
@@ -100,16 +101,18 @@ const ChatbotCodeSnippetModal = (props: Props) => {
               will occupy the full available space within it.
             </p>
           )}
-          <textarea
+          <TextArea
             ref={textareaRef}
             readOnly
-            className="w-full h-auto resize p-3 mb-4 text-sm text-gray-700 bg-gray-100 rounded dark:bg-gray-900 dark:text-white border-none"
+            className="mb-4 text-sm text-gray-700 bg-gray-100 rounded dark:bg-gray-900 dark:text-white border-none"
             rows={12}
             value={codeSnippet}
             onClick={(e) => {
               const target = e.target as HTMLInputElement;
               target.select();
             }}
+            fullWidth
+            autoGrow={false}
           />
 
           <Button
