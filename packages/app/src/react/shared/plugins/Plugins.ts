@@ -2,7 +2,6 @@ export enum PluginTarget {
   BuilderLoadScript = 'builder/LoadScript',
   BuilderLoadAgentTemplates = 'builder/LoadAgentTemplates',
   TopMenuItem = 'topMenuItem',
-  Onboarding = 'onboarding',
   SidebarMenuItems = 'sidebarMenuItems',
   TopMenuProfileDropdownItems = 'topMenuProfileDropdownItems',
   AgentSettingsTasksTabWidget = 'agentSettings/tasksTabWidget',
@@ -13,6 +12,7 @@ export enum PluginTarget {
   AgentsPageSection = 'agentsPage/section',
   ShareAgentWithUsers = 'builder/modals/ShareAgentWithUsers',
   AgentsPageGenerateAgentForm = 'agentsPage/generateAgentForm',
+  AgentsPageOnboardingTasks = 'agentsPage/onboardingTasks',
 }
 
 export enum PluginType {

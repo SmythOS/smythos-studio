@@ -1,12 +1,8 @@
 import { AgentsGrid, AgentsHeader } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
-import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
 import { useAgentsData } from '@react/features/agents/hooks/useAgentsData';
 import { useAgentsPageTutorial } from '@react/features/agents/hooks/useAgentsPageTutorial';
-import {
-  Learn,
-  OnboardingTasks,
-} from '@react/features/onboarding/components/agent-onboarding-section';
+import { Learn } from '@react/features/onboarding/components/agent-onboarding-section/Learn';
 import { useGetOnboardingData } from '@react/features/onboarding/hooks/useGetUserOnboardingSettings';
 import useMutateOnboardingData from '@react/features/onboarding/hooks/useMutateOnboardingData';
 import { FeatureFlagged } from '@react/shared/components/featureFlags';
@@ -31,7 +27,6 @@ function AgentsPage() {
   const switchteamid = searchParams.get('switchteamid');
   const endOfPageRef = useRef<HTMLDivElement>(null);
   const saveUserSettingsMutation = useMutateOnboardingData();
-  const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
 
   // Authentication and permissions
@@ -129,22 +124,6 @@ function AgentsPage() {
     }
   };
 
-  /**
-   * Handle onboarding dismissal
-   */
-  const handleOnboardingDismiss = () => {
-    saveUserSettingsMutation.mutate({
-      key: UserSettingsKey.OnboardingTasks,
-      data: {
-        [OnboardingTaskType.ONBOARDING_LIST_DISMISSED]: true,
-        [OnboardingTaskType.COMPLETED_TASK]: null,
-      },
-      operation: 'insertOrUpdate',
-    });
-
-    setOnboardingDismissed(true);
-  };
-
   return (
     <div>
       <main className="pl-12 md:pl-0">
@@ -154,7 +133,7 @@ function AgentsPage() {
         </FeatureFlagged>
 
         {/* Onboarding Tasks Section */}
-        {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
+        <PluginComponents targetId={PluginTarget.AgentsPageOnboardingTasks} />
 
         {/* Agents Section Header */}
         <AgentsHeader
