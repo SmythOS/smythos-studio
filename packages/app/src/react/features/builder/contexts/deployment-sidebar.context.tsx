@@ -100,7 +100,7 @@ export const DeploymentSidebarProvider: FC<DeploymentSidebarProviderProps> = ({ 
   });
 
   const latestDeployment = useQuery({
-    queryKey: ['latest-deployment', workspace.agent.id],
+    queryKey: ['latest_deployment', workspace.agent.id],
     queryFn: () =>
       fetch(`/api/page/builder/ai-agent/${workspace.agent.id}/deployments/latest`).then((res) =>
         res.json(),

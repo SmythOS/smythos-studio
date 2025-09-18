@@ -43,12 +43,10 @@ import { LogicAtMost } from './LogicAtMost.class';
 import { LogicOR } from './LogicOR.class';
 import { LogicXOR } from './LogicXOR.class';
 import { MCPClient } from './MCPClient.class';
-import { Memory } from './Memory.class';
 import { MemoryDeleteKey } from './MemoryDeleteKey.class';
 import { MemoryReadKeyVal } from './MemoryReadKeyVal.class';
-import { MemoryReadOutput } from './MemoryReadOutput.class';
-import { MemoryWriteInput } from './MemoryWriteInput.class';
 import { MemoryWriteKeyVal } from './MemoryWriteKeyVal.class';
+import { MemoryWriteObject } from './MemoryWriteObject.class';
 import { MultimodalLLM } from './MultimodalLLM.class';
 import { Note } from './Note.class';
 import { POST_APIEndpoint } from './POST_APIEndpoint.class';
@@ -80,7 +78,6 @@ const baseComponents = {
   //GmailReader,
   //GmailSender,
   APICall,
-  Memory,
   Twitter,
   LinkedIn,
   //GoogleSheet,
@@ -94,10 +91,10 @@ const baseComponents = {
   HuggingFace,
   AgentPlugin,
   ZapierAction,
-  MemoryWriteInput,
+  MemoryWriteObject,
   MemoryWriteKeyVal,
-  MemoryReadOutput,
   MemoryReadKeyVal,
+  MemoryDeleteKey,
   Note,
   SchedulerEndpoint,
   JSONFilter,
@@ -114,7 +111,6 @@ const baseComponents = {
   FTimestamp,
   Await,
   POST_APIEndpoint,
-  MemoryDeleteKey,
   MultimodalLLM,
   GenAILLM,
   FileStore,

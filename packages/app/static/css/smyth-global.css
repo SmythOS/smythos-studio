@@ -1460,3 +1460,35 @@ html {
   background-color: #c2d8fc !important;
   /* smythos-blue-100 */
 }
+
+/* Hide textarea resize handles completely across all browsers */
+textarea::-webkit-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+textarea::-moz-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Ensure no resize handles appear on any textarea elements */
+textarea.resize-none,
+textarea[class*='resize-none'] {
+  resize: none !important;
+}
+
+textarea.resize-none::-webkit-resizer,
+textarea[class*='resize-none']::-webkit-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}

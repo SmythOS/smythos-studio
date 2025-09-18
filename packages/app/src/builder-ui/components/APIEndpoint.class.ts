@@ -207,6 +207,17 @@ export class APIEndpoint extends Component {
           },
         },
       },
+      status_message: {
+        type: 'textarea',
+        label: 'Status Message',
+        value: '',
+        help: 'Status message to be displayed to the user when the endpoint is called',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        validate: `maxlength=240`,
+        validateMessage: 'Your text exceeds the 240 character limit.',
+        section: 'Advanced',
+      },
     };
 
     this.inputSettings = {

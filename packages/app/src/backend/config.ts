@@ -25,7 +25,9 @@ const transformEnv = (env: string) => {
 const MW_BASE_URL =
   process.env.SMYTH_API_SERVER || `http://localhost:${process.env.MIDDLEWARE_API_PORT}`;
 const UI_SERVER =
-  process.env.UI_SERVER || process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}`;
+  process.env.UI_SERVER ||
+  (process.env.APP_DOMAIN && `https://${process.env.APP_DOMAIN}`) ||
+  `http://localhost:${process.env.APP_PORT}`;
 
 const APP_PORT = +process.env.APP_PORT || +process.env.PORT;
 
@@ -44,7 +46,7 @@ const config = {
     SMYTH_API_BASE_URL: MW_BASE_URL,
 
     // OPTIONAL KEYS
-    UI_SERVER,
+    UI_SERVER: UI_SERVER,
     SMYTH_VAULT_API_BASE_URL: process.env.SMYTH_VAULT_API_BASE_URL || `${MW_BASE_URL}/v1`,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY, // used for some autocompletion
     FALAI_API_KEY: process.env.FALAI_API_KEY, // used for image gen

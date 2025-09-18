@@ -1,10 +1,10 @@
 import PreviewableAsset from '@src/react/features/builder/components/endpoint-form-preview-sidebar/PreviewableAsset';
 import { useEndpointFormPreview } from '@src/react/features/builder/contexts/endpoint-form-preview-sidebar.context';
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { PostHog } from '@src/shared/posthog';
 import classNames from 'classnames';
-import { Textarea } from 'flowbite-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { FaRegCopy } from 'react-icons/fa6';
 import { FiDownload } from 'react-icons/fi';
@@ -114,13 +114,8 @@ const ResponseView = () => {
 
   const DEBUG_SERVER = mode.props.dbg_url;
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      // adjust the height of the textarea to the content
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 400) + 'px';
-    }
-  }, [textareaRef]);
+  // TextArea component now handles auto-grow with maxHeight prop
+  // Removed redundant useEffect that conflicted with TextArea's internal logic
 
   const extractPreviewableAssets = (content: string) => {
     const pattern =
@@ -190,12 +185,15 @@ const ResponseView = () => {
                   <PreviewableAsset key={asset} asset={asset} />
                 ))}
                 <div className="mt-5 relative">
-                  <Textarea
+                  <TextArea
                     ref={textareaRef}
                     readOnly
-                    className=" text-gray-800 resize-none"
+                    className="text-gray-800 resize-none"
                     defaultValue={seralizeResponse(lastResponse?.response)}
                     rows={10}
+                    maxHeight={220}
+                    autoGrow={true}
+                    fullWidth
                   />
                   {/* )} */}
                   {/* copy and download btns */}

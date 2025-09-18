@@ -21,6 +21,7 @@ import {
 import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -29,7 +30,6 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
-import { Textarea } from '@src/react/shared/components/ui/textarea';
 import {
   CUSTOM_LLM_FEATURES,
   CUSTOM_LLM_PROVIDERS,
@@ -544,12 +544,10 @@ const JsonCredentialsField = ({ form }) => (
     <Label htmlFor="settings.jsonCredentials" className="text-right">
       JSON Credentials <span className="text-red-500">*</span>
     </Label>
-    <Textarea
+    <TextArea
       id="settings.jsonCredentials"
       {...form.register('settings.jsonCredentials')}
-      className={`min-h-[100px] ${
-        form.formState.errors.settings?.jsonCredentials ? 'border-red-500' : ''
-      }`}
+      className={`${form.formState.errors.settings?.jsonCredentials ? 'border-red-500' : ''}`}
       fullWidth
     />
     {form.formState.errors.settings?.jsonCredentials && (
