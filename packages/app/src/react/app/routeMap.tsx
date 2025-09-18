@@ -2,18 +2,10 @@ import VaultPage from '@react/features/vault/pages/VaultPage';
 import AgentsPage from '@src/react/features/agents/pages/AgentsPage';
 import { IPageRoute } from '@src/react/shared/types/route';
 import AccountDeletedPage from '../features/account/pages/AccountDeletedPage';
-import AccountPage from '../features/account/pages/AccountPage';
 import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPage';
 import AIChatPage from '../features/ai-chat/pages/ai-chat';
 
-
-
 export const routeMap: IPageRoute[] = [
- 
-
- 
-
-  { path: '/account', component: AccountPage, title: 'Account' },
   {
     path: '/account-deleted',
     component: AccountDeletedPage,
@@ -48,10 +40,6 @@ export const routeMap: IPageRoute[] = [
       useFullWidthLayout: true,
     },
   },
- 
-
-  
- 
 
   {
     path: '/',
@@ -65,8 +53,6 @@ export const routeMap: IPageRoute[] = [
     title: 'Agents',
     layoutOptions: { background: 'white' },
   },
-
-
 
   {
     title: 'Vault',

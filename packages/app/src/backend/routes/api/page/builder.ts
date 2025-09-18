@@ -34,7 +34,6 @@ import { cacheClient } from '../../../services/cache.service';
 import LLMHelper from '../../../services/LLMHelper';
 import { LLMService } from '../../../services/LLMHelper/LLMService.class';
 import * as openai from '../../../services/openai-helper';
-import SmythFS from '../../../services/SmythFS.class';
 import { vault } from '../../../services/SmythVault.class';
 import { getAgent } from '../../../services/user-data.service';
 import { delay, uid } from '../../../services/utils.service';
@@ -45,8 +44,6 @@ import { customLLMHelper } from '../../router.helpers/customLLM.helper';
 import { serverlessCodeHelper } from '../../router.helpers/serverlessCode.helper';
 import { getKeyIdFromTemplateVar } from '../../router.helpers/vault.helper';
 import { countVaultKeys, getVaultKeys, setVaultKey } from '../../router.utils';
-
-const smythFS = new SmythFS();
 
 const router = express.Router();
 

@@ -20,12 +20,10 @@ import {
 } from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import ComponentInputEditor from '@src/react/features/builder/modals/ComponentInputEditor';
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
-// import { WelcomeInvitePage } from '@src/react/features/onboarding/pages/WelcomeInvitePage';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
-import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { queryClient } from '@src/react/shared/query-client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -232,72 +230,6 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
   }
 
   // Inner component that uses hooks - must be inside providers
-  function ShareButtonContent() {
-    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-    const authContext = useAuthCtx();
-    const appState = useAppState();
-
-    // Handle button state management in useEffect only to avoid race conditions
-    useEffect(() => {
-      const shareButton = document.getElementById('share-agent-button-topbar') as HTMLButtonElement;
-      if (shareButton) {
-        if (!authContext?.userInfo) {
-          shareButton.setAttribute('disabled', 'true');
-          console.warn('Share button disabled: User not authenticated');
-        } else {
-          shareButton.removeAttribute('disabled');
-          console.log('Share button enabled: User authenticated');
-        }
-      }
-    }, [authContext?.userInfo]);
-    // Resolve ShareAgentWithUsers component from plugin registry (enterprise provides it)
-    const shareAgentPlugins = plugins.getPluginsByTarget(
-      PluginTarget.ShareAgentWithUsers,
-      PluginType.Function,
-    );
-    const createShareAgentModal =
-      (shareAgentPlugins[0] as any)?.type === PluginType.Function
-        ? (shareAgentPlugins[0] as any).function
-        : null;
-
-    return (
-      <>
-        {appState.isShareAgentModalOpen && !authContext?.userInfo && (
-          <div className="fixed flex inset-0 bg-black bg-opacity-50 justify-center items-center w-full h-full">
-            <Spinner />
-          </div>
-        )}
-        {appState?.isShareAgentModalOpen && authContext?.userInfo && createShareAgentModal && (
-          <div className="fixed inset-0">
-            {createShareAgentModal({
-              isShareAgent: true,
-              onClose: () => appState.toggleShareAgentModal(),
-              agentId: workspace.agent.id,
-              agentName: workspace.agent.name,
-            })}
-          </div>
-        )}
-        {showConfirmationModal && (
-          <div className="fixed inset-0">
-            <ConfirmModal
-              onClose={() => setShowConfirmationModal(false)}
-              label="Confirm"
-              message={'Unauthorized'}
-              lowMsg={`You do not have permission to share this agent. Contact ${
-                (authContext?.userInfo as any)?.teamMembers?.filter(
-                  (m) => m.userTeamRole?.isTeamInitiator,
-                )[0]?.email || 'your team admin'
-              } to request access.`}
-              handleConfirm={() => setShowConfirmationModal(false)}
-              handleCancel={() => setShowConfirmationModal(false)}
-              hideCancel={true}
-            />
-          </div>
-        )}
-      </>
-    );
-  }
-  // Inner component that uses hooks - must be inside providers
   function ModalsContent() {
     const appState = useAppState();
     const authContext = useAuthCtx();
@@ -347,7 +279,6 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
         <AppStateProvider>
           <DeploymentSidebarProvider workspace={workspace}>
             <ModalsContent />
-            <ShareButtonContent />
           </DeploymentSidebarProvider>
         </AppStateProvider>
       </QueryClientProvider>
