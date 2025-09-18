@@ -1,6 +1,6 @@
 import { Component } from './Component.class';
 
-export class MemoryWriteKeyVal extends Component {
+export class MemoryWriteObject extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {
@@ -11,21 +11,6 @@ export class MemoryWriteKeyVal extends Component {
         hint: 'Enter memory name',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
-      },
-      key: {
-        type: 'textarea',
-        label: 'Key',
-        value: '{{Key}}',
-        hint: 'Enter key',
-        validate: `maxlength=50`,
-        attributes: { 'data-template-vars': 'true' },
-      },
-      value: {
-        type: 'textarea',
-        label: 'Value',
-        value: '{{Value}}',
-        hint: 'Text value to store in memory',
-        attributes: { 'data-template-vars': 'true' },
       },
       scope: {
         type: 'select',
@@ -69,17 +54,17 @@ export class MemoryWriteKeyVal extends Component {
       },
     };
 
-    const dataEntries = ['key', 'value'];
-    for (let item of dataEntries) {
-      if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
-    }
+    // const dataEntries = ['key', 'value'];
+    // for (let item of dataEntries) {
+    //   if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    // }
 
     // #endregion
 
     // #region [ I/O config ] ==================
     this.properties.defaultOutputs = ['Key'];
     this.properties.defaultInputs = [];
-    if (this.properties.inputs.length == 0) this.properties.inputs = ['Key', 'Value'];
+    if (this.properties.inputs.length == 0) this.properties.inputs = ['Data'];
     // #endregion
 
     // #region [ Draw config ] ==================
