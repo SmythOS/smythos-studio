@@ -9,13 +9,14 @@ import { Workspace, WorkspaceDefaults } from '../../workspace/Workspace.class';
 import { readFormValues, syncCompositeValues } from '../../ui/form';
 
 import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
-import { errorToast, successToast } from '@src/shared/components/toast';
+import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { jsonrepair } from 'jsonrepair';
 import { isEqual } from 'lodash-es';
 import { TooltipV2 } from '../../../react/shared/components/_legacy/ui/tooltip/tooltipV2';
 import config, { COMP_NAMES } from '../../config';
 import { BINARY_INPUT_TYPES } from '../../constants';
+import { checkWorkflowStatus } from '../../debugger';
 import { PostHog } from '../../services/posthog';
 import { generateTemplateVarBtns } from '../../ui/form/misc';
 import { renderComponentInputEditor } from '../../ui/react-injects';
@@ -2938,16 +2939,43 @@ export class Component extends EventEmitter {
         inputEndpoints,
         outputEndpoints,
         async (data) => {
+          // Check workflow status to prevent overlapping debug sessions
+          const hasError = this.domElement.querySelector('.error');
+          const wfStatus = checkWorkflowStatus();
+
+          if ((wfStatus === 'error' && !hasError) || wfStatus === 'inprogress') {
+            warningToast(
+              'A debug session is in progress. Please stop the current run before starting again.',
+              'Debug Running',
+            );
+            return null;
+          }
+
+          if (wfStatus === 'success') {
+            document.querySelectorAll('.component').forEach((el: HTMLElement) => {
+              el.classList.remove('state-success');
+              el.classList.remove('state-error');
+              el.classList.remove('has-empty-inputs');
+            });
+          }
+
           const debugSessionID = this.workspace.debugger.getDebugSessionID();
-          if (debugSessionID) return null;
+          if (debugSessionID) {
+            // If there's an existing debug session, we should still allow debug operations
+            // but warn the user about the existing session
+            warningToast(
+              'A debug session is already running. The new debug operation will take over.',
+              'Debug Session Active',
+            );
+          }
 
           updateDebugControls({
             step: { enable: false },
             run:
               operation === 'run'
-                ? { enable: true, icon: 'mif-pause', tooltipText: 'Pause' }
+                ? { enable: true, icon: 'mif-play', tooltipText: 'Run' }
                 : { enable: false },
-            stop: { enable: operation === 'run' ? false : true },
+            stop: { enable: true },
             attach: { enable: false },
           });
 
