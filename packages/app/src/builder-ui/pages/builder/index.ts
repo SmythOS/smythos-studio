@@ -47,24 +47,9 @@ function handleButtonVariants() {
 
   if (!buttonContainer) return;
 
-  // Get all relevant buttons/wrappers
-  const testBtnWrapper = document
-    .getElementById('btn-emb-chatbot-main-wrapper')
-    ?.closest('.relative') as HTMLElement;
-  const upgradeBtn = document.getElementById('upgrade-button-topbar') as HTMLElement;
-  const shareBtn = document.getElementById('share-agent-button-topbar') as HTMLElement;
-  const deployBtn = document.getElementById('deploy-button-topbar') as HTMLElement;
-
   // Add flex-order support to container
   buttonContainer.style.display = 'flex';
   buttonContainer.style.gap = '1rem'; // Maintain spacing between buttons
-
-  // setButtonStyles({
-  //   leftButtons: [testBtnWrapper],
-  //   rightButtons: [deployBtn, upgradeBtn, shareBtn],
-  //   leftColor: 'green',
-  //   rightColor: 'gray',
-  // });
 }
 
 function handleDebugBarUIExperiment(featureVariant: string) {
@@ -164,15 +149,6 @@ function setButtonColor(button: HTMLElement, color: 'gray' | 'green') {
       button.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-900');
     }
   }
-}
-
-// Helper function to determine button type
-function getButtonType(button: HTMLElement): string | null {
-  if (button.id === 'upgrade-button-topbar') return 'upgrade button';
-  if (button.id === 'share-agent-button-topbar') return 'share button';
-  if (button.id === 'deploy-button-topbar') return 'deploy button';
-  if (button.id === 'btn-emb-chatbot-main-wrapper') return 'test button';
-  return null;
 }
 
 function runDebugBarUIExperiment() {
