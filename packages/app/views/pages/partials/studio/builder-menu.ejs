@@ -308,51 +308,6 @@
       >
         Deployment is locked in view mode.
       </div>
-      <button
-        id="share-agent-button-topbar"
-        class="text-gray-900 rounded-lg p-2 h-full bg-white flex gap-2 items-center text-sm disabled:opacity-50 border border-solid border-gray-200 hover:bg-smythos-blue-500 hover:border-v2-blue hover:text-white hover:[&_path]:stroke-white disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-900 disabled:hover:[&_path]:stroke-black"
-        type="button"
-        disabled="true"
-        data-tooltip-target="tooltip-share"
-        data-tooltip-placement="bottom"
-        @click="
-            window.handleShareAgentModalOpen
-              ? window.handleShareAgentModalOpen(true)
-              : console.warn('Share agent modal handler not ready')
-          "
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M5.60959 3.0293H4.91713C3.12427 3.0293 2 4.29772 2 6.09276V10.9372C2 12.7323 3.11878 14.0007 4.91713 14.0007H10.0621C11.861 14.0007 12.9804 12.7323 12.9804 10.9372V9.20938"
-            stroke="black"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M10.6933 5.53751C9.10859 5.53751 7.88166 6.08579 7.20312 7.5842C7.20312 7.5842 6.61651 3.4717 10.6933 3.4717C10.6933 3.4717 10.6937 2.86559 10.6941 2.34397C10.6945 2.05143 11.0373 1.89295 11.2607 2.08222L13.8767 4.29825C14.0352 4.43269 14.0409 4.67491 13.8861 4.81461C13.3115 5.33435 12.0193 6.50226 11.2667 7.18233C11.0456 7.38213 10.6933 7.22407 10.6933 6.92587V5.53751Z"
-            stroke="black"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <span>Share</span>
-      </button>
-      <div
-        id="tooltip-share"
-        role="tooltip"
-        class="hidden absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0"
-        style="font-family: 'Inter', sans-serif"
-      >
-        Share
-      </div>
     </div>
 
     <!-- <%- include('top-user-menu', { dropdownId: 'top-user-menu-dropdown-desktop' }); -%> -->
