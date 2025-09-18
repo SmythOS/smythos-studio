@@ -12,6 +12,7 @@ export enum PluginTarget {
   BuilderSREComponents = 'builder/sreComponents',
   AgentsPageSection = 'agentsPage/section',
   ShareAgentWithUsers = 'builder/modals/ShareAgentWithUsers',
+  AgentsPageGenerateAgentForm = 'agentsPage/generateAgentForm',
 }
 
 export enum PluginType {
