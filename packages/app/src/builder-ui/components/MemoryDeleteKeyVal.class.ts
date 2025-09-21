@@ -1,6 +1,6 @@
 import { Component } from './Component.class';
 
-export class MemoryDeleteKey extends Component {
+export class MemoryDeleteKeyVal extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {

@@ -43,7 +43,7 @@ import { LogicAtMost } from './LogicAtMost.class';
 import { LogicOR } from './LogicOR.class';
 import { LogicXOR } from './LogicXOR.class';
 import { MCPClient } from './MCPClient.class';
-import { MemoryDeleteKey } from './MemoryDeleteKey.class';
+import { MemoryDeleteKeyVal } from './MemoryDeleteKeyVal.class';
 import { MemoryReadKeyVal } from './MemoryReadKeyVal.class';
 import { MemoryWriteKeyVal } from './MemoryWriteKeyVal.class';
 import { MemoryWriteObject } from './MemoryWriteObject.class';
@@ -94,7 +94,7 @@ const baseComponents = {
   MemoryWriteObject,
   MemoryWriteKeyVal,
   MemoryReadKeyVal,
-  MemoryDeleteKey,
+  MemoryDeleteKeyVal,
   Note,
   SchedulerEndpoint,
   JSONFilter,
