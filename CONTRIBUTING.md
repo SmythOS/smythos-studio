@@ -101,13 +101,11 @@ Install the correct pnpm version using `corepack prepare --activate`.
    
    **Option 1: Quick Docker Setup (Recommended)**
    ```bash
-   docker run --name smythos-mysql \
+   docker run --name smythos-mysql-local \
      -e MYSQL_ROOT_PASSWORD=smythos_root_pass \
      -e MYSQL_DATABASE=smythos_db \
-     -e MYSQL_USER=smythos_user \
-     -e MYSQL_PASSWORD=smythos_pass \
      -p 3306:3306 \
-     -d mysql:8.0
+     -d mysql
    ```
    
    **Option 2: Use your existing MySQL instance**
