@@ -1,4 +1,5 @@
-import { OAUTH_SERVICES, mapServiceNameToInternal } from '@src/shared/utils/oauth.utils';
+import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
+import { OAUTH_SERVICES, mapServiceNameToInternal } from '@src/shared/helpers/oauth/oauth.utils';
 
 /**
  * Interface for OAuth connection form data
@@ -46,7 +47,7 @@ export function generateOAuthModalHTML(
   currentName: string,
   currentPlatform: string,
   currentService: string,
-  currentOauthInfo: OAuthConnectionInfo
+  currentOauthInfo: OAuthConnectionInfo,
 ): string {
   const consumerKeyValue = currentOauthInfo.consumerKey || '';
   const consumerSecretValue = currentOauthInfo.consumerSecret || '';
@@ -76,12 +77,10 @@ export function generateOAuthModalHTML(
         <div class="col-span-3">
           <select id="oauthService" name="oauthService" required
                   class="input flex items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm h-9 w-full outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500">
-            ${OAUTH_SERVICES
-      .map(
-        (service) =>
-          `<option value="${service}" ${service === currentService ? 'selected' : ''}>${service}</option>`,
-      )
-      .join('')}
+            ${OAUTH_SERVICES.map(
+              (service) =>
+                `<option value="${service}" ${service === currentService ? 'selected' : ''}>${service}</option>`,
+            ).join('')}
           </select>
         </div>
       </div>
@@ -145,32 +144,24 @@ export function generateOAuthModalHTML(
 /**
  * Set prefill values for known OAuth services
  */
-export function setPrefillValuesForService(dialog: HTMLElement, selectedService: string, baseUrl: string) {
+export function setPrefillValuesForService(
+  dialog: HTMLElement,
+  selectedService: string,
+  baseUrl: string,
+) {
   const service = mapServiceNameToInternal(selectedService);
   const callbackUrl = `${baseUrl}/oauth/${service}/callback`;
 
-  if (selectedService === 'Google') {
-    (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
-      'https://accounts.google.com/o/oauth2/v2/auth';
-    (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
-      'https://oauth2.googleapis.com/token';
-    (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
-      'https://www.googleapis.com/auth/gmail.readonly';
-  } else if (selectedService === 'LinkedIn') {
-    (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
-      'https://www.linkedin.com/oauth/v2/authorization';
-    (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
-      'https://www.linkedin.com/oauth/v2/accessToken';
-    (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
-      'r_liteprofile r_emailaddress';
-  } else if (selectedService === 'Twitter') {
-    (dialog.querySelector('#requestTokenURL') as HTMLInputElement).value =
-      'https://api.twitter.com/oauth/request_token';
-    (dialog.querySelector('#accessTokenURL') as HTMLInputElement).value =
-      'https://api.twitter.com/oauth/access_token';
-    (dialog.querySelector('#userAuthorizationURL') as HTMLInputElement).value =
-      'https://api.twitter.com/oauth/authorize';
-  }
+  // Get service defaults from centralized configuration
+  const serviceDefaults = OAuthServicesRegistry.getServiceDefaults(selectedService);
+
+  // Apply defaults to form fields
+  Object.entries(serviceDefaults).forEach(([field, value]) => {
+    const input = dialog.querySelector(`#${field}`) as HTMLInputElement | HTMLTextAreaElement;
+    if (input) {
+      input.value = value;
+    }
+  });
 
   return callbackUrl;
 }
@@ -181,15 +172,15 @@ export function setPrefillValuesForService(dialog: HTMLElement, selectedService:
 export function updateOAuthFieldVisibility(
   dialog: HTMLElement,
   selectedValue: string,
-  mapServiceFunc?: (service: string) => string
+  mapServiceFunc?: (service: string) => string,
 ) {
   const oauth1Container = dialog.querySelector('#oauth1-fields');
   const oauth2Container = dialog.querySelector('#oauth2-fields');
   const callbackDisplayContainer = dialog.querySelector('#callback-url-display');
 
-  const isOAuth2 = ['Google', 'LinkedIn', 'Custom OAuth2.0'].includes(selectedValue);
-  const isOAuth1 = ['Twitter', 'Custom OAuth1.0'].includes(selectedValue);
-  const isClientCreds = selectedValue === 'OAuth2 Client Credentials';
+  const isOAuth2 = OAuthServicesRegistry.isOAuth2Service(selectedValue);
+  const isOAuth1 = OAuthServicesRegistry.isOAuth1Service(selectedValue);
+  const isClientCreds = OAuthServicesRegistry.isClientCredentialsService(selectedValue);
 
   // Show/hide main containers
   oauth1Container?.classList.toggle('hidden', !isOAuth1);
@@ -207,10 +198,7 @@ export function updateOAuthFieldVisibility(
   }
 
   // Handle callback URL display
-  callbackDisplayContainer?.classList.toggle(
-    'hidden',
-    isClientCreds || (!isOAuth2 && !isOAuth1),
-  );
+  callbackDisplayContainer?.classList.toggle('hidden', isClientCreds || (!isOAuth2 && !isOAuth1));
 
   if (!callbackDisplayContainer?.classList.contains('hidden')) {
     const callbackUrlDiv = callbackDisplayContainer?.querySelector('div.col-span-3');
@@ -219,7 +207,9 @@ export function updateOAuthFieldVisibility(
 
     try {
       const baseUrl = window.location.origin;
-      const serviceInternal = mapServiceFunc ? mapServiceFunc(service) : mapServiceNameToInternal(service);
+      const serviceInternal = mapServiceFunc
+        ? mapServiceFunc(service)
+        : mapServiceNameToInternal(service);
       if (serviceInternal && serviceInternal !== 'none') {
         callbackURL = `${baseUrl}/oauth/${serviceInternal}/callback`;
       }
@@ -236,7 +226,10 @@ export function updateOAuthFieldVisibility(
 /**
  * Validate OAuth connection form data
  */
-export function validateOAuthFormData(formData: Record<string, string>): { isValid: boolean; error?: string } {
+export function validateOAuthFormData(formData: Record<string, string>): {
+  isValid: boolean;
+  error?: string;
+} {
   if (!formData.name || formData.name.trim() === '') {
     return { isValid: false, error: 'Name field is required.' };
   }
@@ -255,7 +248,7 @@ export function validateOAuthFormData(formData: Record<string, string>): { isVal
 export function buildOAuthSettingsForSave(
   formData: Record<string, string>,
   connectionId: string,
-  type: 'oauth' | 'oauth2' | 'oauth2_client_credentials'
+  type: 'oauth' | 'oauth2' | 'oauth2_client_credentials',
 ) {
   const service = mapServiceNameToInternal(formData.oauthService);
   const oauthPrefix = connectionId.replace('_TOKENS', '');

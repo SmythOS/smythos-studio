@@ -14,7 +14,7 @@ import {
 import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
-import { Textarea } from '@src/react/shared/components/ui/textarea';
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
@@ -287,7 +287,7 @@ export const UpdateApiKeyDialog: FC<UpdateApiKeyDialogProps> = ({
               Key <span className="text-red-500">*</span>
             </Label>
 
-            <Textarea
+            <TextArea
               id="key"
               value={formData.key}
               onChange={(e) => handleInputChange('key', e.target.value)}

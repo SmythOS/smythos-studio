@@ -1,5 +1,7 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { Component } from '.';
+import { FEATURE_FLAGS } from '../../../shared/constants/featureflags';
+import { PostHog } from '../../services/posthog';
 import {
   closeRightSidebar,
   confirm,
@@ -22,17 +24,88 @@ async function onComponentLoad(sidebar) {
   deleteButton.classList.remove('hidden');
   deleteButton.onclick = component.delete.bind(this, false);
 
+  // Add Test with Debug button based on feature flag
+  const testWithDebugFeatureFlag = PostHog.getFeatureFlag(
+    FEATURE_FLAGS.TEST_WITH_DEBUG_COMPONENT_SIDEBAR,
+  );
+  if (testWithDebugFeatureFlag === 'variant_1' && !component.workspace?.locked) {
+    const actionContent: HTMLElement = actionElement.querySelector('.action-content');
+
+    // Create Test with Debug button
+    const testWithDebugButton = document.createElement('button');
+    testWithDebugButton.type = 'button';
+    testWithDebugButton.className =
+      'ml-2 mt-2 test-with-debug-btn bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 rounded text-sm transition-colors duration-200 flex items-center justify-center';
+    testWithDebugButton.style.height = '32px';
+    testWithDebugButton.style.alignSelf = 'center';
+    testWithDebugButton.textContent = 'Test with Debug';
+    testWithDebugButton.setAttribute('aria-label', 'Test with Debug');
+
+    // Add click handler for Test with Debug button
+    testWithDebugButton.onclick = async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        // Check if debug is currently active
+        const debugSwitcher = document.querySelector('.debug-switcher');
+        const isDebugCurrentlyOn = debugSwitcher && debugSwitcher.classList.contains('active');
+
+        // Fire telemetry event
+        PostHog.track('test_with_debug_component_sidebar_clicked', {
+          source: 'component_settings_sidebar',
+          componentType: component.constructor.name,
+          componentId: component.uid,
+          debugWasOn: isDebugCurrentlyOn,
+        });
+
+        // Turn on debug if it's not active
+        if (!isDebugCurrentlyOn && debugSwitcher) {
+          debugSwitcher.dispatchEvent(new Event('click', { bubbles: true }));
+        }
+
+        // Handle pre-population based on debug state
+        let prefillValues;
+        if (isDebugCurrentlyOn) {
+          // Debug is on: Pre-populate if previous input exists from previous debug run
+          const debugInputs = (window as any).debugInputs || {};
+          if (debugInputs[component.uid] && debugInputs[component.uid].inputs) {
+            prefillValues = debugInputs[component.uid].inputs;
+          }
+        } else {
+          // Debug is off: Clear auto-population cache and don't pre-populate
+          const debugInputs = (window as any).debugInputs || {};
+          if (debugInputs[component.uid]) {
+            delete debugInputs[component.uid];
+          }
+          prefillValues = undefined; // Explicitly no pre-population
+        }
+
+        // Open debug modal with appropriate pre-population based on debug state
+        await component.openDebugDialog(event, 'run', prefillValues);
+      } catch (error) {
+        console.error('Error opening debug modal from Test with Debug button:', error);
+        errorToast('Failed to open debug modal');
+      }
+    };
+
+    // Insert button at the beginning of action content (left side)
+    actionContent.insertBefore(testWithDebugButton, actionContent.firstChild);
+  }
+
   const tplDocPath = component.properties?.template?.templateInfo?.docPath || '/not-set';
 
   const docUrl = component.properties?.template
     ? component.workspace.serverData.docUrl + tplDocPath
     : component.docUrl;
   const helpBtn: HTMLButtonElement = titleLeftActions.querySelector('.action-help');
-  helpBtn.onclick = () => {
-    window.open(docUrl, '_blank');
-  };
-  if (component.properties?.template && !component.properties?.template?.templateInfo?.docPath)
-    helpBtn.classList.add('hidden');
+  if (helpBtn) {
+    helpBtn.onclick = () => {
+      window.open(docUrl, '_blank');
+    };
+    if (component.properties?.template && !component.properties?.template?.templateInfo?.docPath)
+      helpBtn.classList.add('hidden');
+  }
 
   if (component.workspace?.locked) {
     setReadonlyMode(sidebar, ['close-btn', 'action-help']);

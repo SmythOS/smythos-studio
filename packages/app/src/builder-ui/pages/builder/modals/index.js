@@ -9,13 +9,13 @@ export async function setupModals(_workspace) {
   workspace = _workspace;
 
   // Ensure the container exists before rendering
-  const container = document.getElementById('builder-modals-container');
+  const container = document.getElementById('builder-deploy-modal-container');
   if (!container) {
     console.error('Modal container not found');
     return;
   }
 
-  renderAgentModals({ rootID: 'builder-modals-container' });
+  renderAgentModals({ rootID: 'builder-deploy-modal-container' });
   // Ensure the container exists before rendering
   const simpleModalContainer = document.getElementById('self-contained-builder-modals');
   if (!simpleModalContainer) {

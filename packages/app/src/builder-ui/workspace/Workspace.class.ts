@@ -1369,7 +1369,16 @@ export class Workspace extends EventEmitter {
         );
       }
     } else {
-      targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
+      //handle the special case of triggers connecting to APIEndpoints
+
+      if (
+        sourceComponent.classList.contains('Trigger') &&
+        targetComponent.classList.contains('APIEndpoint')
+      ) {
+        targetEndpoint = targetComponent.querySelector(`.endpoint-connection`);
+      } else {
+        targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
+      }
     }
 
     // @ts-ignore
@@ -1811,8 +1820,12 @@ export class Workspace extends EventEmitter {
         properties.top = referenceSkill.top.split('px')[0] - 250 + 'px';
         requiresSave = true;
       } else {
-        // handle first time loading
-        properties.left = '-700px';
+        // handle first time loading - account for weaver sidebar being open
+        const isWeaverSidebarOpen =
+          window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
+        const sidebarOffset = isWeaverSidebarOpen ? 400 : 0;
+
+        properties.left = -700 + sidebarOffset + 'px';
         properties.top = '-6px';
         requiresSave = true;
         isFirstVisit = true;
@@ -2011,15 +2024,21 @@ export class Workspace extends EventEmitter {
     const viewport = document.querySelector('#workspace-container'); // Adjust if the ID is different
     const viewportRect = viewport.getBoundingClientRect();
 
-    // Check if component is not in the viewport
+    // Check if agent card is not in the viewport or behind left sidebar
+    const isLeftSidebarOpen =
+      window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
+    const isBehindSidebar = isLeftSidebarOpen && cardRect.left < viewportRect.left + 400;
+
     if (
       cardRect.top < viewportRect.top ||
       cardRect.left < viewportRect.left ||
       cardRect.bottom > viewportRect.bottom ||
-      cardRect.right > viewportRect.right
+      cardRect.right > viewportRect.right ||
+      isBehindSidebar
     ) {
       // Calculate the difference in position and adjust by the scale
-      const deltaX = (viewportRect.left - cardRect.left + 100) / scale;
+      const sidebarOffset = isLeftSidebarOpen ? 400 : 0;
+      const deltaX = (viewportRect.left - cardRect.left + 100 + sidebarOffset) / scale;
       const deltaY = (viewportRect.top - cardRect.top + 100) / scale;
 
       // Get the current Panzoom translation values

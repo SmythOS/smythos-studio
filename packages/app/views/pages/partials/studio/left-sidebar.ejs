@@ -297,94 +297,6 @@
         </div>
       </div>
 
-      <!-- Subdomains -->
-      <% if (navPages.filter(page => page.url === '/domains').length > 0) { %>
-      <div class="relative group subdomains-btn">
-        <a
-          href="/domains"
-          rel="noopener noreferrer"
-          id="subdomains-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          data-tooltip-target="tooltip-subdomains"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md hover:bg-gray-100"
-          >
-            <%- include('icons/binary-tree'); -%>
-          </div>
-        </a>
-        <div
-          id="tooltip-subdomains"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Subdomains
-        </div>
-      </div>
-      <% } %>
-
-      <!-- Data Pool -->
-      <% if (navPages.filter(page => page.url === '/data').length > 0) { %>
-      <div class="relative group data-pool-btn">
-        <a
-          href="/data"
-          rel="noopener noreferrer"
-          id="data-pool-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          data-tooltip-target="tooltip-data-pool"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md hover:bg-gray-100"
-          >
-            <%- include('icons/database'); -%>
-          </div>
-        </a>
-        <div
-          id="tooltip-data-pool"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Data Pool
-        </div>
-      </div>
-      <% } %>
-      <!-- Analytics -->
-      <% if (navPages.filter(page => page.url === '/analytics').length > 0) { %>
-      <div class="relative group analytics-btn">
-        <a
-          href="/analytics"
-          rel="noopener noreferrer"
-          id="analytics-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          data-tooltip-target="tooltip-analytics"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md hover:bg-gray-100"
-          >
-            <%- include('icons/line-chart'); -%>
-          </div>
-        </a>
-        <div
-          id="tooltip-analytics"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Analytics
-        </div>
-      </div>
-      <% } %>
       <!-- Vault -->
       <% if (navPages.filter(page => page.url === '/vault').length > 0) { %>
       <div class="relative group vault-btn">
@@ -411,35 +323,6 @@
           data-popper-placement="bottom"
         >
           Vault
-        </div>
-      </div>
-      <% } %>
-      <!-- Templates -->
-      <% if (navPages.filter(page => page.url === '/templates').length > 0) { %>
-      <div class="relative group templates-btn">
-        <a
-          href="/templates"
-          rel="noopener noreferrer"
-          id="templates-button"
-          class="relative w-full flex items-center h-10 justify-center"
-          data-tooltip-target="tooltip-templates"
-          data-tooltip-placement="right"
-        >
-          <div
-            class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md hover:bg-gray-100"
-          >
-            <%- include('icons/grid'); -%>
-          </div>
-        </a>
-        <div
-          id="tooltip-templates"
-          role="tooltip"
-          class="tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible"
-          data-popper-reference-hidden=""
-          data-popper-escaped=""
-          data-popper-placement="bottom"
-        >
-          Templates
         </div>
       </div>
       <% } %>

@@ -1,23 +1,22 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { API_CALL_DATA_ENTRIES, SMYTHOS_DOCS_URL } from '@src/shared/constants/general'; // Adjust the path as necessary
 import {
-  deriveServiceFromOauthInfo,
+  //deriveServiceFromOauthInfo,
   extractServiceFromConnection,
   getConnectionOauthInfo,
-  saveOAuthConnection
-} from '@src/shared/helpers/oauth-api.helper';
+  saveOAuthConnection,
+} from '@src/shared/helpers/oauth/oauth-api.helper';
+import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
 import {
   OAUTH_SERVICES,
   extractPlatformFromUrl,
   generateOAuthId,
   mapInternalToServiceName,
-  mapServiceNameToInternal
-} from '@src/shared/utils/oauth.utils';
+  mapServiceNameToInternal,
+} from '@src/shared/helpers/oauth/oauth.utils';
 import { builderStore } from '../../shared/state_stores/builder/store';
 import { COMP_NAMES } from '../config';
-import {
-  generateOAuthModalHTML
-} from '../helpers/oauth-modal.helper';
+import { generateOAuthModalHTML } from '../helpers/oauth/oauth-modal.helper';
 import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
 import { closeTwDialog, twEditValuesWithCallback } from '../ui/tw-dialogs';
@@ -53,9 +52,9 @@ export class APICall extends Component {
     return getConnectionOauthInfo(connection, connectionId);
   }
 
-  private deriveServiceFromOauthInfo(oauthInfo: any): string {
-    return deriveServiceFromOauthInfo(oauthInfo);
-  }
+  // private deriveServiceFromOauthInfo(oauthInfo: any): string {
+  //   return deriveServiceFromOauthInfo(oauthInfo);
+  // }
 
   protected async prepare() {
     try {
@@ -69,7 +68,11 @@ export class APICall extends Component {
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
       // Use the centralized buildOAuthSelectOptions method
-      const options = this.buildOAuthSelectOptions(this.oauthConnections, componentSpecificId, '[APICall.prepare]');
+      const options = this.buildOAuthSelectOptions(
+        this.oauthConnections,
+        componentSpecificId,
+        '[APICall.prepare]',
+      );
 
       // Add 'None' option at the start
       options.unshift({ value: 'None', text: 'None', badge: '' });
@@ -487,14 +490,11 @@ export class APICall extends Component {
       });
     }
 
-    const isOAuth2 = [
-      'Google',
-      'LinkedIn',
-      'Custom OAuth2.0',
-      'OAuth2 Client Credentials',
-    ].includes(selectedValue);
+    const isOAuth2 =
+      OAuthServicesRegistry.isOAuth2Service(selectedValue) ||
+      OAuthServicesRegistry.isClientCredentialsService(selectedValue);
     let fieldsToUse = isOAuth2 ? [...oauth2Fields] : oauth1Fields; // Use a copy of oauth2Fields to prevent modifying the original array
-    if (selectedValue === 'OAuth2 Client Credentials') {
+    if (OAuthServicesRegistry.isClientCredentialsService(selectedValue)) {
       // if value is 'OAuth2 Client Credentials',Remove 'authorizationURL', 'oauth2CallbackURL', and 'scope' from fieldsToUse, also hide oauth1Fields
       fieldsToUse = fieldsToUse.filter(
         (field) => !['authorizationURL', 'oauth2CallbackURL', 'scope'].includes(field),
@@ -568,7 +568,10 @@ export class APICall extends Component {
     const selectedConnection = this.oauthConnections[selectedConnectionId];
     // console.log('[OAuth Auth] Selected connection:', selectedConnection);
 
-    const synthesizedOauthInfo = this.getConnectionOauthInfo(selectedConnection, selectedConnectionId);
+    const synthesizedOauthInfo = this.getConnectionOauthInfo(
+      selectedConnection,
+      selectedConnectionId,
+    );
     // console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
 
     if (!selectedConnection || !synthesizedOauthInfo) {
@@ -577,7 +580,7 @@ export class APICall extends Component {
         'Selected connection or its oauth_info not found for ID:',
         selectedConnectionId,
         'Connection:',
-        selectedConnection
+        selectedConnection,
       );
       return;
     }
@@ -585,7 +588,11 @@ export class APICall extends Component {
     // Validate that required fields are present
     if (!synthesizedOauthInfo.service) {
       console.error('[OAuth Auth] Missing service field in oauth_info:', synthesizedOauthInfo);
-      errorToast('OAuth connection is missing required service information. Please edit and save the connection again.', 'Error', 'alert');
+      errorToast(
+        'OAuth connection is missing required service information. Please edit and save the connection again.',
+        'Error',
+        'alert',
+      );
       return;
     }
 
@@ -596,7 +603,8 @@ export class APICall extends Component {
     // Normalize callback URLs to the current backend origin across envs (local/staging/prod)
     const getDesiredBackendOrigin = () => {
       // Prefer configured backend server when available
-      const candidate = (this.workspace && (this.workspace as any).server) || window.location.origin;
+      const candidate =
+        (this.workspace && (this.workspace as any).server) || window.location.origin;
       try {
         const u = new URL(candidate);
         return u.origin;
@@ -632,7 +640,11 @@ export class APICall extends Component {
       const oauth1Path = `/oauth/${internalService === 'twitter' ? 'oauth1' : internalService}/callback`;
 
       // Ensure correct origin for OAuth2 callbacks
-      if (connectionType === 'oauth2' || internalService === 'google' || internalService === 'linkedin') {
+      if (
+        connectionType === 'oauth2' ||
+        internalService === 'google' ||
+        internalService === 'linkedin'
+      ) {
         oauthInfoPayload.oauth2CallbackURL = normalizeCallbackOrigin(
           oauthInfoPayload.oauth2CallbackURL,
           oauth2Path,
@@ -640,7 +652,11 @@ export class APICall extends Component {
       }
 
       // Ensure correct origin for OAuth1 callbacks
-      if (connectionType === 'oauth' || internalService === 'oauth1' || internalService === 'twitter') {
+      if (
+        connectionType === 'oauth' ||
+        internalService === 'oauth1' ||
+        internalService === 'twitter'
+      ) {
         oauthInfoPayload.oauth1CallbackURL = normalizeCallbackOrigin(
           oauthInfoPayload.oauth1CallbackURL,
           oauth1Path,
@@ -661,18 +677,31 @@ export class APICall extends Component {
     let isValid = true;
     let missingFields = [];
 
-    if (connectionType === 'oauth2' || isClientCredentials || derivedService === 'Google' || derivedService === 'LinkedIn') {
+    if (
+      connectionType === 'oauth2' ||
+      isClientCredentials ||
+      derivedService === 'Google' ||
+      derivedService === 'LinkedIn'
+    ) {
       if (!oauthInfoPayload.tokenURL) missingFields.push('Token URL');
       if (!oauthInfoPayload.clientID) missingFields.push('Client ID');
       if (!oauthInfoPayload.clientSecret) missingFields.push('Client Secret');
       if (
-        (connectionType === 'oauth2' || derivedService === 'Google' || derivedService === 'LinkedIn') &&
+        (connectionType === 'oauth2' ||
+          derivedService === 'Google' ||
+          derivedService === 'LinkedIn') &&
         !isClientCredentials &&
         !oauthInfoPayload.authorizationURL
       ) {
         missingFields.push('Auth URL');
       }
-      if ((connectionType === 'oauth2' || derivedService === 'Google' || derivedService === 'LinkedIn') && !isClientCredentials && !oauthInfoPayload.scope) {
+      if (
+        (connectionType === 'oauth2' ||
+          derivedService === 'Google' ||
+          derivedService === 'LinkedIn') &&
+        !isClientCredentials &&
+        !oauthInfoPayload.scope
+      ) {
         missingFields.push('Scopes');
       }
     } else if (connectionType === 'oauth') {
@@ -746,7 +775,8 @@ export class APICall extends Component {
                   this.oauthConnections[selectedConnectionId].auth_data.secondary = data.secondary;
                 }
                 if (data.expires_in) {
-                  this.oauthConnections[selectedConnectionId].auth_data.expires_in = data.expires_in;
+                  this.oauthConnections[selectedConnectionId].auth_data.expires_in =
+                    data.expires_in;
                 }
               } else {
                 // Legacy structure - store at root level
@@ -837,7 +867,6 @@ export class APICall extends Component {
       case 'oauth':
         // console.log('Authentication was successful');
         successToast(`${event.data.type} authentication was successful`);
-
         // Clear auth check cache for the current connection after successful auth
         if (this.data.oauth_con_id) {
           this.authCheckPromises.delete(this.data.oauth_con_id);
@@ -851,7 +880,9 @@ export class APICall extends Component {
           if (currentId && this.oauthConnections[currentId] === undefined) {
             // try to find a connection that has the same prefix but now exists only once
             const prefix = (currentId || '').replace(/_TOKENS$/, '');
-            const remapped = Object.keys(this.oauthConnections).find((k) => k.startsWith(prefix) && k.endsWith('_TOKENS'));
+            const remapped = Object.keys(this.oauthConnections).find(
+              (k) => k.startsWith(prefix) && k.endsWith('_TOKENS'),
+            );
             if (remapped) {
               this.data.oauth_con_id = remapped;
             }
@@ -860,10 +891,8 @@ export class APICall extends Component {
           this.updateOAuthActionButton();
           // Update authentication button state after sidebar refresh
           await this.updateAuthenticationButtonState();
-
-          // Update component's button state
-          this.checkSettings();
         });
+        this.checkSettings();
         window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
 
@@ -876,6 +905,8 @@ export class APICall extends Component {
             'alert',
           );
         }
+        this.checkSettings();
+        window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
 
       default:
@@ -900,8 +931,8 @@ export class APICall extends Component {
   }
 
   /**
- * Checks the current authentication status for the selected connection.
- */
+   * Checks the current authentication status for the selected connection.
+   */
   private async checkAuthentication(): Promise<boolean> {
     const selectedValue = this.data.oauth_con_id;
 
@@ -988,7 +1019,12 @@ export class APICall extends Component {
 
     // Derive oauth_keys_prefix if not found
     let oauth_keys_prefix = oauthInfo?.oauth_keys_prefix;
-    if (!oauth_keys_prefix && connectionId && connectionId.startsWith('OAUTH_') && connectionId.endsWith('_TOKENS')) {
+    if (
+      !oauth_keys_prefix &&
+      connectionId &&
+      connectionId.startsWith('OAUTH_') &&
+      connectionId.endsWith('_TOKENS')
+    ) {
       oauth_keys_prefix = connectionId.replace('_TOKENS', '');
     }
 
@@ -1012,9 +1048,7 @@ export class APICall extends Component {
       });
 
       if (!response.ok) {
-        console.error(
-          `Auth check failed for ${oauth_keys_prefix}: HTTP status ${response.status}`,
-        );
+        console.error(`Auth check failed for ${oauth_keys_prefix}: HTTP status ${response.status}`);
         return false;
       }
 
@@ -1037,44 +1071,32 @@ export class APICall extends Component {
   }
 
   private updateConfiguration(selectedValue, sidebar) {
-    if (selectedValue === 'OAuth2 Client Credentials') {
+    if (OAuthServicesRegistry.isClientCredentialsService(selectedValue)) {
       return null;
     }
 
     const { cbUrl, key } = this.getOAuthCallbackDetails(selectedValue); // Get the callback details for the selected service
     sidebar.querySelector(`[data-field-name="${key}"] span`).innerHTML = cbUrl; // Update callback URL in the sidebar dynamically based on OAuth version
 
-    const configurations = {
-      Google: {
-        authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
-        tokenURL: 'https://oauth2.googleapis.com/token',
-        scope: 'https://www.googleapis.com/auth/gmail.readonly',
-        oauth2CallbackURL: cbUrl,
-      },
-      Twitter: {
-        requestTokenURL: 'https://api.twitter.com/oauth/request_token',
-        accessTokenURL: 'https://api.twitter.com/oauth/access_token',
-        userAuthorizationURL: 'https://api.twitter.com/oauth/authorize',
-        oauth1CallbackURL: cbUrl,
-      },
-      LinkedIn: {
-        authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
-        tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken',
-        scope: 'r_liteprofile r_emailaddress',
-        oauth2CallbackURL: cbUrl,
-      },
-    };
-    return configurations[selectedValue]; // Execute the function based on the selected value and get formData if available
+    // Get service defaults from centralized configuration
+    const serviceDefaults = OAuthServicesRegistry.getServiceDefaults(selectedValue);
+    if (!serviceDefaults || Object.keys(serviceDefaults).length === 0) {
+      return null;
+    }
+
+    // Add callback URL based on OAuth type
+    const configWithCallback: any = { ...serviceDefaults };
+    if (OAuthServicesRegistry.isOAuth2Service(selectedValue)) {
+      configWithCallback.oauth2CallbackURL = cbUrl;
+    } else if (OAuthServicesRegistry.isOAuth1Service(selectedValue)) {
+      configWithCallback.oauth1CallbackURL = cbUrl;
+    }
+
+    return configWithCallback;
   }
 
   private isOAuth1(selectedService) {
-    const oauth1Services = [
-      // Define the list of OAuth 1.0 services directly inside the function
-      'twitter', // Example OAuth 1.0 service
-      // Add more OAuth 1.0 services as needed
-    ];
-    const serviceLower = selectedService?.toLowerCase();
-    return oauth1Services.includes(serviceLower) || serviceLower.includes('oauth1.0'); // Check directly if serviceLower is an OAuth 1.0 service or contains "oauth1.0"
+    return OAuthServicesRegistry.isOAuth1Service(selectedService);
   }
 
   private getOAuthCallbackDetails(selectedValue) {
@@ -1432,7 +1454,6 @@ export class APICall extends Component {
 
         // Update component messages
         this.clearComponentMessages();
-
       } else {
         // Sign out failed
         if (oauth_button) {
@@ -1575,7 +1596,8 @@ export class APICall extends Component {
 
     // Get current connection if editing and determine structure
     const currentConnectionRaw = !isNone ? this.oauthConnections[currentValue] : null;
-    const isNewStructure = currentConnectionRaw && currentConnectionRaw.auth_data && currentConnectionRaw.auth_settings;
+    const isNewStructure =
+      currentConnectionRaw && currentConnectionRaw.auth_data && currentConnectionRaw.auth_settings;
 
     // Extract the settings part based on structure
     const currentSettings = isNewStructure
@@ -1603,7 +1625,7 @@ export class APICall extends Component {
       currentName,
       currentPlatform,
       currentService,
-      currentOauthInfo
+      currentOauthInfo,
     );
 
     // Show dialog using twEditValuesWithCallback, passing HTML content
@@ -1772,7 +1794,7 @@ export class APICall extends Component {
                 formData[key] = value as string;
               });
 
-              // --- Basic Validation --- 
+              // --- Basic Validation ---
               if (!formData.name || formData.name.trim() === '') {
                 errorToast('Name field is required.', 'Error', 'alert');
                 throw new Error('Validation failed: Name is required.'); // Throw to prevent dialog closing
@@ -1789,7 +1811,9 @@ export class APICall extends Component {
 
               try {
                 const isCreating = isNone;
-                const connectionId = isCreating ? `OAUTH_${generateOAuthId()}_TOKENS` : currentValue;
+                const connectionId = isCreating
+                  ? `OAUTH_${generateOAuthId()}_TOKENS`
+                  : currentValue;
                 const service = this.mapServiceNameToInternal(formData.oauthService);
                 const type = ['Custom OAuth1.0', 'Twitter'].includes(formData.oauthService)
                   ? 'oauth'
@@ -1810,7 +1834,8 @@ export class APICall extends Component {
                   newOauthInfo.tokenURL = formData.tokenURL || '';
                   newOauthInfo.clientID = formData.clientID || '';
                   newOauthInfo.clientSecret = formData.clientSecret || '';
-                  if (type === 'oauth2') { // Only for full OAuth2
+                  if (type === 'oauth2') {
+                    // Only for full OAuth2
                     newOauthInfo.authorizationURL = formData.authorizationURL || '';
                     newOauthInfo.scope = formData.scope || '';
                   }
@@ -1827,7 +1852,10 @@ export class APICall extends Component {
                 const authSettingsToSave = {
                   name: newOauthInfo.name, // Use name from newOauthInfo
                   type: type,
-                  tokenURL: (type === 'oauth2' || type === 'oauth2_client_credentials') ? newOauthInfo.tokenURL : undefined,
+                  tokenURL:
+                    type === 'oauth2' || type === 'oauth2_client_credentials'
+                      ? newOauthInfo.tokenURL
+                      : undefined,
                   oauth_info: newOauthInfo, // Include the full oauth_info
                 };
                 // Clean up undefined tokenURL before saving
@@ -1876,8 +1904,6 @@ export class APICall extends Component {
     );
   }
 
-
-
   // Build OAuth select options from connections with unified name detection and legacy fallback
   private buildOAuthSelectOptions(
     connections: Record<string, any>,
@@ -1897,7 +1923,7 @@ export class APICall extends Component {
           options.push({
             value: id,
             text: connectionName,
-            badge: ''
+            badge: '',
           });
         } else if (conn?.auth_data && conn?.auth_settings) {
           // New structure but no name - treat as legacy to ensure visibility
@@ -1906,7 +1932,7 @@ export class APICall extends Component {
           options.push({
             value: id,
             text: `${service} [${shortId}]`,
-            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1')
+            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1'),
           });
         }
       }
@@ -1914,7 +1940,11 @@ export class APICall extends Component {
 
     // Second pass: add legacy connections that still exist AND oauthService is not 'None'
     // This handles the case where legacy connections haven't been converted yet
-    if (connections[componentSpecificId] && this.data.oauthService && this.data.oauthService !== 'None') {
+    if (
+      connections[componentSpecificId] &&
+      this.data.oauthService &&
+      this.data.oauthService !== 'None'
+    ) {
       const conn = connections[componentSpecificId];
 
       // Check if this connection has been converted to new structure
@@ -1922,19 +1952,21 @@ export class APICall extends Component {
 
       if (!hasNewStructure) {
         // Only add legacy connection if it hasn't been converted to new structure
-        const serviceName = conn?.auth_settings?.oauth_info?.service ||
+        const serviceName =
+          conn?.auth_settings?.oauth_info?.service ||
           conn?.oauth_info?.service ||
           conn?.auth_settings?.type ||
-          conn?.type || 'Unknown';
+          conn?.type ||
+          'Unknown';
         const shortId = componentSpecificId.replace('OAUTH_', '').replace('_TOKENS', '');
 
         // Only add if not already in options (avoid duplicates)
-        const alreadyExists = options.some(opt => opt.value === componentSpecificId);
+        const alreadyExists = options.some((opt) => opt.value === componentSpecificId);
         if (!alreadyExists) {
           options.push({
             value: componentSpecificId,
             text: `${serviceName} [${shortId}]`,
-            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1')
+            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1'),
           });
         }
       }
@@ -1966,7 +1998,11 @@ export class APICall extends Component {
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
       // Use the centralized buildOAuthSelectOptions method
-      const options = this.buildOAuthSelectOptions(this.oauthConnections, componentSpecificId, '[APICall.updateOAuthConnectionOptions]');
+      const options = this.buildOAuthSelectOptions(
+        this.oauthConnections,
+        componentSpecificId,
+        '[APICall.updateOAuthConnectionOptions]',
+      );
 
       // Add 'None' option at the start
       options.unshift({ value: 'None', text: 'None', badge: '' });
@@ -2038,8 +2074,6 @@ export class APICall extends Component {
     };
     return map[internalName] || internalName;
   }
-
-
 
   /**
    * Clears the authentication state for a specific connection

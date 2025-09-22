@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import fs, { promises as fsPromises } from 'fs';
 import multer from 'multer';
 import path from 'path';
-import appConfig from '../../config';
+import { default as appConfig } from '../../config';
 import {
   CreateUploadMwParams,
   DeleteContentParams,
@@ -32,7 +32,7 @@ export default class LocalStorage implements StaticStorage {
 
   constructor(protected readonly accessControl: StorageACL) {
     // Base storage path from config or default to user data directory
-    this.storagePath = path.join('uploads');
+    this.storagePath = path.join(appConfig.env.DATA_PATH, 'uploads');
     this.publicPath = path.join(this.storagePath, 'public');
     this.privatePath = path.join(this.storagePath, 'private');
 
@@ -417,7 +417,7 @@ export default class LocalStorage implements StaticStorage {
     // Remove leading slash from key if present
     const cleanKey = key.replace(/^\//, '');
 
-    return `${baseUrl}/uploads/public/${cleanKey}`;
+    return `${baseUrl}/uploads/${cleanKey}`;
   }
 
   /**

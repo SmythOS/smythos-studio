@@ -1,6 +1,8 @@
+import { ArrowRightIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
 import { Button } from '../../shared/components/ui/newDesign/button';
 import { Spinner } from '../../shared/components/ui/spinner';
+import { useDeploymentSidebarCtx } from '../builder/contexts/deployment-sidebar.context';
 import ModalHeaderEmbodiment from './modal-header-embodiment';
 
 /**
@@ -47,6 +49,11 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * Get deployment status from the existing deployment sidebar context.
+   */
+  const { latestDeployment } = useDeploymentSidebarCtx();
+
   if (typeof onClose !== 'function') {
     throw new Error('ChatbotEmbodimentModal: onClose prop must be a function');
   }
@@ -68,6 +75,14 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
   const isFullScreen = embodimentData?.properties?.isFullScreen;
   const allowFileAttachments = embodimentData?.properties?.allowFileAttachments;
   const isUsingFullScreen = Boolean(isFullScreen);
+
+  /**
+   * Checks if the agent is deployed by verifying if there's a latest deployment.
+   * @returns {boolean} True if agent is deployed, false otherwise.
+   */
+  const isAgentDeployed = Boolean(
+    latestDeployment?.data?.deployment && !latestDeployment?.isLoading,
+  );
 
   const chatbotContainer = `
   <div id="smythos-chatbot-container"></div>
@@ -117,6 +132,7 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
         />
 
         {/* Content */}
+
         <div className="flex flex-col gap-4">
           {isLoading ? (
             /* Loading state */
@@ -142,6 +158,27 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
 
               {/* Code snippet container */}
               <div className="flex flex-col gap-4">
+                <div className="flex justify-end items-center text-base -mb-4 -mt-4">
+                  {isAgentDeployed ? (
+                    <a
+                      href={`${getFullDomain(domain)}/chatBot`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="text-[#707070] flex items-center gap-1">
+                        Preview <ArrowRightIcon className="w-5 h-5" />
+                      </span>
+                    </a>
+                  ) : (
+                    <span
+                      className="text-gray-400 flex items-center gap-1 cursor-not-allowed tooltip-trigger relative"
+                      data-tooltip="Agent needs to be deployed first to preview it."
+                      data-tooltip-position="left"
+                    >
+                      Preview <ArrowRightIcon className="w-5 h-5" />
+                    </span>
+                  )}
+                </div>
                 <textarea
                   ref={textareaRef}
                   readOnly

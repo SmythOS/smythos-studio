@@ -931,9 +931,10 @@ function getFormattedContent(content, compName?) {
   let rawContent = typeof content != 'string' ? JSON.stringify(content, null, 2) : content;
   rawContent = rawContent.replace(/\\n/g, '\n');
 
-  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${
-    rawContent === '' ? '[empty string]' : rawContent
-  }</textarea>${previewBtn}`;
+  // Escape HTML content to prevent XSS attacks when displaying Web Scrape output
+  const escapedContent = rawContent === '' ? '[empty string]' : escapeHTML(rawContent);
+
+  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${escapedContent}</textarea>${previewBtn}`;
 
   return content;
 }
@@ -3191,9 +3192,9 @@ function resetComponentsState({
   });
 
   // Redraw workspace on next tick to ensure DOM updates are complete
-  // requestAnimationFrame(() => {
-  //   workspace.redraw();
-  // });
+  requestAnimationFrame(() => {
+    workspace.redraw();
+  });
 }
 
 /**

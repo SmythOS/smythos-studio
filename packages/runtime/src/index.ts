@@ -5,7 +5,6 @@ import express from 'express';
 import session from 'express-session';
 import fs from 'fs';
 import { Server } from 'http';
-import os from 'os';
 import path from 'path';
 import 'source-map-support/register.js';
 import url from 'url';
@@ -34,11 +33,6 @@ import { routes as embodimentRoutes } from '@embodiment/routes';
 const app = express();
 const port = config.env.PORT;
 
-const getDefaultDataPath = () => {
-  const homeDir = os.homedir();
-  return path.join(homeDir, 'smythos-data');
-};
-
 const ensureVaultFileExists = () => {
   const baseVaultContent = {
     development: {
@@ -55,7 +49,7 @@ const ensureVaultFileExists = () => {
     },
   };
 
-  const vaultFilePath = path.join(getDefaultDataPath(), 'vault.json');
+  const vaultFilePath = path.join(config.env.DATA_PATH, 'vault.json');
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 
@@ -87,7 +81,7 @@ const sre = SmythRuntime.Instance.init({
   Vault: {
     Connector: 'JSONFileVault',
     Settings: {
-      file: path.join(getDefaultDataPath(), 'vault.json'),
+      file: path.join(config.env.DATA_PATH, 'vault.json'),
       shared: 'development',
     },
   },

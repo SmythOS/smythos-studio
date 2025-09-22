@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { CopyKeyIcon, DeleteKeyIcon, InfoIcon } from '../../shared/components/svgs';
 import { Input } from '../../shared/components/ui/input';
 import { Button } from '../../shared/components/ui/newDesign/button';
+import { TextArea } from '../../shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -13,7 +14,6 @@ import {
 } from '../../shared/components/ui/select';
 import { Spinner } from '../../shared/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shared/components/ui/tabs';
-import { Textarea } from '../../shared/components/ui/textarea';
 import type { Agent } from '../agents/types/agents.types';
 import ModalHeaderEmbodiment from './modal-header-embodiment';
 
@@ -450,7 +450,7 @@ const LlmEmbodimentModal: React.FC<LlmEmbodimentModalProps> = ({
             </div>
           </div>
           {/* Code block: white background, gray border, grows up to 400px, scrolls if needed */}
-          <Textarea
+          <TextArea
             ref={codeRef}
             value={codeSample.code}
             readOnly
