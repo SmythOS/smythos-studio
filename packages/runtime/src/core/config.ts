@@ -36,7 +36,7 @@ const config = {
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
     DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN || 'localagent.stage.smyth.ai',
-    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT || process.env.RUNTIME_PORT,
+    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT,
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
 
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,

@@ -63,6 +63,8 @@ async function getTeamInfo(req: express.Request | any, isRetry: boolean = false)
     ) {
       await userData.putUserSettings(token, userSettingKeys.USER_TEAM, '');
       return getTeamInfo(req, true);
+    } else {
+      throw new Error('Failed to fetch team info:' + teamInfo.error?.response?.data);
     }
   }
   return teamInfo;
@@ -131,7 +133,6 @@ export async function pageACLCheck(
   if (rule?.access === 'rw' || rule?.access === 'r') {
     next();
   } else {
-    // console.log('Forbidden: No valid access', req.url, rule);
     return renderErrorPage(res, req, 403, 'Forbidden');
   }
 }
