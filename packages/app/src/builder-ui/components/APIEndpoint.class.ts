@@ -207,16 +207,30 @@ export class APIEndpoint extends Component {
           },
         },
       },
+      status_message_enabled: {
+        type: 'toggle',
+        label: 'Enable Status Message',
+        value: false,
+        help: 'Send a custom message when this skill starts in chat',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        display: 'inline',
+        section: 'Advanced',
+        events: {
+          change: this.statusMessageToggleHandler.bind(this),
+        },
+      },
       status_message: {
         type: 'textarea',
         label: 'Status Message',
         value: '',
-        help: 'Status message to be displayed to the user when the endpoint is called',
+        help: 'Custom message content to send when this skill starts',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         validate: `maxlength=240`,
         validateMessage: 'Your text exceeds the 240 character limit.',
         section: 'Advanced',
+        attributes: { placeholder: 'Starting {skill_name}… this may take ~{estimated_duration}.' },
       },
     };
 
@@ -249,6 +263,8 @@ export class APIEndpoint extends Component {
       'ai_exposed',
       'summary',
       'advancedModeEnabled',
+      'status_message_enabled',
+      'status_message',
     ];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
@@ -328,6 +344,19 @@ export class APIEndpoint extends Component {
     }
   }
 
+  private async statusMessageToggleHandler(e) {
+    const form = e.target.closest('form');
+    if (!form) return;
+    const statusMessage = form.querySelector('.form-box[data-field-name="status_message"]');
+    if (!statusMessage) return;
+
+    if (e.target.checked) {
+      statusMessage.classList.remove('hidden');
+    } else {
+      statusMessage.classList.add('hidden');
+    }
+  }
+
   private updateFormPreviewButton() {
     const messagesContainer = this.domElement.querySelector('.messages-container');
     if (messagesContainer) {
@@ -378,6 +407,15 @@ export class APIEndpoint extends Component {
         description.classList.remove('hidden');
       } else {
         description.classList.add('hidden');
+      }
+
+      const statusMessage = sidebar.querySelector('.form-box[data-field-name="status_message"]');
+      if (statusMessage) {
+        if (this.data.status_message_enabled) {
+          statusMessage.classList.remove('hidden');
+        } else {
+          statusMessage.classList.add('hidden');
+        }
       }
 
       const methodSelect = sidebar.querySelector('.form-box[data-field-name="method"]');
