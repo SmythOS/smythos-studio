@@ -1,10 +1,16 @@
 import { createPortal } from 'react-dom';
 import { FaCommentDots, FaDiscord, FaGear, FaIdCard, FaRobot } from 'react-icons/fa6';
-import { AlexaIcon, ChatGptIcon, LovableIcon, MCPIcon } from '../../shared/components/svgs';
+import {
+  ChatGptIcon,
+  LovableIcon,
+  MCPIcon,
+  VoiceEmbodimentIcon,
+} from '../../shared/components/svgs';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
+import VoiceDialog from '../agent-settings/dialogs/Voice';
 import ChatbotEmbodimentModal from './chatbot-embodiment-modal';
 import FormEmbodimentModal from './form-embodiment-modal';
 import GptEmbodimentModal from './gpt-embodiment-modal';
@@ -34,7 +40,7 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
     case EMBODIMENT_TYPE.LLM:
       return <FaRobot className={classes} style={{ marginTop: '-3px' }} />;
     case EMBODIMENT_TYPE.ALEXA:
-      return <AlexaIcon className={classes} />;
+      return <VoiceEmbodimentIcon className={classes} />;
     case EMBODIMENT_TYPE.LOVABLE:
       return <LovableIcon className={classes} />;
     default:
@@ -50,6 +56,8 @@ export const getEmbodimentTitle = (embodimentType: string): string => {
       return 'MCP';
     case EMBODIMENT_TYPE.FORM:
       return 'Form Preview';
+    case EMBODIMENT_TYPE.ALEXA:
+      return 'Voice';
     default:
       return embodimentType;
   }
@@ -66,7 +74,7 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
     case EMBODIMENT_TYPE.MCP:
       return 'Enable MCP Client to communicate with your agent.';
     case EMBODIMENT_TYPE.ALEXA:
-      return 'Enable Alexa to communicate with your agent.';
+      return 'Enable Voice and Alexa to communicate with your agent.';
     case EMBODIMENT_TYPE.LLM:
       return 'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.';
     case EMBODIMENT_TYPE.FORM:
@@ -155,8 +163,6 @@ export const getFormPreviewDialog = (
   agent,
   agentId,
   currentData,
-  refreshEmbodiments,
-  activeModal,
 ) => {
   // Always render the component for preloading, HeadlessUI Transition handles visibility
   // This ensures the component is initialized and ready when the user opens it
@@ -168,6 +174,26 @@ export const getFormPreviewDialog = (
       agentId={agentId}
       currentData={currentData}
       style={{}}
+    />
+  );
+};
+
+export const getVoiceDialog = (
+  isOpen: boolean,
+  closeModal: () => void,
+  agent,
+  agentId,
+  currentData,
+) => {
+  // Always render the component for preloading, HeadlessUI Transition handles visibility
+  // This ensures the component is initialized and ready when the user opens it
+  return (
+    <VoiceDialog
+      isOpen={isOpen}
+      closeModal={closeModal}
+      activeAgent={agent}
+      agentId={agentId}
+      currentData={currentData}
     />
   );
 };
