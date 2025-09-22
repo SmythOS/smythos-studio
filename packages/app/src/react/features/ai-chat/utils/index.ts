@@ -106,8 +106,10 @@ class UnifiedThinkingManager {
 
   updateStatus(newStatusMessage: string): void {
     if (this.currentType === 'status' && this.onThinking) {
-      this.statusMessage = newStatusMessage;
-      this.onThinking({ message: newStatusMessage });
+      // Format the status message before storing and displaying
+      const formattedMessage = chatUtils.formatStatusMessage(newStatusMessage);
+      this.statusMessage = formattedMessage;
+      this.onThinking({ message: formattedMessage });
     }
   }
 
@@ -169,7 +171,9 @@ export const chatUtils = {
     onThinking: (thinking: { message: string }) => void,
   ): boolean => {
     if (statusMessage) {
-      chatUtils.thinkingManager.start('status', onThinking, undefined, statusMessage);
+      // Format the status message for better display
+      const formattedStatusMessage = chatUtils.formatStatusMessage(statusMessage);
+      chatUtils.thinkingManager.start('status', onThinking, undefined, formattedStatusMessage);
       return true;
     }
     return false;
@@ -215,6 +219,44 @@ export const chatUtils = {
       .split('_')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+
+    return formatted;
+  },
+
+  /**
+   * Formats status message with proper function name and duration display
+   * @param statusMessage - The raw status message containing function names and durations in curly braces
+   * @returns Formatted status message for user display
+   */
+  formatStatusMessage: (statusMessage: string): string => {
+    let formatted = statusMessage;
+
+    // Pattern to match function names in curly braces: {function_name} or {functionName}
+    const functionPattern = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+    formatted = formatted.replace(functionPattern, (match, functionName) => {
+      // Check if this looks like a duration (contains numbers and time units)
+      if (/^\d+\s*(ms|s|sec|seconds?|minutes?|mins?|hours?|hrs?)$/i.test(functionName)) {
+        // This is actually a duration, not a function name
+        return functionName;
+      }
+      // Format as function name
+      return chatUtils.formatFunctionNameForDisplay(functionName);
+    });
+
+    // Pattern to match durations in curly braces: {50 ms}, {2 seconds}, etc.
+    const durationPattern =
+      /\{(\d+(?:\.\d+)?\s*(?:ms|s|sec|seconds?|minutes?|mins?|hours?|hrs?))\}/gi;
+    formatted = formatted.replace(durationPattern, (match, duration) => {
+      // Clean up the duration formatting
+      return duration.trim();
+    });
+
+    // Pattern to match pure numbers in curly braces that might be durations: {50}
+    const numberPattern = /\{(\d+(?:\.\d+)?)\}/g;
+    formatted = formatted.replace(numberPattern, (match, number) => {
+      // Assume it's milliseconds if it's just a number
+      return `${number} ms`;
+    });
 
     return formatted;
   },
