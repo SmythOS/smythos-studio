@@ -218,7 +218,7 @@ router.post(
 
       return res.json({ success: true, url: publicUrl });
     } catch (error) {
-      console.log('Error generating avatar', error);
+      console.log('Error generating avatar', error?.message);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   },

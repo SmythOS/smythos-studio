@@ -303,6 +303,13 @@ function ensureVaultFileExists() {
   };
 
   const vaultFilePath = config.variables.VAULT_FILE_PATH;
+  // if (!fs.existsSync(vaultFilePath)) {
+  // fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
+  // }
+  const dir = path.dirname(vaultFilePath);
+  fs.mkdirSync(dir, { recursive: true });
+
+  // Write the file
   if (!fs.existsSync(vaultFilePath)) {
     fs.writeFileSync(vaultFilePath, JSON.stringify(baseVaultContent, null, 2));
   }

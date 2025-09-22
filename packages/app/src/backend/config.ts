@@ -1,16 +1,19 @@
 import crypto from 'crypto';
+import expandEnv from 'dotenv-expand';
 import dotenvFlow from 'dotenv-flow';
 import Joi from 'joi';
 import os from 'os';
 import path from 'path';
 
-dotenvFlow.config({
-  files: ['../../.env', '../.env'],
-});
+expandEnv.expand(
+  dotenvFlow.config({
+    files: ['../../.env', '../.env'],
+  }),
+);
 
 const getDefaultDataPath = () => {
   const homeDir = os.homedir();
-  return path.join(homeDir, 'smyth-ui-data');
+  return path.join(homeDir, 'smythos-data');
 };
 
 const transformEnv = (env: string) => {
@@ -22,7 +25,9 @@ const transformEnv = (env: string) => {
 const MW_BASE_URL =
   process.env.SMYTH_API_SERVER || `http://localhost:${process.env.MIDDLEWARE_API_PORT}`;
 const UI_SERVER =
-  process.env.UI_SERVER || process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}`;
+  process.env.UI_SERVER ||
+  (process.env.APP_DOMAIN && `https://${process.env.APP_DOMAIN}`) ||
+  `http://localhost:${process.env.APP_PORT}`;
 
 const APP_PORT = +process.env.APP_PORT || +process.env.PORT;
 
@@ -33,10 +38,15 @@ const config = {
     APP_DEV_SERVER_PORT: +process.env.APP_DEV_SERVER_PORT || APP_PORT + 1,
     NODE_ENV: transformEnv(process.env.NODE_ENV),
     API_SERVER: process.env.API_SERVER || `http://localhost:${process.env.RUNTIME_PORT}`,
+    EMBODIMENT_SERVER_BASE_URL:
+      process.env.EMBODIMENT_SERVER_BASE_URL ||
+      process.env.API_SERVER ||
+      `http://localhost:${process.env.RUNTIME_PORT}`,
+
     SMYTH_API_BASE_URL: MW_BASE_URL,
 
     // OPTIONAL KEYS
-    UI_SERVER,
+    UI_SERVER: UI_SERVER,
     SMYTH_VAULT_API_BASE_URL: process.env.SMYTH_VAULT_API_BASE_URL || `${MW_BASE_URL}/v1`,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY, // used for some autocompletion
     FALAI_API_KEY: process.env.FALAI_API_KEY, // used for image gen
@@ -80,7 +90,7 @@ const config = {
   },
 
   flags: {
-    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS),
+    useRedis: Boolean(process.env.REDIS_SENTINEL_HOSTS || process.env.REDIS_HOST),
   },
 
   cache: {

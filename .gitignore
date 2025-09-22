@@ -86,7 +86,6 @@ web_modules/
 
 # dotenv environment variable files
 .env
-.env.*
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -147,3 +146,7 @@ dist
 __MACOSX
 
 analysis/*
+
+# Ignore all files and subfolders in the data directory, but keep the data folder tracked by including a .gitkeep file
+data/*
+!data/.gitkeep

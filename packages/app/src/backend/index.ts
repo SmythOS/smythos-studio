@@ -36,7 +36,7 @@ app.disable('x-powered-by');
 app.use(compression());
 app.use('/', express.static('dist/static'));
 app.use('/assets', express.static('dist/assets'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(config.env.DATA_PATH, 'uploads', 'public')));
 
 app.get('/health', (_, res) => {
   return res.status(200).send({
@@ -100,7 +100,7 @@ app.use('/', pagesRouter);
 //error handling middlewares
 app.use(errorHandler);
 
-let server = app.listen(PORT, 'localhost', () => {
+let server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Listening on port ${PORT}`);
 });
 

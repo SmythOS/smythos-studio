@@ -2,10 +2,10 @@ import { SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
 
 export const navPages = [
   { url: '/agents', name: 'Agent Dashboard' },
-  { url: '/templates', name: 'Templates' },
   { url: '/domains', name: 'Subdomains' },
   { url: '/data', name: 'Data Pool' },
   { url: '/analytics', name: 'Analytics' },
+  { url: '/templates', name: 'Templates' },
   { url: '/vault', name: 'Vault' },
   { url: SMYTHOS_DOCS_URL, name: 'Documentation', isExternal: true },
 ];

@@ -40,7 +40,7 @@ export default class DefaultUIAuth implements AuthStrategy {
 
     if (!logtoUser.primaryEmail) logtoUser.primaryEmail = logtoUser.email;
     if (!logtoUser.avatar) logtoUser.avatar = logtoUser.picture;
-    LOGGER.info(`User ${logtoUser.primaryEmail} is logging in (name: ${logtoUser.name})`);
+    // LOGGER.info(`User ${logtoUser.primaryEmail} is logging in (name: ${logtoUser.name})`);
     const user = await userService.findOrCreateUser({
       email: logtoUser.primaryEmail,
       name: logtoUser.name,

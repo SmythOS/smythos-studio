@@ -34,7 +34,6 @@ import { cacheClient } from '../../../services/cache.service';
 import LLMHelper from '../../../services/LLMHelper';
 import { LLMService } from '../../../services/LLMHelper/LLMService.class';
 import * as openai from '../../../services/openai-helper';
-import SmythFS from '../../../services/SmythFS.class';
 import { vault } from '../../../services/SmythVault.class';
 import { getAgent } from '../../../services/user-data.service';
 import { delay, uid } from '../../../services/utils.service';
@@ -46,8 +45,6 @@ import { serverlessCodeHelper } from '../../router.helpers/serverlessCode.helper
 import { getKeyIdFromTemplateVar } from '../../router.helpers/vault.helper';
 import { countVaultKeys, getVaultKeys, setVaultKey } from '../../router.utils';
 
-const smythFS = new SmythFS();
-
 const router = express.Router();
 
 router.get('/domains', async (req, res) => {
@@ -55,7 +52,7 @@ router.get('/domains', async (req, res) => {
     const result = await smythAPIReq.get('/domains?verified=true', await authHeaders(req));
     return res.json(result.data.domains);
   } catch (error) {
-    console.log('error', error);
+    // console.log('error', error?.message);
     return res.status(error?.response?.status || 500).json({ error: error?.message });
   }
 });
@@ -71,7 +68,7 @@ router.post('/removeDomain', async (req, res) => {
     }
     return res.json({ success: true });
   } catch (error) {
-    console.log('error', error);
+    console.log('error', error?.message);
     return res
       .status(error?.status || error?.response?.status || 500)
       .json({ error: error?.message });
@@ -108,7 +105,7 @@ router.post('/updateDomain', async (req, res) => {
 
     return res.json({ success: true });
   } catch (error) {
-    console.log('error', error);
+    console.log('error', error?.message);
     return res
       .status(error?.status || error?.response?.status || 500)
       .json({ error: error?.message });
@@ -371,7 +368,7 @@ router.get('/integrations', async (req, res) => {
     const integrations = await getIntegrations();
     return res.json({ success: true, data: integrations });
   } catch (error) {
-    console.error('Error loading integrations:', error);
+    console.error('Error loading integrations:', error?.message);
     return res.status(500).json({
       success: false,
       error: 'Error loading integrations',
@@ -448,7 +445,7 @@ router.post('/data/generate-form-data', generateFormDataRateLim, async (req, res
     const response = await smythAPIReq
       .get(`/ai-agent/${agentId}`, await authHeaders(req))
       .catch((error) => {
-        console.error('Error getting agent data:', error);
+        // console.error('Error getting agent data:', error?.message);
         throw error;
       });
 
@@ -653,7 +650,7 @@ router.get('/llm-models', includeTeamDetails, async (req, res) => {
     res.locals.LLMModels = await LLMHelper.getUserLLMModels(req);
     res.status(200).json({ success: true, LLMModels: res.locals.LLMModels });
   } catch (error) {
-    console.error('Error refreshing LLM models:', error);
+    console.error('Error refreshing LLM models:', error?.message);
     res.status(500).json({ success: false, error: 'Error refreshing LLM models' });
   }
 });
@@ -699,12 +696,12 @@ router.put('/custom-llm', includeTeamDetails, customLLMAccessMw, async (req, res
 
     // delete the custom LLM model cache
     await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-      console.warn('Error deleting custom LLM model cache:', error);
+      console.warn('Error deleting custom LLM model cache:', error?.message);
     });
 
     res.status(200).json({ success: true, data: saveCustomLLM.data });
   } catch (error) {
-    console.error('Error saving custom LLM model:', error);
+    console.error('Error saving custom LLM model:', error?.message);
 
     res.status(500).json({ success: false, error: 'Error saving custom LLM model.' });
   }
@@ -780,7 +777,7 @@ router.delete(
 
       // delete the custom LLM model cache
       await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-        console.warn('Error deleting custom LLM model cache:', error);
+        console.warn('Error deleting custom LLM model cache:', error?.message);
       });
 
       res.status(200).json({ success: true, data: deleteModel.data });
@@ -956,7 +953,7 @@ async function getBillingData(req, teamId: string): Promise<BillingData> {
 
     return billingData;
   } catch (error) {
-    console.warn('Error in refreshUsageCache:', error);
+    console.warn('Error in refreshUsageCache:', error?.message);
     throw error;
   }
 }
@@ -1226,7 +1223,7 @@ router.post(
       });
 
       apiResponse.data.on('error', (error) => {
-        //console.error('Stream error:', error);
+        //console.error('Stream error:', error?.message);
         res.write(JSON.stringify({ content: 'Stream error occurred', _type: 'error' }) + '¨');
         res.end();
       });
@@ -1313,7 +1310,7 @@ router.post('/check-limit-reached', async (req, res) => {
 
     return res.status(200).json({ success: true, exists: exists === 1 });
   } catch (error) {
-    console.error('Error checking limit reached data:', error);
+    console.error('Error checking limit reached data:', error?.message);
     return res.status(500).json({ success: false, error: 'Error checking limit reached data' });
   }
 });
@@ -1351,7 +1348,7 @@ router.post('/store-limit-reached', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error storing limit reached data:', error);
+    console.error('Error storing limit reached data:', error?.message);
     return res.status(500).json({
       success: false,
       error: 'Error storing limit reached data',

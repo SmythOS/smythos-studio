@@ -71,7 +71,7 @@ type ChatbotResponse = {
 };
 
 // POST /v1/emb/chat/stream
-router.post('/chat/stream', async (req: any, res) => {
+router.post('/stream', async (req: any, res) => {
   let streamStarted = false;
   const agentId = req._agent?.id;
   const agentVersion = req._agent?.version;

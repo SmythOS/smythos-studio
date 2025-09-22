@@ -1,7 +1,9 @@
-import { mapStatusCodeToMessage } from '@src/shared/utils/oauth.utils';
+import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
+import { mapStatusCodeToMessage } from '@src/shared/helpers/oauth/oauth.utils';
 import axios from 'axios';
 import crypto from 'crypto';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
 import { oauthStrategyInitialization } from '../../middlewares/oauthStrategy.mw';
@@ -9,7 +11,22 @@ import { getTeamSettingsObj, saveTeamSettingsObj } from '../../services/team-dat
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
 const router = express.Router();
 
+// Rate limiting for OAuth initialization
+const oauthInitLimit = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 20, // Limit each IP to 20 OAuth init requests per windowMs
+  message: { error: 'Too many OAuth initialization attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for trusted IPs (optional)
+  skip: (req) => {
+    const trustedIPs = process.env.TRUSTED_IPS?.split(',') || [];
+    return trustedIPs.includes(req.ip);
+  },
+});
+
 // Websites that don't provide expires_in But estimated times in docs.
+//TODO : this need to be configured in oauth services json file
 const PROVIDER_EXPIRATION_TIMES = {
   'public-api.wordpress.com': {
     expiresInSeconds: 14 * 24 * 60 * 60, // 14 days in seconds
@@ -92,96 +109,161 @@ router.post('/checkAuth', includeTeamDetails, async (req, res) => {
       res.status(404).send('No existing OAuth settings found.');
     }
   } catch (error) {
-    console.error('Error during comparing oauth values:', error);
+    console.error('Error during comparing oauth values:', error?.message);
     // Send a 500 Internal Server Error response with an error message.
     res.status(500).send('Failed to compare oauth values.');
   }
 });
 
-router.post('/init', includeTeamDetails, oauthStrategyInitialization, async (req, res) => {
-  // Store the frontend origin from the referer or origin header
-  const referer = req.headers.referer || req.headers.referrer || req.headers.origin;
-  if (referer && typeof referer === 'string') {
+router.post(
+  '/init',
+  oauthInitLimit,
+  includeTeamDetails,
+  oauthStrategyInitialization,
+  async (req, res) => {
+    // Validate and store frontend origin
+    const referer = req.headers.referer || req.headers.referrer || req.headers.origin;
+    if (referer && typeof referer === 'string') {
+      try {
+        const frontendOrigin = new URL(referer).origin;
+
+        // Validate against allowed origins (add your allowed origins to env)
+        const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [frontendOrigin];
+        if (!allowedOrigins.includes(frontendOrigin)) {
+          console.warn(`[/oauth/init] Unauthorized origin: ${frontendOrigin}`);
+          return res.status(403).json({ error: 'Origin not allowed' });
+        }
+
+        req.session.frontendOrigin = frontendOrigin;
+      } catch (error) {
+        console.error('[/oauth/init] Invalid referer/origin URL:', referer);
+        return res.status(400).json({ error: 'Invalid origin' });
+      }
+    }
+
     try {
-      const frontendOrigin = new URL(referer).origin;
-      req.session.frontendOrigin = frontendOrigin;
+      const {
+        service,
+        scope,
+        clientID,
+        clientSecret,
+        authorizationURL,
+        tokenURL,
+        oauth2CallbackURL,
+        // OAuth1 parameters
+        consumerKey,
+        consumerSecret,
+        requestTokenURL,
+        accessTokenURL,
+        userAuthorizationURL,
+        oauth1CallbackURL,
+      } = req.body;
+
+      // Input validation
+      if (!service || typeof service !== 'string') {
+        return res.status(400).json({ error: 'Service is required and must be a string' });
+      }
+
+      // Validate URLs if provided
+      const validateURL = (url: string, fieldName: string) => {
+        if (!url) return;
+        try {
+          const parsed = new URL(url);
+          if (!['http:', 'https:'].includes(parsed.protocol)) {
+            throw new Error(`${fieldName} must use HTTP or HTTPS`);
+          }
+        } catch (error) {
+          throw new Error(`Invalid ${fieldName}: ${error.message}`);
+        }
+      };
+
+
+      try {
+        if (authorizationURL) validateURL(authorizationURL, 'authorizationURL');
+        if (tokenURL) validateURL(tokenURL, 'tokenURL');
+        if (requestTokenURL) validateURL(requestTokenURL, 'requestTokenURL');
+        if (accessTokenURL) validateURL(accessTokenURL, 'accessTokenURL');
+        if (userAuthorizationURL) validateURL(userAuthorizationURL, 'userAuthorizationURL');
+        if (oauth2CallbackURL) validateURL(oauth2CallbackURL, 'oauth2CallbackURL');
+        if (oauth1CallbackURL) validateURL(oauth1CallbackURL, 'oauth1CallbackURL');
+      } catch (validationError) {
+        return res.status(400).json({ error: validationError.message });
+      }
+
+      if (OAuthServicesRegistry.isOAuth2Service(service) || service === 'oauth2') {
+        // OAuth2 flow - Store sensitive data in session, return clean URL
+
+
+        // Validate required OAuth2 fields
+        if (!clientID || !clientSecret) {
+          return res
+            .status(400)
+            .json({ error: 'clientID and clientSecret are required for OAuth2' });
+        }
+
+        // Store OAuth2 configuration in session (server-side only)
+        req.session.oauth2Config = {
+          service,
+          clientID,
+          //TODO: Do we need a stronger protection for this?
+          clientSecret, // Safe in session
+          authorizationURL,
+          tokenURL,
+          scope,
+          callbackURL: oauth2CallbackURL,
+        };
+
+        // Return internal URL that will trigger Passport (no secrets exposed)
+        // Let Passport handle state management internally
+        const authUrl = `/oauth/${service}`;
+
+        return res.json({ authUrl });
+      } else if (OAuthServicesRegistry.isOAuth1Service(service) || service === 'oauth1') {
+        // OAuth1 flow - Store sensitive data in session
+
+        // Validate required OAuth1 fields
+        if (!consumerKey || !consumerSecret) {
+          return res
+            .status(400)
+            .json({ error: 'consumerKey and consumerSecret are required for OAuth1' });
+        }
+
+        // Store OAuth1 configuration in session (server-side only)
+        req.session.oauth1Config = {
+          service,
+          consumerKey,
+          //TODO: Do we need a stronger protection for this?
+          consumerSecret, //Safe in session
+          requestTokenURL,
+          accessTokenURL,
+          userAuthorizationURL,
+          callbackURL: oauth1CallbackURL,
+          scope,
+        };
+
+        // Return internal URL that will trigger Passport (no secrets exposed)
+        // Let Passport handle state management internally
+        const authUrl = `/oauth/${service}`;
+
+        return res.json({ authUrl });
+      } else {
+        // Unsupported service
+        return res.status(400).json({ error: 'Invalid or unsupported service.' });
+      }
     } catch (error) {
-      console.error('[/oauth/init] Invalid referer/origin URL:', referer);
+      console.error('Error in /init route:', error);
+      res.status(500).json({ error: 'Failed to initialize authentication' });
     }
-  }
 
-  try {
-    const {
-      service,
-      scope,
-      clientID,
-      clientSecret,
-      authorizationURL,
-      tokenURL,
-      oauth2CallbackURL,
-      // OAuth1 parameters
-      consumerKey,
-      consumerSecret,
-      requestTokenURL,
-      accessTokenURL,
-      userAuthorizationURL,
-      oauth1CallbackURL,
-    } = req.body;
+  },
+);
 
-    let authUrl = `/oauth/${service}`;
-
-    if (['google', 'linkedin', 'oauth2'].includes(service)) {
-      // OAuth2 flow
-      const oauthParams: any = {
-        scopes: encodeURIComponent(scope),
-        clientID: encodeURIComponent(clientID),
-        clientSecret: encodeURIComponent(clientSecret),
-        callbackURL: encodeURIComponent(oauth2CallbackURL),
-      };
-
-      if (authorizationURL) oauthParams.authorizationURL = encodeURIComponent(authorizationURL);
-      if (tokenURL) oauthParams.tokenURL = encodeURIComponent(tokenURL);
-
-      authUrl +=
-        '?' +
-        Object.entries(oauthParams)
-          .map(([key, value]) => `${key}=${value}`)
-          .join('&');
-    } else if (['oauth1', 'twitter'].includes(service)) {
-      // OAuth1 flow
-      const oauthParams: any = {
-        scopes: encodeURIComponent(scope || ''),
-        consumerKey: encodeURIComponent(consumerKey),
-        consumerSecret: encodeURIComponent(consumerSecret),
-        callbackURL: encodeURIComponent(oauth1CallbackURL),
-      };
-
-      if (requestTokenURL) oauthParams.requestTokenURL = encodeURIComponent(requestTokenURL);
-      if (accessTokenURL) oauthParams.accessTokenURL = encodeURIComponent(accessTokenURL);
-      if (userAuthorizationURL) oauthParams.userAuthorizationURL = encodeURIComponent(userAuthorizationURL);
-
-      authUrl +=
-        '?' +
-        Object.entries(oauthParams)
-          .map(([key, value]) => `${key}=${value}`)
-          .join('&');
-    } else {
-      // Unsupported service
-      return res.status(400).json({ error: 'Invalid or unsupported service.' });
-    }
-    // console.log({ authUrl })
-    res.json({ authUrl });
-  } catch (error) {
-    console.error('Error in /init route:', error);
-    res.status(500).json({ error: 'Failed to initialize authentication' });
-  }
-});
 
 router.get('/:provider', async (req, res, next) => {
   try {
     const scopes = req?.session?.scopes?.split(' ') || [];
     const strategyOptions: any = {
-      state: { beep: `${crypto.randomUUID()}` },
+      state: { beep: `${crypto.randomUUID()}` }, // Let Passport handle state internally
     };
 
     // Check if it's Twitter OAuth
@@ -241,7 +323,7 @@ router.get('/:provider', async (req, res, next) => {
       // For example, redirect or respond with a message
     })(req, res, next);
   } catch (error) {
-    console.error('Error during authentication process:', error);
+    console.error('Error during authentication process:', error?.message);
     return res.status(500).send('Failed to initiate authentication.');
   }
 });
@@ -272,8 +354,8 @@ function getCallbackOrigin(req: express.Request): string {
   }
 
   // For development, if running on localhost:4000 (backend), assume frontend is on 4002
-  const callbackUrl = req.session?.oauth_info?.oauth2CallbackURL ||
-    req.session?.oauth_info?.oauth1CallbackURL;
+  const callbackUrl =
+    req.session?.oauth_info?.oauth2CallbackURL || req.session?.oauth_info?.oauth1CallbackURL;
 
   if (callbackUrl && callbackUrl.includes('localhost:4000')) {
     return 'http://localhost:4002';
@@ -350,7 +432,7 @@ router.get('/:provider/callback', async (req, res, next) => {
       await handleTokenStorage(req.session, user, req);
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error);
+      console.error('Error exchanging code for tokens:', error?.message);
       const origin = getCallbackOrigin(req);
       res.send(`
         <script>
@@ -400,7 +482,7 @@ router.get('/:provider/callback', async (req, res, next) => {
         await handleTokenStorage(req.session, user, req);
         handleSuccessfulAuthentication(req.session.strategyType, res);
       } catch (error) {
-        console.error('Error in callback route:', error);
+        console.error('Error in callback route:', error?.message);
         const errorMessage = `${error.message || 'Unknown error'}.`;
         const origin = getCallbackOrigin(req);
         const errorScript = `
@@ -478,12 +560,17 @@ async function handleTokenStorage(session, oauthUser, req) {
     const settingKey = 'oauth';
     await handleOAuthOperation(settingKey, entryId, tokensData, req);
   } catch (error) {
-    console.error('Error in handleTokenStorage:', error);
+    console.error('Error in handleTokenStorage:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
 
-async function handleOAuthOperation(settingKey: string, entryId: string, newDataFromAuthFlow: any, req: express.Request) {
+async function handleOAuthOperation(
+  settingKey: string,
+  entryId: string,
+  newDataFromAuthFlow: any,
+  req: express.Request,
+) {
   try {
     const existingSettings = await getTeamSettingsObj(req, settingKey);
     const existingEntryData = existingSettings?.[entryId] || {};
@@ -514,15 +601,19 @@ async function handleOAuthOperation(settingKey: string, entryId: string, newData
 
     // Ensure oauth_info is merged correctly if it exists in both
     if ((baseSettings as any).oauth_info && newSettingsFromAuthFlow.oauth_info) {
-      mergedSettings.oauth_info = { ...(baseSettings as any).oauth_info, ...newSettingsFromAuthFlow.oauth_info };
+      mergedSettings.oauth_info = {
+        ...(baseSettings as any).oauth_info,
+        ...newSettingsFromAuthFlow.oauth_info,
+      };
     }
 
     // Preserve existing display metadata if missing in incoming data
-    if ((baseSettings as any).name && !mergedSettings.name) mergedSettings.name = (baseSettings as any).name;
-    if ((baseSettings as any).platform && !mergedSettings.platform) mergedSettings.platform = (baseSettings as any).platform;
+    if ((baseSettings as any).name && !mergedSettings.name)
+      mergedSettings.name = (baseSettings as any).name;
+    if ((baseSettings as any).platform && !mergedSettings.platform)
+      mergedSettings.platform = (baseSettings as any).platform;
     // Ensure name key exists to classify as named (even if empty)
     if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
-
 
     // Normalize
     mergedSettings = normalizeAuthSettings(mergedSettings);
@@ -574,7 +665,7 @@ function handleSuccessfulAuthentication(strategyType, res) {
       }, 500);
     </script>`);
   } catch (error) {
-    console.error('Error in handleSuccessfulAuthentication:', error);
+    console.error('Error in handleSuccessfulAuthentication:', error?.message);
     throw error; // Re-throw the error for higher-level handling
   }
 }
@@ -591,7 +682,7 @@ async function compareOAuthDetails(existing: Record<string, any>, req: express.R
   try {
     connectionData = typeof entryData === 'string' ? JSON.parse(entryData) : entryData;
   } catch (error) {
-    console.error('Error parsing target object:', error);
+    console.error('Error parsing target object:', error?.message);
     return false;
   }
 
@@ -628,7 +719,9 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
 
     const settings = await getTeamSettingsObj(req, 'oauth');
     if (!settings || !settings[entryId]) {
-      return res.status(404).json({ error: 'No existing OAuth settings found for the provided prefix.' });
+      return res
+        .status(404)
+        .json({ error: 'No existing OAuth settings found for the provided prefix.' });
     }
 
     // Parse existing data if it's a string
@@ -636,7 +729,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     try {
       existingData = typeof existingData === 'string' ? JSON.parse(existingData) : existingData;
     } catch (error) {
-      console.error('Error parsing existing settings:', error);
+      console.error('Error parsing existing settings:', error?.message);
       return res.status(500).json({ error: 'Invalid settings format' });
     }
 
@@ -666,7 +759,6 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
       if (updatedData.auth_data.expires_in === undefined) {
         delete updatedData.auth_data.expires_in;
       }
-
     } else {
       // Old structure: Clear tokens at the top level
       updatedData = {
@@ -681,12 +773,15 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     }
 
     // If tokens were already empty, respond without saving (optional optimization)
-    const currentPrimary = existingData.auth_data ? existingData.auth_data.primary : existingData.primary;
-    const currentSecondary = existingData.auth_data ? existingData.auth_data.secondary : existingData.secondary;
+    const currentPrimary = existingData.auth_data
+      ? existingData.auth_data.primary
+      : existingData.primary;
+    const currentSecondary = existingData.auth_data
+      ? existingData.auth_data.secondary
+      : existingData.secondary;
     if (currentPrimary === '' && currentSecondary === '') {
       return res.json({ invalidate: true, message: 'Already signed out.' });
     }
-
 
     // Save the updated settings
     const saveResult = await saveTeamSettingsObj({
@@ -703,12 +798,10 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
 
     return res.json({ invalidate: true, message: 'Signed out successfully.' });
   } catch (error) {
-    console.error('Error during sign out:', error);
+    console.error('Error during sign out:', error?.message);
     return res.status(500).json({ error: 'Failed to process Sign out. ' + error.message });
   }
 });
-
-
 
 async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
   try {
@@ -762,7 +855,7 @@ router.post('/client_credentials', includeTeamDetails, async (req, res) => {
 
     res.json({ success: true, message: 'OAuth2 Authentication was successful' });
   } catch (error) {
-    console.error('Error in client_credentials route:', error);
+    console.error('Error in client_credentials route:', error?.message);
     res.status(500).json({
       success: false,
       message: `OAuth2 Authentication was unsuccessful: ${error.message}`,

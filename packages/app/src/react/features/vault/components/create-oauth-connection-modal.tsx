@@ -9,6 +9,7 @@ import {
 import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -16,13 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@src/react/shared/components/ui/select';
-import { Textarea } from '@src/react/shared/components/ui/textarea';
+import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
 import {
   OAUTH_SERVICES,
   deriveCallbackUrl,
   mapInternalToServiceName,
   mapServiceNameToInternal,
-} from '@src/shared/utils/oauth.utils';
+} from '@src/shared/helpers/oauth/oauth.utils';
 import React, { useEffect, useMemo, useState } from 'react';
 import type {
   CreateOAuthConnectionModalProps,
@@ -138,56 +139,34 @@ export function CreateOAuthConnectionModal({
 
   // Determine which fields to show based on selected service
   const showOAuth2Fields = useMemo(
-    () => ['Google', 'LinkedIn', 'Custom OAuth2.0'].includes(selectedService),
+    () => OAuthServicesRegistry.isOAuth2Service(selectedService),
     [selectedService],
   );
   const showOAuth1Fields = useMemo(
-    () => ['Twitter', 'Custom OAuth1.0'].includes(selectedService),
+    () => OAuthServicesRegistry.isOAuth1Service(selectedService),
     [selectedService],
-  ); // Assuming Twitter uses 1.0a for simplicity here, might need adjustment
+  );
   const showClientCredentialsFields = useMemo(
-    () => selectedService === 'OAuth2 Client Credentials',
+    () => OAuthServicesRegistry.isClientCredentialsService(selectedService),
     [selectedService],
   );
   const showScopeField = useMemo(
     () =>
-      !['Custom OAuth1.0', 'OAuth2 Client Credentials'].includes(selectedService) &&
+      !OAuthServicesRegistry.isOAuth1Service(selectedService) &&
+      !OAuthServicesRegistry.isClientCredentialsService(selectedService) &&
       selectedService !== 'None',
     [selectedService],
   ); // Scope not typically used in 1.0a or Client Credentials
 
-  // Pre-fill URLs for known providers (similar logic to APICall.class)
+  // Pre-fill URLs for known providers using centralized configuration
   useEffect(() => {
     if (!isEditMode) {
       // Only prefill when creating, not editing
-      let defaults: Partial<OAuthConnectionFormData> = {};
-      const baseCallbackUri = window.location.origin; // Simplistic assumption
+      const serviceDefaults = OAuthServicesRegistry.getServiceDefaults(selectedService);
 
-      switch (selectedService) {
-        case 'Google':
-          defaults = {
-            authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
-            tokenURL: 'https://oauth2.googleapis.com/token',
-            scope: 'https://www.googleapis.com/auth/gmail.readonly', // Example scope
-          };
-          break;
-        case 'LinkedIn':
-          defaults = {
-            authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
-            tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken',
-            scope: 'r_liteprofile r_emailaddress', // Example scope (using OIDC)
-          };
-          break;
-        case 'Twitter': // Assuming OAuth 1.0a for now based on APICall
-          defaults = {
-            requestTokenURL: 'https://api.twitter.com/oauth/request_token',
-            accessTokenURL: 'https://api.twitter.com/oauth/access_token',
-            userAuthorizationURL: 'https://api.twitter.com/oauth/authorize',
-          };
-          break;
-        // Add cases for other predefined services if any
+      if (serviceDefaults && Object.keys(serviceDefaults).length > 0) {
+        setFormData((prev) => ({ ...prev, ...serviceDefaults }));
       }
-      setFormData((prev) => ({ ...prev, ...defaults }));
     }
   }, [selectedService, isEditMode]);
 
@@ -442,12 +421,11 @@ export function CreateOAuthConnectionModal({
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="scope">Scopes</Label>
                     <div className="col-span-3">
-                      <Textarea
+                      <TextArea
                         id="scope"
                         name="scope"
                         value={formData.scope || ''}
                         onChange={handleChange}
-                        className="min-h-[70px] h-[70px] resize-none"
                         placeholder="Enter scopes separated by space"
                         disabled={isProcessing}
                         fullWidth={true}

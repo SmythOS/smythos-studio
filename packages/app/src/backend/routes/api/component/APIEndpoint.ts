@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { smythAPIReq, authHeaders } from '../../../utils/';
 import * as userData from '../../../services/user-data.service';
+import { authHeaders, smythAPIReq } from '../../../utils/';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get('/domains', async (req, res) => {
     const result = await smythAPIReq.get('/domains?verified=true', await authHeaders(req));
     return res.json(result.data.domains);
   } catch (error) {
-    console.log('error', error);
+    console.log('error', error?.message);
     return res.status(500).json({ error });
   }
 });

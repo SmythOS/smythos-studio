@@ -25,7 +25,7 @@ class SmythFS {
         await mkdir(dir, { recursive: true });
       }
     } catch (error) {
-      console.log('[SmythFS] Error ensuring directory: \nError: ', error);
+      console.log('[SmythFS] Error ensuring directory: \nError: ', error?.message);
     }
   }
 
@@ -86,7 +86,7 @@ class SmythFS {
       const content = await this.read(path);
       return content ? JSON.parse(content) : null;
     } catch (error) {
-      console.log('Error reading cache file \nPath:', path, '\nError:', error);
+      console.log('Error reading cache file \nPath:', path, '\nError:', error?.message);
       return null;
     }
   }
@@ -95,7 +95,7 @@ class SmythFS {
     try {
       await this.writeFile(path, JSON.stringify(content));
     } catch (error) {
-      console.log('Error writing cache file \nPath:', path, '\nError:', error);
+      console.log('Error writing cache file \nPath:', path, '\nError:', error?.message);
     }
   }
 

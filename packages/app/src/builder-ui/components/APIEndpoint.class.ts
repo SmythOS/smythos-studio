@@ -884,7 +884,7 @@ export class APIEndpoint extends Component {
       maxConnections: -1,
       cssClass: 'exclude-panzoom',
     });
-    titleWrapper.classList.add('agent-card-connection');
+    titleWrapper.classList.add('agent-card-connection', 'endpoint-connection');
     // @ts-ignore
     titleWrapper.endpoint = newEndpoint;
     newEndpoint['_domElement'] = titleWrapper;

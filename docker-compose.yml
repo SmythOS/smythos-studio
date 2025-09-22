@@ -1,36 +1,108 @@
 version: '3.8'
 
 services:
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: smythos-traefik
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=smythos-network
+      # Configure entrypoints for HTTP and HTTPS
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Enable API and dashboard (optional, can be disabled in production)
+      - --api.dashboard=true
+      - --api.insecure=true
+      # Enable access logs (optional)
+      - --accesslog=true
+      # Configure Let's Encrypt for automatic SSL (optional)
+      - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:-admin@example.com}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      # Global redirect from HTTP to HTTPS (optional)
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+    ports:
+      - "${EXPOSE_TRAEFIK_PORT:-80}:80"
+      - "${EXPOSE_HTTPS_TRAEFIK_PORT:-443}:443"
+      # Traefik dashboard (optional, can be removed in production)
+      - "${EXPOSE_TRAEFIK_DASHBOARD_PORT:-8080}:8080"
+      # Optional: Direct access ports for testing without hosts file
+      # - "5050:5050"  # Uncomment to access UI directly
+      # - "5053:5053"  # Uncomment to access Runtime directly
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - smythos-network
+    labels:
+      - traefik.enable=true
+      # Dashboard configuration (optional)
+      - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+    depends_on:
+      smythos:
+        condition: service_healthy
+
   # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: smythos-mysql
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: smythos_root_password
-      MYSQL_DATABASE: smythos_db
-      MYSQL_USER: smythos_user
-      MYSQL_PASSWORD: smythos_password
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-smythos_root_password}
+      MYSQL_DATABASE: ${DATABASE_NAME:-smythos_db}
+      MYSQL_USER: ${DATABASE_USER:-smythos_user}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-smythos_password}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - smythos-network
     command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DATABASE_USER:-smythos_user}", "-p${DATABASE_PASSWORD:-smythos_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: smythos-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
       - smythos-network
-    command: redis-server --appendonly yes
+    env_file:
+      - .env
+    command: >
+      sh -c "
+      if [ -n '${REDIS_PASSWORD:-}' ]; then
+        redis-server --appendonly yes --requirepass '${REDIS_PASSWORD}'
+      else
+        redis-server --appendonly yes
+      fi
+      "
+    healthcheck:
+      test: >
+        sh -c "
+        if [ -n '${REDIS_PASSWORD:-}' ]; then
+          redis-cli -a '${REDIS_PASSWORD}' ping
+        else
+          redis-cli ping
+        fi
+        "
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   # SmythOS Application
   smythos:
@@ -39,35 +111,87 @@ services:
       dockerfile: Dockerfile
     container_name: smythos-app
     restart: unless-stopped
+    expose:
+      - "5050"
+      - "5053"
     ports:
-      - "4000:4000"
+      - "5050:5050"
+      - "5053:5053"
     env_file:
       - .env
     environment:
-      # Override database URL to use internal MySQL container
-      DATABASE_URL: mysql://smythos_user:smythos_password@mysql:3306/smythos_db
+      # Override database URL to use internal MySQL container with dynamic credentials
+      DATABASE_URL: mysql://${DATABASE_USER:-smythos_user}:${DATABASE_PASSWORD:-smythos_password}@mysql:3306/${DATABASE_NAME:-smythos_db}
       # Override Redis to use internal Redis container (standalone mode)
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_SENTINEL_HOSTS: ""
-      REDIS_MASTER_NAME: ""
-      OPENAI_API_KEY: '{YOUR_OPENAI_API_KEY}'
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      # Docker container flag to ensure proper host binding
+      DOCKER_CONTAINER: "true"
+    labels:
+      - traefik.enable=true
+      
+      # APP_DOMAIN routing to port 5050 (UI Server)
+      - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
+      - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-app.service=smythos-app"
+      - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
+      - "traefik.http.routers.smythos-app.tls=true"
+      - "traefik.http.routers.smythos-app.tls.certresolver=le"
+      
+     
+      
+      # Service definition
+      - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
+      
+      # RUNTIME_DOMAIN routing to port 5053 (Runtime Server)
+      # Only create routes if RUNTIME_DOMAIN is set
+      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
+      - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-runtime.service=smythos-runtime"
+      - "traefik.http.routers.smythos-runtime.tls=true"
+      - "traefik.http.routers.smythos-runtime.tls.certresolver=le"
+      - "traefik.http.services.smythos-runtime.loadbalancer.server.port=5053"
+      
+      # PROD_AGENT_DOMAIN routing to port 5053 (Production Agents)
+      - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`)"
+      - "traefik.http.routers.smythos-prod-agents.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-prod-agents.service=smythos-runtime"
+      - "traefik.http.routers.smythos-prod-agents.tls=true"
+      - "traefik.http.routers.smythos-prod-agents.tls.certresolver=le"
+      
+      # DEFAULT_AGENT_DOMAIN routing to port 5053 (Default/Development Agents)
+      - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`)"
+      - "traefik.http.routers.smythos-default-agents.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-default-agents.service=smythos-runtime"
+      - "traefik.http.routers.smythos-default-agents.tls=true"
+      - "traefik.http.routers.smythos-default-agents.tls.certresolver=le"
+      
+      # Security Headers Middleware
+      - "traefik.http.middlewares.smythos.headers.STSSeconds=315360000"
+      - "traefik.http.middlewares.smythos.headers.STSPreload=true"
+      - "traefik.http.middlewares.smythos.headers.BrowserXSSFilter=true"
+      - "traefik.http.middlewares.smythos.headers.ContentTypeNosniff=true"
+      - "traefik.http.middlewares.smythos.headers.ForceSTSHeader=true"
+      - "traefik.http.middlewares.smythos.headers.STSIncludeSubdomains=true"
+      - "traefik.http.middlewares.smythos.headers.ReferrerPolicy=strict-origin-when-cross-origin"
 
     volumes:
-      - smythos_data:/app/data
-      - smythos_middleware_data:/app/packages/middleware/data
-      - smythos_runtime_data:/app/packages/runtime/data
+      - smythos_data:/root/smythos-data
     networks:
       - smythos-network
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:5050/health && wget --no-verbose --tries=1 --spider http://localhost:5053/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+      
 
 networks:
   smythos-network:
@@ -80,7 +204,6 @@ volumes:
     driver: local
   smythos_data:
     driver: local
-  smythos_middleware_data:
+  traefik_letsencrypt:
     driver: local
-  smythos_runtime_data:
-    driver: local
+

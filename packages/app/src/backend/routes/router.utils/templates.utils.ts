@@ -155,7 +155,7 @@ export async function getIntegrations() {
 
     return preparedIntegrations;
   } catch (error) {
-    console.log('error', error);
+    console.log('error', error?.message);
     return [];
   }
 }

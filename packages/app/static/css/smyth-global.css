@@ -1014,7 +1014,7 @@ html {
 .weaver-action-button {
   background-color: #4ce09d;
   border-radius: 8px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   width: 100%;
   font-size: 16px;
   display: flex;
@@ -1191,7 +1191,9 @@ html {
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
 .tooltip-pill.tooltip-trigger::after {
@@ -1432,7 +1434,7 @@ html {
 /* AG Grid Theme Overrides - Fix green color inconsistency */
 /* Override the default green alternating row colors with blue to match app theme */
 .ag-theme-quartz .ag-row-even {
-  background-color: #EBF3FE !important;
+  background-color: #ebf3fe !important;
   /* smythos-blue-50 */
 }
 
@@ -1443,18 +1445,50 @@ html {
 
 /* Hover states using blue colors */
 .ag-theme-quartz .ag-row-hover {
-  background-color: #C2D8FC !important;
+  background-color: #c2d8fc !important;
   /* smythos-blue-100 */
 }
 
 /* Selected row states using blue colors */
 .ag-theme-quartz .ag-row-selected {
-  background-color: #A5C6FB !important;
+  background-color: #a5c6fb !important;
   /* smythos-blue-200 */
 }
 
 /* Ensure consistent styling for focus states */
 .ag-theme-quartz .ag-row-focus {
-  background-color: #C2D8FC !important;
+  background-color: #c2d8fc !important;
   /* smythos-blue-100 */
+}
+
+/* Hide textarea resize handles completely across all browsers */
+textarea::-webkit-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+textarea::-moz-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Ensure no resize handles appear on any textarea elements */
+textarea.resize-none,
+textarea[class*='resize-none'] {
+  resize: none !important;
+}
+
+textarea.resize-none::-webkit-resizer,
+textarea[class*='resize-none']::-webkit-resizer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
 }

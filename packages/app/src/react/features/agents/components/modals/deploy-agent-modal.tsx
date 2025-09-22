@@ -5,6 +5,7 @@ import useMutateOnboardingData from '@react/features/onboarding/hooks/useMutateO
 import { Input } from '@react/shared/components/ui/input';
 import { Label } from '@react/shared/components/ui/label';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -13,7 +14,6 @@ import {
   SelectValue,
 } from '@react/shared/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@react/shared/components/ui/tabs';
-import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
@@ -754,9 +754,9 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                             >
                               Release Notes
                             </Label>
-                            <Textarea
+                            <TextArea
                               name="releaseNotes"
-                              className="min-h-[100px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
+                              className="bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
                               placeholder="Enter the list of new features, bug fixes, and other changes here."
                               value={formik.values.releaseNotes}
                               onChange={formik.handleChange}
