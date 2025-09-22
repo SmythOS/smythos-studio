@@ -216,8 +216,6 @@ function createAgent() {
         //Agent created, do we have a chatMessage query param?
         const urlParams = new URLSearchParams(window.location.search);
         const chat = urlParams.get('chat');
-        const attachments = urlParams.get('attach');
-        const from = urlParams.get('from');
         if (chat) {
           localStorage.setItem(
             'chatMessage',
@@ -228,22 +226,6 @@ function createAgent() {
               try {
                 const item = JSON.parse(localStorage.getItem('chatMessage'));
                 if (item.ttl < Date.now()) localStorage.removeItem('chatMessage');
-              } catch {}
-            },
-            1000 * 60 * 3.1,
-          );
-        }
-        if (attachments) {
-          localStorage.setItem(
-            'chatAttachments',
-            JSON.stringify({ attachments: [attachments], ttl: Date.now() + 1000 * 60 * 3 }),
-          );
-
-          setTimeout(
-            () => {
-              try {
-                const item = JSON.parse(localStorage.getItem('file'));
-                if (item.ttl < Date.now()) localStorage.removeItem('file');
               } catch {}
             },
             1000 * 60 * 3.1,
