@@ -11,6 +11,7 @@ export class MemoryWriteObject extends Component {
         hint: 'Enter memory name',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
+        attributes: { 'data-template-vars': 'true' },
       },
       scope: {
         type: 'select',
@@ -62,7 +63,7 @@ export class MemoryWriteObject extends Component {
     // #endregion
 
     // #region [ I/O config ] ==================
-    this.properties.defaultOutputs = ['Key'];
+    this.properties.defaultOutputs = ['Keys'];
     this.properties.defaultInputs = [];
     if (this.properties.inputs.length == 0) this.properties.inputs = ['Data'];
     // #endregion

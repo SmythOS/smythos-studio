@@ -138,10 +138,13 @@ const FormEmbodimentModal: FC<FormEmbodimentModalProps> = ({
                 <label htmlFor="api-endpoint" className="block font-semibold text-gray-700">
                   Select A Form
                 </label>
-                <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-                  <span className="text-[#707070] flex items-center gap-1">
-                    Preview <ArrowRightIcon className="w-5 h-5" />
-                  </span>
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[13px] text-[#707070]"
+                >
+                  Preview <ArrowRightIcon className="w-4 h-4" />
                 </a>
               </div>
               <div className="">

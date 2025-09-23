@@ -13,6 +13,7 @@ import {
   getEmbodimentIcon,
   getEmbodimentTitle,
   getFormPreviewDialog,
+  getVoiceDialog,
 } from './embodiment-configs';
 
 type AgentSetting = {
@@ -153,8 +154,18 @@ export function structureAgentSetting(
           modalHandlers.embodimentsData?.find(
             (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.FORM,
           ),
-          modalHandlers.refreshEmbodiments,
-          modalHandlers.activeModal,
+        );
+      }
+
+      if (key === EMBODIMENT_TYPE.ALEXA) {
+        result.dialogComponent = getVoiceDialog(
+          modalHandlers.activeModal === key, // Pass visibility state
+          modalHandlers.closeModal,
+          modalHandlers.agent,
+          agentData.agentId,
+          modalHandlers.embodimentsData?.find(
+            (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.ALEXA,
+          ),
         );
       }
 
@@ -164,7 +175,11 @@ export function structureAgentSetting(
         (key === EMBODIMENT_TYPE.CHAT_BOT ||
           key === EMBODIMENT_TYPE.FORM ||
           key === EMBODIMENT_TYPE.CHAT_GPT) &&
-        shouldCodeSnippetVisible(key, agentData)
+        shouldCodeSnippetVisible(key, {
+          canUseEmbodiments: agentData.canUseEmbodiments,
+          isReadOnlyAccess: agentData.isReadOnlyAccess,
+          agentDeployed: !!agentData.agentDeployed,
+        })
       ) {
         result.codeSnippetComponent = getCodeSnippetModal(
           key,

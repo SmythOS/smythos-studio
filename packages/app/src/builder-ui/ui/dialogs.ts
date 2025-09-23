@@ -366,6 +366,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     'Custom GPT': 'Test in ChatGPT',
     'Postman Integration': 'Test in Postman',
     LLM: 'Test as LLM',
+    'Alexa Skill': 'Test with Voice',
   };
   let currentKey = null;
   // Create tabs from EMBODIMENT_DESCRIPTIONS
@@ -1948,7 +1949,7 @@ function getNavText(key: string, title: string): string {
     postman: 'Postman',
     chatgpt: 'GPT',
     agent_skill: 'Form',
-    alexa: 'Alexa',
+    alexa: 'Voice',
     mcp: 'MCP',
   };
 

@@ -49,7 +49,7 @@ const baseMenu: Menu = {
   Memory: [
     { name: 'MemoryWriteKeyVal', label: 'Memory Write', icon: 'Memory' },
     { name: 'MemoryReadKeyVal', label: 'Memory Read', icon: 'Memory' },
-    { name: 'MemoryDeleteKey', label: 'Memory Delete', icon: 'Memory' },
+    { name: 'MemoryDeleteKeyVal', label: 'Memory Delete', icon: 'Memory' },
     { name: 'MemoryWriteObject', label: 'Memory Write Multi', icon: 'Memory' },
   ],
   Crypto: [

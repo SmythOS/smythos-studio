@@ -11,7 +11,9 @@
       "outFiles": ["${workspaceFolder}/packages/app/dist/**/*.js"],
       "sourceMaps": true,
       "cwd": "${workspaceFolder}/packages/app",
-      "env": {},
+      "env": {
+        "LOCAL_MODE": "true"
+      },
       "outputCapture": "std",
       "console": "integratedTerminal"
     },
