@@ -76,6 +76,7 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
     const newPath = path.split('/sse')[1];
     return newPath;
   },
+  logLevel: 'silent',
 
   // Configure proxy headers
   onProxyReq: (proxyReq: any, req: any, res: any) => {
@@ -159,7 +160,6 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
   // Additional options
   timeout: 0,
   proxyTimeout: 0,
-  logLevel: 'debug',
   selfHandleResponse: true,
 });
 

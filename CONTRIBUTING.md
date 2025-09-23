@@ -68,11 +68,11 @@ SmythOS UI uses [pnpm workspaces](https://pnpm.io/workspaces) to manage the mono
 
 Enable [Node.js corepack](https://nodejs.org/docs/latest-v16.x/api/corepack.html) with `corepack enable`.
 
-Install the correct pnpm version using `corepack prepare --activate`.
+Install the correct pnpm version using `corepack prepare pnpm@10.12.2 --activate`.
 
-**IMPORTANT**: If you installed Node.js via homebrew, run `brew install corepack`, as homebrew excludes `npm` and `corepack` from [the `node` formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/node.rb#L66).
+**macOS (Homebrew):** `brew install corepack` (Node via Homebrew excludes it)  
 
-**IMPORTANT**: On Windows, run `corepack enable` and `corepack prepare --activate` in an administrator terminal.
+**Windows:** Run as admin → `corepack enable && corepack prepare --activate`
 
 ### Setting Up SmythOS UI
 
@@ -152,33 +152,11 @@ To start in production mode:
 pnpm start
 ```
 
-### Configuring Embodiment Subdomains (Required)
 
-For embodiment functionality to work properly, you need to configure local subdomains to point to loopback:
+Once the application has started, you can access it at:
 
-> **⚠️ Critical for Embodiments**: These subdomains are necessary for agent embodiments to function correctly during development.
+[http://localhost:5050](http://localhost:5050)
 
-**Add to your hosts file:**
-
-**Linux/macOS:**
-```bash
-sudo sh -c 'echo "127.0.0.1 staging.localagent.ai live.localagent.ai" >> /etc/hosts'
-```
-
-**Windows (run as Administrator):**
-```cmd
-echo 127.0.0.1 staging.localagent.ai live.localagent.ai >> C:\Windows\System32\drivers\etc\hosts
-```
-
-**Verify the configuration:**
-```bash
-# Test that the subdomains resolve to localhost
-ping staging.localagent.ai
-ping live.localagent.ai
-# Both should show 127.0.0.1
-```
-
-> 💡 **Note**: Without these subdomain configurations, agent embodiments will not be able to communicate properly with the runtime server during development.
 
 ## Development Workflow
 
