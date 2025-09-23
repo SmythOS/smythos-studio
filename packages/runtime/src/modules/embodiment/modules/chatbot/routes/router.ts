@@ -6,6 +6,8 @@ import { Agent, Logger } from '@smythos/sre';
 import config from '@core/config';
 import { readAgentOAuthConfig } from '@core/helpers/agent.helper';
 import { uploadHandler } from '@core/middlewares/uploadHandler.mw';
+
+import cors from '@embodiment/middlewares/cors.mw';
 import { uploadFile } from '@embodiment/modules/chat/routes/router';
 
 import { EMBODIMENT_TYPES } from '@embodiment/constants';
@@ -32,7 +34,7 @@ const router = express.Router();
 
 let localAgentAuthorizations = {};
 
-const middleweares = [agentLoader, ChatbotLoader];
+const middleweares = [cors, agentLoader, ChatbotLoader];
 router.use(middleweares);
 
 router.get('/', async (req, res) => {
