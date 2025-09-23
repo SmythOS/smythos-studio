@@ -101,37 +101,32 @@ Install the correct pnpm version using `corepack prepare --activate`.
    
    **Option 1: Quick Docker Setup (Recommended)**
    ```bash
-   docker run --name smythos-mysql \
+   docker run --name smythos-mysql-local \
      -e MYSQL_ROOT_PASSWORD=smythos_root_pass \
      -e MYSQL_DATABASE=smythos_db \
-     -e MYSQL_USER=smythos_user \
-     -e MYSQL_PASSWORD=smythos_pass \
      -p 3306:3306 \
-     -d mysql:8.0
+     -d mysql
    ```
    
    **Option 2: Use your existing MySQL instance**
    
    Ensure you have MySQL 8.0+ running and create a database for SmythOS UI.
 
-6. **Configure Environment Variables** (Critical):
+6. **Configure Environment Variables**:
    ```bash
    cp .env.example .env
    ```
    
-   **⚠️ IMPORTANT**: Open the `.env` file and update the `DATABASE_URL` with your MySQL connection details:
+   **⚠️ IMPORTANT**: If you have your own MySQL instance, open the `.env` file and update the DB connection keys:
    
-   **For Docker setup (Option 1):**
    ```env
-   DATABASE_URL="mysql://smythos_user:smythos_pass@localhost:3306/smythos_db"
+   DATABASE_HOST=localhost
+   DATABASE_USER=root
+   DATABASE_PASSWORD=smythos_root_pass
+   DATABASE_NAME=smythos_db
    ```
    
-   **For existing MySQL (Option 2):**
-   ```env
-   DATABASE_URL="mysql://your_username:your_password@localhost:3306/your_database_name"
-   ```
-   
-   > 💡 **Note**: The `DATABASE_URL` is essential for database migrations and application startup. Make sure it matches your MySQL setup exactly.
+   > 💡 **Note**: These keys are essential for database migrations and application startup. Make sure it matches your MySQL setup exactly.
 
 7. Install all dependencies and link packages:
    ```bash
