@@ -28,17 +28,31 @@ export class RedisCache implements ICache {
     }
 
     this.client = new Redis({
-      ...(config.env.REDIS_SENTINEL_HOSTS ? { sentinels: config.env.REDIS_SENTINEL_HOSTS?.split(',').map((host) => {
-        const [hostname, port] = host.split(':');
-        return { host: hostname, port: parseInt(port) };
-      }),
-      name: config.env.REDIS_MASTER_NAME,
-     } : {
-        host: config.env.REDIS_HOST,
-      }),
+      ...(config.env.REDIS_SENTINEL_HOSTS
+        ? {
+            sentinels: config.env.REDIS_SENTINEL_HOSTS?.split(',').map((host) => {
+              const [hostname, port] = host.split(':');
+              return { host: hostname, port: parseInt(port) };
+            }),
+            name: config.env.REDIS_MASTER_NAME,
+          }
+        : {
+            host: config.env.REDIS_HOST,
+          }),
       port: parseInt(config.env.REDIS_PORT),
       ...(config.env.REDIS_PASSWORD ? { password: config.env.REDIS_PASSWORD } : {}),
     });
+
+    // try to connect on class creation and check if connection is successful
+    this.client
+      .ping()
+      .then(() => {
+        console.log('Redis connection successful');
+      })
+      .catch((err) => {
+        console.error('Redis connection failed', err);
+        throw err;
+      });
   }
 
   async get(key: string): Promise<string | null> {
