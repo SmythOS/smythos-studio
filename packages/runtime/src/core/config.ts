@@ -31,7 +31,7 @@ const config = {
 
     ADMIN_PORT: process.env.RUNTIME_ADMIN_PORT || process.env.ADMIN_PORT || 5054,
 
-    BASE_URL: process.env.RUNTIME_DOMAIN || `http://localhost:${process.env.RUNTIME_PORT}`,
+    BASE_URL: process.env.RUNTIME_URL || `http://localhost:${process.env.RUNTIME_PORT}`,
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
@@ -43,7 +43,7 @@ const config = {
     MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 50,
 
     // UI_SERVER: process.env.UI_SERVER || 'http://localhost:4000',
-    UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
+    UI_SERVER: process.env.APP_URL || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
     DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),

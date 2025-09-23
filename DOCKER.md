@@ -74,8 +74,8 @@ docker-compose logs -f
 
 Once all services are healthy:
 
-- **Main Application**: http://localhost (or your configured APP_DOMAIN)
-- **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_DOMAIN)
+- **Main Application**: http://localhost (or your configured APP_URL)
+- **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_URL)
 
 > **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems don't automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above, add them to your hosts file:
 >
@@ -175,10 +175,10 @@ For production deployments with custom domains:
 
 ```env
 # Your main application domain
-APP_DOMAIN=app.yourdomain.com
+APP_URL=http://app.yourdomain.com
 
 # Runtime/API domain
-RUNTIME_DOMAIN=runtime.yourdomain.com
+RUNTIME_URL=http://runtime.yourdomain.com
 
 # Production agents domain
 PROD_AGENT_DOMAIN=agents.yourdomain.com
@@ -195,8 +195,8 @@ The docker-compose setup includes automatic SSL certificate generation via Let's
 
 1. **Configure your domains** in `.env`:
    ```env
-   APP_DOMAIN=yourdomain.com
-   RUNTIME_DOMAIN=runtime.yourdomain.com
+   APP_URL=http://yourdomain.com
+   RUNTIME_URL=http://runtime.yourdomain.com
    LETSENCRYPT_EMAIL=admin@yourdomain.com
    ```
 

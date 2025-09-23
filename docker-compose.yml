@@ -131,8 +131,8 @@ services:
     labels:
       - traefik.enable=true
       
-      # APP_DOMAIN routing to port 5050 (UI Server)
-      - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
+      # APP_URL routing to port 5050 (UI Server)
+      - "traefik.http.routers.smythos-app.rule=Host(`${APP_URL:-http://localhost}`)"
       - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-app.service=smythos-app"
       - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
@@ -144,9 +144,9 @@ services:
       # Service definition
       - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
       
-      # RUNTIME_DOMAIN routing to port 5053 (Runtime Server)
-      # Only create routes if RUNTIME_DOMAIN is set
-      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
+      # RUNTIME_URL routing to port 5053 (Runtime Server)
+      # Only create routes if RUNTIME_URL is set
+      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_URL:-http://runtime.localhost}`)"
       - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-runtime.service=smythos-runtime"
       - "traefik.http.routers.smythos-runtime.tls=true"
