@@ -1,7 +1,7 @@
 import { CreateChatRequest, FetchChatMessagesRequest } from '@react/shared/types/api-payload.types';
 
 export const createChat = async (params: CreateChatRequest) => {
-  const response = await fetch(`/api/page/chat/new`, {
+  const response = await fetch('/api/page/chat/new', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
@@ -19,7 +19,7 @@ export const fetchChatMessages = async (params: FetchChatMessagesRequest) => {
 
 export const updateAgentSettings = async (
   agentId: string,
-  settings: { key: string; value: any },
+  settings: { key: string; value: string },
 ) => {
   const response = await fetch(`/api/page/agent_settings/ai-agent/${agentId}/settings`, {
     method: 'PUT',
