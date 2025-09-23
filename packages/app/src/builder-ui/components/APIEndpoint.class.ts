@@ -211,12 +211,13 @@ export class APIEndpoint extends Component {
         type: 'textarea',
         label: 'Status Message',
         value: '',
-        help: 'Status message to be displayed to the user when the endpoint is called',
+        help: 'Send a custom message when this skill starts in chat',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         validate: `maxlength=240`,
         validateMessage: 'Your text exceeds the 240 character limit.',
         section: 'Advanced',
+        attributes: { placeholder: 'Starting {skill_name}… this may take ~{estimated_duration}.' },
       },
     };
 

@@ -130,7 +130,7 @@ router.post('/new', async (req, res) => {
     const token = req.user.accessToken;
 
     const response = await axios.post(
-      getAgentServerURL(agentId as string, isUsingLocalServer) + '/aichat/new',
+      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/new',
       req.body,
       {
         headers: {
