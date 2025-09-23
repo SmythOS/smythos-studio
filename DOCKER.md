@@ -52,10 +52,10 @@ The docker-compose setup provides a complete production-ready environment with a
 Create your environment file:
 
 ```bash
-cp .env.example .env
+cp .env.compose.example .env
 ```
 
-(Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, configuring domains, etc.)
+(Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, your domains, etc.)
 
 
 ### 2. Start All Services
@@ -77,18 +77,7 @@ Once all services are healthy:
 - **Main Application**: http://localhost (or your configured APP_URL)
 - **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_URL)
 
-> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems don't automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above, add them to your hosts file:
->
-> **Linux/macOS:**
-> ```bash
-> sudo echo "127.0.0.1 runtime.localhost prod.localhost default.localhost" >> /etc/hosts
-> ```
->
-> **Windows (as Administrator):**
-> ```cmd
-> echo 127.0.0.1 runtime.localhost prod.localhost default.localhost >> C:\Windows\System32\drivers\etc\hosts
-> ```
->
+> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems might not automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above please configure your own [domains & DNS](#domain-configuration)
 
 ## Docker Compose Architecture
 
