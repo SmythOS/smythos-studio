@@ -33,7 +33,15 @@ import { routes as embodimentRoutes } from '@embodiment/routes';
 const app = express();
 const port = config.env.PORT;
 
-const ensureVaultFileExists = () => {
+const prepareSREConfigFiles = () => {
+  // setup base dir for SRE
+  const srePath = config.env.SRE_STORAGE_PATH;
+  if (!fs.existsSync(srePath)) {
+    fs.mkdirSync(srePath, { recursive: true });
+  }
+
+  //  setup base vault content
+
   const baseVaultContent = {
     development: {
       echo: '',
@@ -49,7 +57,7 @@ const ensureVaultFileExists = () => {
     },
   };
 
-  const vaultFilePath = path.join(config.env.LOCAL_STORAGE_PATH, '.sre', 'vault.json');
+  const vaultFilePath = path.join(config.env.SRE_STORAGE_PATH, '.sre', 'vault.json');
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 
@@ -58,11 +66,11 @@ const ensureVaultFileExists = () => {
   }
 };
 
-ensureVaultFileExists();
+prepareSREConfigFiles();
 // Register all connectors
 registerConnectors();
 
-process.env.SMYTH_PATH = config.env.LOCAL_STORAGE_PATH; // needed for SRE initialization
+process.env.SMYTH_PATH = config.env.SRE_STORAGE_PATH; // needed for SRE initialization
 const sre = SmythRuntime.Instance.init({
   Cache: {
     Connector: 'RAM',

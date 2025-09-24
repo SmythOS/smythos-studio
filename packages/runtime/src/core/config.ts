@@ -19,6 +19,8 @@ const getLocalStoragePath = () => {
   return path.join(homeDir, 'smythos-data');
 };
 
+const LOCAL_STORAGE_PATH = getLocalStoragePath();
+
 const config = {
   env: {
     PORT: parseInt(process.env.RUNTIME_PORT || '5053', 10),
@@ -46,7 +48,8 @@ const config = {
     UI_SERVER: process.env.APP_URL || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    LOCAL_STORAGE_PATH: getLocalStoragePath(),
+    LOCAL_STORAGE_PATH,
+    SRE_STORAGE_PATH: path.join(LOCAL_STORAGE_PATH, '.smyth'),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },

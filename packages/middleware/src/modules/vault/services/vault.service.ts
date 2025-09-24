@@ -4,8 +4,8 @@ import path from 'path';
 import { config } from '../../../../config/config';
 import { vaultMessages } from '../constants/vault.constants';
 
-ensureVaultFileExists();
-process.env.SMYTH_PATH = config.variables.LOCAL_STORAGE_PATH; // needed for SRE initialization
+prepareSREConfigFiles();
+process.env.SMYTH_PATH = config.variables.SRE_STORAGE_PATH; // needed for SRE initialization
 SRE.init({
   Vault: {
     Connector: 'JSONFileVault',
@@ -277,7 +277,14 @@ async function getVaultConnector() {
   return vaultConnector;
 }
 
-function ensureVaultFileExists() {
+function prepareSREConfigFiles() {
+  // setup base dir for SRE
+  const srePath = config.variables.SRE_STORAGE_PATH;
+  if (!fs.existsSync(srePath)) {
+    fs.mkdirSync(srePath, { recursive: true });
+  }
+
+  //  setup base vault content
   const baseVaultContent = {
     development: {
       echo: '',
@@ -293,8 +300,7 @@ function ensureVaultFileExists() {
     },
   };
 
-  const vaultFilePath = config.variables.VAULT_FILE_PATH;
-  console.log('vaultFilePath', vaultFilePath);
+  const vaultFilePath = path.join(config.variables.SRE_STORAGE_PATH, '.sre', 'vault.json');
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 

@@ -39,8 +39,8 @@ export const config = {
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
     DATABASE_NAME: process.env.DATABASE_NAME,
     DATABASE_URL: process.env.DATABASE_URL,
-    VAULT_FILE_PATH: path.join(LOCAL_STORAGE_PATH, '.sre', 'vault.json'),
     LOCAL_STORAGE_PATH,
+    SRE_STORAGE_PATH: path.join(LOCAL_STORAGE_PATH, '.smyth'),
   },
 
   package: {
