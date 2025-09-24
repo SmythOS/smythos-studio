@@ -181,28 +181,56 @@ export class APIEndpoint extends Component {
           },
           change: async (e) => {
             const newMode = e.target.checked;
+
+            // If trying to disable advanced mode, prevent it
             if (this.isOnAdvancedMode == true && newMode == false) {
               e.target.checked = true;
               e.preventDefault();
               return;
             }
-            const saveBeforeClose = await confirm(
-              'Are you sure?',
-              'Enabling Advanced Request Parts will permanently expose headers, body, and query parameters. This setting cannot be disabled once enabled.',
-              {
-                btnNoLabel: 'Cancel',
-                btnYesLabel: 'Enable',
-                btnNoClass: 'hidden',
-                btnYesClass: 'rounded-lg px-8',
-              },
-            );
-            if (saveBeforeClose) {
-              this.isOnAdvancedMode = true;
-              this.advancedModeActions(this.isOnAdvancedMode, e);
-            } else {
+
+            // If trying to enable advanced mode, show confirmation first
+            if (!this.isOnAdvancedMode && newMode == true) {
+              // Store the original event target for later use
+              const originalTarget = e.target;
+
+              // Temporarily revert the toggle to show confirmation dialog
               e.target.checked = false;
-              e.preventDefault();
-              return;
+
+              const saveBeforeClose = await confirm(
+                'Are you sure?',
+                'Enabling Advanced Request Parts will permanently expose headers, body, and query parameters. This setting cannot be disabled once enabled.',
+                {
+                  btnNoLabel: 'Cancel',
+                  btnYesLabel: 'Enable',
+                  btnNoClass: 'hidden',
+                  btnYesClass: 'rounded-lg px-8',
+                },
+              );
+
+              if (saveBeforeClose) {
+                // User confirmed, now enable advanced mode
+                originalTarget.checked = true;
+                this.isOnAdvancedMode = true;
+                this.advancedModeActions(this.isOnAdvancedMode, e);
+
+                // Trigger auto-save by dispatching a change event that matches the selector
+                // The auto-save listener looks for: 'select, input[type="checkbox"], input[type="radio"]'
+                setTimeout(() => {
+                  const changeEvent = new Event('change', {
+                    bubbles: true,
+                  });
+
+                  // Dispatch the event on the checkbox element
+                  originalTarget.dispatchEvent(changeEvent);
+                }, 10);
+              } else {
+                // User cancelled, keep toggle off and prevent further processing
+                originalTarget.checked = false;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+              }
             }
           },
         },

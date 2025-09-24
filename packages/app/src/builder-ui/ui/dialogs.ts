@@ -1061,6 +1061,7 @@ interface SidebarOptions {
   onCancel?: (sidebar) => void;
   onLoad?: (sidebar: HTMLElement) => void;
   helpTooltip?: string;
+  isSettingsChanged?: () => boolean;
 }
 
 export function sidebarEditValues({
@@ -1077,6 +1078,7 @@ export function sidebarEditValues({
   onCancel = (sidebar) => {},
   onLoad = (sidebar) => {},
   helpTooltip = '',
+  isSettingsChanged = () => false,
 }: SidebarOptions): Promise<any> | null {
   return new Promise(async (resolve) => {
     const sidebar = await createRightSidebar(
@@ -1166,8 +1168,9 @@ export function sidebarEditValues({
             const values = await readRightSidebarValues(sidebar);
             if (values && typeof onDraft === 'function') {
               onDraft(values);
+              performAutoSave();
             }
-          }, 300);
+          }, 500);
 
           // Listen for immediate input changes (text inputs, textareas)
           _form.addEventListener(
@@ -1232,10 +1235,14 @@ export function sidebarEditValues({
       handleTemplateVars(sidebarContent);
     }
 
-    const performSaveAndClose = async (e?: MouseEvent) => {
+    const performAutoSave = async (e?: MouseEvent) => {
+      const changed = isSettingsChanged();
+      if (!changed) {
+        return;
+      }
+
       const result = {};
       let saveBeforeCloseState = 0;
-      let validationToastShown = false;
 
       for (let tab in forms) {
         const form = forms[tab].form;
@@ -1252,10 +1259,6 @@ export function sidebarEditValues({
           closestScrollable.scrollTo({ top: invalid.offsetTop - 50, behavior: 'smooth' });
         }
         if (invalid) {
-          if (!validationToastShown) {
-            errorToast('Please fix the highlighted fields and try again.', 'Validation Error');
-            validationToastShown = true;
-          }
           saveBeforeCloseState = 2;
         }
 
@@ -1271,7 +1274,6 @@ export function sidebarEditValues({
         return false;
       }
       if (typeof onSave === 'function') onSave.apply({ sidebar }, [result]);
-      closeRightSidebar();
       window['workspace']?.emit?.('componentUpdated', result);
       resolve(result);
     };
@@ -1280,11 +1282,6 @@ export function sidebarEditValues({
     if (closeBtn) {
       closeBtn.onclick = async (e) => {
         // Save on 'x' only for standard single-tab Settings sidebars
-        const tabKeys = Object.keys(forms || {});
-        const isStandardSettings = tabKeys.length === 1 && tabKeys[0] === 'Settings';
-        if (isStandardSettings) {
-          return performSaveAndClose(e as any);
-        }
 
         if (typeof onBeforeCancel === 'function') {
           const canClose = await onBeforeCancel.apply({ sidebar }, [sidebar]);

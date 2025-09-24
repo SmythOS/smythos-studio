@@ -336,7 +336,6 @@ async function onSave(values) {
   //component.redrawSettings();
   component.domElement.classList.remove('active');
 
-  Component.curComponentSettings = null;
   await delay(100);
   component.workspace.saveAgent();
 
@@ -352,6 +351,12 @@ async function onDraft(values) {
     preparedValues[name] = settingsValues[name]?.value || '';
   }
   component.emit('settingsDraftUpdated', preparedValues);
+}
+
+function isSettingsChanged() {
+  const component = this;
+  const changed = component.settingsChanged();
+  return changed;
 }
 
 const templateHelpSection = {
@@ -1042,6 +1047,7 @@ export async function editSettings(component: Component) {
     onCancel,
     onLoad: onComponentLoad.bind(component),
     helpTooltip: helpTooltip,
+    isSettingsChanged: isSettingsChanged.bind(component),
   });
 
   component.emit('settingsOpened', component.getSettingsSidebar());

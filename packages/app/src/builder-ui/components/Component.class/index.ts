@@ -1777,18 +1777,31 @@ export class Component extends EventEmitter {
 
     if (this.properties.template) {
       const templateData = this.data._templateVars;
-      for (let name in entries) {
-        if (
-          Object.prototype.hasOwnProperty.call(templateData, name) &&
-          !isEqual(templateData[name], values[name])
-        )
-          return true;
+      const includedSettings = this.properties?.template?.templateInfo?.includedSettings || [];
 
-        if (
-          Object.prototype.hasOwnProperty.call(entries, name) &&
-          !isEqual(entries[name]?.value, values[name])
-        )
-          return true;
+      for (let name in entries) {
+        // Check if this is an included setting (compare against component.data)
+        if (includedSettings.includes(name)) {
+          if (
+            Object.prototype.hasOwnProperty.call(this.data, name) &&
+            !isEqual(this.data[name], values[name])
+          ) {
+            return true;
+          }
+        }
+        // Check if this is a template variable (compare against _templateVars)
+        else if (Object.prototype.hasOwnProperty.call(templateData, name)) {
+          if (!isEqual(templateData[name], values[name])) {
+            return true;
+          }
+        }
+        // Fallback: if entry exists in settingsEntries but not in either category,
+        // compare against the initial value from settingsEntries
+        else {
+          if (entries[name]?.value !== undefined && !isEqual(entries[name].value, values[name])) {
+            return true;
+          }
+        }
       }
     } else {
       for (let name in entries) {
@@ -1799,6 +1812,8 @@ export class Component extends EventEmitter {
           return true;
       }
     }
+
+    return false;
   }
   public async closeSettings(force = false) {
     return closeSettings(this, force);
