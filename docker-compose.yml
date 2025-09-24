@@ -131,8 +131,8 @@ services:
     labels:
       - traefik.enable=true
       
-      # APP_URL routing to port 5050 (UI Server)
-      - "traefik.http.routers.smythos-app.rule=Host(`${APP_URL:-http://localhost}`)"
+      # APP_DOMAIN routing to port 5050 (UI Server)
+      - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
       - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-app.service=smythos-app"
       - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
@@ -144,9 +144,8 @@ services:
       # Service definition
       - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
       
-      # RUNTIME_URL routing to port 5053 (Runtime Server)
-      # Only create routes if RUNTIME_URL is set
-      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_URL:-http://runtime.localhost}`)"
+      # Only create routes if RUNTIME_DOMAIN is set
+      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
       - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-runtime.service=smythos-runtime"
       - "traefik.http.routers.smythos-runtime.tls=true"
@@ -186,7 +185,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:5050/health && wget --no-verbose --tries=1 --spider http://localhost:5053/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5050/health && wget --no-verbose --tries=1 --spider http://127.0.0.1:5053/health"]
       interval: 30s
       timeout: 10s
       retries: 3
