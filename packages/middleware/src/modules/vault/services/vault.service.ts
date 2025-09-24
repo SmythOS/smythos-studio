@@ -1,7 +1,6 @@
 import { ConnectorService, SRE } from '@smythos/sre';
 import fs from 'fs';
 import path from 'path';
-import { cwd } from 'process';
 import { config } from '../../../../config/config';
 import { vaultMessages } from '../constants/vault.constants';
 
@@ -39,7 +38,7 @@ export async function createSecret({ teamId, secretId, key, value, metadata }) {
   try {
     // create secret in JSON vault
     const vaultConnector = await getVaultConnector();
-    let filePath = vaultConnector?._settings?.file;
+    let filePath = vaultConnector.vaultFile;
 
     const currentData = fs.readFileSync(filePath, 'utf8');
     const newData = JSON.parse(currentData || '{}');
@@ -71,7 +70,7 @@ export async function createSecret({ teamId, secretId, key, value, metadata }) {
 export async function updateSecretMetadata({ teamId, secretId, metadata }) {
   try {
     const vaultConnector = await getVaultConnector();
-    const secretFilePath = vaultConnector?._settings?.file;
+    const secretFilePath = vaultConnector.vaultFile;
     const metadataFilePath = getMetadataPath(secretFilePath);
 
     const updatedMetadata = await setSecretMetadata(teamId, secretId, metadataFilePath, metadata);
@@ -166,7 +165,7 @@ export async function checkSecretExistsByName(teamId: string, secretName: string
 
 export async function deleteSecretById(teamId: string, secretId: string) {
   const vaultConnector = await getVaultConnector();
-  const secretFilePath = vaultConnector?._settings?.file;
+  const secretFilePath = vaultConnector.vaultFile;
   const metadataFilePath = getMetadataPath(secretFilePath);
 
   const currentData = fs.readFileSync(secretFilePath, 'utf8');
@@ -229,7 +228,7 @@ async function getSecret(teamId: string, secretId: string) {
   try {
     const vaultConnector = await getVaultConnector();
     const secret = await vaultConnector.team(teamId).get(secretId);
-    const metadataFilePath = getMetadataPath(vaultConnector?._settings?.file);
+    const metadataFilePath = getMetadataPath(vaultConnector.vaultFile);
     const metadata = await getSecretMetadata(teamId, secretId, metadataFilePath);
     return {
       id: secretId,
@@ -270,18 +269,12 @@ function getMetadataPath(filePath: string) {
 
 async function getVaultConnector() {
   const vaultConnector = ConnectorService.getVaultConnector();
-  let filePath = vaultConnector?._settings?.file;
-  if (!filePath) {
-    filePath = `${cwd()}/vault.json`;
-  }
+  // let filePath = vaultConnector.vaultFile;
+  // if (!filePath) {
+  //   throw new Error('Vault file path is not set');
+  // }
 
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, '{}');
-  }
-
-  return vaultConnector.instance({
-    file: filePath,
-  });
+  return vaultConnector;
 }
 
 function ensureVaultFileExists() {
@@ -301,6 +294,7 @@ function ensureVaultFileExists() {
   };
 
   const vaultFilePath = config.variables.VAULT_FILE_PATH;
+  console.log('vaultFilePath', vaultFilePath);
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 
