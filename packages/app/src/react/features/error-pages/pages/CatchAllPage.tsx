@@ -13,7 +13,9 @@ export function CatchAllPage() {
     if (shouldRedirect) {
       // reload the page so the vite middleware can redirect to the new page. if redirected back, then add ?attempted_redirect=true to the url
       // so we do not enter an infinite redirect loop
-      window.location.href = `${location.pathname}?attempted_redirect=true`;
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('attempted_redirect', 'true');
+      window.location.href = `${location.pathname}?${newSearchParams.toString()}`;
     }
   }, [shouldRedirect, location.pathname]);
 
@@ -23,7 +25,5 @@ export function CatchAllPage() {
   }
 
   // Otherwise, show normal 404
-  return (
-    <ErrorPage code="404" />
-  );
-} 
+  return <ErrorPage code="404" />;
+}
