@@ -21,9 +21,8 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 	- [Environment Variables](#environment-variables)
 		- [Required Variables](#required-variables)
 		- [Optional Variables](#optional-variables)
-		- [Domain Configuration](#domain-configuration)
 	- [Production Deployment](#production-deployment)
-		- [SSL/TLS Configuration](#ssltls-configuration)
+		- [Domain & SSL/TLS Configuration](#domain-ssltls-configuration)
 		- [Security Considerations](#security-considerations)
 	- [Development with Docker](#development-with-docker)
 	- [Troubleshooting](#troubleshooting)
@@ -82,7 +81,7 @@ Once all services are healthy:
 - **Main Application**: http://localhost (or your configured APP_URL)
 - **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_URL)
 
-> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems might not automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above please configure your own [domains & DNS](#domain-configuration)
+> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems might not automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above please configure your own domains & DNS configuration.
 
 ## Docker Compose Architecture
 
@@ -163,34 +162,20 @@ docker run -d \
 | `DATABASE_URL` | MySQL connection string | `mysql://user:pass@host:3306/db` |
 
 
-### Domain Configuration
 
-For production deployments with custom domains:
-
-```env
-# Your main application domain
-APP_URL=http://app.yourdomain.com
-
-# Runtime/API domain
-RUNTIME_URL=http://runtime.yourdomain.com
-
-# Production agents domain
-PROD_AGENT_DOMAIN=agents.yourdomain.com
-
-# Development/testing agents domain
-DEFAULT_AGENT_DOMAIN=dev-agents.yourdomain.com
-```
 
 ## Production Deployment
 
-### SSL/TLS Configuration
+### Domain & SSL/TLS Configuration
 
 The docker compose setup includes automatic SSL certificate generation via Let's Encrypt:
 
 1. **Configure your domains** in `.env`:
    ```env
-   APP_URL=http://yourdomain.com
-   RUNTIME_URL=http://runtime.yourdomain.com
+   APP_DOMAIN=http://yourdomain.com
+   RUNTIME_DOMAIN=http://runtime.yourdomain.com
+   DEFAULT_AGENT_DOMAIN=dev.yourdomain.com
+   PROD_AGENT_DOMAIN=live.yourdomain.com
    LETSENCRYPT_EMAIL=admin@yourdomain.com
    ```
 
@@ -198,7 +183,8 @@ The docker compose setup includes automatic SSL certificate generation via Let's
    ```
    yourdomain.com          A    YOUR_SERVER_IP
    runtime.yourdomain.com  A    YOUR_SERVER_IP
-   *.yourdomain.com        A    YOUR_SERVER_IP  # For subdomains
+   *.dev.yourdomain.com A    YOUR_SERVER_IP
+   *.live.yourdomain.com   A    YOUR_SERVER_IP
    ```
 
 3. **Start with SSL enabled**:
