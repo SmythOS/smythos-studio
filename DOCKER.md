@@ -52,7 +52,7 @@ The docker-compose setup provides a complete production-ready environment with a
 Create your environment file:
 
 ```bash
-cp .env.example .env
+cp .env.compose.example .env
 ```
 
 (Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, configuring domains, etc.)
