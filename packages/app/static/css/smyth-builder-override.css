@@ -1074,8 +1074,15 @@ code.language-plan.done::before {
   max-height: 176px !important; /* 8 row maximum height */
   transition: all 0.15s ease-in-out;
   resize: none !important;
-  overflow: hidden;
+}
+
+/* Dynamic overflow classes for component sidebar textareas */
+.right-sidebar .form-group textarea.overflow-y-auto {
   overflow-y: auto !important;
+}
+
+.right-sidebar .form-group textarea.overflow-y-hidden {
+  overflow-y: hidden !important;
 }
 
 .dlg-form .textarea textarea:focus,

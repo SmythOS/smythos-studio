@@ -4,9 +4,6 @@ element {
 }
 
 /*Overrides*/
-.textarea.no-scroll-vertical textarea {
-  overflow-y: auto !important;
-}
 
 .clr-picker {
   z-index: 10000 !important;
@@ -832,7 +829,6 @@ body.locked #agent-sidebar-root .restore-button {
   border-width: 1px;
   transform: translateX(0px);
   background-color: #eee;
-
 }
 
 /* Hide badge on hover to show buttons without overlap */
