@@ -1,14 +1,14 @@
 import path from 'path';
 
 import config from '../config';
-import SmythFS from './SmythFS.class';
 import { CacheData } from '../types';
+import SmythFS from './SmythFS.class';
 
 const memoryCache = {};
 let hasCacheClearInterval = false;
 
 class Cache extends SmythFS {
-  private cacheDir = path.join(config.env.DATA_PATH, '.cache');
+  private cacheDir = path.join(config.env.LOCAL_STORAGE_PATH, '.cache');
   private fileDir;
   private directory: string;
   private provider: 'file' | 'memory' | 'redis' = 'file';

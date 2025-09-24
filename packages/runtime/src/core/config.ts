@@ -14,7 +14,7 @@ expandEnv.expand(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const getDefaultDataPath = () => {
+const getLocalStoragePath = () => {
   const homeDir = os.homedir();
   return path.join(homeDir, 'smythos-data');
 };
@@ -46,7 +46,7 @@ const config = {
     UI_SERVER: process.env.APP_URL || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),
+    LOCAL_STORAGE_PATH: getLocalStoragePath(),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },

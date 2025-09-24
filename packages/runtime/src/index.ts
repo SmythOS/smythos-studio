@@ -49,7 +49,7 @@ const ensureVaultFileExists = () => {
     },
   };
 
-  const vaultFilePath = path.join(config.env.DATA_PATH, 'vault.json');
+  const vaultFilePath = path.join(config.env.LOCAL_STORAGE_PATH, '.sre', 'vault.json');
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 
@@ -62,6 +62,7 @@ ensureVaultFileExists();
 // Register all connectors
 registerConnectors();
 
+process.env.SMYTH_PATH = config.env.LOCAL_STORAGE_PATH; // needed for SRE initialization
 const sre = SmythRuntime.Instance.init({
   Cache: {
     Connector: 'RAM',
@@ -81,7 +82,6 @@ const sre = SmythRuntime.Instance.init({
   Vault: {
     Connector: 'JSONFileVault',
     Settings: {
-      file: path.join(config.env.DATA_PATH, 'vault.json'),
       shared: 'development',
     },
   },

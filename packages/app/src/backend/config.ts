@@ -11,7 +11,7 @@ expandEnv.expand(
   }),
 );
 
-const getDefaultDataPath = () => {
+const getLocalStoragePath = () => {
   const homeDir = os.homedir();
   return path.join(homeDir, 'smythos-data');
 };
@@ -48,7 +48,7 @@ const config = {
     SMYTH_VAULT_API_BASE_URL: process.env.SMYTH_VAULT_API_BASE_URL || `${MW_BASE_URL}/v1`,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY, // used for some autocompletion
     FALAI_API_KEY: process.env.FALAI_API_KEY, // used for image gen
-    DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),
+    LOCAL_STORAGE_PATH: getLocalStoragePath(),
     LOCAL_MODE: process.env.LOCAL_MODE,
     SESSION_SECRET: process.env.SESSION_SECRET,
     REDIS_SENTINEL_HOSTS: process.env.REDIS_SENTINEL_HOSTS,
