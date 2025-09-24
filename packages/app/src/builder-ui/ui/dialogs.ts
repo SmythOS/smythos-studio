@@ -1176,6 +1176,25 @@ export function sidebarEditValues({
               const target = event.target as HTMLElement;
               if (target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea')) {
                 debouncedDraft();
+
+                // Handle textarea overflow for component sidebar
+                if (target.matches('textarea')) {
+                  const textarea = target as HTMLTextAreaElement;
+                  setTimeout(() => {
+                    // Remove MetroUI class that interferes
+                    textarea.parentElement?.classList.remove('no-scroll-vertical');
+
+                    // Show/hide scrollbar only when content exceeds available space
+                    // Account for borders: offsetHeight includes borders, clientHeight doesn't
+                    const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+                    const maxContentHeight = 176 - borderHeight;
+                    const needsScroll = textarea.scrollHeight > maxContentHeight;
+
+                    // Use CSS classes instead of inline styles to override MetroUI
+                    textarea.classList.remove('overflow-y-auto', 'overflow-y-hidden');
+                    textarea.classList.add(needsScroll ? 'overflow-y-auto' : 'overflow-y-hidden');
+                  }, 0);
+                }
               }
             },
             true,
