@@ -422,10 +422,17 @@ export class APIEndpoint extends Component {
       // Ensure endpoint value is properly formatted
       if (settingsValues.endpoint) {
         // Format according to validation rules (trim and replace spaces with underscores)
-        this.data.endpoint = getValidEndpoint(settingsValues.endpoint);
+        const formattedEndpoint = getValidEndpoint(settingsValues.endpoint);
+        this.data.endpoint = formattedEndpoint;
 
         // Also update endpointLabel to match
         this.data.endpointLabel = this.data.endpoint;
+
+        // Update the form field value to match the formatted value to prevent unsaved changes detection
+        const endpointField = document.querySelector('input[name="endpoint"]') as HTMLInputElement;
+        if (endpointField) {
+          endpointField.value = formattedEndpoint;
+        }
 
         // Update endpointLabel to match the formatted endpoint value
         const endpointLabel = document.querySelector(
