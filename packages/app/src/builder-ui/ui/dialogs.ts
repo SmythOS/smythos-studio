@@ -1215,6 +1215,44 @@ export function sidebarEditValues({
             true,
           );
 
+          // Listen for tag creation via keyboard (Enter, Space, Comma)
+          _form.addEventListener(
+            'keydown',
+            (event: KeyboardEvent) => {
+              const target = event.target as HTMLElement;
+              // Check if this is a tag input and a tag creation key
+              if (
+                target.closest('.tag-input') &&
+                (event.key === 'Enter' || event.key === ' ' || event.key === ',')
+              ) {
+                const input = target as HTMLInputElement;
+                if (input.value.trim()) {
+                  // Tag will be created, trigger auto-save after a small delay
+                  setTimeout(() => {
+                    debouncedDraft();
+                  }, 100);
+                }
+              }
+            },
+            true,
+          );
+
+          // Listen for tag removal via click on X button
+          _form.addEventListener(
+            'click',
+            (event: Event) => {
+              const target = event.target as HTMLElement;
+              // Check if this is a tag removal button
+              if (target.classList.contains('remover') && target.closest('.tag-input')) {
+                // Tag is being removed, trigger auto-save after a small delay
+                setTimeout(() => {
+                  debouncedDraft();
+                }, 50);
+              }
+            },
+            true,
+          );
+
           _form._init();
           forms[tab] = { form: _form, fields: formFields };
         } else {
