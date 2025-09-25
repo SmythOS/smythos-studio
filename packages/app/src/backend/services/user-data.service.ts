@@ -5,9 +5,6 @@ import { APIResponse } from '../types/';
 import { authHeaders, headersWithToken, includeAxiosAuth, smythAPIReq } from '../utils/';
 import { getAgentShortDescription } from '../utils/agent.utils';
 
-//const DATA_DIR = config.env.DATA_PATH;
-//const AGENTS_DIR = `${DATA_DIR}/agents`;
-//const DOMAINS_DIR = `${DATA_DIR}/domains`;
 const AGENTS_RUNTIME_ENDPOINT_PREFIX = '/api';
 const DB_CRUD_ENDPOINT_PREFIX = config.env.SMYTH_API_BASE_URL;
 //const PLUGINS_DIR = `${DATA_DIR}/plugins`;

@@ -64,7 +64,9 @@ async function getTeamInfo(req: express.Request | any, isRetry: boolean = false)
       await userData.putUserSettings(token, userSettingKeys.USER_TEAM, '');
       return getTeamInfo(req, true);
     } else {
-      throw new Error('Failed to fetch team info:' + teamInfo.error?.response?.data);
+      throw new Error(
+        'Failed to fetch team info:' + JSON.stringify(teamInfo.error?.response?.data),
+      );
     }
   }
   return teamInfo;

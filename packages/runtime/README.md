@@ -122,9 +122,6 @@ UI_SERVER="http://localhost:4000"
 # Security
 SESSION_SECRET="your-random-secret-here"
 
-# Storage
-DATA_PATH="/path/to/your/data"
-
 # Agent Domain Configuration
 DEFAULT_AGENT_DOMAIN="localagent.stage.yourdomain.ai"
 PROD_AGENT_DOMAIN="agentid.yourdomain.com"

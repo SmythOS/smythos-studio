@@ -76,7 +76,7 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.421.0",
     "@prisma/client": "^5.7.1",
-    "@smythos/sre": "^1.5.32",
+    "@smythos/sre": "^1.5.74",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
     "date-fns": "^3.3.1",

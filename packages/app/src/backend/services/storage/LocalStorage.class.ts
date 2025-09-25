@@ -32,7 +32,7 @@ export default class LocalStorage implements StaticStorage {
 
   constructor(protected readonly accessControl: StorageACL) {
     // Base storage path from config or default to user data directory
-    this.storagePath = path.join(appConfig.env.DATA_PATH, 'uploads');
+    this.storagePath = path.join(appConfig.env.LOCAL_STORAGE_PATH, 'uploads');
     this.publicPath = path.join(this.storagePath, 'public');
     this.privatePath = path.join(this.storagePath, 'private');
 

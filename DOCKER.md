@@ -1,17 +1,17 @@
 # Docker Setup Guide for SmythOS UI
 
-This guide explains how to run SmythOS UI using Docker, both with the standalone Dockerfile and the complete docker-compose setup.
+This guide explains how to run SmythOS UI using Docker, both with the standalone Dockerfile and the complete docker compose setup.
 
 ## Contents
 
 - [Docker Setup Guide for SmythOS UI](#docker-setup-guide-for-smythos-ui)
 	- [Contents](#contents)
 	- [Prerequisites](#prerequisites)
-	- [Quick Start with Docker Compose (Recommended)](#quick-start-with-docker-compose-recommended)
+	- [Quick Start with Docker Compose (Recommended)](#quick-start-with-docker compose-recommended)
 		- [1. Environment Setup](#1-environment-setup)
 		- [2. Start All Services](#2-start-all-services)
 		- [3. Access the Application](#3-access-the-application)
-	- [Docker Compose Architecture](#docker-compose-architecture)
+	- [Docker Compose Architecture](#docker compose-architecture)
 		- [Services Overview](#services-overview)
 		- [Network Architecture](#network-architecture)
 		- [Volume Management](#volume-management)
@@ -21,9 +21,8 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 	- [Environment Variables](#environment-variables)
 		- [Required Variables](#required-variables)
 		- [Optional Variables](#optional-variables)
-		- [Domain Configuration](#domain-configuration)
 	- [Production Deployment](#production-deployment)
-		- [SSL/TLS Configuration](#ssltls-configuration)
+		- [Domain & SSL/TLS Configuration](#domain-ssltls-configuration)
 		- [Security Considerations](#security-considerations)
 	- [Development with Docker](#development-with-docker)
 	- [Troubleshooting](#troubleshooting)
@@ -38,14 +37,17 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 
 - **Docker**: Version 20.10 or newer
 - **Docker Compose**: Version 2.0 or newer (included with Docker Desktop)
+- **Root/Admin Access**: Required for Docker commands
 - **System Requirements**: 
-  - 4GB RAM minimum (8GB recommended)
+  - 8GB RAM minimum
   - 10GB free disk space
   - Ports 80, 443, 5050, 5053, 8080 available
 
+> **⚠️ Important**: All Docker commands in this guide should be run as root user (Linux/macOS) or Administrator (Windows) to avoid permission issues.
+
 ## Quick Start with Docker Compose (Recommended)
 
-The docker-compose setup provides a complete production-ready environment with all necessary services.
+The docker compose setup provides a complete production-ready environment with all necessary services.
 
 ### 1. Environment Setup
 
@@ -55,40 +57,31 @@ Create your environment file:
 cp .env.compose.example .env
 ```
 
-(Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, configuring domains, etc.)
+(Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, your domains, etc.)
 
 
 ### 2. Start All Services
 
 Launch the complete SmythOS UI stack:
 
+> **⚠️ Run as Root/Admin**: Ensure you're running as root (Linux/macOS) or Administrator (Windows)
+
 ```bash
 # Start all services in detached mode
-docker-compose up -d
+docker compose up -d
 
 # View logs (optional)
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 3. Access the Application
 
 Once all services are healthy:
 
-- **Main Application**: http://localhost (or your configured APP_DOMAIN)
-- **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_DOMAIN)
+- **Main Application**: http://localhost (or your configured APP_URL)
+- **Runtime Server**: http://runtime.localhost (or your configured RUNTIME_URL)
 
-> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems don't automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above, add them to your hosts file:
->
-> **Linux/macOS:**
-> ```bash
-> sudo echo "127.0.0.1 runtime.localhost prod.localhost default.localhost" >> /etc/hosts
-> ```
->
-> **Windows (as Administrator):**
-> ```cmd
-> echo 127.0.0.1 runtime.localhost prod.localhost default.localhost >> C:\Windows\System32\drivers\etc\hosts
-> ```
->
+> **⚠️ Localhost Subdomain Issue**: Only applies when using the default localhost domain configuration. Some operating systems might not automatically route `*.localhost` subdomains to the loopback address. If you can't access the subdomain URLs above please configure your own domains & DNS configuration.
 
 ## Docker Compose Architecture
 
@@ -169,34 +162,20 @@ docker run -d \
 | `DATABASE_URL` | MySQL connection string | `mysql://user:pass@host:3306/db` |
 
 
-### Domain Configuration
 
-For production deployments with custom domains:
-
-```env
-# Your main application domain
-APP_DOMAIN=app.yourdomain.com
-
-# Runtime/API domain
-RUNTIME_DOMAIN=runtime.yourdomain.com
-
-# Production agents domain
-PROD_AGENT_DOMAIN=agents.yourdomain.com
-
-# Development/testing agents domain
-DEFAULT_AGENT_DOMAIN=dev-agents.yourdomain.com
-```
 
 ## Production Deployment
 
-### SSL/TLS Configuration
+### Domain & SSL/TLS Configuration
 
-The docker-compose setup includes automatic SSL certificate generation via Let's Encrypt:
+The docker compose setup includes automatic SSL certificate generation via Let's Encrypt:
 
 1. **Configure your domains** in `.env`:
    ```env
-   APP_DOMAIN=yourdomain.com
-   RUNTIME_DOMAIN=runtime.yourdomain.com
+   APP_DOMAIN=http://yourdomain.com
+   RUNTIME_DOMAIN=http://runtime.yourdomain.com
+   DEFAULT_AGENT_DOMAIN=dev.yourdomain.com
+   PROD_AGENT_DOMAIN=live.yourdomain.com
    LETSENCRYPT_EMAIL=admin@yourdomain.com
    ```
 
@@ -204,12 +183,13 @@ The docker-compose setup includes automatic SSL certificate generation via Let's
    ```
    yourdomain.com          A    YOUR_SERVER_IP
    runtime.yourdomain.com  A    YOUR_SERVER_IP
-   *.yourdomain.com        A    YOUR_SERVER_IP  # For subdomains
+   *.dev.yourdomain.com A    YOUR_SERVER_IP
+   *.live.yourdomain.com   A    YOUR_SERVER_IP
    ```
 
 3. **Start with SSL enabled**:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 ### Security Considerations
@@ -245,20 +225,20 @@ echo 127.0.0.1 runtime.localhost prod.localhost default.localhost >> C:\Windows\
 **2. Services not starting:**
 ```bash
 # Check service status
-docker-compose ps
+docker compose ps
 
 # View logs for specific service
-docker-compose logs mysql
-docker-compose logs smythos
+docker compose logs mysql
+docker compose logs smythos
 ```
 
 **3. Database connection errors:**
 ```bash
 # Verify MySQL is healthy
-docker-compose exec mysql mysqladmin ping -u root -p
+docker compose exec mysql mysqladmin ping -u root -p
 
 # Check database connectivity from app
-docker-compose exec smythos sh -c "mysql -h mysql -u \$DATABASE_USER -p\$DATABASE_PASSWORD -e 'SELECT 1'"
+docker compose exec smythos sh -c "mysql -h mysql -u \$DATABASE_USER -p\$DATABASE_PASSWORD -e 'SELECT 1'"
 ```
 
 **4. Port conflicts:**
@@ -279,13 +259,13 @@ EXPOSE_HTTPS_TRAEFIK_PORT=8443
 
 ```bash
 # Down the services
-docker-compose down
+docker compose down
 
 # Pull latest images
-docker-compose pull
+docker compose pull
 
 # Rebuild and restart services
-docker-compose up -d
+docker compose up -d
 ```
 
 
@@ -294,7 +274,7 @@ docker-compose up -d
 For issues with Docker deployment:
 
 1. Check the [Troubleshooting](#troubleshooting) section
-2. Review container logs: `docker-compose logs -f`
+2. Review container logs: `docker compose logs -f`
 3. Verify environment configuration in `.env`
 4. Ensure all prerequisites are met
 

@@ -257,6 +257,7 @@ router.post('/upload', [includeTeamDetails], (req: any, res, next) => {
       // Ensure cookies aren’t forwarded
       proxyReq.removeHeader('Cookie');
     },
+    logLevel: 'silent',
   });
 
   return proxyMw(req, res, next);

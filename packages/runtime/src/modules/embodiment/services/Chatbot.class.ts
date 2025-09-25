@@ -355,7 +355,7 @@ export default class Chatbot {
     const contextStore = new FsChatbotContextStore({
       agentId: this.agentId,
       conversationID: this.conversationID,
-      dataPath: config.env.DATA_PATH,
+      dataPath: config.env.LOCAL_STORAGE_PATH,
     });
 
     return this.processChatMessage({
@@ -376,7 +376,7 @@ export default class Chatbot {
     const contextStore = new FsChatbotContextStore({
       agentId: this.agentId,
       conversationID: this.conversationID,
-      dataPath: config.env.DATA_PATH,
+      dataPath: config.env.LOCAL_STORAGE_PATH,
     });
     // return contextStore.exporter.streamConversations({ dateRange, env: env as ChatConversationsEnv });
     for await (const stream of contextStore.exporter.streamConversations({
