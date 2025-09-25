@@ -49,8 +49,9 @@ export class Note extends Component {
         hintPosition: 'bottom',
         events: {
           change: (e) => {
-            this.data.formatting_mode = e.target.value;
-            this.updateNoteContent();
+            // Don't update this.data directly - let the form save mechanism handle it
+            // Just update the UI immediately for better UX
+            this.updateNoteContent(e?.target?.value);
           },
         },
       },
@@ -200,10 +201,11 @@ export class Note extends Component {
     contentWrapper.appendChild(markdownDiv);
   }
 
-  private updateNoteContent(): void {
+  private updateNoteContent(formattingMode: string = 'plaintext'): void {
     const textEl = this.domElement.querySelector('.note-text');
     if (!textEl) return;
-    if (this.data.formatting_mode === 'markdown') {
+
+    if (formattingMode === 'markdown') {
       textEl.innerHTML = '';
       this.renderMarkdownContent();
     } else {
@@ -237,7 +239,7 @@ export class Note extends Component {
     this.addEventListener('settingsSaved', (e) => {
       // The data has already been updated by the general save mechanism
       // We just need to update the UI to reflect the changes
-      this.updateNoteContent();
+      this.updateNoteContent(e?.formatting_mode);
       this.updateNoteStyles();
     });
 
