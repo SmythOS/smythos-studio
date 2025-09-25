@@ -1573,8 +1573,16 @@ export class APICall extends Component {
     } else {
       // Don't update this.data.oauth_con_id directly - let the form save mechanism handle it
 
-      // Don't update this.data.oauthService directly - let the form save mechanism handle it
-      // The oauthService field will be updated through the form save mechanism
+      // Always synchronize the component's legacy field (oauthService) with the selected connection
+      // to avoid stale/broken state across legacy/new structures.
+      const selectedConn = this.oauthConnections[selectedValue];
+      const selectedOauthInfo = this.getConnectionOauthInfo(selectedConn, selectedValue);
+      if (selectedOauthInfo?.service) {
+        // Store a user-friendly value for legacy consumers
+        this.data.oauthService = mapInternalToServiceName(selectedOauthInfo.service);
+      } else {
+        this.data.oauthService = 'None';
+      }
 
       // If the selection has changed, check authentication status and update button
       if (selectedValue !== previousValue) {
