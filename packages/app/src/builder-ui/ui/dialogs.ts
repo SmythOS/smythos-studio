@@ -1314,14 +1314,25 @@ export function sidebarEditValues({
       if (typeof onSave === 'function') onSave.apply({ sidebar }, [result]);
       window['workspace']?.emit?.('componentUpdated', result);
       resolve(result);
+      return true;
     };
 
     const closeBtn: HTMLButtonElement = sidebar.querySelector('.close-btn');
     if (closeBtn) {
       closeBtn.onclick = async (e) => {
-        // Save on 'x' only for standard single-tab Settings sidebars
+        let saveResult = null;
+        // Check if there are unsaved changes and save them before closing
+        const changed = isSettingsChanged();
+        if (changed) {
+          // Try to save changes before closing
+          saveResult = await performAutoSave(e);
+          if (saveResult === false) {
+            // If save failed due to validation errors, don't close
+            return;
+          }
+        }
 
-        if (typeof onBeforeCancel === 'function') {
+        if (typeof onBeforeCancel === 'function' && !saveResult) {
           const canClose = await onBeforeCancel.apply({ sidebar }, [sidebar]);
           if (!canClose) return;
         }
