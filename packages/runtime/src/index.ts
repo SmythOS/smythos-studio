@@ -15,10 +15,11 @@ import { Logger, SmythRuntime, version } from '@smythos/sre';
 import config from '@core/config';
 import { modelsConfig } from '@core/config/models.config';
 import { startServers } from '@core/management-router';
+import { requestContext } from '@core/services/request-context';
+
 import cors from '@core/middlewares/cors.mw';
 import { errorHandler, notFoundHandler } from '@core/middlewares/error.mw';
 import RateLimiter from '@core/middlewares/rateLimiter.mw';
-import { requestContext } from '@core/services/request-context';
 
 import { registerConnectors } from '@core/connectors/connectorRegistry';
 
@@ -122,6 +123,7 @@ function getCurrentFormattedDate() {
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
+// Generic CORS
 app.use(cors);
 app.options('*', cors);
 

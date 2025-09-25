@@ -7,7 +7,6 @@ import {
   ConnectorService,
   IAccessCandidate,
   KeyValueObject,
-  Logger,
   OAuthConfig,
   TAccessLevel,
   TAccessRole,
@@ -16,7 +15,6 @@ import {
 import { getM2MToken } from '@core/helpers/logto.helper';
 import { SmythConfigs } from '@core/types/general.types';
 
-const console = Logger('SmythOSSAccount');
 export class SmythOSSAccount extends AccountConnector {
   public name = 'SmythOSSAccount';
   private oAuthAppId: string;
