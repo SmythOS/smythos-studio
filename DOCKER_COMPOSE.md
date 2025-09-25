@@ -209,9 +209,6 @@ sudo sh -c 'echo "127.0.0.1 runtime.localhost prod.localhost default.localhost" 
 echo 127.0.0.1 runtime.localhost prod.localhost default.localhost >> C:\Windows\System32\drivers\etc\hosts
 ```
 
-**Alternative - Use direct ports:**
-- Main App: http://localhost:5050
-- Runtime: http://localhost:5053
 
 **2. Services not starting:**
 ```bash
