@@ -44,14 +44,20 @@ WORKDIR /app/packages/middleware
 # RUN PRISMA_CLI_BINARY_TARGETS="linux-musl-openssl-3.0.x" pnpm run prisma:generate
 RUN pnpm run prisma:generate
 
-RUN mkdir -p /root  && mkdir -p /root/smythos-data && echo '{}' > /root/smythos-data/vault.json
-
+RUN mkdir -p /home/node/smythos-data && echo '{}' > /home/node/smythos-data/vault.json
 
 COPY docker-entrypoint.sh /app/start.sh
 RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
+# Change ownership of app directory to node user (excluding node_modules for performance)
+RUN find /app -not -path "*/node_modules/*" -exec chown node:node {} + && \
+    chown -R node:node /home/node
+
 # Expose app port + runtime port
 EXPOSE 5050 5053
+
+# Switch to node user
+USER node
 
 # Start the application
 CMD ["/app/start.sh"]
