@@ -17,12 +17,12 @@ import {
 import { createForm, handleTemplateVars, readFormValidation, readFormValues } from './form/';
 
 import { errorToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import yaml from 'js-yaml';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import config from '../config';
 import { openLLMEmbodiment } from '../pages/builder/llm-embodiment';
-import { PostHog } from '../services/posthog';
 import { smythValidator } from './form/';
 import { getIconFormEmbTab, rightSidebarTitle } from './right-sidebar-title';
 

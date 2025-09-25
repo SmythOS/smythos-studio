@@ -1,12 +1,12 @@
-import { Component } from '../Component.class';
-import { twEditValuesWithCallback, closeTwDialog } from '../../ui/tw-dialogs';
-import { parseJson } from '../../utils/data.utils';
-import { JsonFieldSynchronizer } from '../../lib/JsonFieldSynchronizer.class';
-import { JSON_FIELD_CLASS } from '../../constants';
-import { PostHog } from '../../services/posthog';
+import { PostHog } from '@src/shared/posthog';
 import { lsCache } from '../../../shared/Cache.class';
-import { Workspace } from '../../workspace/Workspace.class';
 import { MOCK_DATA_CACHE_KEY } from '../../../shared/constants/general';
+import { JSON_FIELD_CLASS } from '../../constants';
+import { JsonFieldSynchronizer } from '../../lib/JsonFieldSynchronizer.class';
+import { closeTwDialog, twEditValuesWithCallback } from '../../ui/tw-dialogs';
+import { parseJson } from '../../utils/data.utils';
+import { Workspace } from '../../workspace/Workspace.class';
+import { Component } from '../Component.class';
 
 declare var workspace: Workspace;
 
@@ -210,7 +210,7 @@ export function saveMockOutputs(component: Component) {
             try {
               await insertOrUpdateMockData(component.uid, { enabled: true, data: { outputs } });
 
-              PostHog.track('app_set_mock_data');
+              PostHog.track('app_set_mock_data', {});
 
               resolve('saved');
             } finally {

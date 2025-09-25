@@ -94,7 +94,7 @@ const ResponseView = () => {
 
   const getDebugComponent = () => {
     try {
-      const featureVariant = PostHog.getFeatureFlagValue(
+      const featureVariant = PostHog.getFeatureFlag(
         FEATURE_FLAGS.TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT,
       ) as string;
 

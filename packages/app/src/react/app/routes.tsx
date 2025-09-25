@@ -28,7 +28,7 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
     const { subs } = userInfoCtx?.userInfo ?? {};
     const planNameLower = subs?.plan?.name?.toLowerCase() || '';
     const isBuilderPlan = planNameLower === PRICING_PLANS_V4.BUILDER.toLowerCase();
-    const flagValue = PostHog.getFeatureFlagValue(FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN);
+    const flagValue = PostHog.getFeatureFlag(FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN);
 
     if (isBuilderPlan && typeof flagValue !== 'boolean' && flagValue !== 'variant_1') {
       useGetBookAnIntroCall({
@@ -75,8 +75,8 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
           ? avatar.includes('google')
             ? 'google'
             : avatar.includes('github')
-            ? 'github'
-            : 'other'
+              ? 'github'
+              : 'other'
           : 'email',
         planName,
         isDefaultPlan,
@@ -90,7 +90,8 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
       // Reload feature flags after user identification
       PostHog.reloadFeatureFlags();
 
-      setTimeout(checkFeatureFlag, 1000);
+      // Wait a bit longer for flags to reload before checking features
+      setTimeout(checkFeatureFlag, 2000);
     }
   }, [userInfoCtx?.userInfo?.user]);
 
@@ -108,8 +109,7 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
             </div>
           ) : userInfoCtx.error && !page.skipAuth ? (
             <p>Application Error</p>
-          ) : 
-            (
+          ) : (
             <ComponentWithDocumentTitle>{page.component}</ComponentWithDocumentTitle>
           );
 
