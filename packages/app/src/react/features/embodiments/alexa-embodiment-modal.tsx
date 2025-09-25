@@ -17,6 +17,14 @@ interface VoiceEmbodimentModalProps {
    * Domain for the Voice integration.
    */
   domain: string;
+  /**
+   * Agent domains for the Voice integration.
+   */
+  agentDomains?: {
+    dev: string;
+    prod: string;
+    scheme: string;
+  };
 }
 
 /**
@@ -29,6 +37,7 @@ interface VoiceEmbodimentModalProps {
 const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   onClose,
   domain = 'your-domain.com',
+  agentDomains,
 }) => {
   const [copied, setCopied] = useState({
     voice: false,
@@ -37,7 +46,11 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   });
 
   // Get agent domains and scheme from builderStore
-  const { dev: devDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
+  const {
+    dev: devDomain,
+    prod: prodDomain,
+    scheme,
+  } = agentDomains || builderStore.getState().agentDomains;
 
   // Calculate Dev and Prod URLs (same pattern as agent-settings)
   const devUrl = devDomain && scheme ? `${scheme}://${devDomain}/alexa` : '';

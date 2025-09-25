@@ -11,6 +11,7 @@ import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
 import VoiceDialog from '../agent-settings/dialogs/Voice';
+import VoiceEmbodimentModalWrapper from './alexa-embodiment-modal-wrapper';
 import ChatbotEmbodimentModal from './chatbot-embodiment-modal';
 import FormEmbodimentModal from './form-embodiment-modal';
 import GptEmbodimentModal from './gpt-embodiment-modal';
@@ -199,7 +200,11 @@ export const getVoiceDialog = (
 };
 
 export const getCodeSnippetModal = (
-  embodimentType: EMBODIMENT_TYPE.FORM | EMBODIMENT_TYPE.CHAT_BOT | EMBODIMENT_TYPE.CHAT_GPT,
+  embodimentType:
+    | EMBODIMENT_TYPE.FORM
+    | EMBODIMENT_TYPE.CHAT_BOT
+    | EMBODIMENT_TYPE.CHAT_GPT
+    | EMBODIMENT_TYPE.ALEXA,
   isOpen: boolean,
   closeModal: () => void,
   agent,
@@ -237,6 +242,13 @@ export const getCodeSnippetModal = (
         showBackButton={false}
         agentId={agentId}
       />,
+      document.body,
+    );
+  }
+
+  if (embodimentType === EMBODIMENT_TYPE.ALEXA) {
+    return createPortal(
+      <VoiceEmbodimentModalWrapper onClose={closeModal} domain={agent?.domain?.[0]?.name} />,
       document.body,
     );
   }

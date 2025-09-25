@@ -174,7 +174,8 @@ export function structureAgentSetting(
       if (
         (key === EMBODIMENT_TYPE.CHAT_BOT ||
           key === EMBODIMENT_TYPE.FORM ||
-          key === EMBODIMENT_TYPE.CHAT_GPT) &&
+          key === EMBODIMENT_TYPE.CHAT_GPT ||
+          key === EMBODIMENT_TYPE.ALEXA) &&
         shouldCodeSnippetVisible(key, {
           canUseEmbodiments: agentData.canUseEmbodiments,
           isReadOnlyAccess: agentData.isReadOnlyAccess,
@@ -207,7 +208,8 @@ const shouldCodeSnippetVisible = (
   return (
     (embodimentType === EMBODIMENT_TYPE.CHAT_BOT ||
       embodimentType === EMBODIMENT_TYPE.FORM ||
-      embodimentType === EMBODIMENT_TYPE.CHAT_GPT) &&
+      embodimentType === EMBODIMENT_TYPE.CHAT_GPT ||
+      embodimentType === EMBODIMENT_TYPE.ALEXA) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
   );
@@ -225,7 +227,6 @@ const shouldConfigurationVisible = (
     !agentData.isReadOnlyAccess &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.API.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.MCP.toLocaleLowerCase() &&
-    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.ALEXA.toLocaleLowerCase() &&
     // NOTE: TEMPORARY DISABLE CONFIGURATION FOR AGENT LLM
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.LLM.toLocaleLowerCase()
   );
