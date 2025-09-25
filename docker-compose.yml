@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Traefik Reverse Proxy
   traefik:
@@ -176,7 +174,7 @@ services:
       - "traefik.http.middlewares.smythos.headers.ReferrerPolicy=strict-origin-when-cross-origin"
 
     volumes:
-      - smythos_data:/root/smythos-data
+      - smythos_data:/home/node/smythos-data
     networks:
       - smythos-network
     depends_on:
