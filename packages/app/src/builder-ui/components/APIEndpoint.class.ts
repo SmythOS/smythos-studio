@@ -1,8 +1,8 @@
+import { PostHog } from '@src/shared/posthog';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import EventEmitter from '../EventEmitter.class';
 import { openEmbodimentDialog } from '../pages/builder/agent-settings';
-import { PostHog } from '../services/posthog';
 import { confirm } from '../ui/dialogs';
 import { renderEndpointFormPreviewSidebar } from '../ui/react-injects';
 import { delay } from '../utils';

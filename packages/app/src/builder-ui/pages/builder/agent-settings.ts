@@ -1,12 +1,12 @@
 import { PRIMARY_BUTTON_STYLE } from '@src/react/shared/constants/style';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import { EMBODIMENT_DESCRIPTIONS, SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
 import { EmbodimentRPCManager } from '../../../shared/services/embodiment_rpc_manager';
 import { builderStore } from '../../../shared/state_stores/builder/store';
 import { userSettingKeys } from '../../../shared/userSettingKeys';
 import { Component } from '../../components/Component.class';
-import { PostHog } from '../../services/posthog';
 import {
   confirm,
   createEmbodimentSidebar,
