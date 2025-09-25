@@ -134,15 +134,6 @@ docker build -t smythos-ui:v1.0.0 .
 ### Running the Container
 
 ```bash
-# Run with external database
-docker run -d \
-  --name smythos-app \
-  -p 5050:5050 \
-  -p 5053:5053 \
-  -e DATABASE_URL="mysql://user:password@host:3306/database" \
-  -v smythos_data:/root/smythos-data \
-  smythos-ui:latest
-
 # Run with environment file
 docker run -d \
   --name smythos-app \
