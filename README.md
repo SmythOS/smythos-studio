@@ -78,7 +78,7 @@ docker run -d \
   -p 5050:5050 \
   -p 5053:5053 \
   --env-file .env \
-  -v smythos_data:/root/smythos-data \
+  -v smythos_data:/home/node/smythos-data \
   smythos-ui:latest
 ```
 
