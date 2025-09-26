@@ -151,14 +151,14 @@ services:
       - "traefik.http.services.smythos-runtime.loadbalancer.server.port=5053"
       
       # PROD_AGENT_DOMAIN routing to port 5053 (Production Agents)
-      - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`) || HostRegexp(`^.+\\.${PROD_AGENT_DOMAIN:-prod\\.localhost}$`)"
+      - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`) || HostRegexp(`^.+\\.${PROD_AGENT_DOMAIN:-prod\\.localhost}$$`)"
       - "traefik.http.routers.smythos-prod-agents.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-prod-agents.service=smythos-runtime"
       - "traefik.http.routers.smythos-prod-agents.tls=true"
       - "traefik.http.routers.smythos-prod-agents.tls.certresolver=le"
       
       # DEFAULT_AGENT_DOMAIN routing to port 5053 (Default/Development Agents)
-      - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`) || HostRegexp(`^.+\\.${DEFAULT_AGENT_DOMAIN:-default\\.localhost}$`)"
+      - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`) || HostRegexp(`^.+\\.${DEFAULT_AGENT_DOMAIN:-default\\.localhost}$$`)"
       - "traefik.http.routers.smythos-default-agents.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-default-agents.service=smythos-runtime"
       - "traefik.http.routers.smythos-default-agents.tls=true"
