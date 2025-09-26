@@ -41,11 +41,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   const events = entry.events || {};
 
   const div = document.createElement('div');
-  div.className = 'form-box p-4';
+  div.className = 'form-box px-4 py-2';
   div.classList.add('form-group');
   div.classList.add(`form-group-${entry.type}`);
   div.setAttribute('data-field-name', entry.name);
-  if (!entry.class) entry.class = 'mt-1 mb-0';
+  if (!entry.class) entry.class = 'mb-0';
 
   if (entry.class)
     entry.class.split(' ').forEach((cls) => cls.trim() && div.classList.add(cls.trim()));

@@ -566,6 +566,7 @@
 
 .form-section-content {
   border-width: 0px !important;
+  border-bottom: 1px solid #e0e0e0 !important;
 }
 
 .form-section .form-section-content {
@@ -574,6 +575,10 @@
 
 .right-sidebar .form-html {
   padding: 8px !important;
+}
+
+.right-sidebar .form-group-toggle label {
+  margin-bottom: 0 !important;
 }
 
 /* Ensure tooltip inside right sidebar title is not clipped */

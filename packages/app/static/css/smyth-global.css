@@ -647,6 +647,7 @@ button.editIconsm {
 
 .section.form-section-toggle.active-toggle {
   font-weight: 700;
+  border-bottom: 0 !important;
 }
 .section.form-section-toggle.active-toggle::before {
   transform: rotate(0deg);

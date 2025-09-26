@@ -116,8 +116,9 @@ export class APIEndpoint extends Component {
             endpointLabel.parentElement.style.display = 'none';
 
             let newVal = getValidEndpoint(endpointInput.value || '');
-            endpointLabelText.style.display =
-              endpointInput.value && newVal != endpointInput.value.trim() ? 'flex' : 'none';
+            const showLabelText = endpointInput.value && newVal != endpointInput.value.trim();
+            endpointLabelText.style.display = showLabelText ? 'flex' : 'none';
+            endpointLabelText.parentElement.style.display = showLabelText ? 'block' : 'none';
             if (endpointInput.value) {
               let value = getEndpointFinalURL(getValidEndpoint(endpointInput.value));
               endpointLabelText.innerHTML = value;

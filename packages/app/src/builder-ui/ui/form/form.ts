@@ -157,7 +157,7 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
         const collapseToggle = document.createElement('button');
         collapseToggle.setAttribute(
           'class',
-          'section w-full form-section-toggle pl-4 text-sm flex items-center gap-2 py-5 border-solid border-b border-t border-gray-200',
+          'section w-full form-section-toggle pl-4 text-sm flex items-center gap-2 py-5 border-solid border-b border-t border-gray-200 my-2 hover:bg-gray-100',
         );
         collapseToggle.setAttribute('id', `collapse_toggle_${sectionName}`);
         //collapseToggle.setAttribute('data-target', sectionName);
