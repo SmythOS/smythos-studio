@@ -12,8 +12,7 @@ The complete visual interface for building, deploying, and managing intelligent 
 
 1. **Visual Agent Building**: Creating AI agents should be as intuitive as drawing a flowchart.
 2. **No-Code to Pro-Code**: Start with visual building, extend with custom code when needed.
-3. **Production-Ready**: From prototype to production deployment in minutes.
-4. **Open Architecture**: Build once, deploy anywhere with complete control over your infrastructure.
+3. **Open Architecture**: Build once, deploy anywhere with complete control over your infrastructure.
 
 ## Design Principles
 
@@ -84,7 +83,7 @@ docker run -d \
 
 **Access your application:** http://localhost:5050
 
-🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for production-ready multi-container deployment with automatic SSL, database, and caching.
+🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for deploying the app with automatic SSL, database, and caching.
 
 ---
 
