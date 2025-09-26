@@ -4,7 +4,7 @@ Welcome! We're excited that you want to contribute to SmythOS UI, the comprehens
 
 ## Contents
 
-- [Contributing to SmythOS UI](#contributing-to-smythos-ui)
+- [Contributing to SmythOS UI](#contributing-to-smythos-studio)
 	- [Contents](#contents)
 	- [Code of Conduct](#code-of-conduct)
 	- [Repository Structure](#repository-structure)
@@ -14,7 +14,7 @@ Welcome! We're excited that you want to contribute to SmythOS UI, the comprehens
 			- [pnpm](#pnpm)
 				- [pnpm workspaces](#pnpm-workspaces)
 			- [corepack](#corepack)
-		- [Setting Up SmythOS UI](#setting-up-smythos-ui)
+		- [Setting Up SmythOS UI](#setting-up-smythos-studio)
 		- [Starting the Application](#starting-the-application)
 	- [Development Workflow](#development-workflow)
 		- [Basic Development Process](#basic-development-process)
@@ -82,17 +82,17 @@ Install the correct pnpm version using `corepack prepare pnpm@10.12.2 --activate
 
 2. Clone your forked repository:
    ```bash
-   git clone https://github.com/<your_github_username>/smythos-ui.git
+   git clone https://github.com/<your_github_username>/smythos-studio.git
    ```
 
 3. Navigate to the repository:
    ```bash
-   cd smythos-ui
+   cd smythos-studio
    ```
 
 4. Add the original repository as upstream:
    ```bash
-   git remote add upstream https://github.com/SmythOS/smythos-ui.git
+   git remote add upstream https://github.com/SmythOS/smythos-studio.git
    ```
 
 5. **Set up MySQL Database** (Required):
