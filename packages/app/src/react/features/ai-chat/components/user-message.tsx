@@ -5,9 +5,10 @@ import { FC } from 'react';
 interface IUserMessage {
   message: string;
   files?: FileWithMetadata[];
+  hideMessage?: boolean;
 }
 
-export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
+export const UserMessage: FC<IUserMessage> = ({ message, files, hideMessage = false }) => {
   return (
     <div className="break-all flex flex-col items-end">
       {files && files.length > 0 && (
@@ -23,7 +24,7 @@ export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
           ))}
         </div>
       )}
-      {message && (
+      {!hideMessage && message && (
         <div className="rounded-[18px] bg-[#f4f4f4] text-[#2b2b2b] p-3 px-4 w-fit whitespace-pre-wrap text-wrap max-w-[535px]">
           {message}
         </div>

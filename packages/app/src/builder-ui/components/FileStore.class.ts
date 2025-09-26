@@ -21,6 +21,7 @@ export class FileStore extends Component {
         type: 'select',
         label: 'TTL',
         help: 'Set how long the public link stays valid before it expires. <a href="https://smythos.com/docs/agent-studio/components/base/filestore/?utm_source=studio&utm_medium=tooltip&utm_campaign=filestore&utm_content=ttl#step-1-define-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See TTL options</a>',
+        value: '86400', // Default to 1 day
         tooltipClasses: 'w-28',
         arrowClasses: '-ml-11',
         options: [
@@ -47,6 +48,11 @@ export class FileStore extends Component {
         ],
       },
     };
+
+    const dataEntries = ['name', 'ttl'];
+    for (let item of dataEntries) {
+      if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    }
 
     this.properties.defaultOutputs = ['Url'];
     this.properties.defaultInputs = ['Data'];

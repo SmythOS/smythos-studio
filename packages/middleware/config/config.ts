@@ -19,12 +19,12 @@ if (!rootPath) {
   process.exit(1);
 }
 
-const getDefaultDataPath = () => {
+const getLocalStoragePath = () => {
   const homeDir = os.homedir();
   return path.join(homeDir, 'smythos-data');
 };
 
-const dataPath = process.env.DATA_PATH || getDefaultDataPath();
+const LOCAL_STORAGE_PATH = getLocalStoragePath();
 
 // Default to SQLite if no DATABASE_URL is provided (not working yet)
 
@@ -39,7 +39,8 @@ export const config = {
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
     DATABASE_NAME: process.env.DATABASE_NAME,
     DATABASE_URL: process.env.DATABASE_URL,
-    VAULT_FILE_PATH: path.join(dataPath, 'vault.json'),
+    LOCAL_STORAGE_PATH,
+    SRE_STORAGE_PATH: path.join(LOCAL_STORAGE_PATH, '.smyth'),
   },
 
   package: {

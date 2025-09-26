@@ -17,12 +17,12 @@ import {
 import { createForm, handleTemplateVars, readFormValidation, readFormValues } from './form/';
 
 import { errorToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import yaml from 'js-yaml';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import config from '../config';
 import { openLLMEmbodiment } from '../pages/builder/llm-embodiment';
-import { PostHog } from '../services/posthog';
 import { smythValidator } from './form/';
 import { getIconFormEmbTab, rightSidebarTitle } from './right-sidebar-title';
 
@@ -366,6 +366,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     'Custom GPT': 'Test in ChatGPT',
     'Postman Integration': 'Test in Postman',
     LLM: 'Test as LLM',
+    'Alexa Skill': 'Test with Voice',
   };
   let currentKey = null;
   // Create tabs from EMBODIMENT_DESCRIPTIONS
@@ -1060,6 +1061,7 @@ interface SidebarOptions {
   onCancel?: (sidebar) => void;
   onLoad?: (sidebar: HTMLElement) => void;
   helpTooltip?: string;
+  isSettingsChanged?: () => boolean;
 }
 
 export function sidebarEditValues({
@@ -1076,6 +1078,7 @@ export function sidebarEditValues({
   onCancel = (sidebar) => {},
   onLoad = (sidebar) => {},
   helpTooltip = '',
+  isSettingsChanged = () => false,
 }: SidebarOptions): Promise<any> | null {
   return new Promise(async (resolve) => {
     const sidebar = await createRightSidebar(
@@ -1165,8 +1168,9 @@ export function sidebarEditValues({
             const values = await readRightSidebarValues(sidebar);
             if (values && typeof onDraft === 'function') {
               onDraft(values);
+              performAutoSave();
             }
-          }, 300);
+          }, 500);
 
           // Listen for immediate input changes (text inputs, textareas)
           _form.addEventListener(
@@ -1175,6 +1179,25 @@ export function sidebarEditValues({
               const target = event.target as HTMLElement;
               if (target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea')) {
                 debouncedDraft();
+
+                // Handle textarea overflow for component sidebar
+                if (target.matches('textarea')) {
+                  const textarea = target as HTMLTextAreaElement;
+                  setTimeout(() => {
+                    // Remove MetroUI class that interferes
+                    textarea.parentElement?.classList.remove('no-scroll-vertical');
+
+                    // Show/hide scrollbar only when content exceeds available space
+                    // Account for borders: offsetHeight includes borders, clientHeight doesn't
+                    const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+                    const maxContentHeight = 176 - borderHeight;
+                    const needsScroll = textarea.scrollHeight > maxContentHeight;
+
+                    // Use CSS classes instead of inline styles to override MetroUI
+                    textarea.classList.remove('overflow-y-auto', 'overflow-y-hidden');
+                    textarea.classList.add(needsScroll ? 'overflow-y-auto' : 'overflow-y-hidden');
+                  }, 0);
+                }
               }
             },
             true,
@@ -1187,6 +1210,44 @@ export function sidebarEditValues({
               const target = event.target as HTMLElement;
               if (target.matches('select, input[type="checkbox"], input[type="radio"]')) {
                 debouncedDraft();
+              }
+            },
+            true,
+          );
+
+          // Listen for tag creation via keyboard (Enter, Space, Comma)
+          _form.addEventListener(
+            'keydown',
+            (event: KeyboardEvent) => {
+              const target = event.target as HTMLElement;
+              // Check if this is a tag input and a tag creation key
+              if (
+                target.closest('.tag-input') &&
+                (event.key === 'Enter' || event.key === ' ' || event.key === ',')
+              ) {
+                const input = target as HTMLInputElement;
+                if (input.value.trim()) {
+                  // Tag will be created, trigger auto-save after a small delay
+                  setTimeout(() => {
+                    debouncedDraft();
+                  }, 100);
+                }
+              }
+            },
+            true,
+          );
+
+          // Listen for tag removal via click on X button
+          _form.addEventListener(
+            'click',
+            (event: Event) => {
+              const target = event.target as HTMLElement;
+              // Check if this is a tag removal button
+              if (target.classList.contains('remover') && target.closest('.tag-input')) {
+                // Tag is being removed, trigger auto-save after a small delay
+                setTimeout(() => {
+                  debouncedDraft();
+                }, 50);
               }
             },
             true,
@@ -1212,10 +1273,14 @@ export function sidebarEditValues({
       handleTemplateVars(sidebarContent);
     }
 
-    const performSaveAndClose = async (e?: MouseEvent) => {
+    const performAutoSave = async (e?: MouseEvent) => {
+      const changed = isSettingsChanged();
+      if (!changed) {
+        return;
+      }
+
       const result = {};
       let saveBeforeCloseState = 0;
-      let validationToastShown = false;
 
       for (let tab in forms) {
         const form = forms[tab].form;
@@ -1232,10 +1297,6 @@ export function sidebarEditValues({
           closestScrollable.scrollTo({ top: invalid.offsetTop - 50, behavior: 'smooth' });
         }
         if (invalid) {
-          if (!validationToastShown) {
-            errorToast('Please fix the highlighted fields and try again.', 'Validation Error');
-            validationToastShown = true;
-          }
           saveBeforeCloseState = 2;
         }
 
@@ -1251,22 +1312,27 @@ export function sidebarEditValues({
         return false;
       }
       if (typeof onSave === 'function') onSave.apply({ sidebar }, [result]);
-      closeRightSidebar();
       window['workspace']?.emit?.('componentUpdated', result);
       resolve(result);
+      return true;
     };
 
     const closeBtn: HTMLButtonElement = sidebar.querySelector('.close-btn');
     if (closeBtn) {
       closeBtn.onclick = async (e) => {
-        // Save on 'x' only for standard single-tab Settings sidebars
-        const tabKeys = Object.keys(forms || {});
-        const isStandardSettings = tabKeys.length === 1 && tabKeys[0] === 'Settings';
-        if (isStandardSettings) {
-          return performSaveAndClose(e as any);
+        let saveResult = null;
+        // Check if there are unsaved changes and save them before closing
+        const changed = isSettingsChanged();
+        if (changed) {
+          // Try to save changes before closing
+          saveResult = await performAutoSave(e);
+          if (saveResult === false) {
+            // If save failed due to validation errors, don't close
+            return;
+          }
         }
 
-        if (typeof onBeforeCancel === 'function') {
+        if (typeof onBeforeCancel === 'function' && !saveResult) {
           const canClose = await onBeforeCancel.apply({ sidebar }, [sidebar]);
           if (!canClose) return;
         }
@@ -1951,7 +2017,7 @@ function getNavText(key: string, title: string): string {
     postman: 'Postman',
     chatgpt: 'GPT',
     agent_skill: 'Form',
-    alexa: 'Alexa',
+    alexa: 'Voice',
     mcp: 'MCP',
   };
 

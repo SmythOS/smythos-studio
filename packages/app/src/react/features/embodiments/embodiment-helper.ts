@@ -13,6 +13,7 @@ import {
   getEmbodimentIcon,
   getEmbodimentTitle,
   getFormPreviewDialog,
+  getVoiceDialog,
 } from './embodiment-configs';
 
 type AgentSetting = {
@@ -153,8 +154,18 @@ export function structureAgentSetting(
           modalHandlers.embodimentsData?.find(
             (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.FORM,
           ),
-          modalHandlers.refreshEmbodiments,
-          modalHandlers.activeModal,
+        );
+      }
+
+      if (key === EMBODIMENT_TYPE.ALEXA) {
+        result.dialogComponent = getVoiceDialog(
+          modalHandlers.activeModal === key, // Pass visibility state
+          modalHandlers.closeModal,
+          modalHandlers.agent,
+          agentData.agentId,
+          modalHandlers.embodimentsData?.find(
+            (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.ALEXA,
+          ),
         );
       }
 
@@ -163,8 +174,13 @@ export function structureAgentSetting(
       if (
         (key === EMBODIMENT_TYPE.CHAT_BOT ||
           key === EMBODIMENT_TYPE.FORM ||
-          key === EMBODIMENT_TYPE.CHAT_GPT) &&
-        shouldCodeSnippetVisible(key, agentData)
+          key === EMBODIMENT_TYPE.CHAT_GPT ||
+          key === EMBODIMENT_TYPE.ALEXA) &&
+        shouldCodeSnippetVisible(key, {
+          canUseEmbodiments: agentData.canUseEmbodiments,
+          isReadOnlyAccess: agentData.isReadOnlyAccess,
+          agentDeployed: !!agentData.agentDeployed,
+        })
       ) {
         result.codeSnippetComponent = getCodeSnippetModal(
           key,
@@ -192,7 +208,8 @@ const shouldCodeSnippetVisible = (
   return (
     (embodimentType === EMBODIMENT_TYPE.CHAT_BOT ||
       embodimentType === EMBODIMENT_TYPE.FORM ||
-      embodimentType === EMBODIMENT_TYPE.CHAT_GPT) &&
+      embodimentType === EMBODIMENT_TYPE.CHAT_GPT ||
+      embodimentType === EMBODIMENT_TYPE.ALEXA) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
   );
@@ -210,7 +227,6 @@ const shouldConfigurationVisible = (
     !agentData.isReadOnlyAccess &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.API.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.MCP.toLocaleLowerCase() &&
-    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.ALEXA.toLocaleLowerCase() &&
     // NOTE: TEMPORARY DISABLE CONFIGURATION FOR AGENT LLM
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.LLM.toLocaleLowerCase()
   );

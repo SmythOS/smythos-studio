@@ -5,6 +5,7 @@ import {
   TChatBotProperties,
   TFormPreviewProperties,
   TGptEmbodimentProperties,
+  TVoiceProperties,
 } from '@react/shared/types/embodiment.types';
 import * as Yup from 'yup';
 
@@ -131,6 +132,13 @@ export const mapFormPreviewEmbodimentProperties = (
     name: properties?.name || activeAgent?.name || '',
     allowedDomains: properties?.allowedDomains || [],
     outputPreview: properties?.outputPreview || false,
+  };
+};
+
+export const mapVoiceEmbodimentProperties = (properties: TVoiceProperties, activeAgent) => {
+  return {
+    name: properties?.name || activeAgent?.name || '',
+    allowedDomains: properties?.allowedDomains || [],
   };
 };
 

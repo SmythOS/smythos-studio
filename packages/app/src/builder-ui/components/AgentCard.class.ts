@@ -1,8 +1,8 @@
 import { TooltipV2 } from '@src/react/shared/components/_legacy/ui/tooltip/tooltipV2';
+import { PostHog } from '@src/shared/posthog';
 import interact from 'interactjs';
 import jsPlumb from 'jsplumb';
 import EventEmitter from '../EventEmitter.class';
-import { PostHog } from '../services/posthog';
 import { ComponentProperties, DrawSettingsType, Settings } from '../types/component.types';
 import { alert, openAgentSettingsRightSidebar } from '../ui/dialogs';
 import { renderAgentSettingsSidebar } from '../ui/react-injects';
@@ -608,7 +608,7 @@ export class AgentCard extends EventEmitter {
         destroyCanvasContextMenu();
         e.stopPropagation();
 
-        PostHog.track('app_preview_as_chatbot_click');
+        PostHog.track('app_preview_as_chatbot_click', {});
 
         const embodimentTestButton = document.querySelector('#btn-emb-chatbot-main');
         const embodimentOpened = document.querySelector(

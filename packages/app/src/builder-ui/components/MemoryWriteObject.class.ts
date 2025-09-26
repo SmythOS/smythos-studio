@@ -1,37 +1,22 @@
 import { Component } from './Component.class';
 
-export class MemoryWriteKeyVal extends Component {
+export class MemoryWriteObject extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {
       memoryName: {
         type: 'input',
         label: 'Memory Name',
-        help: 'Select the key-value store to write into (e.g., \'crm_cache\'). <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
-        value: 'default',
+        value: '',
+        hint: 'Enter memory name',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
-        attributes: { 'data-template-vars': 'true' },
-      },
-      key: {
-        type: 'input',
-        label: 'Key',
-        help: 'Key for the value; supports dynamic inputs like {{user.id}}. <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
-        value: '{{Key}}',
-        validate: `maxlength=50`,
-        attributes: { 'data-template-vars': 'true' },
-      },
-      value: {
-        type: 'textarea',
-        label: 'Value',
-        help: 'Data to save: string, number, or JSON. <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
-        value: '{{Value}}',
         attributes: { 'data-template-vars': 'true' },
       },
       scope: {
         type: 'select',
         label: 'Scope',
-        help: 'Pick persistence: session, user, or project. <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
+        hint: 'Memory Scope',
         value: 'ttl',
         options: [
           { value: 'ttl', text: 'TTL' },
@@ -70,17 +55,17 @@ export class MemoryWriteKeyVal extends Component {
       },
     };
 
-    const dataEntries = ['key', 'value'];
-    for (let item of dataEntries) {
-      if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
-    }
+    // const dataEntries = ['key', 'value'];
+    // for (let item of dataEntries) {
+    //   if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    // }
 
     // #endregion
 
     // #region [ I/O config ] ==================
-    this.properties.defaultOutputs = ['Key'];
+    this.properties.defaultOutputs = ['Keys'];
     this.properties.defaultInputs = [];
-    if (this.properties.inputs.length == 0) this.properties.inputs = ['Key', 'Value'];
+    if (this.properties.inputs.length == 0) this.properties.inputs = ['Data'];
     // #endregion
 
     // #region [ Draw config ] ==================

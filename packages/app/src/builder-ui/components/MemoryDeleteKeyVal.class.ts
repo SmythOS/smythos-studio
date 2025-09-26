@@ -1,22 +1,12 @@
 import { Component } from './Component.class';
 
-export class MemoryReadKeyVal extends Component {
+export class MemoryDeleteKeyVal extends Component {
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {
       memoryName: {
         type: 'input',
         label: 'name',
-        value: '',
-        help: 'Select the key-value store to query (e.g., \'crm_cache\'). <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
-        validate: `maxlength=50`,
-        validateMessage: 'Enter a non-empty name, not more than 50 characters.',
-      },
-      scope: {
-        type: 'select',
-        label: 'Scope',
-        help: 'Choose session, user, or project for the lookup. <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
-        options: ['Session'],
         value: 'default',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
@@ -26,21 +16,10 @@ export class MemoryReadKeyVal extends Component {
         type: 'input',
         label: 'Key',
         value: '{{Key}}',
-        hint: 'Key to read from memory',
+        hint: 'Key to delete from memory',
         validate: `maxlength=50`,
         attributes: { 'data-template-vars': 'true' },
       },
-      // scope: {
-      //   type: 'select',
-      //   label: 'Scope',
-      //   hint: 'Memory Scope',
-      //   value: 'Session',
-      //   options: [
-      //     { value: 'session', text: 'Session' },
-      //     { value: 'workflow', text: 'Workflow' },
-      //     { value: 'ttl', text: 'TTL' },
-      //   ],
-      // },
     };
 
     const dataEntries = ['key'];
@@ -52,7 +31,7 @@ export class MemoryReadKeyVal extends Component {
     // #endregion
 
     // #region [ I/O config ] ==================
-    this.properties.defaultOutputs = ['Value'];
+    this.properties.defaultOutputs = ['Key'];
     this.properties.defaultInputs = [];
     if (this.properties.inputs.length == 0) this.properties.inputs = ['Key'];
     // #endregion
@@ -61,11 +40,9 @@ export class MemoryReadKeyVal extends Component {
     //this.drawSettings.showSettings = false;
     this.drawSettings.iconCSSClass = 'svg-icon Memory ' + this.constructor.name;
     this.drawSettings.addOutputButton = ' ';
-    this.drawSettings.addInputButton = ' ';
-    this.drawSettings.addInputButtonLabel = ' ';
     // this.drawSettings.addInputButton = ' + Entry';
-    //this.drawSettings.addInputButton = ' + Mem Entry';
-    //this.drawSettings.addOutputButton = ' + Mem Output';
+    this.drawSettings.addInputButton = 'Mem Entry';
+    this.drawSettings.addOutputButtonLabel = ' ';
     // #endregion
   }
 }

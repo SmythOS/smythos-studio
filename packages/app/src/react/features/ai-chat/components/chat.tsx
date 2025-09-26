@@ -29,8 +29,8 @@ export const Chat: FC<ChatProps> = ({
   scrollToBottom,
 }) => {
   if (isReplying || isRetrying) return <ReplyLoader />;
-  if (me && !hideMessage) return <UserMessage message={message} files={files} />;
   if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
+  if (me) return <UserMessage message={message} files={files} hideMessage={hideMessage} />;
 
   return !hideMessage ? (
     <SystemMessage

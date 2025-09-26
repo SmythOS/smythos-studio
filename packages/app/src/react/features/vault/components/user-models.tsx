@@ -113,7 +113,6 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
                 // Validate length on every change, but not emptiness
                 validateApiKey(e.target.value, false);
               }}
-              className="min-h-[80px]"
               error={!!apiKeyError}
               errorMessage={apiKeyError}
               fullWidth

@@ -1,9 +1,9 @@
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import interact from 'interactjs';
 import { jsonrepair } from 'jsonrepair';
 import { Component } from './components/Component.class';
 import SmythFile from './lib/SmythFile.class';
-import { PostHog } from './services/posthog';
 import { alert, modalDialog } from './ui/dialogs';
 import { twModalDialog } from './ui/tw-dialogs';
 import { delay } from './utils';
@@ -578,7 +578,7 @@ export async function runDebug() {
   runBtn.classList.add('running');
   isRunning = true;
 
-  PostHog.track('app_run_agent');
+  PostHog.track('app_run_agent', {});
 
   let sessionID;
   let processComponents = true;
@@ -931,9 +931,10 @@ function getFormattedContent(content, compName?) {
   let rawContent = typeof content != 'string' ? JSON.stringify(content, null, 2) : content;
   rawContent = rawContent.replace(/\\n/g, '\n');
 
-  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${
-    rawContent === '' ? '[empty string]' : rawContent
-  }</textarea>${previewBtn}`;
+  // Escape HTML content to prevent XSS attacks when displaying Web Scrape output
+  const escapedContent = rawContent === '' ? '[empty string]' : escapeHTML(rawContent);
+
+  content = `<textarea readonly class="dbg dbg-textarea text-gray-800">${escapedContent}</textarea>${previewBtn}`;
 
   return content;
 }

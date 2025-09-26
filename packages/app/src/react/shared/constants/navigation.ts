@@ -46,7 +46,7 @@ export const profileDropdownItems = () => {
   ).flatMap((item) => item.config);
 
   return [
-    { url: '/account', name: 'Account' },
+    // { url: '/account', name: 'Account' },
     // { url: '/teams/members', name: 'User Management' },
     ...pluginItems,
     { url: '/teams/settings', name: 'User Management' },

@@ -1,12 +1,8 @@
-import { AgentsGrid, AgentsHeader, GenerateAgentForm } from '@react/features/agents/components';
+import { AgentsGrid, AgentsHeader } from '@react/features/agents/components';
 import ModelAgentsSection from '@react/features/agents/components/model-agents-section';
-import { useOnboarding } from '@react/features/agents/contexts/OnboardingContext';
 import { useAgentsData } from '@react/features/agents/hooks/useAgentsData';
 import { useAgentsPageTutorial } from '@react/features/agents/hooks/useAgentsPageTutorial';
-import {
-  Learn,
-  OnboardingTasks,
-} from '@react/features/onboarding/components/agent-onboarding-section';
+import { Learn } from '@react/features/onboarding/components/agent-onboarding-section/Learn';
 import { useGetOnboardingData } from '@react/features/onboarding/hooks/useGetUserOnboardingSettings';
 import useMutateOnboardingData from '@react/features/onboarding/hooks/useMutateOnboardingData';
 import { FeatureFlagged } from '@react/shared/components/featureFlags';
@@ -16,9 +12,8 @@ import { FEATURE_FLAGS } from '@shared/constants/featureflags';
 import { V4_ALL_PLANS } from '@shared/constants/general';
 import { Analytics } from '@shared/posthog/services/analytics';
 import { UserSettingsKey } from '@src/backend/types/user-data';
-import { GenerateAgentFormData } from '@src/react/features/agents/types/agents.types';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
-import { plugins, PluginTarget } from '@src/react/shared/plugins/Plugins';
+import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import UpSellModal from '../components/meta/up-sell';
@@ -32,16 +27,11 @@ function AgentsPage() {
   const switchteamid = searchParams.get('switchteamid');
   const endOfPageRef = useRef<HTMLDivElement>(null);
   const saveUserSettingsMutation = useMutateOnboardingData();
-  const { isOnboardingDismissed, setOnboardingDismissed } = useOnboarding();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
 
-  // console the plugins
-  console.log('plugins', plugins.getPluginsByTarget(PluginTarget.AgentsPageSection));
-
   // Authentication and permissions
-  const { getPageAccess, userInfo, hasReadOnlyPageAccess } = useAuthCtx();
+  const { userInfo, hasReadOnlyPageAccess } = useAuthCtx();
   const { subs } = userInfo;
-  const canEditAgents = getPageAccess('/builder').write;
   const isReadOnlyAccess = hasReadOnlyPageAccess('/agents');
 
   // Custom hooks for data management
@@ -50,7 +40,6 @@ function AgentsPage() {
     isAgentsLoading,
     totalAgents,
     agentsUpdated,
-    sortCriteria,
     sortOrder,
     sortField,
     isLoadingMore,
@@ -135,42 +124,16 @@ function AgentsPage() {
     }
   };
 
-  /**
-   * Handle generate agent form submission
-   */
-  const handleGenerateAgentSubmit = (data: GenerateAgentFormData) => {
-    if (data.message.trim() || data.attachmentFile) {
-      // Redirect to builder page with chat message
-      location.href = `/builder?chat=${data.message}&from=agents-page`;
-    }
-  };
-
-  /**
-   * Handle onboarding dismissal
-   */
-  const handleOnboardingDismiss = () => {
-    saveUserSettingsMutation.mutate({
-      key: UserSettingsKey.OnboardingTasks,
-      data: {
-        [OnboardingTaskType.ONBOARDING_LIST_DISMISSED]: true,
-        [OnboardingTaskType.COMPLETED_TASK]: null,
-      },
-      operation: 'insertOrUpdate',
-    });
-
-    setOnboardingDismissed(true);
-  };
-
   return (
     <div>
       <main className="pl-12 md:pl-0">
         {/* Generate Agent Form Section */}
         <FeatureFlagged featureFlag={FEATURE_FLAGS.INITIATE_WEAVER_MESSAGE}>
-          <GenerateAgentForm onSubmit={handleGenerateAgentSubmit} canEditAgents={canEditAgents} />
+          <PluginComponents targetId={PluginTarget.AgentsPageGenerateAgentForm} />
         </FeatureFlagged>
 
         {/* Onboarding Tasks Section */}
-        {!isOnboardingDismissed && <OnboardingTasks onDismiss={handleOnboardingDismiss} />}
+        <PluginComponents targetId={PluginTarget.AgentsPageOnboardingTasks} />
 
         {/* Agents Section Header */}
         <AgentsHeader

@@ -47,11 +47,10 @@ const baseMenu: Menu = {
 
   Tools: [{ name: 'MCPClient', label: 'MCP Client', description: '', icon: 'MCP' }],
   Memory: [
-    { name: 'MemoryWriteInput', label: 'Memory Slot Write', icon: 'Memory' },
-    { name: 'MemoryWriteKeyVal', label: 'Memory Key Write', icon: 'Memory' },
-    { name: 'MemoryReadOutput', label: 'Memory Slot Read', icon: 'Memory' },
-    { name: 'MemoryReadKeyVal', label: 'Memory Key Read', icon: 'Memory' },
-    { name: 'MemoryDeleteKey', label: 'Memory Delete Key', icon: 'Memory' },
+    { name: 'MemoryWriteKeyVal', label: 'Memory Write', icon: 'Memory' },
+    { name: 'MemoryReadKeyVal', label: 'Memory Read', icon: 'Memory' },
+    { name: 'MemoryDeleteKeyVal', label: 'Memory Delete', icon: 'Memory' },
+    { name: 'MemoryWriteObject', label: 'Memory Write Multi', icon: 'Memory' },
   ],
   Crypto: [
     { name: 'FHash', label: 'F:Hash', description: '' },

@@ -1,7 +1,111 @@
+import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
+import { useQuery } from '@tanstack/react-query';
 import React, { useRef, useState } from 'react';
 import { Button } from '../../shared/components/ui/newDesign/button';
 import { Spinner } from '../../shared/components/ui/spinner';
 import ModalHeaderEmbodiment from './modal-header-embodiment';
+
+declare const workspace: Workspace;
+
+/**
+ * Safely checks if workspace is available and defined.
+ * @returns {Workspace | null} The workspace object if available, null otherwise.
+ */
+const getWorkspace = (): Workspace | null => {
+  try {
+    return typeof workspace !== 'undefined' ? workspace : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Extracts agent ID from the current context - either from workspace or URL.
+ * @returns {string | null} The agent ID if found, null otherwise.
+ */
+const getAgentId = (): string | null => {
+  // First try to get from workspace (when in builder context)
+  const safeWorkspace = getWorkspace();
+  if (safeWorkspace?.agent?.id) {
+    return safeWorkspace.agent.id;
+  }
+
+  // Fallback: extract from URL path (when in agent settings page)
+  // URL pattern: /agent-settings/{agentId}
+  const pathSegments = window.location.pathname.split('/');
+  const agentSettingsIndex = pathSegments.findIndex((segment) => segment === 'agent-settings');
+
+  if (agentSettingsIndex !== -1 && pathSegments[agentSettingsIndex + 1]) {
+    return pathSegments[agentSettingsIndex + 1];
+  }
+
+  return null;
+};
+
+/**
+ * Custom hook to fetch the latest deployment for the current agent.
+ * Works both in builder context (with workspace) and agent settings page (from URL).
+ * @returns {object} Query result containing deployment data and loading state.
+ */
+const useLatestDeployment = () => {
+  const agentId = getAgentId();
+
+  return useQuery({
+    queryKey: ['latest_deployment', agentId],
+    queryFn: async () => {
+      if (!agentId) {
+        throw new Error('No agent ID available from workspace or URL');
+      }
+
+      const response = await fetch(`/api/page/builder/ai-agent/${agentId}/deployments/latest`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest deployment');
+      }
+
+      return response.json();
+    },
+    enabled: Boolean(agentId),
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
+};
+
+/**
+ * Custom hook to fetch agent data when not available from workspace.
+ * @returns {object} Query result containing agent data including domain.
+ */
+const useAgentData = () => {
+  const agentId = getAgentId();
+  const safeWorkspace = getWorkspace();
+
+  return useQuery({
+    queryKey: ['agent_data', agentId],
+    queryFn: async () => {
+      if (!agentId) {
+        throw new Error('No agent ID available');
+      }
+
+      const response = await fetch(`/api/page/builder/ai-agent/${agentId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch agent data');
+      }
+
+      return response.json();
+    },
+    enabled: Boolean(agentId) && !safeWorkspace?.agent?.id, // Only fetch if workspace is not available
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 10 * 60 * 1000, // Consider data stale after 10 minutes
+    cacheTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
+  });
+};
 
 /**
  * Props for the ChatbotEmbodimentModal component.
@@ -47,9 +151,37 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * Get deployment status and agent data using custom query hooks.
+   */
+  const latestDeploymentQuery = useLatestDeployment();
+  const agentDataQuery = useAgentData();
+  const safeWorkspace = getWorkspace();
+
   if (typeof onClose !== 'function') {
     throw new Error('ChatbotEmbodimentModal: onClose prop must be a function');
   }
+
+  // Determine the actual domain to use - fallback to agent data if prop domain is default/invalid
+  const actualDomain = (() => {
+    // If domain prop is provided and not the default fallback, use it
+    if (domain && domain !== 'your-domain.com') {
+      return domain;
+    }
+
+    // Try to get domain from agent data (when in agent settings page)
+    if (agentDataQuery?.data?.agent?.domain) {
+      return agentDataQuery.data.agent.domain;
+    }
+
+    // Try to get domain from workspace (when in builder)
+    if (safeWorkspace?.agent?.domain) {
+      return safeWorkspace.agent.domain;
+    }
+
+    // Fallback to the prop domain (might be the default)
+    return domain;
+  })();
 
   /**
    * Ensures domain has proper protocol prefix.
@@ -69,16 +201,24 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
   const allowFileAttachments = embodimentData?.properties?.allowFileAttachments;
   const isUsingFullScreen = Boolean(isFullScreen);
 
+  /**
+   * Checks if the agent is deployed by verifying if there's a latest deployment.
+   * @returns {boolean} True if agent is deployed, false otherwise.
+   */
+  const isAgentDeployed = Boolean(
+    latestDeploymentQuery?.data?.deployment && !latestDeploymentQuery?.isLoading,
+  );
+
   const chatbotContainer = `
   <div id="smythos-chatbot-container"></div>
   <!-- Chatbot Container: You can place it anywhere you want and style it as needed -->
   `;
 
   const codeSnippet = `${isUsingFullScreen ? chatbotContainer : ''}
-    <script src="${getFullDomain(domain)}/static/embodiment/chatBot/chatbot-v2.js"></script>
+    <script src="${getFullDomain(actualDomain)}/static/embodiment/chatBot/chatbot-v2.js"></script>
     <script>
         ChatBot.init({
-            domain: '${domain}',
+            domain: '${actualDomain}',
             isChatOnly: ${isUsingFullScreen},
             ${isUsingFullScreen ? 'containerId: "smythos-chatbot-container",' : ''}
             allowAttachments: ${allowFileAttachments || false},
@@ -117,6 +257,7 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
         />
 
         {/* Content */}
+
         <div className="flex flex-col gap-4">
           {isLoading ? (
             /* Loading state */
@@ -142,6 +283,31 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
 
               {/* Code snippet container */}
               <div className="flex flex-col gap-4">
+                <div className="flex justify-end items-center text-base -mb-2 -mt-4">
+                  {isAgentDeployed ? (
+                    <a
+                      href={`${getFullDomain(actualDomain)}/chatBot`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="text-[#707070] flex items-center gap-1">
+                        Preview <ArrowRightIcon className="w-5 h-5" />
+                      </span>
+                    </a>
+                  ) : (
+                    <span
+                      className="text-gray-400 flex items-center gap-1 cursor-not-allowed tooltip-trigger relative"
+                      data-tooltip={
+                        actualDomain === 'your-domain.com'
+                          ? 'Unable to load agent domain. Please try refreshing the page.'
+                          : 'Agent needs to be deployed first to preview it.'
+                      }
+                      data-tooltip-position="left"
+                    >
+                      Preview <ArrowRightIcon className="w-5 h-5" />
+                    </span>
+                  )}
+                </div>
                 <textarea
                   ref={textareaRef}
                   readOnly

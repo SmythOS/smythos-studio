@@ -20,6 +20,7 @@ import {
   SendIcon,
 } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { extractError } from '@react/shared/utils/errors';
@@ -374,34 +375,13 @@ const ChatBotDialog = ({
                                 />
                               </div> */}
                               <div>
-                                <label
-                                  htmlFor="personality"
-                                  className="block text-[#1E1E1E] mb-1 text-base font-normal"
-                                >
-                                  Personality
-                                </label>
-                                <Field
-                                  as="textarea"
-                                  rows={2}
-                                  className="bg-white
-                                  border
-                                  text-gray-900
-                                  rounded
-                                  block
-                                  w-full
-                                  outline-none
-                                  focus:outline-none
-                                  focus:ring-0
-                                  focus:ring-offset-0
-                                  focus:ring-shadow-none
-                                  text-sm
-                                  font-normal
-                                  placeholder:text-sm
-                                  placeholder:font-normal
-                                  mb-2
-                                border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
+                                <TextArea
+                                  label="Personality"
+                                  labelClassName="block text-[#1E1E1E] mb-1 text-base font-normal"
                                   name="personality"
                                   id="personality"
+                                  rows={2}
+                                  maxHeight={136}
                                   onChange={(e) => {
                                     // Check if the new length doesn't exceed the limit
                                     if (e.target.value.length <= MODEL_DESCRIPTION_LIMIT) {
@@ -411,6 +391,8 @@ const ChatBotDialog = ({
                                   onBlur={props.handleBlur}
                                   value={props.values?.personality}
                                   placeholder="Enter chatbot personality"
+                                  fullWidth
+                                  className="mb-2"
                                 />
                                 <div className="text-sm mb-4 text-right">
                                   <span

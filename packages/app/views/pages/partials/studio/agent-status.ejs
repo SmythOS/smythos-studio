@@ -12,54 +12,56 @@
   <div class="flex">
     <div id="agent-top-bar-status">
       <div class="text-xs flex gap-1 items-center h-full">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          id="agent-top-bar-status-icon"
-        >
-          <!-- Cloud background - always visible -->
-          <path
-            d="M18.5637 17.2691C19.9998 16.6202 21 15.1743 21 13.495C21 10.8991 19.1698 9.35595 16.897 9.35498C16.897 7.72233 15.6165 4.45703 12 4.45703C8.38346 4.45703 7.10303 7.72233 7.10303 9.35498C4.83308 9.37444 3 10.8991 3 13.495C3 15.1743 3.99924 16.6202 5.43632 17.2691"
-            stroke="#424242"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
+        <span>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            id="agent-top-bar-status-icon"
+          >
+            <!-- Cloud background - always visible -->
+            <path
+              d="M18.5637 17.2691C19.9998 16.6202 21 15.1743 21 13.495C21 10.8991 19.1698 9.35595 16.897 9.35498C16.897 7.72233 15.6165 4.45703 12 4.45703C8.38346 4.45703 7.10303 7.72233 7.10303 9.35498C4.83308 9.37444 3 10.8991 3 13.495C3 15.1743 3.99924 16.6202 5.43632 17.2691"
+              stroke="#424242"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
 
-          <!-- Checkmark - shown by default, hidden during progress or alert -->
-          <path
-            class="[#agent-top-bar-status:not(.st-progress):not(.st-alert)_&]:block [#agent-top-bar-status.st-progress_&]:hidden [#agent-top-bar-status.st-alert_&]:hidden"
-            d="M9.1582 17.2537L11.4466 19.5461L16.1617 14.8281"
-            stroke="#237B4B"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
+            <!-- Checkmark - shown by default, hidden during progress or alert -->
+            <path
+              class="[#agent-top-bar-status:not(.st-progress):not(.st-alert)_&]:block [#agent-top-bar-status.st-progress_&]:hidden [#agent-top-bar-status.st-alert_&]:hidden"
+              d="M9.1582 17.2537L11.4466 19.5461L16.1617 14.8281"
+              stroke="#237B4B"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
 
-          <!-- Exclamation mark - shown only during alert -->
-          <path
-            class="[#agent-top-bar-status:not(.st-alert)_&]:hidden [#agent-top-bar-status.st-alert_&]:block"
-            d="M12 11V15M12 17V17.5"
-            stroke="#DC2626"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
+            <!-- Exclamation mark - shown only during alert -->
+            <path
+              class="[#agent-top-bar-status:not(.st-alert)_&]:hidden [#agent-top-bar-status.st-alert_&]:block"
+              d="M12 11V15M12 17V17.5"
+              stroke="#DC2626"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
 
-          <!-- Spinning circle - visible only when st-progress class is present -->
-          <path
-            class="animate-spin [#agent-top-bar-status:not(.st-progress)_&]:hidden [#agent-top-bar-status.st-progress_&]:block"
-            d="M12 21C14.2091 21 16 19.2091 16 17C16 14.7909 14.2091 13 12 13"
-            stroke="#3B82F6"
-            stroke-width="2"
-            stroke-linecap="round"
-            style="transform-origin: 12px 17px"
-          />
-        </svg>
+            <!-- Spinning circle - visible only when st-progress class is present -->
+            <path
+              class="animate-spin [#agent-top-bar-status:not(.st-progress)_&]:hidden [#agent-top-bar-status.st-progress_&]:block"
+              d="M12 21C14.2091 21 16 19.2091 16 17C16 14.7909 14.2091 13 12 13"
+              stroke="#3B82F6"
+              stroke-width="2"
+              stroke-linecap="round"
+              style="transform-origin: 12px 17px"
+            />
+          </svg>
+        </span>
 
-        <span id="agent-save-status" class="label">Saved</span>
-        <span id="view-only-mode" class="label">View Only Mode</span>
+        <span id="agent-save-status" class="label whitespace-nowrap">Saved</span>
+        <span id="view-only-mode" class="label whitespace-nowrap">View Only Mode</span>
       </div>
     </div>
   </div>

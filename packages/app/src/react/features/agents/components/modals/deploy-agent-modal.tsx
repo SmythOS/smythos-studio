@@ -5,6 +5,7 @@ import useMutateOnboardingData from '@react/features/onboarding/hooks/useMutateO
 import { Input } from '@react/shared/components/ui/input';
 import { Label } from '@react/shared/components/ui/label';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -13,7 +14,6 @@ import {
   SelectValue,
 } from '@react/shared/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@react/shared/components/ui/tabs';
-import { Textarea } from '@react/shared/components/ui/textarea';
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
@@ -33,7 +33,7 @@ import { CloseIcon } from '../../../../shared/components/svgs';
 import Modal from '../../../../shared/components/ui/modals/Modal';
 import { EMBODIMENT_TYPE } from '../../../../shared/enums';
 import { Embodiment } from '../../../../shared/types/api-results.types';
-import AlexaEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
+import VoiceEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
 import ApiEmbodimentModal from '../../../embodiments/api-embodiment-modal';
 import ChatbotEmbodimentModal from '../../../embodiments/chatbot-embodiment-modal';
 import { globalModalManager } from '../../../embodiments/embodiment-settings';
@@ -160,8 +160,8 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       }
     : undefined;
 
-  // Get domain for chatbot integration
-  const chatbotDomain =
+  // Get domain for chatbot/voice/form integration
+  const agentDomain =
     workspace.agent.domain ||
     `${workspace.agent.id}.${statusInfoQuery.data?.status?.prod_agent_domain}`;
 
@@ -439,12 +439,14 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   return (
     <>
-      {openPanel === 'alexa' && <AlexaEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === 'alexa' && (
+        <VoiceEmbodimentModal domain={agentDomain} onClose={handleClosePanel} />
+      )}
       {openPanel === 'gpt' && <GptEmbodimentModal onClose={handleClosePanel} />}
       {openPanel === 'chatbot' && (
         <ChatbotEmbodimentModal
           onClose={handleClosePanel}
-          domain={chatbotDomain}
+          domain={agentDomain}
           embodimentData={chatbotEmbodimentData}
           isLoading={isLoadingEmbodiments}
         />
@@ -452,7 +454,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
       {openPanel === 'form' && (
         <FormEmbodimentModal
           onClose={handleClosePanel}
-          domain={chatbotDomain}
+          domain={agentDomain}
           isLoading={isLoadingEmbodiments}
         />
       )}
@@ -754,9 +756,9 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                             >
                               Release Notes
                             </Label>
-                            <Textarea
+                            <TextArea
                               name="releaseNotes"
-                              className="min-h-[100px] bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
+                              className="bg-[#F9FAFB] border-[#D1D5DB] text-sm text-[#6B7280] resize-vertical"
                               placeholder="Enter the list of new features, bug fixes, and other changes here."
                               value={formik.values.releaseNotes}
                               onChange={formik.handleChange}

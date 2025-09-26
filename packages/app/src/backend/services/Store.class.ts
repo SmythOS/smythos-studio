@@ -4,7 +4,7 @@ import config from '../config';
 import SmythFS from './SmythFS.class';
 
 class Store extends SmythFS {
-  private storeDir = path.join(config.env.DATA_PATH, 'store');
+  private storeDir = path.join(config.env.LOCAL_STORAGE_PATH, 'store');
   private fileDir;
 
   constructor(private directory: string) {
