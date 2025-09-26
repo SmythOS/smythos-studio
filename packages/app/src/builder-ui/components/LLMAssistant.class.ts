@@ -9,6 +9,10 @@ import { Component } from './Component.class';
 declare var Metro;
 
 export class LLMAssistant extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Build a chat assistant that remembers the conversation and gives coherent replies across turns. Pick a model, set the behaviour, wire the inputs, then choose how replies stream. For help in understanding, see the LLM Assistant guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/llm-assistant/?utm_source=studio&utm_medium=tooltip&utm_campaign=llm-assistant&utm_content=component-header';
+
   private modelOptions: string[];
   private defaultModel: string;
 
@@ -204,9 +208,8 @@ export class LLMAssistant extends Component {
 
         html += `<li><b>Provider: </b> ${model?.llm ? model.llm : 'Unknown'}</li>`;
         html += `<li><b>Context Window Size: </b> ${model?.tokens ? model.tokens : 'Unknown'}</li>`;
-        html += `<li><b>Maximum Output Tokens: </b> ${
-          model?.completionTokens ? model.completionTokens : 'Unknown'
-        }</li>`;
+        html += `<li><b>Maximum Output Tokens: </b> ${model?.completionTokens ? model.completionTokens : 'Unknown'
+          }</li>`;
         html += `</ul>`;
 
         // Hide the API Key message for custom LLMs since they do not require it.

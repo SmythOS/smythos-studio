@@ -2,6 +2,10 @@ import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
 export class FSleep extends FunctionComponent {
+  // Component description for settings sidebar
+  public componentDescription = 'Use Sleep to pause a workflow for a set time so you can respect API rate limits, wait for slow external work, or add natural pacing. Set the delay in seconds, then the flow resumes and passes its input through unchanged. If you need examples, see delay tips and best practices.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/sleep/?utm_source=studio&utm_medium=tooltip&utm_campaign=sleep&utm_content=component-header#best-practices';
+
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {

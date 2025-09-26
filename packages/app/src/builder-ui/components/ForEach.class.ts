@@ -1,6 +1,10 @@
 import { Component } from './Component.class';
 declare var Metro;
 export class ForEach extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Use ForEach to loop through a list and run the same steps for each item. It aggregates every run into one result you can pass to the next step. For steps and output response details, see the For Each guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/for-each/?utm_source=studio&utm_medium=tooltip&utm_campaign=for-each&utm_content=for-each-header#';
+
   protected async init() {
     this.settings = {
       format: {

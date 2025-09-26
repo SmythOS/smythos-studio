@@ -3,6 +3,10 @@ import markdownit from 'markdown-it';
 import { Component } from './Component.class';
 declare var Metro;
 export class Note extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Add annotations and lightweight docs on the Canvas to explain decisions, label sections, and help teammates move faster. For quick tips and examples, see the Note guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/note/?utm_source=studio&utm_medium=tooltip&utm_campaign=note&utm_content=component-header';
+
   private markdownParser: any;
 
   protected async init() {

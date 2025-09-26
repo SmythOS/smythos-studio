@@ -13,6 +13,10 @@ enum DALL_E_MODELS {
 }
 
 export class ImageGenerator extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Create images from text or edit existing ones with model controls for size, quality, and style. Write specific prompts and iterate quickly using the image generation guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/image-generator/#step-1-select-a-model-and-configure-settings';
+
   private modelOptions: string[];
   private defaultModel: string;
 

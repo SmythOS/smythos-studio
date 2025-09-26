@@ -1,6 +1,10 @@
 import { Component } from './Component.class';
 declare var Metro;
 export class JSONFilter extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Use JSON Filter to keep only the parts of a JSON object you need and drop the rest. This trims noisy API responses, speeds later steps, and saves tokens when sending data to an LLM. For path syntax, nested keys, and arrays, see examples.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/json-filter/?utm_source=studio&utm_medium=tooltip&utm_campaign=json-filter&utm_content=fields#step-1-define-filter-parameters';
+
   protected async init() {
     this.settings = {
       fields: {

@@ -8,6 +8,10 @@ import { Component } from './Component.class';
 declare var Metro;
 
 export class Classifier extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Sort unstructured text into clear categories using a simple prompt. Pick a suitable model, define labels, and test edge cases for consistency. For examples, see the Classification guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/classifier/?utm_source=studio&utm_medium=tooltip&utm_campaign=classifier&utm_content=component-header#step-2-write-or-update-the-prompt';
+
   private modelOptions: string[];
   private defaultModel: string;
 

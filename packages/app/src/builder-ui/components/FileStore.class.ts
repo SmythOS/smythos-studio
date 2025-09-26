@@ -2,6 +2,10 @@ import { Component } from './Component.class';
 declare var Metro;
 
 export class FileStore extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Use Filestore to save binary data and get a public link you can share. Name the file as users will download it, then set how long the link should stay valid. For input rules, file naming, and TTL limits, see Filestore inputs and TTL.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/filestore/?utm_source=studio&utm_medium=tooltip&utm_campaign=filestore&utm_content=component-header';
+
   protected async init() {
     this.settings = {
       name: {

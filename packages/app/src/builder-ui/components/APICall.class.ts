@@ -30,6 +30,10 @@ declare var workspace: Workspace;
 const maxUriLength = 8192; // Maximum URI length
 
 export class APICall extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Use API Call to connect your flow to any HTTP API. Set the method, URL, headers, body, and auth, then test and reuse the result in later steps. For step-by-step setup with examples, see the API Call guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=component-header';
+
   public templateSupport = true;
   public eventTriggersActually = false;
   private boundHandleAuthMessage = this.handleAuthMessage.bind(this);

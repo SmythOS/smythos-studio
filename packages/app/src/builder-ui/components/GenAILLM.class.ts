@@ -23,6 +23,10 @@ declare var Metro;
  */
 
 export class GenAILLM extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Give your agent language skills for summarising, generating, extracting, and classifying text. Pick a model, write a clear prompt, connect inputs, then tune settings for length, quality, and cost. For proven prompts, model tips, and steps, see the GenAI LLM guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=component-header';
+
   private modelOptions: string[];
   private modelParams: Record<string, any>;
   private defaultModel: string;

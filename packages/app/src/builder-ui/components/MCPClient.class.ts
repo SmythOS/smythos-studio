@@ -6,6 +6,10 @@ import { Component } from './Component.class';
 declare var Metro;
 
 export class MCPClient extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Connect your agent to an MCP server so it can use external tools through one standard interface. Enter the server URL, write a clear prompt, and choose the model that will call tools. For URL format and setup steps, see MCP setup.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/tools/mcp-client/?utm_source=studio&utm_medium=tooltip&utm_campaign=mcp-client&utm_content=component-header#step-2-configure-the-connection';
+
   private name: string;
   private desc: string;
   private descForModel: string;

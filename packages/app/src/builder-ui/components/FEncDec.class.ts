@@ -2,6 +2,10 @@ import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
 export class FEncDec extends FunctionComponent {
+  // Component description for settings sidebar
+  public componentDescription = 'Converts data between text and binary encodings for safe storage, transport, and API compatibility. Supports Base64, Base64URL, hex, UTF-8, and Latin-1 with encode or decode actions. For quick picks and examples, see encoding basics.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/crypto/encode-decode/?utm_source=studio&utm_medium=tooltip&utm_campaign=encode-decode&utm_content=component-header';
+
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {

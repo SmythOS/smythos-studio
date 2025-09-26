@@ -18,6 +18,10 @@ const hashAlgos = [
 ];
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
 export class FHash extends FunctionComponent {
+  // Component description for settings sidebar
+  public componentDescription = 'Create a fixed-size fingerprint of your data for checks and IDs. Pick an algorithm, choose an output encoding, then pass the hash downstream. For quick picks and examples, see F:Hash guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/crypto/hash/?utm_source=studio&utm_medium=tooltip&utm_campaign=hash&utm_content=component-header';
+
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {

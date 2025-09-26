@@ -1,9 +1,11 @@
-import { Component } from './Component.class';
-import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
 export class FTimestamp extends FunctionComponent {
+  // Component description for settings sidebar
+  public componentDescription = 'Generate timestamps for your workflow.';
+  public componentDocsLink = '';
+
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {};

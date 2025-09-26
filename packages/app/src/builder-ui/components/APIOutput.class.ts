@@ -1,6 +1,10 @@
 import { Component } from './Component.class';
 declare var Metro;
 export class APIOutput extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Set the final return for your workflow as clean JSON. Choose a format and map fields so callers always get the same structure in production. For examples, see the output guide.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/api-output/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-output&utm_content=component-header#step-2-select-an-output-format';
+
   protected async init() {
     // #region [ Settings config ] ==================
     this.settings = {

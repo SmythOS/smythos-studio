@@ -3,6 +3,10 @@ import { FunctionComponent } from './FunctionComponent.class';
 
 declare var Metro;
 export class FSign extends FunctionComponent {
+  // Component description for settings sidebar
+  public componentDescription = 'Generates a digital signature with HMAC or RSA for webhook payloads and API requests. Verifiers must use the same method, key, hash, and encoding to match. For method tradeoffs and examples, see signing basics.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/crypto/sign/?utm_source=studio&utm_medium=tooltip&utm_campaign=sign&utm_content=component-header#step-1-select-a-signature-method-and-settings';
+
   protected async init() {
     // #region [ Settings config ] ==================
 

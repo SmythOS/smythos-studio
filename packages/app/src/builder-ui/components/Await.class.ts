@@ -1,6 +1,10 @@
 import { Component } from './Component.class';
 declare var Metro;
 export class Await extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Use Await to pause your flow until background jobs finish so you can use their results. Set how many jobs to wait for and a time limit so the flow stays responsive. For examples, race rules, and partial results, see wait conditions and timeouts.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/advanced/await/?utm_source=studio&utm_medium=tooltip&utm_campaign=await&utm_content=component-header#step-1-set-wait-conditions';
+
   protected async init() {
     this.settings = {
       html: {

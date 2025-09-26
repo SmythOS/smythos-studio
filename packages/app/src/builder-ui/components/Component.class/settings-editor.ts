@@ -11,8 +11,6 @@ import {
 import { setReadonlyMode } from '../../ui/dom';
 import { readFormValues, syncCompositeValues } from '../../ui/form';
 import { delay, dispatchSubmitEvent } from '../../utils';
-import { getComponentDocumentation } from './component-documentation';
-
 async function onComponentLoad(sidebar) {
   const component = this;
 
@@ -22,18 +20,20 @@ async function onComponentLoad(sidebar) {
   const titleLeftActions = sidebar.querySelector('.title-left-buttons');
 
   // Add component description below title if available
-  const componentDoc = getComponentDocumentation(component.constructor.name);
-  if (componentDoc) {
+  const componentDescription = component.componentDescription;
+  const componentDocsLink = component.componentDocsLink;
+
+  if (componentDescription) {
     const contentElement = sidebar.querySelector('.dialog-content');
     if (contentElement) {
       const descriptionDiv = document.createElement('div');
       descriptionDiv.className = 'component-description px-4 pb-3 border-b border-gray-100';
 
       // Split description into sentences and check if it's longer than 2 sentences
-      const sentences = componentDoc.description.split(/(?<=[.!?])\s+/);
+      const sentences = componentDescription.split(/(?<=[.!?])\s+/);
       const isLongDescription = sentences.length > 2;
       const shortDescription = sentences.slice(0, 2).join(' ');
-      const fullDescription = componentDoc.description;
+      const fullDescription = componentDescription;
 
       if (isLongDescription) {
         descriptionDiv.innerHTML = `
@@ -43,7 +43,7 @@ async function onComponentLoad(sidebar) {
             <button class="see-more-btn text-blue-600 hover:text-blue-800 text-xs ml-1 cursor-pointer">See more</button>
             <button class="see-less-btn text-blue-600 hover:text-blue-800 text-xs ml-1 cursor-pointer hidden">See less</button>
           </p>
-          ${componentDoc.docsLink ? `<a href="${componentDoc.docsLink}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block">View Documentation →</a>` : ''}
+          ${componentDocsLink ? `<a href="${componentDocsLink}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block">View Documentation →</a>` : ''}
         `;
 
         // Add event listeners for see more/less functionality
@@ -67,8 +67,8 @@ async function onComponentLoad(sidebar) {
         });
       } else {
         descriptionDiv.innerHTML = `
-          <p class="text-sm text-gray-600 leading-relaxed">${componentDoc.description}</p>
-          ${componentDoc.docsLink ? `<a href="${componentDoc.docsLink}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block">View Documentation →</a>` : ''}
+          <p class="text-sm text-gray-600 leading-relaxed">${componentDescription}</p>
+          ${componentDocsLink ? `<a href="${componentDocsLink}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block">View Documentation →</a>` : ''}
         `;
       }
 
@@ -830,241 +830,241 @@ export async function editSettings(component: Component) {
   const sidebarActions = !templatesEnabled
     ? null
     : {
-        //Switch the sidebar to template Edit Mode
-        template: {
-          type: 'button',
-          label: component.properties.template
-            ? '<i class="fa-solid fa-pen-to-square"></i>'
-            : '<i class="fa-solid fa-screwdriver-wrench"></i>',
-          icon: '',
-          hint: component.properties.template ? 'Edit This Template' : 'Create Template Component',
-          hintPosition: 'right',
-          class: 'bg-transparent font-semibold text-base hover:bg-gray-300 hover:text-emerald-600',
-          click: async () => {
-            let creatingTemplate = true;
+      //Switch the sidebar to template Edit Mode
+      template: {
+        type: 'button',
+        label: component.properties.template
+          ? '<i class="fa-solid fa-pen-to-square"></i>'
+          : '<i class="fa-solid fa-screwdriver-wrench"></i>',
+        icon: '',
+        hint: component.properties.template ? 'Edit This Template' : 'Create Template Component',
+        hintPosition: 'right',
+        class: 'bg-transparent font-semibold text-base hover:bg-gray-300 hover:text-emerald-600',
+        click: async () => {
+          let creatingTemplate = true;
 
-            //if properties.template is present, it means that we are editing a template,
-            //otherwise we are creating a new one
-            if (component.properties.template) {
-              creatingTemplate = false;
-              component.settingsEntries = componentSettingsEntries;
-            }
-            const createTemplateEntries = {
-              Info: templateInfoSettings,
-              Settings: component.settingsEntries,
-              Help: templateHelpSection,
-            };
+          //if properties.template is present, it means that we are editing a template,
+          //otherwise we are creating a new one
+          if (component.properties.template) {
+            creatingTemplate = false;
+            component.settingsEntries = componentSettingsEntries;
+          }
+          const createTemplateEntries = {
+            Info: templateInfoSettings,
+            Settings: component.settingsEntries,
+            Help: templateHelpSection,
+          };
 
-            const createTemplateActions = {
-              template: {
-                type: 'button',
-                label: '<i class="fa-regular fa-floppy-disk"></i>',
-                icon: '',
-                hint: 'Save Template Component',
-                hintPosition: 'right',
-                class:
-                  'bg-transparent font-semibold text-base hover:bg-gray-300 hover:text-emerald-600',
-                click: async (e: any) => {
-                  console.log('collecting settings data');
-                  const sidebar = e.target.closest('.right-sidebar');
-                  const settingsForm = sidebar?.querySelector('form.Settings');
-                  let includedSettings = {};
-                  if (settingsForm) {
-                    includedSettings = [...settingsForm.querySelectorAll('.chk-bind-setting')]
-                      .filter((chk) => chk.checked)
-                      .map((chk) => chk.closest('.form-box').getAttribute('data-field-name'));
-                    console.log(includedSettings);
+          const createTemplateActions = {
+            template: {
+              type: 'button',
+              label: '<i class="fa-regular fa-floppy-disk"></i>',
+              icon: '',
+              hint: 'Save Template Component',
+              hintPosition: 'right',
+              class:
+                'bg-transparent font-semibold text-base hover:bg-gray-300 hover:text-emerald-600',
+              click: async (e: any) => {
+                console.log('collecting settings data');
+                const sidebar = e.target.closest('.right-sidebar');
+                const settingsForm = sidebar?.querySelector('form.Settings');
+                let includedSettings = {};
+                if (settingsForm) {
+                  includedSettings = [...settingsForm.querySelectorAll('.chk-bind-setting')]
+                    .filter((chk) => chk.checked)
+                    .map((chk) => chk.closest('.form-box').getAttribute('data-field-name'));
+                  console.log(includedSettings);
+                }
+
+                const result = {};
+                for (let tab in createTemplateEntries) {
+                  const form = document.querySelector(
+                    `#right-sidebar form.${tab}`,
+                  ) as HTMLFormElement;
+                  const formFields = createTemplateEntries[tab];
+                  dispatchSubmitEvent(form); // to trigger validation
+
+                  await delay(30);
+                  const invalid = form.querySelector('.invalid') as HTMLFormElement;
+                  if (invalid) return;
+
+                  const values = readFormValues(form, formFields);
+                  result[tab] = values;
+                }
+
+                const settingsValues = result['Settings'];
+                component.emit('settingsSaving', settingsValues);
+                const saved = await component.save(settingsValues);
+                if (!saved) {
+                  errorToast('Error saving settings');
+                  return;
+                }
+
+                //Write the new values to the component data
+                if (!component.properties.template || !creatingTemplate) {
+                  for (let name in component.settings) {
+                    component.data[name] = settingsValues[name];
+                  }
+                } else {
+                  //if it's a template we match template variables to their respective values ==> they will be replaced in the backend
+                  const tplSettings = component.templateSettings;
+                  const templateData = component.data._templateVars;
+
+                  const includedSettings =
+                    component.properties?.template?.templateInfo?.includedSettings || [];
+                  for (let name of includedSettings) {
+                    component.data[name] = settingsValues[name];
                   }
 
-                  const result = {};
-                  for (let tab in createTemplateEntries) {
-                    const form = document.querySelector(
-                      `#right-sidebar form.${tab}`,
-                    ) as HTMLFormElement;
-                    const formFields = createTemplateEntries[tab];
-                    dispatchSubmitEvent(form); // to trigger validation
+                  for (let name in tplSettings) {
+                    //const setting = tplSettings[name];
+                    templateData[name] = settingsValues[name];
+                  }
+                  //component.data._templateData = JSON.stringify(templateData);
+                }
 
-                    await delay(30);
-                    const invalid = form.querySelector('.invalid') as HTMLFormElement;
-                    if (invalid) return;
+                console.log('template save settings', component.settings);
 
-                    const values = readFormValues(form, formFields);
-                    result[tab] = values;
+                const templateData = component.exportTemplate();
+
+                //preserve unchanged templateInfo values
+                templateData.templateInfo = {
+                  ...component.properties.template?.templateInfo,
+                  ...result['Info'],
+                  ...{ includedSettings },
+                };
+
+                //update templateData with new settings
+                templateData.data = { ...templateData.data, ...component.data };
+
+                if (!templateData.templateInfo.icon) {
+                  //TODO: if no icon is set, use the collection icon
+                }
+
+                component.emit('settingsSaved', settingsValues);
+
+                let templateId = creatingTemplate ? null : templateData?.templateInfo?.id; //set id if updating existing template
+
+                try {
+                  const collection = collectionsCache.find(
+                    (c) => c.value === templateData.templateInfo.collection,
+                  );
+
+                  let icon = templateData.templateInfo.icon || '';
+                  if (!icon) {
+                    templateData.templateInfo.icon = collection ? collection.icon : icon;
                   }
 
-                  const settingsValues = result['Settings'];
-                  component.emit('settingsSaving', settingsValues);
-                  const saved = await component.save(settingsValues);
-                  if (!saved) {
-                    errorToast('Error saving settings');
+                  let color = templateData.templateInfo.color || '#000000';
+                  if (color === '#000000') {
+                    templateData.templateInfo.color = collection ? collection.color : color;
+                  }
+
+                  const tplSave: any = await saveComponentTemplate(
+                    templateId,
+                    templateData,
+                    templateData.templateInfo?.published || false,
+                  ).catch((error) => ({ error }));
+                  if (tplSave.error) {
+                    console.log('error saving template', tplSave.error);
+                    errorToast(
+                      tplSave.error?.error?.message || 'Cannot save component',
+                      'Error Saving template',
+                    );
                     return;
                   }
 
-                  //Write the new values to the component data
-                  if (!component.properties.template || !creatingTemplate) {
-                    for (let name in component.settings) {
-                      component.data[name] = settingsValues[name];
-                    }
-                  } else {
-                    //if it's a template we match template variables to their respective values ==> they will be replaced in the backend
-                    const tplSettings = component.templateSettings;
-                    const templateData = component.data._templateVars;
+                  templateData.templateInfo.id = tplSave.component.id;
+                  component.properties.template = templateData; //update component properties with new template data
 
-                    const includedSettings =
-                      component.properties?.template?.templateInfo?.includedSettings || [];
-                    for (let name of includedSettings) {
-                      component.data[name] = settingsValues[name];
-                    }
+                  //Resync the edited component behavior with the new template
+                  component.title = templateData.templateInfo.name;
+                  component.description = templateData.templateInfo.description;
 
-                    for (let name in tplSettings) {
-                      //const setting = tplSettings[name];
-                      templateData[name] = settingsValues[name];
-                    }
-                    //component.data._templateData = JSON.stringify(templateData);
-                  }
-
-                  console.log('template save settings', component.settings);
-
-                  const templateData = component.exportTemplate();
-
-                  //preserve unchanged templateInfo values
-                  templateData.templateInfo = {
-                    ...component.properties.template?.templateInfo,
-                    ...result['Info'],
-                    ...{ includedSettings },
-                  };
-
-                  //update templateData with new settings
-                  templateData.data = { ...templateData.data, ...component.data };
-
-                  if (!templateData.templateInfo.icon) {
-                    //TODO: if no icon is set, use the collection icon
-                  }
-
-                  component.emit('settingsSaved', settingsValues);
-
-                  let templateId = creatingTemplate ? null : templateData?.templateInfo?.id; //set id if updating existing template
-
-                  try {
+                  component.domElement.querySelector('.internal-name').textContent =
+                    `T: ${templateData.templateInfo.name}`;
+                  const titleBar = component.domElement.querySelector('.title-bar');
+                  if (titleBar) {
+                    titleBar.querySelector('.title .text').textContent =
+                      templateData.templateInfo.name;
+                    titleBar.querySelector('.description .text').textContent =
+                      templateData.templateInfo.description;
                     const collection = collectionsCache.find(
                       (c) => c.value === templateData.templateInfo.collection,
                     );
-
+                    const iconElement = titleBar.querySelector('.icon') as HTMLElement;
                     let icon = templateData.templateInfo.icon || '';
-                    if (!icon) {
-                      templateData.templateInfo.icon = collection ? collection.icon : icon;
-                    }
-
                     let color = templateData.templateInfo.color || '#000000';
-                    if (color === '#000000') {
-                      templateData.templateInfo.color = collection ? collection.color : color;
-                    }
+                    if (icon.startsWith('<svg')) {
+                      iconElement.className = `icon w-6 h-6`;
 
-                    const tplSave: any = await saveComponentTemplate(
-                      templateId,
-                      templateData,
-                      templateData.templateInfo?.published || false,
-                    ).catch((error) => ({ error }));
-                    if (tplSave.error) {
-                      console.log('error saving template', tplSave.error);
-                      errorToast(
-                        tplSave.error?.error?.message || 'Cannot save component',
-                        'Error Saving template',
+                      const svg = icon.replace(/<path/g, `<path`);
+                      iconElement.innerHTML = `${svg}`;
+
+                      const allPathes = iconElement.querySelectorAll('path');
+                      const pathFill = [...allPathes].find(
+                        (p) => p.getAttribute('fill') && p.getAttribute('fill') !== 'none',
                       );
-                      return;
-                    }
-
-                    templateData.templateInfo.id = tplSave.component.id;
-                    component.properties.template = templateData; //update component properties with new template data
-
-                    //Resync the edited component behavior with the new template
-                    component.title = templateData.templateInfo.name;
-                    component.description = templateData.templateInfo.description;
-
-                    component.domElement.querySelector('.internal-name').textContent =
-                      `T: ${templateData.templateInfo.name}`;
-                    const titleBar = component.domElement.querySelector('.title-bar');
-                    if (titleBar) {
-                      titleBar.querySelector('.title .text').textContent =
-                        templateData.templateInfo.name;
-                      titleBar.querySelector('.description .text').textContent =
-                        templateData.templateInfo.description;
-                      const collection = collectionsCache.find(
-                        (c) => c.value === templateData.templateInfo.collection,
-                      );
-                      const iconElement = titleBar.querySelector('.icon') as HTMLElement;
-                      let icon = templateData.templateInfo.icon || '';
-                      let color = templateData.templateInfo.color || '#000000';
-                      if (icon.startsWith('<svg')) {
-                        iconElement.className = `icon w-6 h-6`;
-
-                        const svg = icon.replace(/<path/g, `<path`);
-                        iconElement.innerHTML = `${svg}`;
-
-                        const allPathes = iconElement.querySelectorAll('path');
-                        const pathFill = [...allPathes].find(
-                          (p) => p.getAttribute('fill') && p.getAttribute('fill') !== 'none',
-                        );
-                        if (!pathFill) {
-                          allPathes.forEach((p) => p.setAttribute('fill', color));
-                        }
-                      } else {
-                        iconElement.className = `icon tpl-fa-icon ${icon}`;
-                        iconElement.innerHTML = '';
-                        iconElement.style.backgroundColor = '';
-                        iconElement.style.color = color;
+                      if (!pathFill) {
+                        allPathes.forEach((p) => p.setAttribute('fill', color));
                       }
+                    } else {
+                      iconElement.className = `icon tpl-fa-icon ${icon}`;
+                      iconElement.innerHTML = '';
+                      iconElement.style.backgroundColor = '';
+                      iconElement.style.color = color;
                     }
-
-                    if (creatingTemplate) {
-                      //if this is a template creation from original component, the current component is now a template
-                      //we need to set the settings appropriately, in order to have a consistent behavior
-                      component.data._templateVars = component.data._templateVars || {};
-
-                      let templateSettingsEntries = null;
-                      if (component.properties.template) {
-                        templateSettingsEntries = {};
-
-                        const templateData = component.data._templateVars;
-                        for (let name in component.templateSettings) {
-                          const setting = component.templateSettings[name];
-                          const entry = { ...setting, value: templateData[name] };
-                          if (setting?.type === 'composite') {
-                            templateSettingsEntries[name] = syncCompositeValues(entry);
-                          } else {
-                            templateSettingsEntries[name] = entry;
-                          }
-                        }
-                      }
-                      component.settingsEntries = templateSettingsEntries;
-                    }
-
-                    creatingTemplate = false;
-                    component.workspace.saveAgent();
-                    if (creatingTemplate) successToast('Component Template Created');
-                    else successToast('Component Template Updated');
-                  } catch (error) {
-                    console.log('error saving template', error);
-                    errorToast('Error saving template');
                   }
-                },
-              },
-            };
 
-            component.setTemplateEditMode();
-            sidebarEditValues({
-              title: `Template Editor : ${templateName}`,
-              entriesObject: createTemplateEntries,
-              features: { templateVars: true },
-              actions: createTemplateActions,
-              onSave: onSave.bind(component),
-              onBeforeCancel: onBeforeCancelTemplate,
-              onCancel,
-              onLoad: onTemplateCreateLoad.bind(component),
-            });
-          },
+                  if (creatingTemplate) {
+                    //if this is a template creation from original component, the current component is now a template
+                    //we need to set the settings appropriately, in order to have a consistent behavior
+                    component.data._templateVars = component.data._templateVars || {};
+
+                    let templateSettingsEntries = null;
+                    if (component.properties.template) {
+                      templateSettingsEntries = {};
+
+                      const templateData = component.data._templateVars;
+                      for (let name in component.templateSettings) {
+                        const setting = component.templateSettings[name];
+                        const entry = { ...setting, value: templateData[name] };
+                        if (setting?.type === 'composite') {
+                          templateSettingsEntries[name] = syncCompositeValues(entry);
+                        } else {
+                          templateSettingsEntries[name] = entry;
+                        }
+                      }
+                    }
+                    component.settingsEntries = templateSettingsEntries;
+                  }
+
+                  creatingTemplate = false;
+                  component.workspace.saveAgent();
+                  if (creatingTemplate) successToast('Component Template Created');
+                  else successToast('Component Template Updated');
+                } catch (error) {
+                  console.log('error saving template', error);
+                  errorToast('Error saving template');
+                }
+              },
+            },
+          };
+
+          component.setTemplateEditMode();
+          sidebarEditValues({
+            title: `Template Editor : ${templateName}`,
+            entriesObject: createTemplateEntries,
+            features: { templateVars: true },
+            actions: createTemplateActions,
+            onSave: onSave.bind(component),
+            onBeforeCancel: onBeforeCancelTemplate,
+            onCancel,
+            onLoad: onTemplateCreateLoad.bind(component),
+          });
         },
-      };
+      },
+    };
 
   // Generate the sidebar title HTML using the new function
   const sidebarTitleHTML = generateSidebarTitleHTML(component);
@@ -1269,9 +1269,8 @@ function generateSidebarTitleHTML(component: Component): string {
       const retainColor = retainOriginalColorClasses.some((cls) => iconCSSClass.includes(cls));
 
       // Conditionally apply !important based on whether the color should be retained or just have a base
-      const styleAttribute = `background-color: ${forcedIconColor}${
-        retainColor ? ' !important' : ''
-      };`;
+      const styleAttribute = `background-color: ${forcedIconColor}${retainColor ? ' !important' : ''
+        };`;
 
       // Create the span element with the necessary classes (including size) and the style
       iconHTML = `<span class="${iconCSSClass} ${sizeClass} inline-block align-middle" style="${styleAttribute}"></span>`;

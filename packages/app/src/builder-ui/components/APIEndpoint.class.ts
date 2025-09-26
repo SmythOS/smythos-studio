@@ -18,6 +18,10 @@ const getValidEndpoint = (val: string) => {
 };
 
 export class APIEndpoint extends Component {
+  // Component description for settings sidebar
+  public componentDescription = 'Define a reusable skill your agent can call across workflows. Describe what it does, the inputs it needs, and the result it returns so assistants pick it at the right time. For patterns, naming, and step-by-step builds, see the skill guidelines.';
+  public componentDocsLink = 'https://smythos.com/docs/agent-studio/components/base/agent-skill/?utm_source=studio&utm_medium=tooltip&utm_campaign=agent-skill&utm_content=component-header';
+
   private isOnAdvancedMode: boolean = false;
   private isNewComponent: boolean = false;
   private cachedAutoFillDataJson: Record<string, unknown> | null = null;
