@@ -73,12 +73,12 @@ cp .env.example .env
 # Build and run with Docker
 docker build -t smythos-studio .
 docker run -d \
-  --name smythos-ui \
+  --name smythos-studio \
   -p 5050:5050 \
   -p 5053:5053 \
   --env-file .env \
   -v smythos_data:/home/node/smythos-data \
-  smythos-ui:latest
+  smythos-studio:latest
 ```
 
 **Access your application:** http://localhost:5050
