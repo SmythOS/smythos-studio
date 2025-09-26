@@ -41,7 +41,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   const events = entry.events || {};
 
   const div = document.createElement('div');
-  div.className = 'form-box p-2';
+  div.className = 'form-box p-4';
   div.classList.add('form-group');
   div.classList.add(`form-group-${entry.type}`);
   div.setAttribute('data-field-name', entry.name);
@@ -426,9 +426,9 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let labelElement = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
-    labelElement.className = `form-label text-[#1E1E1E] text-base font-medium ${
+    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${
       attributes.labelCase ? attributes.labelCase : 'capitalize'
-    } mb-2`;
+    }`;
 
     if (entry.type?.toLowerCase() === 'key-value' || entry.type?.toLowerCase() === 'table') {
       labelElement.classList.add('form-label__kv');

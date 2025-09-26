@@ -495,7 +495,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                   placeholder="Key"
                   value={pair.key}
                   onChange={(e) => handleInputChange(index, 'key', e.target.value)}
-                  className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal ${
+                  className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-light ${
                     pair.error
                       ? '!border-smyth-red focus:border-smyth-red'
                       : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
@@ -526,7 +526,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     onChange={(e) => handleInputChange(index, 'value', e.target.value)}
                     onFocus={(e) => adjustTextareaHeight(e.target, true)}
                     onBlur={(e) => adjustTextareaHeight(e.target, false)}
-                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 ${
+                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-light py-2 px-3 ${
                       pair.error
                         ? '!border-smyth-red focus:border-smyth-red'
                         : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'

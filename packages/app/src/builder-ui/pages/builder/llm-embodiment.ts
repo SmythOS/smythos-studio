@@ -214,7 +214,7 @@ function attachCreateKeyBtn() {
               <input autofocus type="text"
                 id="agent-llm-key-name"
                 class="w-full px-3 py-2 
-              bg-white text-gray-900 block text-sm font-normal placeholder:text-sm placeholder:font-normal
+              bg-white text-gray-900 block text-sm font-normal placeholder:text-sm placeholder:font-light
                 rounded outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none
                 border border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                 placeholder="e.g. Production Key">

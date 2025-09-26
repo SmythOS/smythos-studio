@@ -261,7 +261,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                   name="name"
@@ -301,7 +301,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                   name="introMessage"
@@ -341,7 +341,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                   name="chatGptModel"
@@ -456,7 +456,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 ${
                                   domainError
@@ -523,7 +523,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                     name="icon"
@@ -566,7 +566,7 @@ const ChatBotDialog = ({
                                   text-sm
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                   mb-4
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                   name="syntaxHighlightTheme"

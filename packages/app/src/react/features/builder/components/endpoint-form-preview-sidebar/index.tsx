@@ -159,7 +159,7 @@ const FormPreviewSidebar = ({ mode }: Props) => {
           <p className="pb-2">Select one of your agent's skills from the list, then click Test.</p>
           <div className="flex gap-2">
             <select
-              className="h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 appearance-none cursor-pointer"
+              className="h-9 w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-light px-[10px] border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 appearance-none cursor-pointer"
               value={targetSkill?.skillId}
               onChange={(e) => handleSkillChange(e.target.value)}
             >

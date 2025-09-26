@@ -262,7 +262,7 @@ const ChatGptDialog = ({
                                   text-sm 
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                 name="humanName"
                                 onChange={props.handleChange}
@@ -294,7 +294,7 @@ const ChatGptDialog = ({
                                   text-sm 
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                 name="modelName"
                                 onChange={props.handleChange}
@@ -414,7 +414,7 @@ const ChatGptDialog = ({
                                   text-sm 
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                 name="logoUrl"
                                 placeholder="Enter logoUrl's URL"
@@ -469,7 +469,7 @@ const ChatGptDialog = ({
                                   text-sm 
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                 name="contactEmail"
                                 onChange={props.handleChange}
@@ -501,7 +501,7 @@ const ChatGptDialog = ({
                                   text-sm 
                                   font-normal
                                   placeholder:text-sm
-                                  placeholder:font-normal
+                                  placeholder:font-light
                                 border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500"
                                 name="legalInfoUrl"
                                 onChange={props.handleChange}

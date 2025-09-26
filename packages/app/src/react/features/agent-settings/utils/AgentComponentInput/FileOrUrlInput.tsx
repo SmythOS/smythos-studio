@@ -144,7 +144,7 @@ const FileOrUrlInput = ({
         {!attachmentFile && (
           <input
             // placeholder=
-            className="flex-1 outline-none w-full bg-transparent text-gray-900 text-sm font-normal placeholder:text-sm placeholder:font-normal focus:outline-none focus:ring-0"
+            className="flex-1 outline-none w-full bg-transparent text-gray-900 text-sm font-normal placeholder:text-sm placeholder:font-light focus:outline-none focus:ring-0"
             value={value}
             onChange={(e) => {
               console.log('e.currentTarget.value', e.currentTarget.value);

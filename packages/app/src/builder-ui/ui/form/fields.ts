@@ -348,9 +348,10 @@ export function createToggle(label: string, value: boolean | string, hintOnSelec
     'checked:bg-none checked:text-blue-600 checked:border-blue-600 checked:bg-blue-600',
     'focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent',
     'before:inline-block before:w-4 before:h-4 before:bg-white',
-    'checked:before:bg-blue-200 before:translate-x-0 checked:before:translate-x-full',
     'before:rounded-full before:shadow before:transform before:ring-0',
     'before:transition before:ease-in-out before:duration-200 before:mt-[1px]',
+    'before:ml-[1px] before:translate-x-px checked:before:translate-x-full',
+    'checked:before:bg-blue-200 checked:before:ml-0',
   ].join(' ');
 
   return toggle;
