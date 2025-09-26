@@ -1,8 +1,8 @@
+import { PostHog } from '@src/shared/posthog';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import EventEmitter from '../EventEmitter.class';
 import { openEmbodimentDialog } from '../pages/builder/agent-settings';
-import { PostHog } from '../services/posthog';
 import { confirm } from '../ui/dialogs';
 import { renderEndpointFormPreviewSidebar } from '../ui/react-injects';
 import { delay } from '../utils';
@@ -422,10 +422,17 @@ export class APIEndpoint extends Component {
       // Ensure endpoint value is properly formatted
       if (settingsValues.endpoint) {
         // Format according to validation rules (trim and replace spaces with underscores)
-        this.data.endpoint = getValidEndpoint(settingsValues.endpoint);
+        const formattedEndpoint = getValidEndpoint(settingsValues.endpoint);
+        this.data.endpoint = formattedEndpoint;
 
         // Also update endpointLabel to match
         this.data.endpointLabel = this.data.endpoint;
+
+        // Update the form field value to match the formatted value to prevent unsaved changes detection
+        const endpointField = document.querySelector('input[name="endpoint"]') as HTMLInputElement;
+        if (endpointField) {
+          endpointField.value = formattedEndpoint;
+        }
 
         // Update endpointLabel to match the formatted endpoint value
         const endpointLabel = document.querySelector(

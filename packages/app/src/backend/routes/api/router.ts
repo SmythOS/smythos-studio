@@ -36,6 +36,7 @@ const componentProxy: any = createProxyMiddleware({
     // Remove the Cookie header
     proxyReq.removeHeader('Cookie');
   },
+  logLevel: 'silent',
 });
 //this is a code that we'll keep here during the transition from backend components APIs to remote components APIs
 router.use('/component/:cptName', (req, res, next) => {

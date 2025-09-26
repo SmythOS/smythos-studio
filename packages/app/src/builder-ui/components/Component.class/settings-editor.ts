@@ -1,7 +1,7 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import { Component } from '.';
 import { FEATURE_FLAGS } from '../../../shared/constants/featureflags';
-import { PostHog } from '../../services/posthog';
 import {
   closeRightSidebar,
   confirm,

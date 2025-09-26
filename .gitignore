@@ -146,7 +146,3 @@ dist
 __MACOSX
 
 analysis/*
-
-# Ignore all files and subfolders in the data directory, but keep the data folder tracked by including a .gitkeep file
-data/*
-!data/.gitkeep

@@ -1117,6 +1117,11 @@ export class APICall extends Component {
       this.handleBodyEditButtons(sidebar);
       await this.addRightSidebarFunction(sidebar);
 
+      // Body field Ace Editor event listener is handled in handleBodyEditButtons method
+
+      // Headers field uses key-value editor which dispatches change events
+      // The auto-save system now listens for change events on textareas
+
       // Update the OAuth action button when sidebar opens
       // Note: updateAuthenticationButtonState is already called in addRightSidebarFunction -> setCallbackUrl
       // So we only need to update the action button here
@@ -1180,6 +1185,24 @@ export class APICall extends Component {
         if (_editor) {
           _editor.style.minHeight = '80px !important';
         }
+        
+        // Add event listener to the Ace editor for auto-save
+        const body_editor = bodyElm._editor;
+        if (body_editor) {
+          body_editor.session.setOption('useWorker', false);
+          body_editor.clearSelection();
+          
+          // Remove any existing event listeners to avoid duplicates
+          body_editor.off('change');
+          
+          // Add event listener to the Ace editor for auto-save
+          body_editor.on('change', () => {
+            // Trigger the form's input event to activate auto-save
+            const inputEvent = new Event('input', { bubbles: true });
+            bodyElm.dispatchEvent(inputEvent);
+          });
+        }
+        
         if (value !== this.data.contentType) {
           bodyElm.value = '';
           this.data.body = '';
@@ -1194,7 +1217,7 @@ export class APICall extends Component {
         bodyElm?._editor?.setValue('');
         this.data.body = '';
       }
-      this.data.contentType = value;
+      // Don't update this.data.contentType directly - let the form save mechanism handle it
     }, 150);
   }
 
@@ -1542,14 +1565,13 @@ export class APICall extends Component {
     // First handle the selection change
     if (!selectedValue || selectedValue === 'None') {
       // Clear OAuth-related fields
-      this.data.oauth_con_id = 'None';
+      // Don't update this.data.oauth_con_id directly - let the form save mechanism handle it
       const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
       if (oauth_button) {
         oauth_button.innerHTML = 'Authenticate';
       }
     } else {
-      // Set the oauth_con_id in the component's data
-      this.data.oauth_con_id = selectedValue;
+      // Don't update this.data.oauth_con_id directly - let the form save mechanism handle it
 
       // Always synchronize the component's legacy field (oauthService) with the selected connection
       // to avoid stale/broken state across legacy/new structures.

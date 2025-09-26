@@ -50,14 +50,19 @@ export async function handleKvFieldEditBtn(
   if (queryParamValues) {
     const data = JSON.stringify(queryParamValues?.[`_${fieldName}`] || {}, null, 2);
 
-    this.data[fieldName] = data;
+    // Don't update this.data directly - let the form save mechanism handle it
+    // this.data[fieldName] = data;
 
     const field = document.getElementById(fieldName) as HTMLTextAreaElement;
     field.value = data;
 
     //dispatch custom event for consistency
-    const event = new Event('change');
-    field.dispatchEvent(event);
+    const changeEvent = new Event('change');
+    field.dispatchEvent(changeEvent);
+    
+    // Also dispatch input event for auto-save
+    const inputEvent = new Event('input', { bubbles: true });
+    field.dispatchEvent(inputEvent);
   }
 }
 
