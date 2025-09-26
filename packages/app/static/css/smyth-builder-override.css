@@ -676,6 +676,14 @@
   background: white !important;
   box-shadow: none;
   border-radius: 4px !important;
+  border-bottom-color: #616161 !important;
+}
+
+.right-sidebar .select.focused {
+  outline: none;
+  box-shadow: none;
+  border-bottom-width: 2px !important;
+  border-bottom-color: #3b82f6 !important;
 }
 
 .right-sidebar .select .select-input {
@@ -687,6 +695,8 @@
 .right-sidebar .select .dropdown-toggle {
   height: 40px;
   line-height: 38px;
+  font-size: 14px;
+  border-bottom-color: #616161;
 }
 
 .right-sidebar .select .drop-container {
@@ -1020,6 +1030,7 @@ code.language-plan.done::before {
   background-color: white;
   border: 1px solid !important;
   border-color: #e5e7eb !important;
+  border-bottom-color: #616161 !important;
   color: #111827;
   border-radius: 0.25rem;
   padding: 0.5rem 0.75rem;
