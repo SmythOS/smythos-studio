@@ -12,8 +12,7 @@ The complete visual interface for building, deploying, and managing intelligent 
 
 1. **Visual Agent Building**: Creating AI agents should be as intuitive as drawing a flowchart.
 2. **No-Code to Pro-Code**: Start with visual building, extend with custom code when needed.
-3. **Production-Ready**: From prototype to production deployment in minutes.
-4. **Open Architecture**: Build once, deploy anywhere with complete control over your infrastructure.
+3. **Open Architecture**: Build once, deploy anywhere with complete control over your infrastructure.
 
 ## Design Principles
 
@@ -59,8 +58,8 @@ Perfect for development, customization, and contributing to the project.
 
 ```bash
 # Clone the repository
-git clone https://github.com/SmythOS/smythos-ui.git
-cd smythos-ui
+git clone https://github.com/SmythOS/smythos-studio.git
+cd smythos-studio
 
 # Copy environment configuration
 cp .env.example .env
@@ -80,6 +79,31 @@ pnpm dev
 
 📖 **Detailed Setup**: See our [Contributing Guide](CONTRIBUTING.md) for complete development setup instructions.
 
+### Method 2: Docker Quick Start
+
+Get up and running instantly with a single Docker command.
+
+```bash
+# Copy environment configuration
+cp .env.example .env
+# REQUIRED: Edit .env with your database credentials
+
+# Build and run with Docker
+docker build -t smythos-studio .
+docker run -d \
+  --name smythos-studio \
+  -p 5050:5050 \
+  -p 5053:5053 \
+  --env-file .env \
+  -v smythos_data:/home/node/smythos-data \
+  smythos-studio:latest
+```
+
+**Access your application:** http://localhost:5050
+
+🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for deploying the app with automatic SSL, database, and caching.
+
+---
 
 ## Repository Structure
 
@@ -144,19 +168,19 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 **Get Started:**
 1. Read our [Contributing Guide](CONTRIBUTING.md)
-2. Check out [open issues](https://github.com/SmythOS/smythos-ui/issues)
+2. Check out [open issues](https://github.com/SmythOS/smythos-studio/issues)
 3. Join our [Discord community](https://discord.gg/smythos)
 
 ## Contributors
 
 <a href="https://github.com/SmythOS/smythos-ui/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SmythOS/smythos-ui" />
+  <img src="https://contrib.rocks/image?repo=SmythOS/smythos-studio" />
 </a>
 
 ## Community & Support
 
 - **💬 Discord**: [Join our community](https://discord.gg/smythos) for real-time support and discussions
-- **🐛 Issues**: [Report bugs](https://github.com/SmythOS/smythos-ui/issues) and request features
+- **🐛 Issues**: [Report bugs](https://github.com/SmythOS/smythos-studio/issues) and request features
 - **📧 Email**: Contact us at support@smythos.com for enterprise inquiries
 - **🌐 Website**: Visit [SmythOS.com](https://smythos.com) for more information
 
@@ -167,7 +191,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 **Ready to build your first AI agent?** 
 
-🚀 [Get Started Now](#quick-start) | 💬 [Join our Discord](https://discord.gg/smythos) | 🌟 [Star this repo](https://github.com/SmythOS/smythos-ui)
+🚀 [Get Started Now](#quick-start) | 💬 [Join our Discord](https://discord.gg/smythos) | 🌟 [Star this repo](https://github.com/SmythOS/smythos-studio)
 
 ---
 
