@@ -39,7 +39,8 @@ This approach makes AI agent development **accessible to everyone** - from busin
 Get up and running instantly with Docker Compose.
 
 ```bash
-# Copy environment configuration
+git clone https://github.com/SmythOS/smythos-studio.git
+cd smythos-studio
 cp .env.compose.example .env
 docker compose up -d
 
@@ -79,7 +80,7 @@ pnpm dev
 
 📖 **Detailed Setup**: See our [Contributing Guide](CONTRIBUTING.md) for complete development setup instructions.
 
-### Method 2: Docker Quick Start
+
 
 Get up and running instantly with a single Docker command.
 
