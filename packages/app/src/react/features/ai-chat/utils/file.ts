@@ -144,9 +144,5 @@ export const deleteFile = async (key: string): Promise<boolean> => {
 export const createFileMetadata = (file: File): FileWithMetadata => ({
   file,
   id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-  metadata: {
-    fileType: file.type,
-    previewUrl: getLocalPreviewUrl(file),
-    isUploading: true,
-  },
+  metadata: { fileType: file.type, previewUrl: getLocalPreviewUrl(file), isUploading: true },
 });
