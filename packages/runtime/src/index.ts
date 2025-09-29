@@ -15,10 +15,11 @@ import { Logger, SmythRuntime, version } from '@smythos/sre';
 import config from '@core/config';
 import { modelsConfig } from '@core/config/models.config';
 import { startServers } from '@core/management-router';
+import { requestContext } from '@core/services/request-context';
+
 import cors from '@core/middlewares/cors.mw';
 import { errorHandler, notFoundHandler } from '@core/middlewares/error.mw';
 import RateLimiter from '@core/middlewares/rateLimiter.mw';
-import { requestContext } from '@core/services/request-context';
 
 import { registerConnectors } from '@core/connectors/connectorRegistry';
 
@@ -33,7 +34,15 @@ import { routes as embodimentRoutes } from '@embodiment/routes';
 const app = express();
 const port = config.env.PORT;
 
-const ensureVaultFileExists = () => {
+const prepareSREConfigFiles = () => {
+  // setup base dir for SRE
+  const srePath = config.env.SRE_STORAGE_PATH;
+  if (!fs.existsSync(srePath)) {
+    fs.mkdirSync(srePath, { recursive: true });
+  }
+
+  //  setup base vault content
+
   const baseVaultContent = {
     development: {
       echo: '',
@@ -49,7 +58,7 @@ const ensureVaultFileExists = () => {
     },
   };
 
-  const vaultFilePath = path.join(config.env.DATA_PATH, 'vault.json');
+  const vaultFilePath = path.join(config.env.SRE_STORAGE_PATH, '.sre', 'vault.json');
   const dir = path.dirname(vaultFilePath);
   fs.mkdirSync(dir, { recursive: true });
 
@@ -58,10 +67,11 @@ const ensureVaultFileExists = () => {
   }
 };
 
-ensureVaultFileExists();
+prepareSREConfigFiles();
 // Register all connectors
 registerConnectors();
 
+process.env.SMYTH_PATH = config.env.SRE_STORAGE_PATH; // needed for SRE initialization
 const sre = SmythRuntime.Instance.init({
   Cache: {
     Connector: 'RAM',
@@ -81,7 +91,6 @@ const sre = SmythRuntime.Instance.init({
   Vault: {
     Connector: 'JSONFileVault',
     Settings: {
-      file: path.join(config.env.DATA_PATH, 'vault.json'),
       shared: 'development',
     },
   },
@@ -122,6 +131,7 @@ function getCurrentFormattedDate() {
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
+// Generic CORS
 app.use(cors);
 app.options('*', cors);
 

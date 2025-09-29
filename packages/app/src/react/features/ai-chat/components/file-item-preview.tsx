@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { FileWithMetadata } from '@react/shared/types/chat.types';
 import classNames from 'classnames';
 import { FC, useEffect, useMemo, useState } from 'react';
@@ -95,10 +94,10 @@ export const FileItemPreview: FC<FileItemPreviewProps> = ({
   if (isImage) {
     return (
       <div className="relative group w-16 h-16 min-w-[4rem] min-h-[4rem]">
-        {!!preview && (
+        {preview && (
           <img
             src={preview}
-            alt={file.file?.name}
+            alt={file.file?.name || 'Image preview'}
             className="w-full h-full object-cover rounded-lg"
           />
         )}

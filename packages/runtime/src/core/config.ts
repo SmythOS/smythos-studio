@@ -14,10 +14,12 @@ expandEnv.expand(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const getDefaultDataPath = () => {
+const getLocalStoragePath = () => {
   const homeDir = os.homedir();
   return path.join(homeDir, 'smythos-data');
 };
+
+const LOCAL_STORAGE_PATH = getLocalStoragePath();
 
 const config = {
   env: {
@@ -31,22 +33,23 @@ const config = {
 
     ADMIN_PORT: process.env.RUNTIME_ADMIN_PORT || process.env.ADMIN_PORT || 5054,
 
-    BASE_URL: process.env.RUNTIME_DOMAIN || `http://localhost:${process.env.RUNTIME_PORT}`,
+    BASE_URL: process.env.RUNTIME_URL || `http://localhost:${process.env.RUNTIME_PORT}`,
 
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
 
     DEFAULT_AGENT_DOMAIN: process.env?.DEFAULT_AGENT_DOMAIN || 'localagent.stage.smyth.ai',
-    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT || process.env.RUNTIME_PORT,
+    AGENT_DOMAIN_PORT: process.env?.AGENT_DOMAIN_PORT,
     PROD_AGENT_DOMAIN: process.env?.PROD_AGENT_DOMAIN,
 
     REQ_LIMIT_PER_MINUTE: process.env.REQ_LIMIT_PER_MINUTE || 300,
     MAX_CONCURRENT_REQUESTS: process.env.MAX_CONCURRENT_REQUESTS || 50,
 
     // UI_SERVER: process.env.UI_SERVER || 'http://localhost:4000',
-    UI_SERVER: process.env.APP_DOMAIN || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
+    UI_SERVER: process.env.APP_URL || `http://localhost:${process.env.APP_PORT}` || 'http://localhost:5053',
     SESSION_SECRET: process.env.SESSION_SECRET,
 
-    DATA_PATH: process.env.DATA_PATH || getDefaultDataPath(),
+    LOCAL_STORAGE_PATH,
+    SRE_STORAGE_PATH: path.join(LOCAL_STORAGE_PATH, '.smyth'),
 
     SMYTHOS_SERVER_TYPE: process.env.SMYTHOS_SERVER_TYPE || 'combined',
   },

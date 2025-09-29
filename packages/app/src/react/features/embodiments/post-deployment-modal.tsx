@@ -62,7 +62,7 @@ interface Props {
    */
   onOpenCodeSnippetModal: (key: string) => void;
   /**
-   * Called when the user requests to open the Alexa panel.
+   * Called when the user requests to open the Voice panel.
    */
   onOpenAlexaPanel: () => void;
   /**
@@ -96,13 +96,8 @@ interface Props {
  * Renders as a card, not a modal overlay. No close icon.
  */
 function PostDeploymentModal({
-  userInfo,
-  onClose,
-  onReopenDeployModal,
   onOpenLlmModal,
   onOpenCustomGptModal,
-  onOpenDialogModal,
-  onOpenCodeSnippetModal,
   onOpenAlexaPanel,
   onOpenChatbotPanel,
   onOpenFormPanel,
@@ -113,7 +108,6 @@ function PostDeploymentModal({
 }: Props) {
   const { workspace, allDeployments } = useDeploymentSidebarCtx();
   const { getPageAccess } = useAuthCtx();
-  const agentId: string = workspace.agent.id;
   const [activeTab, setActiveTab] = useState<string>('embed');
 
   // Create a unique instance identifier for this modal
@@ -151,7 +145,6 @@ function PostDeploymentModal({
   const {
     isLoading: agentSettingsLoading,
     updateEmbodimentStatus,
-    refetchEmbodiments,
     modalHandlers,
   } = useAgentEmbodimentSettings(
     workspace?.agent?.id || '',
@@ -166,12 +159,6 @@ function PostDeploymentModal({
     },
     instanceId, // Pass the instance ID to the hook
   );
-
-  // Check if we're on the agent-settings page to avoid duplicate modals
-  const isOnAgentSettingsPage = window.location.pathname.includes('/agent-settings/');
-
-  // Only render modals if we're not on the agent-settings page and this is the active instance
-  const shouldRenderModals = !isOnAgentSettingsPage && modalHandlers.isActiveInstance;
 
   // Handler for toggling embodiment
   const handleToggle = (setting: AgentSetting) => {
@@ -211,16 +198,6 @@ function PostDeploymentModal({
     state.embodimentsData,
     workspace?.agent,
   ]);
-
-  // Type guard for Embodiment with properties
-  function hasProperties(obj: unknown): obj is Embodiment {
-    return (
-      typeof obj === 'object' &&
-      obj !== null &&
-      'properties' in obj &&
-      typeof (obj as any).properties === 'object'
-    );
-  }
 
   /**
    * Capitalizes the first letter of a string.
@@ -421,6 +398,19 @@ function PostDeploymentModal({
     }
     // Alexa
     else if (key === EMBODIMENT_TYPE.ALEXA) {
+      if (setting.openModal) {
+        buttons.push(
+          <button
+            key={'configuration-' + EMBODIMENT_TYPE.ALEXA}
+            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-smythos-blue-500 hover:text-white rounded"
+            onClick={() => setting.openModal()}
+            type="button"
+            aria-label="Configuration"
+          >
+            <FaSliders />
+          </button>,
+        );
+      }
       buttons.push(
         <Button
           key={'get-endpoints-' + EMBODIMENT_TYPE.ALEXA}

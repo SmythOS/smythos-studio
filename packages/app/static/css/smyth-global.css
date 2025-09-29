@@ -573,7 +573,12 @@ button.editIconsm {
   color: #757575;
 }
 #agent-save-status.st-progress {
-  color: #45c9a9;
+  color: #3B82F6;
+  font-weight: 500;
+}
+#agent-save-status.st-success {
+  color: #237B4B;
+  font-weight: 500;
 }
 .warning-message {
   font-size: 14px;

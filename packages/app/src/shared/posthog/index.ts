@@ -8,7 +8,7 @@ let initialized = false;
 const lazyInit = () => {
   if (!initialized) {
     // can't disable posthog in dev because feature flags depend on it
-    posthog.init(POSTHOG_CLIENT_KEY, {
+    posthog?.init(POSTHOG_CLIENT_KEY, {
       autocapture: !config.env.IS_DEV,
       capture_pageview: !config.env.IS_DEV,
       // debug: config.env.IS_DEV,
@@ -38,30 +38,38 @@ export const PostHog = {
     }
   },
 
+  // Check if PostHog is fully loaded using the built-in __loaded property
+  isLoaded: () => {
+    return initialized && posthog?.__loaded;
+  },
+
   identify: (userId, properties = {}) => {
     if (!initialized) lazyInit();
-    posthog.identify(userId, properties);
+    posthog?.identify(userId, properties);
   },
 
   track: (eventName: string, properties: Properties) => {
     if (!initialized) lazyInit();
-    posthog.capture(eventName, properties);
+    posthog?.capture(eventName, properties);
   },
 
   setUserProperties: (properties) => {
     if (!initialized) lazyInit();
-    posthog.people.set(properties);
+    posthog?.people.set(properties);
   },
 
   getFeatureFlag: (featureFlag: string) => {
-    if (!initialized) lazyInit();
-    return posthog.getFeatureFlagPayload(featureFlag);
-  },
-
-  getFeatureFlagValue: (featureFlag: string) => {
     if (!initialized) {
       lazyInit();
     }
+
+    // Check if PostHog is fully loaded using the built-in __loaded property
+    if (!posthog.__loaded) {
+      console.warn(
+        `PostHog not fully loaded when checking flag: ${featureFlag}. This may return bootstrap/default values.`,
+      );
+    }
+
     return posthog.getFeatureFlag(featureFlag);
   },
 
@@ -69,6 +77,6 @@ export const PostHog = {
     if (!initialized) {
       lazyInit();
     }
-    posthog.reloadFeatureFlags();
+    posthog?.reloadFeatureFlags();
   },
 };

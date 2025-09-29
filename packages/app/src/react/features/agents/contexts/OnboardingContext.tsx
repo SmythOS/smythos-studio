@@ -28,6 +28,9 @@ type OnboardingContextType = {
 
   isInviteMemberModalOpen: boolean;
   setInviteMemberModalOpen: (isInviteMemberModalOpen: boolean) => void;
+
+  isAssignMemberModalOpen: boolean;
+  setAssignMemberModalOpen: (isAssignMemberModalOpen: boolean) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -50,6 +53,7 @@ export const OnboardingProvider: FC<{ children: ReactNode }> = ({ children }) =>
   const [isOnboardingDismissed, setOnboardingDismissed] = useState(false);
   const [isOnboardingFinished, setIsOnboardingFinished] = useState(false);
   const [isInviteMemberModalOpen, setInviteMemberModalOpen] = useState(false);
+  const [isAssignMemberModalOpen, setAssignMemberModalOpen] = useState(false);
 
   const setTasksWrapper = (tasks: OnboardingTaskProps[]) => {
     setTasks(tasks);
@@ -149,6 +153,8 @@ export const OnboardingProvider: FC<{ children: ReactNode }> = ({ children }) =>
         setOnboardingDismissed,
         isInviteMemberModalOpen,
         setInviteMemberModalOpen,
+        isAssignMemberModalOpen,
+        setAssignMemberModalOpen,
       }}
     >
       {children}

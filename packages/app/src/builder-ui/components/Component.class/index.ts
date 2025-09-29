@@ -11,13 +11,13 @@ import { readFormValues, syncCompositeValues } from '../../ui/form';
 import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
+import { PostHog } from '@src/shared/posthog';
 import { jsonrepair } from 'jsonrepair';
 import { isEqual } from 'lodash-es';
 import { TooltipV2 } from '../../../react/shared/components/_legacy/ui/tooltip/tooltipV2';
 import config, { COMP_NAMES } from '../../config';
 import { BINARY_INPUT_TYPES } from '../../constants';
 import { checkWorkflowStatus } from '../../debugger';
-import { PostHog } from '../../services/posthog';
 import { generateTemplateVarBtns } from '../../ui/form/misc';
 import { renderComponentInputEditor } from '../../ui/react-injects';
 import { closeTwDialog, editValuesDialog, twEditValuesWithCallback } from '../../ui/tw-dialogs';
@@ -1777,18 +1777,31 @@ export class Component extends EventEmitter {
 
     if (this.properties.template) {
       const templateData = this.data._templateVars;
-      for (let name in entries) {
-        if (
-          Object.prototype.hasOwnProperty.call(templateData, name) &&
-          !isEqual(templateData[name], values[name])
-        )
-          return true;
+      const includedSettings = this.properties?.template?.templateInfo?.includedSettings || [];
 
-        if (
-          Object.prototype.hasOwnProperty.call(entries, name) &&
-          !isEqual(entries[name]?.value, values[name])
-        )
-          return true;
+      for (let name in entries) {
+        // Check if this is an included setting (compare against component.data)
+        if (includedSettings.includes(name)) {
+          if (
+            Object.prototype.hasOwnProperty.call(this.data, name) &&
+            !isEqual(this.data[name], values[name])
+          ) {
+            return true;
+          }
+        }
+        // Check if this is a template variable (compare against _templateVars)
+        else if (Object.prototype.hasOwnProperty.call(templateData, name)) {
+          if (!isEqual(templateData[name], values[name])) {
+            return true;
+          }
+        }
+        // Fallback: if entry exists in settingsEntries but not in either category,
+        // compare against the initial value from settingsEntries
+        else {
+          if (entries[name]?.value !== undefined && !isEqual(entries[name].value, values[name])) {
+            return true;
+          }
+        }
       }
     } else {
       for (let name in entries) {
@@ -1799,6 +1812,8 @@ export class Component extends EventEmitter {
           return true;
       }
     }
+
+    return false;
   }
   public async closeSettings(force = false) {
     return closeSettings(this, force);

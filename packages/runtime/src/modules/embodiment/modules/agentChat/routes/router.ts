@@ -108,7 +108,7 @@ router.post('/stream', async (req, res) => {
       conver: chatbot.conversationID,
     });
 
-    const dataPath = config.env.DATA_PATH;
+    const dataPath = config.env.LOCAL_STORAGE_PATH;
 
     if (!dataPath) {
       return res.status(500).send({ error: 'Data path is not set' });

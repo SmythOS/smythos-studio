@@ -92,15 +92,7 @@
     "label": "Gemini 2.5 Pro",
     "modelId": "gemini-2.5-pro",
     "provider": "GoogleAI",
-    "features": [
-      "text",
-      "image",
-      "audio",
-      "video",
-      "document",
-      "tools",
-      "reasoning"
-    ],
+    "features": ["text", "image", "audio", "video", "document", "tools", "reasoning"],
     "tags": ["Personal"],
     "tokens": 0,
     "completionTokens": 0,
@@ -116,15 +108,7 @@
     "label": "Gemini 2.5 Flash",
     "modelId": "gemini-2.5-flash",
     "provider": "GoogleAI",
-    "features": [
-      "text",
-      "image",
-      "audio",
-      "video",
-      "document",
-      "tools",
-      "reasoning"
-    ],
+    "features": ["text", "image", "audio", "video", "document", "tools", "reasoning"],
     "tags": ["New", "Personal"],
     "tokens": 0,
     "completionTokens": 0,
@@ -132,6 +116,138 @@
     "keyOptions": {
       "tokens": 1048576,
       "completionTokens": 65536,
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "deepseek-ai/DeepSeek-R1": {
+    "label": "DeepSeek - R1",
+    "modelId": "deepseek-ai/DeepSeek-R1",
+    "provider": "TogetherAI",
+    "features": ["text"],
+    "tags": ["Personal", "TogetherAI"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 128000,
+      "completionTokens": 32768,
+      "enabled": true
+    },
+    "baseURL": "https://api.together.xyz/v1",
+    "credentials": "vault"
+  },
+  "deepseek-ai/DeepSeek-V3": {
+    "label": "DeepSeek - V3",
+    "modelId": "deepseek-ai/DeepSeek-V3",
+    "provider": "TogetherAI",
+    "features": ["text"],
+    "tags": ["Personal", "TogetherAI"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 131072,
+      "completionTokens": 8192,
+      "enabled": true
+    },
+    "baseURL": "https://api.together.xyz/v1",
+    "credentials": "vault"
+  },
+  "moonshotai/kimi-k2-instruct": {
+    "label": "Moonshot - Kimi K2 Instruct Preview",
+    "modelId": "moonshotai/kimi-k2-instruct",
+    "provider": "Groq",
+    "features": ["text", "image", "tools"],
+    "tags": ["Personal", "Groq"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 131072,
+      "completionTokens": 16384,
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "qwen/qwen3-32b": {
+    "label": "Qwen - QWEN3 32b Preview",
+    "modelId": "qwen/qwen3-32b",
+    "provider": "Groq",
+    "features": ["text", "reasoning"],
+    "tags": ["Personal", "Groq"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 131072,
+      "completionTokens": 40960,
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "grok-4": {
+    "label": "Grok 4",
+    "modelId": "grok-4-0709",
+    "provider": "xAI",
+    "features": ["text", "tools", "search"],
+    "tags": ["Personal", "xAI"],
+    "tokens": 0,
+    "completionTokens": 0,
+    "enabled": false,
+    "keyOptions": {
+      "tokens": 256000,
+      "completionTokens": 8192,
+      "enabled": true
+    },
+    "baseURL": "https://api.x.ai/v1",
+    "credentials": "vault"
+  },
+  "gpt-image-1": {
+    "label": "GPT Image 1",
+    "modelId": "gpt-image-1",
+    "provider": "OpenAI",
+    "features": ["image-generation"],
+    "tags": ["Personal", "OpenAI"],
+    "enabled": false,
+    "keyOptions": {
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "gemini-2.5-flash-image": {
+    "label": "Nano Banana",
+    "modelId": "gemini-2.5-flash-image-preview",
+    "provider": "GoogleAI",
+    "features": ["image-generation"],
+    "tags": ["New", "Personal", "GoogleAI"],
+    "enabled": false,
+    "keyOptions": {
+      "enabled": true
+    },
+    "credentials": "vault",
+    "interface": "generateContent"
+  },
+  "imagen-4-ultra": {
+    "label": "Imagen 4 Ultra",
+    "modelId": "imagen-4.0-ultra-generate-preview-06-06",
+    "provider": "GoogleAI",
+    "features": ["image-generation"],
+    "tags": ["Personal", "GoogleAI"],
+    "enabled": false,
+    "keyOptions": {
+      "enabled": true
+    },
+    "credentials": "vault"
+  },
+  "imagen-4": {
+    "label": "Imagen 4",
+    "modelId": "imagen-4.0-generate-preview-06-06",
+    "provider": "GoogleAI",
+    "features": ["image-generation"],
+    "tags": ["Personal", "GoogleAI"],
+    "enabled": false,
+    "keyOptions": {
       "enabled": true
     },
     "credentials": "vault"

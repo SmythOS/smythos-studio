@@ -1,9 +1,9 @@
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
+import { PostHog } from '@src/shared/posthog';
 import interact from 'interactjs';
 import { jsonrepair } from 'jsonrepair';
 import { Component } from './components/Component.class';
 import SmythFile from './lib/SmythFile.class';
-import { PostHog } from './services/posthog';
 import { alert, modalDialog } from './ui/dialogs';
 import { twModalDialog } from './ui/tw-dialogs';
 import { delay } from './utils';
@@ -578,7 +578,7 @@ export async function runDebug() {
   runBtn.classList.add('running');
   isRunning = true;
 
-  PostHog.track('app_run_agent');
+  PostHog.track('app_run_agent', {});
 
   let sessionID;
   let processComponents = true;

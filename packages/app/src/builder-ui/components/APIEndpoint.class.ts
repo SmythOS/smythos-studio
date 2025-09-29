@@ -1,8 +1,8 @@
+import { PostHog } from '@src/shared/posthog';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import EventEmitter from '../EventEmitter.class';
 import { openEmbodimentDialog } from '../pages/builder/agent-settings';
-import { PostHog } from '../services/posthog';
 import { confirm } from '../ui/dialogs';
 import { renderEndpointFormPreviewSidebar } from '../ui/react-injects';
 import { delay } from '../utils';
@@ -181,28 +181,56 @@ export class APIEndpoint extends Component {
           },
           change: async (e) => {
             const newMode = e.target.checked;
+
+            // If trying to disable advanced mode, prevent it
             if (this.isOnAdvancedMode == true && newMode == false) {
               e.target.checked = true;
               e.preventDefault();
               return;
             }
-            const saveBeforeClose = await confirm(
-              'Are you sure?',
-              'Enabling Advanced Request Parts will permanently expose headers, body, and query parameters. This setting cannot be disabled once enabled.',
-              {
-                btnNoLabel: 'Cancel',
-                btnYesLabel: 'Enable',
-                btnNoClass: 'hidden',
-                btnYesClass: 'rounded-lg px-8',
-              },
-            );
-            if (saveBeforeClose) {
-              this.isOnAdvancedMode = true;
-              this.advancedModeActions(this.isOnAdvancedMode, e);
-            } else {
+
+            // If trying to enable advanced mode, show confirmation first
+            if (!this.isOnAdvancedMode && newMode == true) {
+              // Store the original event target for later use
+              const originalTarget = e.target;
+
+              // Temporarily revert the toggle to show confirmation dialog
               e.target.checked = false;
-              e.preventDefault();
-              return;
+
+              const saveBeforeClose = await confirm(
+                'Are you sure?',
+                'Enabling Advanced Request Parts will permanently expose headers, body, and query parameters. This setting cannot be disabled once enabled.',
+                {
+                  btnNoLabel: 'Cancel',
+                  btnYesLabel: 'Enable',
+                  btnNoClass: 'hidden',
+                  btnYesClass: 'rounded-lg px-8',
+                },
+              );
+
+              if (saveBeforeClose) {
+                // User confirmed, now enable advanced mode
+                originalTarget.checked = true;
+                this.isOnAdvancedMode = true;
+                this.advancedModeActions(this.isOnAdvancedMode, e);
+
+                // Trigger auto-save by dispatching a change event that matches the selector
+                // The auto-save listener looks for: 'select, input[type="checkbox"], input[type="radio"]'
+                setTimeout(() => {
+                  const changeEvent = new Event('change', {
+                    bubbles: true,
+                  });
+
+                  // Dispatch the event on the checkbox element
+                  originalTarget.dispatchEvent(changeEvent);
+                }, 10);
+              } else {
+                // User cancelled, keep toggle off and prevent further processing
+                originalTarget.checked = false;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+              }
             }
           },
         },
@@ -211,12 +239,13 @@ export class APIEndpoint extends Component {
         type: 'textarea',
         label: 'Status Message',
         value: '',
-        help: 'Status message to be displayed to the user when the endpoint is called',
+        help: 'Send a custom message when this skill starts in chat',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         validate: `maxlength=240`,
         validateMessage: 'Your text exceeds the 240 character limit.',
         section: 'Advanced',
+        attributes: { placeholder: 'Starting {skill_name}… this may take ~{estimated_duration}.' },
       },
     };
 
@@ -393,10 +422,17 @@ export class APIEndpoint extends Component {
       // Ensure endpoint value is properly formatted
       if (settingsValues.endpoint) {
         // Format according to validation rules (trim and replace spaces with underscores)
-        this.data.endpoint = getValidEndpoint(settingsValues.endpoint);
+        const formattedEndpoint = getValidEndpoint(settingsValues.endpoint);
+        this.data.endpoint = formattedEndpoint;
 
         // Also update endpointLabel to match
         this.data.endpointLabel = this.data.endpoint;
+
+        // Update the form field value to match the formatted value to prevent unsaved changes detection
+        const endpointField = document.querySelector('input[name="endpoint"]') as HTMLInputElement;
+        if (endpointField) {
+          endpointField.value = formattedEndpoint;
+        }
 
         // Update endpointLabel to match the formatted endpoint value
         const endpointLabel = document.querySelector(

@@ -19,7 +19,7 @@
     "prisma:deploy": "dotenv -e ../../.env prisma migrate deploy --schema ./prisma/schema.prisma",
     "build": "rollup -c",
     "dev": "pnpm prisma:migrate && nodemon",
-    "start": "node -r esbuild-register dist/index.js",
+    "start": "pnpm prisma:deploy && node -r esbuild-register dist/index.js",
     "start:prod": "node -r esbuild-register dist/index.js",
     "script": "node -r esbuild-register",
     "format": "prettier --write \"**/*.ts\"",
@@ -76,7 +76,7 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.421.0",
     "@prisma/client": "^5.7.1",
-    "@smythos/sre": "^1.5.32",
+    "@smythos/sre": "^1.5.74",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
     "date-fns": "^3.3.1",

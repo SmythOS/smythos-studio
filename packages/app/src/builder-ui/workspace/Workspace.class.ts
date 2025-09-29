@@ -735,7 +735,7 @@ export class Workspace extends EventEmitter {
     if (!data) data = await this.export(fireEvent);
     if (!domain) domain = this.agent?.domain;
     if (fireEvent) this.emit('AgentSaving', this.agent, data);
-    this.updateAgentSaveStatus('', 'progress');
+    this.updateAgentSaveStatus('Saving...', 'progress');
 
     try {
       const result = await this.agent.save(name, domain, data, id);
@@ -749,7 +749,15 @@ export class Workspace extends EventEmitter {
       this._saving = false;
       //this.locked = false;
       if (fireEvent) this.emit('AgentSaved', this.agent, data);
-      this.updateAgentSaveStatus('', 'success');
+
+      const timeString = new Date().toLocaleTimeString('en-GB', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+
+      this.updateAgentSaveStatus(`Auto-Saved ${timeString}`, 'success');
       // console.log('Agent saved');
 
       if (name) {
