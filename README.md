@@ -174,7 +174,7 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 ## Contributors
 
-<a href="https://github.com/SmythOS/smythos-ui/graphs/contributors">
+<a href="https://github.com/SmythOS/smythos-studio/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=SmythOS/smythos-studio" />
 </a>
 

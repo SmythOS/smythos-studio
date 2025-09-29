@@ -152,14 +152,17 @@ docker run -d \
 
 The docker compose setup includes automatic SSL certificate generation via Let's Encrypt:
 
-1. **Configure your domains** in `.env`:
+1. **Configure your domains & tls configuration** in `.env`:
    ```env
-   APP_DOMAIN=http://yourdomain.com
-   RUNTIME_DOMAIN=http://runtime.yourdomain.com
+   APP_DOMAIN=https://yourdomain.com
+   RUNTIME_DOMAIN=https://runtime.yourdomain.com
    DEFAULT_AGENT_DOMAIN=dev.yourdomain.com
    PROD_AGENT_DOMAIN=live.yourdomain.com
    LETSENCRYPT_EMAIL=admin@yourdomain.com
+   ENABLE_TLS=true
    ```
+
+   + remove the `AGENT_DOMAIN_PORT` variable
 
 2. **Ensure DNS records** point to your server:
    ```

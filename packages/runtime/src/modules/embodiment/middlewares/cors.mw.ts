@@ -13,7 +13,7 @@ const corsOptionsDelegate = async (req, callback) => {
   const embodimentType = req.originalUrl.includes('form-preview') ? EMBODIMENT_TYPES.FormPreview : EMBODIMENT_TYPES.ChatBot;
 
   // default origins are the origins that are allowed to make requests to the server
-  const defaultOrigins = [config.env.UI_SERVER];
+  const defaultOrigins = [config.env.UI_SERVER, 'http://localhost', 'https://localhost'];
   let agentAllowedDomains = []; // agent allowed domains are the origins that user has specified in the embodiment configuration
   const allAllowedOrigins = [...defaultOrigins];
 

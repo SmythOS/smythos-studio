@@ -13,7 +13,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy root package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .env ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy TypeScript config
 COPY tsconfig.json ./

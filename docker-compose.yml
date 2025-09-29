@@ -16,13 +16,13 @@ services:
       - --api.insecure=true
       # Enable access logs (optional)
       - --accesslog=true
-      # Configure Let's Encrypt for automatic SSL (optional)
+      # Configure Let's Encrypt for automatic SSL (configured but only used when ENABLE_TLS=true)
       - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:-admin@example.com}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       # Global redirect from HTTP to HTTPS (optional)
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      # - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
     ports:
       - "${EXPOSE_TRAEFIK_PORT:-80}:80"
       - "${EXPOSE_HTTPS_TRAEFIK_PORT:-443}:443"
@@ -134,7 +134,8 @@ services:
       - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-app.service=smythos-app"
       - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
-      - "traefik.http.routers.smythos-app.tls=true"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-app.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-app.tls.certresolver=le"
       
      
@@ -142,11 +143,12 @@ services:
       # Service definition
       - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
       
-      # Only create routes if RUNTIME_DOMAIN is set
+      # RUNTIME_DOMAIN routing to port 5053 (Runtime Server)
       - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
       - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-runtime.service=smythos-runtime"
-      - "traefik.http.routers.smythos-runtime.tls=true"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-runtime.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-runtime.tls.certresolver=le"
       - "traefik.http.services.smythos-runtime.loadbalancer.server.port=5053"
       
@@ -154,14 +156,16 @@ services:
       - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`) || HostRegexp(`^.+\\.${PROD_AGENT_DOMAIN:-prod\\.localhost}$$`)"
       - "traefik.http.routers.smythos-prod-agents.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-prod-agents.service=smythos-runtime"
-      - "traefik.http.routers.smythos-prod-agents.tls=true"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-prod-agents.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-prod-agents.tls.certresolver=le"
       
       # DEFAULT_AGENT_DOMAIN routing to port 5053 (Default/Development Agents)
       - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`) || HostRegexp(`^.+\\.${DEFAULT_AGENT_DOMAIN:-default\\.localhost}$$`)"
       - "traefik.http.routers.smythos-default-agents.entrypoints=web,websecure"
       - "traefik.http.routers.smythos-default-agents.service=smythos-runtime"
-      - "traefik.http.routers.smythos-default-agents.tls=true"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-default-agents.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-default-agents.tls.certresolver=le"
       
       # Security Headers Middleware
