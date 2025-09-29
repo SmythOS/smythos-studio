@@ -35,7 +35,25 @@ This approach makes AI agent development **accessible to everyone** - from busin
 
 ## Quick Start
 
-### Method 1: Local Development Setup
+### Method 1: Docker Quick Start
+
+Get up and running instantly with Docker Compose.
+
+```bash
+# Copy environment configuration
+cp .env.compose.example .env
+docker compose up -d
+
+```
+
+**Access your application:** http://localhost:5050
+
+🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for production-ready multi-container deployment with automatic SSL, database, and caching.
+
+---
+
+
+### Method 2: Local Development Setup
 
 Perfect for development, customization, and contributing to the project.
 
@@ -62,31 +80,6 @@ pnpm dev
 
 📖 **Detailed Setup**: See our [Contributing Guide](CONTRIBUTING.md) for complete development setup instructions.
 
-### Method 2: Docker Quick Start
-
-Get up and running instantly with a single Docker command.
-
-```bash
-# Copy environment configuration
-cp .env.example .env
-# REQUIRED: Edit .env with your database credentials
-
-# Build and run with Docker
-docker build -t smythos-ui .
-docker run -d \
-  --name smythos-ui \
-  -p 5050:5050 \
-  -p 5053:5053 \
-  --env-file .env \
-  -v smythos_data:/home/node/smythos-data \
-  smythos-ui:latest
-```
-
-**Access your application:** http://localhost:5050
-
-🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for production-ready multi-container deployment with automatic SSL, database, and caching.
-
----
 
 ## Repository Structure
 

@@ -16,22 +16,16 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 		- [Network Architecture](#network-architecture)
 		- [Volume Management](#volume-management)
 	- [Standalone Dockerfile Usage](#standalone-dockerfile-usage)
-		- [Building the Image](#building-the-image)
 		- [Running the Container](#running-the-container)
 	- [Environment Variables](#environment-variables)
 		- [Required Variables](#required-variables)
-		- [Optional Variables](#optional-variables)
 	- [Production Deployment](#production-deployment)
 		- [Domain & SSL/TLS Configuration](#domain-ssltls-configuration)
 		- [Security Considerations](#security-considerations)
-	- [Development with Docker](#development-with-docker)
 	- [Troubleshooting](#troubleshooting)
 		- [Common Issues](#common-issues)
-		- [Logs and Debugging](#logs-and-debugging)
 	- [Maintenance](#maintenance)
 		- [Updates](#updates)
-		- [Backups](#backups)
-		- [Cleanup](#cleanup)
 
 ## Prerequisites
 
@@ -49,7 +43,14 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 
 The docker compose setup provides a complete production-ready environment with all necessary services.
 
-### 1. Environment Setup
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/SmythOS/smythos-studio.git
+cd smythos-studio
+```
+
+### 2. Environment Setup
 
 Create your environment file:
 
@@ -60,7 +61,7 @@ cp .env.compose.example .env
 (Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, your domains, etc.)
 
 
-### 2. Start All Services
+### 3. Start All Services
 
 Launch the complete SmythOS UI stack:
 
@@ -74,7 +75,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-### 3. Access the Application
+### 4. Access the Application
 
 Once all services are healthy:
 
@@ -119,30 +120,11 @@ Once all services are healthy:
 
 ## Standalone Dockerfile Usage
 
-For custom deployments or development, you can use the Dockerfile directly.
-
-### Building the Image
-
-```bash
-# Build the SmythOS UI image
-docker build -t smythos-ui:latest .
-
-# Build with specific tag
-docker build -t smythos-ui:v1.0.0 .
-```
+For custom configurations, you can use the Dockerfile directly.
 
 ### Running the Container
 
 ```bash
-# Run with external database
-docker run -d \
-  --name smythos-app \
-  -p 5050:5050 \
-  -p 5053:5053 \
-  -e DATABASE_URL="mysql://user:password@host:3306/database" \
-  -v smythos_data:/home/node/smythos-data \
-  smythos-ui:latest
-
 # Run with environment file
 docker run -d \
   --name smythos-app \
@@ -205,21 +187,8 @@ The docker compose setup includes automatic SSL certificate generation via Let's
 
 ### Common Issues
 
-**1. Can't access subdomain URLs (runtime.localhost, prod.localhost, etc.):**
 
-This only applies when using the default localhost domain configuration. In case you can't access the subdomain URLs above, add them to your hosts file:
-
-**Solution - Add to hosts file:**
-```bash
-# Linux/macOS
-sudo sh -c 'echo "127.0.0.1 runtime.localhost prod.localhost default.localhost" >> /etc/hosts'
-
-# Windows (run as Administrator)
-echo 127.0.0.1 runtime.localhost prod.localhost default.localhost >> C:\Windows\System32\drivers\etc\hosts
-```
-
-
-**2. Services not starting:**
+**1. Services not starting:**
 ```bash
 # Check service status
 docker compose ps
@@ -229,7 +198,7 @@ docker compose logs mysql
 docker compose logs smythos
 ```
 
-**3. Database connection errors:**
+**2. Database connection errors:**
 ```bash
 # Verify MySQL is healthy
 docker compose exec mysql mysqladmin ping -u root -p
@@ -238,7 +207,7 @@ docker compose exec mysql mysqladmin ping -u root -p
 docker compose exec smythos sh -c "mysql -h mysql -u \$DATABASE_USER -p\$DATABASE_PASSWORD -e 'SELECT 1'"
 ```
 
-**4. Port conflicts:**
+**3. Port conflicts:**
 ```bash
 # Check what's using the ports
 netstat -tlnp | grep :80
