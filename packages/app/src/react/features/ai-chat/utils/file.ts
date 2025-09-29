@@ -1,4 +1,3 @@
-import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { FileWithMetadata } from '@react/shared/types/chat.types';
 
 /**
@@ -7,7 +6,7 @@ import { FileWithMetadata } from '@react/shared/types/chat.types';
 export const FILE_LIMITS = {
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB in bytes
   MAX_ATTACHED_FILES: 5,
-  ACCEPTED_TYPES: CHAT_ACCEPTED_FILE_TYPES.input.split(','),
+  ACCEPTED_TYPES: ['*/*'], // Accept all file types like chatbot
 } as const;
 
 /**
@@ -66,25 +65,15 @@ export const validateFiles = (newFiles: File[], existingFileCount: number): stri
       return `File ${file.name} exceeds maximum size of 5MB`;
     }
 
-    // Check file type
-    const fileType = file.type || '';
-    const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
-    const isValidType = FILE_LIMITS.ACCEPTED_TYPES.some((type) => {
-      // Remove whitespace and * from the MIME type
-      const cleanType = type.trim().replace('*', '');
-      return fileType.startsWith(cleanType) || type.includes(fileExtension);
-    });
-
-    if (!isValidType) {
-      return `File type ${fileExtension || 'unknown'} is not supported`;
-    }
+    // Accept all file types - no file type validation needed
+    // Since we're accepting */* all file types are allowed
   }
 
   return null;
 };
 
 /**
- * Validates a single file against size and type constraints
+ * Validates a single file against size constraints only
  * @param file The file to validate
  * @returns An error message if validation fails, null if validation passes
  */
@@ -93,17 +82,8 @@ export const validateSingleFile = (file: File): string | null => {
     return 'File size exceeds 5MB limit';
   }
 
-  const fileType = file.type || '';
-  const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
-  const isValidType = FILE_LIMITS.ACCEPTED_TYPES.some((type) => {
-    const cleanType = type.trim().replace('*', '');
-    return fileType.startsWith(cleanType) || type.includes(fileExtension);
-  });
-
-  if (!isValidType) {
-    return 'File type not supported';
-  }
-
+  // Accept all file types - no file type validation needed
+  // Since we're accepting */* all file types are allowed
   return null;
 };
 
@@ -116,7 +96,7 @@ export const uploadFile = async (
   file: File,
   agentId: string,
   chatId?: string,
-): Promise<{ success: boolean; data?: any; error?: string }> => {
+): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -151,7 +131,7 @@ export const deleteFile = async (key: string): Promise<boolean> => {
       method: 'DELETE',
     });
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
