@@ -11,7 +11,7 @@ import { isSmythStaff } from '../../utils';
 const smythFS = new SmythFS();
 
 export async function readAgentTemplates(req) {
-  const templatesPath = path.join(config.env.LOCAL_STORAGE_PATH, 'templates/agents');
+  const templatesPath = path.join(process.env.DATA_PATH, 'templates/agents');
   try {
     //list .smyth files from templates/agents directory and return an object with file names and contents
     const templates = {};
