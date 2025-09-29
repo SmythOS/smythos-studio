@@ -179,7 +179,6 @@ const AIChat = () => {
           isAgentLoading={isAgentLoading}
           isAvatarLoading={isAgentSettingsLoading}
         />
-
         <Chats
           {...scroll}
           agent={agent}
