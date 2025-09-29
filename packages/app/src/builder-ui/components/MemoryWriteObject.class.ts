@@ -55,10 +55,10 @@ export class MemoryWriteObject extends Component {
       },
     };
 
-    // const dataEntries = ['key', 'value'];
-    // for (let item of dataEntries) {
-    //   if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
-    // }
+    const dataEntries = ['memoryName'];
+    for (let item of dataEntries) {
+      if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    }
 
     // #endregion
 
