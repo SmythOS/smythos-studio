@@ -7,7 +7,7 @@ export class MemoryWriteKeyVal extends Component {
       memoryName: {
         type: 'input',
         label: 'Memory Name',
-        value: 'default',
+        value: '',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
         attributes: { 'data-template-vars': 'true' },
@@ -69,7 +69,7 @@ export class MemoryWriteKeyVal extends Component {
       },
     };
 
-    const dataEntries = ['key', 'value'];
+    const dataEntries = ['memoryName', 'key', 'value'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
