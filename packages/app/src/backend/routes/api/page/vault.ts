@@ -18,6 +18,7 @@ import { Team } from '../../../types';
 import { isSmythStaff } from '../../../utils';
 import { isCustomLLMAllowed } from '../../../utils/customLLM';
 import { customLLMHelper } from '../../router.helpers/customLLM.helper';
+import { localLLMHelper } from '../../router.helpers/localLLM.helper';
 import { getVaultKeys, setVaultKey } from '../../router.utils';
 
 const router = express.Router();
@@ -358,12 +359,10 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
     res.json(sanitizedSettings);
   } catch (error) {
     console.error('Error fetching OAuth connections:', error?.message);
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: 'An unexpected error occurred while fetching OAuth connections.',
-      });
+    res.status(500).json({
+      success: false,
+      error: 'An unexpected error occurred while fetching OAuth connections.',
+    });
   }
 });
 
@@ -514,12 +513,10 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
     res.json({ success: true, data: finalDataToSave }); // Respond with the data that was saved
   } catch (error) {
     console.error(`[PUT /oauth-connections] Error processing request for ${entryId}:`, error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: 'An unexpected error occurred while saving the OAuth connection.',
-      });
+    res.status(500).json({
+      success: false,
+      error: 'An unexpected error occurred while saving the OAuth connection.',
+    });
   }
 });
 
@@ -549,12 +546,10 @@ router.delete('/oauth-connections/:connectionId', includeTeamDetails, async (req
     res.status(200).json({ success: true });
   } catch (error) {
     console.error(`Error deleting OAuth connection ${connectionId}:`, error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: 'An unexpected error occurred while deleting the OAuth connection.',
-      });
+    res.status(500).json({
+      success: false,
+      error: 'An unexpected error occurred while deleting the OAuth connection.',
+    });
   }
 });
 
@@ -599,9 +594,22 @@ router.put('/recommended-models/:providerId', includeTeamDetails, async (req, re
   res.send({ success: true, data: result?.data });
 });
 
-export default router;
+// TODO: Refactor this file by splitting it into separate modules for better organization.
+// Suggested structure:
+// - vault/index.ts
+// - vault/custom-llm.ts
+// - vault/local-llm.ts
 
-// #region Custom LLM
+// #region Custom LLM Routes
+/**
+ * Custom LLM Routes
+ *
+ * Provides endpoints for managing team-specific custom LLM models:
+ * - CRUD operations for custom LLM configurations
+ * - Access control based on team subscription and user permissions
+ * - Cache management for custom model data
+ */
+
 const customLLMAccessMw = async (req: any, res: any, next: any) => {
   //* should be called after `includeTeamDetails` middleware to get the team details
   const teamDetails: Team = req._team;
@@ -733,3 +741,146 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
   }
 });
 // #endregion
+
+// #region Local LLM Routes
+/**
+ * Local LLM Routes
+ *
+ * Provides endpoints for managing team-specific local LLM models:
+ * - CRUD operations for local LLM configurations
+ * - No access control checks (ACL) required
+ * - Cache management for local model data
+ * - Secure credential access via with-credentials endpoint
+ *
+ * Data structure:
+ * {
+ *   id: {
+ *     name: <the friendly name>,
+ *     id: <id of the entry>,
+ *     modelId: <the model id entered by the user>,
+ *     baseUrl: <base url>,
+ *     fallbackLLM: <llm ID from builtin LLMs>
+ *   }
+ * }
+ */
+
+/**
+ * Create or update a local LLM model
+ */
+const handleLocalLLMSave = async (req, res) => {
+  const teamId = req?._team?.id;
+  const id = req.params?.id; // This will be undefined for POST requests
+
+  try {
+    const saveLocalLLM = await localLLMHelper.saveLocalLLM(req, {
+      id,
+      ...req.body,
+    });
+
+    // Delete the local LLM model cache
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
+      console.warn('Error deleting local LLM model cache:', error?.message);
+    });
+
+    res.status(200).json({ success: true, data: saveLocalLLM.data });
+  } catch (error) {
+    console.error('Error saving local LLM model:', error?.message);
+    res.status(500).json({ success: false, error: 'Error saving local LLM model.' });
+  }
+};
+
+/**
+ * Create a new local LLM model
+ * POST /local-llm/
+ */
+router.post('/local-llm/', includeTeamDetails, handleLocalLLMSave);
+
+/**
+ * Update an existing local LLM model
+ * PUT /local-llm/:id
+ */
+router.put('/local-llm/:id', includeTeamDetails, handleLocalLLMSave);
+
+/**
+ * Get all local LLM models
+ * GET /local-llm
+ */
+router.get('/local-llm', includeTeamDetails, async (req, res) => {
+  try {
+    const allLocalModels = await localLLMHelper.getAllLocalLLMs(req);
+    res.status(200).json({ success: true, data: allLocalModels });
+  } catch (error) {
+    console.error('Error getting local LLM models:', error?.message);
+    res.status(500).json({ success: false, error: 'Error getting local LLM models.' });
+  }
+});
+
+/**
+ * Get a specific local LLM model by ID
+ * GET /local-llm/:id
+ */
+router.get('/local-llm/:id', includeTeamDetails, async (req, res) => {
+  try {
+    const entryId = req.params.id;
+    const modelInfo = await localLLMHelper.getLocalLLMByEntryId(req, entryId);
+
+    if (!modelInfo) {
+      return res.status(404).json({ success: false, error: 'Local LLM model not found.' });
+    }
+
+    res.status(200).json({ success: true, data: modelInfo });
+  } catch (error) {
+    console.error('Error getting local LLM model:', error?.message);
+    res.status(500).json({ success: false, error: 'Error getting local LLM model.' });
+  }
+});
+
+/**
+ * Get a local LLM model with credentials by name
+ * GET /local-llm/with-credentials/:name
+ */
+router.get('/local-llm/with-credentials/:name', includeTeamDetails, async (req, res) => {
+  try {
+    const modelName = req.params.name;
+    const modelInfo = await localLLMHelper.getLocalLLMByName(req, modelName);
+
+    if (!modelInfo || Object.keys(modelInfo).length === 0) {
+      return res.status(404).json({ success: false, error: 'Local LLM model not found.' });
+    }
+
+    // Return the full model configuration including credentials (baseUrl, etc.)
+    res.status(200).json({ success: true, data: modelInfo });
+  } catch (error) {
+    console.error('Error getting local LLM model with credentials:', error?.message);
+    res
+      .status(500)
+      .json({ success: false, error: 'Error getting local LLM model with credentials.' });
+  }
+});
+
+/**
+ * Delete a local LLM model
+ * DELETE /local-llm/:id
+ */
+router.delete('/local-llm/:id', includeTeamDetails, async (req, res) => {
+  try {
+    const teamId = req?._team?.id;
+    const id = req.params.id;
+
+    const deleteResult = await localLLMHelper.deleteLocalLLM(req, id);
+
+    // Delete the local LLM model cache
+    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
+      console.warn('Error deleting local LLM model cache:', error?.message);
+    });
+
+    res.status(200).json({ success: true, data: deleteResult.data });
+  } catch (error) {
+    console.error('Error deleting local LLM model:', error?.message);
+    res.status(500).json({ success: false, error: 'Error deleting local LLM model.' });
+  }
+});
+
+// #endregion
+
+export default router;
