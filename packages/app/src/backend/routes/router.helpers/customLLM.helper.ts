@@ -150,8 +150,8 @@ async function getCustomLLMByEntryId(req: Request, entryId: string) {
 //#region - Joi Base Validation Schemas
 const baseValidationSchema = Joi.object({
   // Authentication and user information
-  accessToken: Joi.string().required(),
-  idToken: Joi.string().required(),
+  accessToken: Joi.string().optional(),
+  idToken: Joi.string().optional(),
   teamId: Joi.string().required(),
   userEmail: Joi.string().email().required(),
 
@@ -318,8 +318,7 @@ async function _saveBedrockModel(req: Request, params: BedrockModelInputParams) 
 }
 
 async function _saveVertexAIModel(req: Request, params: VertexAIModelInputParams) {
-  const { accessToken, teamId, userEmail, id, name, provider, features, settings, idToken } =
-    params;
+  const { teamId, userEmail, id, name, provider, features, settings } = params;
   const { foundationModel, customModel, region, projectId, jsonCredentials } = settings;
 
   const { error } = vertexAIValidationSchema.validate(params);
