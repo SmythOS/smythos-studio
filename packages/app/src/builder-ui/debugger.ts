@@ -534,6 +534,35 @@ export async function init() {
   updateServerStatus();
 
   handleEmbodimentRPCDebug();
+
+  checkWeaverAvailability();
+}
+
+function checkWeaverAvailability() {
+  const currentSidebarTab = localStorage.getItem('currentSidebarTab');
+  const sidebarOpen = localStorage.getItem('sidebarOpen');
+  // Switch to components if weaver is not enabled
+  if (
+    (!sidebarOpen || sidebarOpen === 'true') &&
+    currentSidebarTab === 'agentBuilderTab' &&
+    window?.SMYTHOS_EDITION !== 'enterprise'
+  ) {
+    setSidebarTab('buildTab');
+  }
+}
+
+function setSidebarTab(tab) {
+  localStorage.setItem('currentSidebarTab', tab);
+  localStorage.setItem('previousTab', null);
+  window.dispatchEvent(
+    new CustomEvent('sidebarStateChanged', {
+      detail: {
+        isSidebarOpen: true,
+        currentSidebarTab: tab,
+        rightSidebarOpen: false,
+      },
+    }),
+  );
 }
 
 function waitDebugStep() {
