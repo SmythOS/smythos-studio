@@ -163,3 +163,33 @@ export interface ApiKeysResponse {
   keys?: ApiKey[];
   error?: string;
 }
+
+/**
+ * Represents a local LLM model in the system
+ */
+export interface LocalModel {
+  /**
+   * Unique identifier for the model
+   */
+  id: string;
+
+  /**
+   * Display name of the model
+   */
+  name: string;
+
+  /**
+   * The model ID entered by the user
+   */
+  modelId: string;
+
+  /**
+   * Base URL for the local model API
+   */
+  baseUrl: string;
+
+  /**
+   * Fallback LLM ID from builtin LLMs
+   */
+  fallbackLLM: string;
+}

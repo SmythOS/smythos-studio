@@ -1,10 +1,10 @@
-import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
-import type { UserProfile, BuiltInModel, UserModel, EnterpriseModel, ApiKey } from './types/types';
-import { customModels } from '@src/shared/custom-models';
 import {
   CUSTOM_LLM_PROVIDERS,
   CUSTOM_LLM_REGIONS,
 } from '@src/shared/constants/custom-llm.constants';
+import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
+import { customModels } from '@src/shared/custom-models';
+import type { ApiKey, BuiltInModel, EnterpriseModel, LocalModel, UserModel } from './types/types';
 
 export interface Provider {
   id: string;
@@ -639,5 +639,147 @@ export const providerService = {
 
   getProviderOptions: async (providerId: string): Promise<Provider | null> => {
     return providerService.providers.find((p) => p.id === providerId) || null;
+  },
+};
+
+export const localModelService = {
+  localModels: [],
+
+  /**
+   * Fetches all local LLM models for the current team
+   */
+  getLocalModels: async (): Promise<LocalModel[]> => {
+    try {
+      const response = await fetch('/api/page/vault/local-llm', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch local models');
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch local models');
+      }
+
+      // Convert the local LLM data to our LocalModel format
+      const models = Object.entries(result.data || {}).map(([id, value]: [string, any]) => ({
+        id: value.id || id,
+        name: value.name,
+        modelId: value.modelId,
+        baseUrl: value.baseUrl,
+        fallbackLLM: value.fallbackLLM,
+      }));
+
+      return models;
+    } catch (error) {
+      console.error('Error fetching local models:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Creates a new local LLM model
+   */
+  createLocalModel: async (modelDetails: Omit<LocalModel, 'id'>): Promise<LocalModel> => {
+    try {
+      const response = await fetch('/api/page/vault/local-llm/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(modelDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create local model');
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create local model');
+      }
+
+      // Return the created model with the generated ID
+      return {
+        id: result.data.id,
+        name: result.data.name,
+        modelId: modelDetails.modelId,
+        baseUrl: modelDetails.baseUrl,
+        fallbackLLM: modelDetails.fallbackLLM,
+      };
+    } catch (error) {
+      console.error('Error creating local model:', error);
+      throw new Error(error.error || error.message || 'Failed to create local model');
+    }
+  },
+
+  /**
+   * Updates an existing local LLM model
+   */
+  updateLocalModel: async (
+    modelId: string,
+    updatedFields: Partial<LocalModel>,
+  ): Promise<LocalModel> => {
+    try {
+      const response = await fetch(`/api/page/vault/local-llm/${modelId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedFields),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update local model');
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update local model');
+      }
+
+      // Return the updated model
+      return {
+        id: modelId,
+        name: result.data.name,
+        modelId: updatedFields.modelId || '',
+        baseUrl: updatedFields.baseUrl || '',
+        fallbackLLM: updatedFields.fallbackLLM || '',
+      };
+    } catch (error) {
+      console.error('Error updating local model:', error);
+      throw new Error(error.error || error.message || 'Failed to update local model');
+    }
+  },
+
+  /**
+   * Deletes a local LLM model
+   */
+  deleteLocalModel: async (modelId: string): Promise<void> => {
+    try {
+      const response = await fetch(`/api/page/vault/local-llm/${modelId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete local model');
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete local model');
+      }
+    } catch (error) {
+      console.error('Error deleting local model:', error);
+      throw new Error(error.error || error.message || 'Failed to delete local model');
+    }
   },
 };

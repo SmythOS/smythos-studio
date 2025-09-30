@@ -2,11 +2,13 @@ import type {
   ApiKey,
   ApiKeysResponse,
   EnterpriseModel,
+  LocalModel,
   UserModel,
 } from '@react/features/vault/types/types';
 import {
   apiKeyService,
   enterpriseModelService,
+  localModelService,
   recommendedModelsService,
   userModelService,
   vaultService,
@@ -277,6 +279,58 @@ export function useUpdateRecommendedModel() {
       recommendedModelsService.updateRecommendedModels(providerId, enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recommendedModels'] });
+    },
+  });
+}
+
+// Local Model Hooks
+const LOCAL_MODEL_QUERY_KEYS = {
+  LOCAL_MODELS: ['localModels'],
+} as const;
+
+export function useLocalModels() {
+  return useQuery({
+    queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS,
+    queryFn: () => localModelService.getLocalModels(),
+  });
+}
+
+export function useCreateLocalModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (modelDetails: Omit<LocalModel, 'id'>) =>
+      localModelService.createLocalModel(modelDetails),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
+    },
+  });
+}
+
+export function useUpdateLocalModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      modelId,
+      updatedFields,
+    }: {
+      modelId: string;
+      updatedFields: Partial<LocalModel>;
+    }) => localModelService.updateLocalModel(modelId, updatedFields),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
+    },
+  });
+}
+
+export function useDeleteLocalModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { modelId: string }>({
+    mutationFn: ({ modelId }) => localModelService.deleteLocalModel(modelId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
     },
   });
 }
