@@ -92,7 +92,7 @@ function parseJson(str: string): string | Record<string, unknown> | null {
     try {
       return JSON.parse(jsonrepair(str));
     } catch (e: any) {
-      console.error('Error on parseJson: ', e.toString());
+      console.error('Error on parseJson:', e.toString());
       console.error('   Tried to parse: ', str);
       return null;
     }
