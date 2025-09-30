@@ -1,16 +1,17 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
+import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
 import { ApiKeys } from '../components/api-keys';
 import { EnterpriseModels } from '../components/enterprise-models';
-import { RecommendedModels } from '../components/recommended-models';
+import { OAuthConnections } from '../components/oauth-connections';
 import { UserModels } from '../components/user-models';
 import { useVault } from '../hooks/use-vault';
-import { OAuthConnections } from '../components/oauth-connections';
 
 export default function VaultPage() {
   const [isExporting, setIsExporting] = React.useState(false);
@@ -75,7 +76,9 @@ export default function VaultPage() {
         )}
       </div>
 
-      {hasBuiltinModels && <RecommendedModels pageAccess={pageAccess} />}
+      {hasBuiltinModels && (
+        <PluginComponents targetId={PluginTarget.VaultPageSmythOSRecommendedModels} />
+      )}
 
       <UserModels pageAccess={pageAccess} />
       <EnterpriseModels pageAccess={pageAccess} />

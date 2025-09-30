@@ -1,10 +1,10 @@
-import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
-import type { UserProfile, BuiltInModel, UserModel, EnterpriseModel, ApiKey } from './types/types';
-import { customModels } from '@src/shared/custom-models';
 import {
   CUSTOM_LLM_PROVIDERS,
   CUSTOM_LLM_REGIONS,
 } from '@src/shared/constants/custom-llm.constants';
+import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
+import { customModels } from '@src/shared/custom-models';
+import type { ApiKey, BuiltInModel, EnterpriseModel, UserModel } from './types/types';
 
 export interface Provider {
   id: string;
@@ -535,7 +535,7 @@ export const apiKeyService = {
   },
 };
 
-const globalModelKeyNameMap = {
+export const globalModelKeyNameMap = {
   openai: 'OpenAI',
   anthropic: 'Anthropic',
   googleai: 'GoogleAI',
@@ -567,37 +567,6 @@ export const vaultService = {
     } catch (error) {
       console.error('Error exporting vault structure:', error);
       throw new Error('Failed to export vault structure');
-    }
-  },
-};
-
-export const recommendedModelsService = {
-  getNameByProviderId: (providerId: string) => {
-    return globalModelKeyNameMap?.[providerId?.toLowerCase()] || providerId;
-  },
-  getRecommendedModels: async (): Promise<Record<string, { enabled: boolean }>> => {
-    try {
-      const res = await fetch('/api/page/vault/recommended-models');
-      const resJson = await res.json();
-      return resJson?.data || {};
-    } catch (error) {
-      console.error('Error fetching recommended models:', error);
-      throw new Error('Failed to get recommended models');
-    }
-  },
-  updateRecommendedModels: async (providerId: string, enabled: boolean) => {
-    try {
-      const res = await fetch(`/api/page/vault/recommended-models/${providerId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ enabled }),
-      });
-      return res.json();
-    } catch (error) {
-      console.error('Error updating recommended models:', error);
-      throw new Error('Failed to update recommended models');
     }
   },
 };

@@ -7,9 +7,8 @@ import type {
 import {
   apiKeyService,
   enterpriseModelService,
-  recommendedModelsService,
   userModelService,
-  vaultService,
+  vaultService
 } from '@react/features/vault/vault-business-logic';
 import { hasCustomLLMAccess } from '@src/builder-ui/helpers/customLLM.helper';
 import { queryClient } from '@src/react/shared/query-client';
@@ -260,23 +259,6 @@ export function useDeleteEnterpriseModel() {
       enterpriseModelService.deleteEnterpriseModel(modelId, provider),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ENTERPRISE_MODELS });
-    },
-  });
-}
-
-export function useRecommendedModels() {
-  return useQuery({
-    queryKey: ['recommendedModels'],
-    queryFn: () => recommendedModelsService.getRecommendedModels(),
-  });
-}
-
-export function useUpdateRecommendedModel() {
-  return useMutation({
-    mutationFn: ({ providerId, enabled }: { providerId: string; enabled: boolean }) =>
-      recommendedModelsService.updateRecommendedModels(providerId, enabled),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recommendedModels'] });
     },
   });
 }
