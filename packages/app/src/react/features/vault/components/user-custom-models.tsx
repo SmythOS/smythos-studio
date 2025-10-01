@@ -5,30 +5,33 @@ import { Tooltip } from 'flowbite-react';
 import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
-  useCreateLocalModel,
-  useDeleteLocalModel,
-  useLocalModels,
-  useUpdateLocalModel,
+  useCreateUserCustomModel,
+  useDeleteUserCustomModel,
+  useUpdateUserCustomModel,
+  useUserCustomModels,
 } from '../hooks/use-vault';
-import type { LocalModel } from '../types/types';
-import { CreateLocalModelModal, DeleteLocalModelModal } from './create-local-model-modal';
+import type { UserCustomModel } from '../types/types';
+import {
+  CreateUserCustomModelModal,
+  DeleteUserCustomModelModal,
+} from './create-user-custom-model-modal';
 
-export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) {
+export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean } }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingModel, setEditingModel] = useState<LocalModel | undefined>();
+  const [editingModel, setEditingModel] = useState<UserCustomModel | undefined>();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [modelToDelete, setModelToDelete] = useState<LocalModel | undefined>();
+  const [modelToDelete, setModelToDelete] = useState<UserCustomModel | undefined>();
 
   // Fetch models
-  const { data: models = [], isLoading, error } = useLocalModels();
+  const { data: models = [], isLoading, error } = useUserCustomModels();
 
   // Mutations
-  const createModel = useCreateLocalModel();
-  const updateModel = useUpdateLocalModel();
-  const deleteModel = useDeleteLocalModel();
+  const createModel = useCreateUserCustomModel();
+  const updateModel = useUpdateUserCustomModel();
+  const deleteModel = useDeleteUserCustomModel();
 
-  const handleCreateModel = async (data: Omit<LocalModel, 'id'>) => {
+  const handleCreateModel = async (data: Omit<UserCustomModel, 'id'>) => {
     // Check for duplicate names (case-insensitive)
     const existingModel = models.find(
       (model) =>
@@ -38,24 +41,26 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
     );
 
     if (existingModel) {
-      errorToast('A local model with this name already exists. Please choose a different name.');
+      errorToast(
+        'A user custom model with this name already exists. Please choose a different name.',
+      );
       return;
     }
 
     setIsProcessing(true);
     try {
       await createModel.mutateAsync(data);
-      successToast('Local model created successfully');
+      successToast('Custom model created successfully');
       setIsCreateModalOpen(false);
     } catch (error) {
-      console.error('Error creating local model:', error);
-      errorToast('Failed to create local model');
+      console.error('Error creating user custom model:', error);
+      errorToast('Failed to create user custom model');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleUpdateModel = async (data: Omit<LocalModel, 'id'>) => {
+  const handleUpdateModel = async (data: Omit<UserCustomModel, 'id'>) => {
     if (!editingModel) return;
 
     // Check for duplicate names (case-insensitive)
@@ -67,7 +72,9 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
     );
 
     if (existingModel) {
-      errorToast('A local model with this name already exists. Please choose a different name.');
+      errorToast(
+        'A user custom model with this name already exists. Please choose a different name.',
+      );
       return;
     }
 
@@ -77,11 +84,11 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
         modelId: editingModel.id,
         updatedFields: data,
       });
-      successToast('Local model updated successfully');
+      successToast('Custom model updated successfully');
       setEditingModel(undefined);
     } catch (error) {
-      console.error('Error updating local model:', error);
-      errorToast('Failed to update local model');
+      console.error('Error updating user custom model:', error);
+      errorToast('Failed to update user custom model');
     } finally {
       setIsProcessing(false);
     }
@@ -93,22 +100,22 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
     setIsProcessing(true);
     try {
       await deleteModel.mutateAsync({ modelId: modelToDelete.id });
-      successToast('Local model deleted successfully');
+      successToast('Custom model deleted successfully');
       setIsDeleteModalOpen(false);
       setModelToDelete(undefined);
     } catch (error) {
-      console.error('Error deleting local model:', error);
-      errorToast('Failed to delete local model');
+      console.error('Error deleting user custom model:', error);
+      errorToast('Failed to delete user custom model');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleEditModel = (model: LocalModel) => {
+  const handleEditModel = (model: UserCustomModel) => {
     setEditingModel(model);
   };
 
-  const handleDeleteClick = (model: LocalModel) => {
+  const handleDeleteClick = (model: UserCustomModel) => {
     setModelToDelete(model);
     setIsDeleteModalOpen(true);
   };
@@ -131,7 +138,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <div className="flex items-center gap-2 text-red-800">
           <Info className="h-4 w-4" />
-          <span className="font-medium">Error loading local models</span>
+          <span className="font-medium">Error loading custom models</span>
         </div>
         <p className="mt-1 text-sm text-red-600">
           {error instanceof Error ? error.message : 'An unexpected error occurred'}
@@ -144,10 +151,10 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
     <div className="w-full p-6 rounded-lg border border-solid border-[#d9d9d9] flex-col justify-start items-start gap-3 flex">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
-          Local Models
+          Custom Models
           <Tooltip
             className="w-72 text-center"
-            content="Local models allow you to connect to your own LLM instances running locally or on your infrastructure"
+            content="Custom models allow you to connect to your own LLM instances running locally or on your infrastructure"
           >
             <Info className="w-4 h-4" />
           </Tooltip>
@@ -160,7 +167,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
         ) : (
           <>
             {models.length === 0 ? (
-              <div className="py-4 text-center text-gray-500">No local models found</div>
+              <div className="py-4 text-center text-gray-500">No custom models found</div>
             ) : (
               <div className="overflow-x-auto">
                 <div className="min-w-[500px]">
@@ -168,7 +175,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
                     <div key={model.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex h-5 items-center rounded-md bg-blue-100 px-2 text-xs font-medium text-blue-800">
-                          Local
+                          Custom
                         </span>
                         <span className="font-medium text-[#374151] max-w-[200px] truncate">
                           {model.name}
@@ -214,7 +221,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
                   addIcon
                   Icon={<PlusCircle className="mr-2 h-4 w-4" />}
                   handleClick={() => setIsCreateModalOpen(true)}
-                  label="Add Local Model"
+                  label="Add Custom Model"
                 />
               </div>
             )}
@@ -223,7 +230,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
       </div>
 
       {/* Create/Edit Modal */}
-      <CreateLocalModelModal
+      <CreateUserCustomModelModal
         isOpen={isCreateModalOpen || !!editingModel}
         onClose={editingModel ? handleCloseEditModal : handleCloseCreateModal}
         onSubmit={editingModel ? handleUpdateModel : handleCreateModel}
@@ -232,7 +239,7 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
       />
 
       {/* Delete Modal */}
-      <DeleteLocalModelModal
+      <DeleteUserCustomModelModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={handleDeleteModel}
@@ -243,4 +250,4 @@ export function LocalModels({ pageAccess }: { pageAccess: { write: boolean } }) 
   );
 }
 
-export default LocalModels;
+export default UserCustomModels;

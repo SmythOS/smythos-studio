@@ -165,9 +165,9 @@ export interface ApiKeysResponse {
 }
 
 /**
- * Represents a local LLM model in the system
+ * Represents a user custom LLM model in the system
  */
-export interface LocalModel {
+export interface UserCustomModel {
   /**
    * Unique identifier for the model
    */
@@ -184,7 +184,7 @@ export interface LocalModel {
   modelId: string;
 
   /**
-   * Base URL for the local model API
+   * Base URL for the user custom model API
    */
   baseUrl: string;
 

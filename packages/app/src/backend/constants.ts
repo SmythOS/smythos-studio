@@ -5,7 +5,7 @@ export const S3_MONTHLY_PURGE_LIFECYCLE_TAG = 'ExpirationPolicy=DeleteMonthly';
 export const HUBSPOT_PORTAL_ID = '20645624';
 
 export const CUSTOM_LLM_SETTINGS_KEY = 'custom-llm';
-export const LOCAL_LLM_SETTINGS_KEY = 'local-llm';
+export const USER_CUSTOM_LLM_SETTINGS_KEY = 'user-custom-llm';
 export const SMYTH_LLM_PROVIDERS_SETTINGS_KEY = 'smyth-llm-providers';
 
 export const DEFAULT_SMYTH_LLM_PROVIDERS_SETTINGS = {

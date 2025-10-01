@@ -4,7 +4,13 @@ import {
 } from '@src/shared/constants/custom-llm.constants';
 import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
 import { customModels } from '@src/shared/custom-models';
-import type { ApiKey, BuiltInModel, EnterpriseModel, LocalModel, UserModel } from './types/types';
+import type {
+  ApiKey,
+  BuiltInModel,
+  EnterpriseModel,
+  UserCustomModel,
+  UserModel,
+} from './types/types';
 
 export interface Provider {
   id: string;
@@ -642,15 +648,15 @@ export const providerService = {
   },
 };
 
-export const localModelService = {
-  localModels: [],
+export const userCustomModelService = {
+  userCustomModels: [],
 
   /**
-   * Fetches all local LLM models for the current team
+   * Fetches all user custom LLM models for the current team
    */
-  getLocalModels: async (): Promise<LocalModel[]> => {
+  getUserCustomModels: async (): Promise<UserCustomModel[]> => {
     try {
-      const response = await fetch('/api/page/vault/local-llm', {
+      const response = await fetch('/api/page/vault/user-custom-llm', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -658,15 +664,15 @@ export const localModelService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch local models');
+        throw new Error('Failed to fetch user custom models');
       }
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch local models');
+        throw new Error(result.error || 'Failed to fetch user custom models');
       }
 
-      // Convert the local LLM data to our LocalModel format
+      // Convert the user custom LLM data to our UserCustomModel format
       const models = Object.entries(result.data || {}).map(([id, value]: [string, any]) => ({
         id: value.id || id,
         name: value.name,
@@ -677,17 +683,19 @@ export const localModelService = {
 
       return models;
     } catch (error) {
-      console.error('Error fetching local models:', error);
+      console.error('Error fetching user custom models:', error);
       return [];
     }
   },
 
   /**
-   * Creates a new local LLM model
+   * Creates a new user custom LLM model
    */
-  createLocalModel: async (modelDetails: Omit<LocalModel, 'id'>): Promise<LocalModel> => {
+  createUserCustomModel: async (
+    modelDetails: Omit<UserCustomModel, 'id'>,
+  ): Promise<UserCustomModel> => {
     try {
-      const response = await fetch('/api/page/vault/local-llm/', {
+      const response = await fetch('/api/page/vault/user-custom-llm/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -696,12 +704,12 @@ export const localModelService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create local model');
+        throw new Error('Failed to create user custom model');
       }
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to create local model');
+        throw new Error(result.error || 'Failed to create user custom model');
       }
 
       // Return the created model with the generated ID
@@ -713,20 +721,20 @@ export const localModelService = {
         fallbackLLM: modelDetails.fallbackLLM,
       };
     } catch (error) {
-      console.error('Error creating local model:', error);
-      throw new Error(error.error || error.message || 'Failed to create local model');
+      console.error('Error creating user custom model:', error);
+      throw new Error(error.error || error.message || 'Failed to create user custom model');
     }
   },
 
   /**
-   * Updates an existing local LLM model
+   * Updates an existing user custom LLM model
    */
-  updateLocalModel: async (
+  updateUserCustomModel: async (
     modelId: string,
-    updatedFields: Partial<LocalModel>,
-  ): Promise<LocalModel> => {
+    updatedFields: Partial<UserCustomModel>,
+  ): Promise<UserCustomModel> => {
     try {
-      const response = await fetch(`/api/page/vault/local-llm/${modelId}`, {
+      const response = await fetch(`/api/page/vault/user-custom-llm/${modelId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -735,12 +743,12 @@ export const localModelService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update local model');
+        throw new Error('Failed to update user custom model');
       }
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update local model');
+        throw new Error(result.error || 'Failed to update user custom model');
       }
 
       // Return the updated model
@@ -752,17 +760,17 @@ export const localModelService = {
         fallbackLLM: updatedFields.fallbackLLM || '',
       };
     } catch (error) {
-      console.error('Error updating local model:', error);
-      throw new Error(error.error || error.message || 'Failed to update local model');
+      console.error('Error updating user custom model:', error);
+      throw new Error(error.error || error.message || 'Failed to update user custom model');
     }
   },
 
   /**
-   * Deletes a local LLM model
+   * Deletes a user custom LLM model
    */
-  deleteLocalModel: async (modelId: string): Promise<void> => {
+  deleteUserCustomModel: async (modelId: string): Promise<void> => {
     try {
-      const response = await fetch(`/api/page/vault/local-llm/${modelId}`, {
+      const response = await fetch(`/api/page/vault/user-custom-llm/${modelId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -770,16 +778,16 @@ export const localModelService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete local model');
+        throw new Error('Failed to delete user custom model');
       }
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete local model');
+        throw new Error(result.error || 'Failed to delete user custom model');
       }
     } catch (error) {
-      console.error('Error deleting local model:', error);
-      throw new Error(error.error || error.message || 'Failed to delete local model');
+      console.error('Error deleting user custom model:', error);
+      throw new Error(error.error || error.message || 'Failed to delete user custom model');
     }
   },
 };

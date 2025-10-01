@@ -1,5 +1,6 @@
 import Joi from 'joi';
 
+import { LLMService } from '@src/backend/services/LLMHelper/LLMService.class';
 import { Request } from 'express';
 import {
   BEDROCK_REGIONS,
@@ -35,6 +36,11 @@ interface BaseInputParams extends AuthInfo {
   };
 }
 
+interface CustomLLMModel {
+  isCustomLLM: boolean;
+  [key: string]: any;
+}
+
 type BedrockModelInputParams = BaseInputParams & {
   settings: {
     keyId: string;
@@ -64,14 +70,10 @@ export type CustomLLMInfo = CustomLLMInputParams & {
 
 //#region - Functions to export
 async function saveCustomLLM(req: Request, params: CustomLLMInputParams) {
-  try {
-    if (params.provider === 'Bedrock') {
-      return await _saveBedrockModel(req, params as BedrockModelInputParams);
-    } else if (params.provider === 'VertexAI') {
-      return await _saveVertexAIModel(req, params as VertexAIModelInputParams);
-    }
-  } catch (error) {
-    throw error;
+  if (params.provider === 'Bedrock') {
+    return await _saveBedrockModel(req, params as BedrockModelInputParams);
+  } else if (params.provider === 'VertexAI') {
+    return await _saveVertexAIModel(req, params as VertexAIModelInputParams);
   }
 }
 
@@ -83,22 +85,18 @@ interface DeleteCustomLLMParams extends AuthInfo {
 async function deleteCustomLLM(params: DeleteCustomLLMParams) {
   const { req, teamId, id, provider } = params;
 
-  try {
-    if (provider === 'Bedrock') {
-      return await vault.deleteMultiple({
-        req,
-        team: teamId,
-        entryIds: [`AWS Key ID (${id})`, `AWS Secret Key (${id})`, `AWS Session Key (${id})`],
-      });
-    } else if (provider === 'VertexAI') {
-      return await vault.deleteMultiple({
-        req,
-        team: teamId,
-        entryIds: [`Google JSON Credentials (${id})`],
-      });
-    }
-  } catch (error) {
-    throw error;
+  if (provider === 'Bedrock') {
+    return await vault.deleteMultiple({
+      req,
+      team: teamId,
+      entryIds: [`AWS Key ID (${id})`, `AWS Secret Key (${id})`, `AWS Session Key (${id})`],
+    });
+  } else if (provider === 'VertexAI') {
+    return await vault.deleteMultiple({
+      req,
+      team: teamId,
+      entryIds: [`Google JSON Credentials (${id})`],
+    });
   }
 }
 
@@ -107,14 +105,10 @@ async function getCustomLLMWithCredentials(
 ) {
   const { provider } = params;
 
-  try {
-    if (provider === 'Bedrock') {
-      return await _getBedrockModel(params);
-    } else if (provider === 'VertexAI') {
-      return await _getVertexAIModel(params);
-    }
-  } catch (error) {
-    throw error;
+  if (provider === 'Bedrock') {
+    return await _getBedrockModel(params);
+  } else if (provider === 'VertexAI') {
+    return await _getVertexAIModel(params);
   }
 }
 
@@ -138,11 +132,44 @@ async function getCustomLLMByName(req: Request, modelName: string): Promise<Cust
 }
 
 async function getCustomLLMByEntryId(req: Request, entryId: string) {
+  const allCustomModels = await teamData.getTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY);
+  return allCustomModels[entryId];
+}
+
+/**
+ * Retrieves all enterprise custom LLM models for a team.
+ * Filters models to only return those marked as custom LLMs.
+ * Returns an empty object if no models are found or if an error occurs.
+ *
+ * @param req - Express request object containing team information
+ * @returns Promise resolving to a record of CustomLLMModel objects keyed by model ID, or empty object on error
+ */
+async function getAllEnterpriseModels(req: Request): Promise<Record<string, CustomLLMModel>> {
   try {
-    const allCustomModels = await teamData.getTeamSettingsObj(req, CUSTOM_LLM_SETTINGS_KEY);
-    return allCustomModels[entryId];
-  } catch (error) {
-    throw error;
+    const llmProvider = new LLMService();
+    const allCustomModels = await llmProvider.getCustomModels(req);
+
+    if (!allCustomModels || typeof allCustomModels !== 'object') {
+      return {};
+    }
+
+    // Filter models to only include those marked as custom LLMs
+    const enterpriseModels: Record<string, CustomLLMModel> = {};
+
+    for (const [modelId, model] of Object.entries(allCustomModels)) {
+      if (
+        model &&
+        typeof model === 'object' &&
+        'isCustomLLM' in model &&
+        (model as CustomLLMModel).isCustomLLM === true
+      ) {
+        enterpriseModels[modelId] = model as CustomLLMModel;
+      }
+    }
+
+    return enterpriseModels;
+  } catch {
+    return {};
   }
 }
 //#endregion - Functions to export
@@ -472,4 +499,5 @@ export const customLLMHelper = {
   getCustomLLMWithCredentials,
   getCustomLLMByName,
   getCustomLLMByEntryId,
+  getAllEnterpriseModels,
 };

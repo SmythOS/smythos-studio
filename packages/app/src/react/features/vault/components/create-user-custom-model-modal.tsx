@@ -18,23 +18,23 @@ import {
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import React, { useEffect, useState } from 'react';
-import type { LocalModel } from '../types/types';
+import type { UserCustomModel } from '../types/types';
 
-interface CreateLocalModelModalProps {
+interface CreateUserCustomModelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<LocalModel, 'id'>) => void;
-  editModel?: LocalModel;
+  onSubmit: (data: Omit<UserCustomModel, 'id'>) => void;
+  editModel?: UserCustomModel;
   isProcessing: boolean;
 }
 
-export function CreateLocalModelModal({
+export function CreateUserCustomModelModal({
   isOpen,
   onClose,
   onSubmit,
   editModel,
   isProcessing,
-}: CreateLocalModelModalProps) {
+}: CreateUserCustomModelModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     modelId: '',
@@ -121,7 +121,7 @@ export function CreateLocalModelModal({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl text-[#1E1E1E]">
-            {editModel ? 'Edit Local Model' : 'Setup Local Model'}
+            {editModel ? 'Edit Custom Model' : 'Setup Custom Model'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,7 +134,7 @@ export function CreateLocalModelModal({
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Local Model example v1.3"
+              placeholder="My Custom Model"
               fullWidth
               className="w-full"
             />
@@ -227,21 +227,21 @@ export function CreateLocalModelModal({
   );
 }
 
-interface DeleteLocalModelModalProps {
+interface DeleteUserCustomModelModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  model?: LocalModel;
+  model?: UserCustomModel;
   isProcessing: boolean;
 }
 
-export function DeleteLocalModelModal({
+export function DeleteUserCustomModelModal({
   isOpen,
   onClose,
   onConfirm,
   model,
   isProcessing,
-}: DeleteLocalModelModalProps) {
+}: DeleteUserCustomModelModalProps) {
   if (!model) return null;
 
   if (!isOpen) {
@@ -253,8 +253,8 @@ export function DeleteLocalModelModal({
       onClose={onClose}
       label={isProcessing ? 'Deleting...' : 'Delete'}
       handleConfirm={onConfirm}
-      message="Delete Local Model"
-      lowMsg={`Are you sure you want to delete the local model "${model.name}"? This action cannot be undone.`}
+      message="Delete Custom Model"
+      lowMsg={`Are you sure you want to delete the user custom model "${model.name}"? This action cannot be undone.`}
       isLoading={isProcessing}
       width="max-w-[600px] w-[calc(100vw_-_-20px)]"
       confirmBtnClasses="bg-red-600 hover:bg-red-700 text-white"

@@ -2,14 +2,14 @@ import type {
   ApiKey,
   ApiKeysResponse,
   EnterpriseModel,
-  LocalModel,
+  UserCustomModel,
   UserModel,
 } from '@react/features/vault/types/types';
 import {
   apiKeyService,
   enterpriseModelService,
-  localModelService,
   recommendedModelsService,
+  userCustomModelService,
   userModelService,
   vaultService,
 } from '@react/features/vault/vault-business-logic';
@@ -283,31 +283,31 @@ export function useUpdateRecommendedModel() {
   });
 }
 
-// Local Model Hooks
-const LOCAL_MODEL_QUERY_KEYS = {
-  LOCAL_MODELS: ['localModels'],
+// User Custom Model Hooks
+const USER_CUSTOM_MODEL_QUERY_KEYS = {
+  USER_CUSTOM_MODELS: ['userCustomModels'],
 } as const;
 
-export function useLocalModels() {
+export function useUserCustomModels() {
   return useQuery({
-    queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS,
-    queryFn: () => localModelService.getLocalModels(),
+    queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS,
+    queryFn: () => userCustomModelService.getUserCustomModels(),
   });
 }
 
-export function useCreateLocalModel() {
+export function useCreateUserCustomModel() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (modelDetails: Omit<LocalModel, 'id'>) =>
-      localModelService.createLocalModel(modelDetails),
+    mutationFn: (modelDetails: Omit<UserCustomModel, 'id'>) =>
+      userCustomModelService.createUserCustomModel(modelDetails),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
+      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
     },
   });
 }
 
-export function useUpdateLocalModel() {
+export function useUpdateUserCustomModel() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -316,21 +316,21 @@ export function useUpdateLocalModel() {
       updatedFields,
     }: {
       modelId: string;
-      updatedFields: Partial<LocalModel>;
-    }) => localModelService.updateLocalModel(modelId, updatedFields),
+      updatedFields: Partial<UserCustomModel>;
+    }) => userCustomModelService.updateUserCustomModel(modelId, updatedFields),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
+      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
     },
   });
 }
 
-export function useDeleteLocalModel() {
+export function useDeleteUserCustomModel() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, { modelId: string }>({
-    mutationFn: ({ modelId }) => localModelService.deleteLocalModel(modelId),
+    mutationFn: ({ modelId }) => userCustomModelService.deleteUserCustomModel(modelId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LOCAL_MODEL_QUERY_KEYS.LOCAL_MODELS });
+      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
     },
   });
 }
