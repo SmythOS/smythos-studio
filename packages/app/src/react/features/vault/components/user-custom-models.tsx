@@ -41,9 +41,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
     );
 
     if (existingModel) {
-      errorToast(
-        'A user custom model with this name already exists. Please choose a different name.',
-      );
+      errorToast('A custom model with this name already exists. Please choose a different name.');
       return;
     }
 
@@ -72,9 +70,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
     );
 
     if (existingModel) {
-      errorToast(
-        'A user custom model with this name already exists. Please choose a different name.',
-      );
+      errorToast('A custom model with this name already exists. Please choose a different name.');
       return;
     }
 

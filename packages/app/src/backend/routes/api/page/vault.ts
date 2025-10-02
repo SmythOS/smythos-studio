@@ -757,6 +757,8 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
  *     id: <id of the entry>,
  *     modelId: <the model id entered by the user>,
  *     baseUrl: <base url>,
+ *     provider: <provider/compatible SDK, e.g., 'OpenAI', 'Ollama'>,
+ *     features: <array of features, e.g., ['text', 'tools']>,
  *     fallbackLLM: <llm ID from builtin LLMs>
  *   }
  * }

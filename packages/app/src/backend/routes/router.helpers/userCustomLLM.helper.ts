@@ -29,7 +29,9 @@ export interface UserCustomLLMInputParams {
   name: string;
   modelId: string;
   baseUrl: string;
+  provider: string;
   fallbackLLM: string;
+  features?: string[];
 }
 
 export interface UserCustomLLMInfo extends UserCustomLLMInputParams {
@@ -48,14 +50,16 @@ const userCustomLLMValidationSchema = Joi.object({
     .optional()
     .pattern(/^[a-zA-Z0-9-_]+$/)
     .max(80),
-  name: Joi.string().required().min(1).max(80).trim(),
-  modelId: Joi.string().required().min(1).max(200).trim(),
+  name: Joi.string().trim().required().min(1).max(80),
+  modelId: Joi.string().trim().required().min(1).max(200),
   baseUrl: Joi.string()
+    .trim()
     .required()
     .uri({ scheme: ['http', 'https'] })
-    .max(500)
-    .trim(),
-  fallbackLLM: Joi.string().required().min(1).max(100).trim(),
+    .max(500),
+  provider: Joi.string().trim().required().valid('OpenAI', 'Ollama'),
+  fallbackLLM: Joi.string().trim().required().min(1).max(100),
+  features: Joi.array().items(Joi.string()).optional(),
 });
 //#endregion - Validation Schema
 
@@ -74,7 +78,9 @@ async function saveUserCustomLLM(req: Request, params: UserCustomLLMInputParams)
       name: params.name?.trim(),
       modelId: params.modelId?.trim(),
       baseUrl: params.baseUrl?.trim(),
+      provider: params.provider?.trim(),
       fallbackLLM: params.fallbackLLM?.trim(),
+      features: params.features || ['text'],
     };
 
     // Validate input parameters
@@ -93,6 +99,8 @@ async function saveUserCustomLLM(req: Request, params: UserCustomLLMInputParams)
       modelId: trimmedParams.modelId,
       baseUrl: trimmedParams.baseUrl,
       fallbackLLM: trimmedParams.fallbackLLM,
+      features: trimmedParams.features,
+      provider: trimmedParams.provider,
     };
 
     // Save to team settings

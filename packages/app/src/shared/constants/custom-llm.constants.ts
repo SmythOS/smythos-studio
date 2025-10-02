@@ -5,7 +5,7 @@ export const CUSTOM_LLM_PROVIDERS = [
 
 export const CUSTOM_LLM_FEATURES = [
   { text: 'Text Completion', value: 'text' },
-  { text: 'Tools', value: 'tools' },
+  { text: 'Function calling / Tool Use', value: 'tools' },
   { text: 'Image', value: 'image' },
   { text: 'Audio', value: 'audio' },
   { text: 'Video', value: 'video' },

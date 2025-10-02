@@ -1,3 +1,4 @@
+import { Checkbox } from '@src/react/shared/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
+import { CUSTOM_LLM_FEATURES } from '@src/shared/constants/custom-llm.constants';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import React, { useEffect, useState } from 'react';
 import type { UserCustomModel } from '../types/types';
@@ -39,7 +41,9 @@ export function CreateUserCustomModelModal({
     name: '',
     modelId: '',
     baseUrl: '',
+    provider: '',
     fallbackLLM: '',
+    features: ['text'],
   });
 
   // Get available fallback models from LLMRegistry (same as Default LLM section)
@@ -69,14 +73,18 @@ export function CreateUserCustomModelModal({
         name: editModel.name,
         modelId: editModel.modelId,
         baseUrl: editModel.baseUrl,
+        provider: editModel.provider,
         fallbackLLM: editModel.fallbackLLM,
+        features: editModel.features || ['text'],
       });
     } else {
       setFormData({
         name: '',
         modelId: '',
         baseUrl: '',
+        provider: '',
         fallbackLLM: '',
+        features: ['text'],
       });
     }
   }, [editModel, isOpen]);
@@ -88,6 +96,7 @@ export function CreateUserCustomModelModal({
       !formData.name.trim() ||
       !formData.modelId.trim() ||
       !formData.baseUrl.trim() ||
+      !formData.provider.trim() ||
       !formData.fallbackLLM.trim()
     ) {
       return;
@@ -107,7 +116,13 @@ export function CreateUserCustomModelModal({
     formData.name.trim() &&
     formData.modelId.trim() &&
     formData.baseUrl.trim() &&
+    formData.provider.trim() &&
     formData.fallbackLLM.trim();
+
+  // Filter features to only show Text Completion and Function calling/Tool Use
+  const userCustomModelFeatures = CUSTOM_LLM_FEATURES.filter(
+    (feature) => feature.value === 'text' || feature.value === 'tools',
+  );
 
   return (
     <Dialog
@@ -171,11 +186,29 @@ export function CreateUserCustomModelModal({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="provider" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              Provider / Compatible SDK <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.provider}
+              onValueChange={(value) => handleInputChange('provider', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="OpenAI">OpenAI</SelectItem>
+                <SelectItem value="Ollama">Ollama</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="fallbackLLM">
               Fallback Model <span className="text-red-500">*</span>
             </Label>
             <p className="text-xs text-gray-500">
-              Select a model from the same options available in Default LLM settings
+              The model used when the custom model is unavailable.
             </p>
             <Select
               value={formData.fallbackLLM}
@@ -192,6 +225,25 @@ export function CreateUserCustomModelModal({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-base font-normal text-[#1E1E1E]">Features</Label>
+            <div className="grid grid-cols-2 gap-4 ml-2">
+              {userCustomModelFeatures.map((feature) => (
+                <div key={feature.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={feature.value}
+                    disabled={true}
+                    checked={formData.features.includes(feature.value)}
+                    className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF] shadow-none"
+                  />
+                  <Label htmlFor={feature.value} className="text-sm font-normal">
+                    {feature.text}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-between gap-4 pt-4">

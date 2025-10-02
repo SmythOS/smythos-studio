@@ -189,7 +189,16 @@ export interface UserCustomModel {
   baseUrl: string;
 
   /**
+   * Provider / Compatible SDK (e.g., 'OpenAI', 'Ollama')
+   */
+  provider: string;
+  /**
    * Fallback LLM ID from builtin LLMs
    */
   fallbackLLM: string;
+
+  /**
+   * List of features supported by the model (e.g., 'text', 'tools')
+   */
+  features?: string[];
 }
