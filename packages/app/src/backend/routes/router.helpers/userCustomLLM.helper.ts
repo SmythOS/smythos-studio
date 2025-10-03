@@ -14,7 +14,7 @@ import { uid } from '../../services/utils.service';
  *     name: <the friendly name>,
  *     id: <id of the entry>,
  *     modelId: <the model id entered by the user>,
- *     baseUrl: <base url>,
+ *     baseURL: <base url>,
  *     fallbackLLM: <llm ID from builtin LLMs>
  *   }
  * }
@@ -28,7 +28,7 @@ export interface UserCustomLLMInputParams {
   id?: string;
   name: string;
   modelId: string;
-  baseUrl: string;
+  baseURL: string;
   provider: string;
   fallbackLLM: string;
   features?: string[];
@@ -52,7 +52,7 @@ const userCustomLLMValidationSchema = Joi.object({
     .max(80),
   name: Joi.string().trim().required().min(1).max(80),
   modelId: Joi.string().trim().required().min(1).max(200),
-  baseUrl: Joi.string()
+  baseURL: Joi.string()
     .trim()
     .required()
     .uri({ scheme: ['http', 'https'] })
@@ -77,7 +77,7 @@ async function saveUserCustomLLM(req: Request, params: UserCustomLLMInputParams)
       ...params,
       name: params.name?.trim(),
       modelId: params.modelId?.trim(),
-      baseUrl: params.baseUrl?.trim(),
+      baseURL: params.baseURL?.trim(),
       provider: params.provider?.trim(),
       fallbackLLM: params.fallbackLLM?.trim(),
       features: params.features || ['text'],
@@ -97,7 +97,7 @@ async function saveUserCustomLLM(req: Request, params: UserCustomLLMInputParams)
       id: entryId,
       name: trimmedParams.name,
       modelId: trimmedParams.modelId,
-      baseUrl: trimmedParams.baseUrl,
+      baseURL: trimmedParams.baseURL,
       fallbackLLM: trimmedParams.fallbackLLM,
       features: trimmedParams.features,
       provider: trimmedParams.provider,

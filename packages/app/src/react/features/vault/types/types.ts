@@ -186,7 +186,7 @@ export interface UserCustomModel {
   /**
    * Base URL for the user custom model API
    */
-  baseUrl: string;
+  baseURL: string;
 
   /**
    * Provider / Compatible SDK (e.g., 'OpenAI', 'Ollama')

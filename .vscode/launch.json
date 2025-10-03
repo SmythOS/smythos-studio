@@ -31,7 +31,7 @@
       "outputCapture": "std"
     },
     {
-      "name": "Launch Runtime Server",
+      "name": "Runtime Server",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/packages/runtime/dist/index.dev.cjs",

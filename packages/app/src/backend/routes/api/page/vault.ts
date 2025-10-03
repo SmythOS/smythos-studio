@@ -756,7 +756,7 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
  *     name: <the friendly name>,
  *     id: <id of the entry>,
  *     modelId: <the model id entered by the user>,
- *     baseUrl: <base url>,
+ *     baseURL: <base url>,
  *     provider: <provider/compatible SDK, e.g., 'OpenAI', 'Ollama'>,
  *     features: <array of features, e.g., ['text', 'tools']>,
  *     fallbackLLM: <llm ID from builtin LLMs>
@@ -848,7 +848,7 @@ router.get('/user-custom-llm/with-credentials/:name', includeTeamDetails, async 
       return res.status(404).json({ success: false, error: 'User custom LLM model not found.' });
     }
 
-    // Return the full model configuration including credentials (baseUrl, etc.)
+    // Return the full model configuration including credentials (baseURL, etc.)
     res.status(200).json({ success: true, data: modelInfo });
   } catch (error) {
     console.error('Error getting user custom LLM model with credentials:', error?.message);

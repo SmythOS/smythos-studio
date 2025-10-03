@@ -180,7 +180,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
                           {model.modelId}
                         </span>
                         <span className="inline-flex h-5 items-center rounded-md bg-[#f3f4f6] px-2 text-xs font-medium text-[#6b7280] whitespace-nowrap">
-                          {model.baseUrl}
+                          {model.baseURL}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 ml-2">

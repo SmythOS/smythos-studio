@@ -19,7 +19,7 @@ import {
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { CUSTOM_LLM_FEATURES } from '@src/shared/constants/custom-llm.constants';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { UserCustomModel } from '../types/types';
 
 interface CreateUserCustomModelModalProps {
@@ -29,6 +29,18 @@ interface CreateUserCustomModelModalProps {
   editModel?: UserCustomModel;
   isProcessing: boolean;
 }
+
+// Get available fallback models from LLMRegistry (same as Default LLM section)
+const TEMP_BADGES = {
+  enterprise: true,
+  smythos: true,
+  personal: true,
+  limited: true,
+};
+
+const getTempBadge = (tags: string[]) => {
+  return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
+};
 
 export function CreateUserCustomModelModal({
   isOpen,
@@ -40,64 +52,54 @@ export function CreateUserCustomModelModal({
   const [formData, setFormData] = useState({
     name: '',
     modelId: '',
-    baseUrl: '',
+    baseURL: '',
     provider: '',
     fallbackLLM: '',
     features: ['text'],
   });
 
-  // Get available fallback models from LLMRegistry (same as Default LLM section)
-  const TEMP_BADGES = {
-    enterprise: true,
-    smythos: true,
-    personal: true,
-    limited: true,
-  };
-
-  const getTempBadge = (tags: string[]) => {
-    return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
-  };
-
-  const fallbackOptions = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => {
-    let badge = getTempBadge(model.tags);
-    badge = badge ? ' (' + badge + ')' : '';
-    return {
-      id: model.entryId,
-      name: model.label + badge, // Add tags like "(Personal)" as shown in Default LLM section
-    };
-  });
+  const fallbackOptions = useMemo(() => {
+    return LLMRegistry.getSortedModelsByFeatures('tools').map((model) => {
+      let badge = getTempBadge(model.tags);
+      badge = badge ? ' (' + badge + ')' : '';
+      return {
+        id: model.entryId,
+        name: model.label + badge, // Add tags like "(Personal)" as shown in Default LLM section
+      };
+    });
+  }, []);
 
   useEffect(() => {
     if (editModel) {
       setFormData({
         name: editModel.name,
         modelId: editModel.modelId,
-        baseUrl: editModel.baseUrl,
+        baseURL: editModel.baseURL,
         provider: editModel.provider,
-        fallbackLLM: editModel.fallbackLLM,
+        fallbackLLM: editModel.fallbackLLM || '',
         features: editModel.features || ['text'],
       });
     } else {
       setFormData({
         name: '',
         modelId: '',
-        baseUrl: '',
+        baseURL: '',
         provider: '',
         fallbackLLM: '',
         features: ['text'],
       });
     }
-  }, [editModel, isOpen]);
+  }, [editModel, isOpen, fallbackOptions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
-      !formData.name.trim() ||
-      !formData.modelId.trim() ||
-      !formData.baseUrl.trim() ||
-      !formData.provider.trim() ||
-      !formData.fallbackLLM.trim()
+      !formData.name?.trim() ||
+      !formData.modelId?.trim() ||
+      !formData.baseURL?.trim() ||
+      !formData.provider?.trim() ||
+      !formData.fallbackLLM?.trim()
     ) {
       return;
     }
@@ -113,11 +115,11 @@ export function CreateUserCustomModelModal({
   };
 
   const isFormValid =
-    formData.name.trim() &&
-    formData.modelId.trim() &&
-    formData.baseUrl.trim() &&
-    formData.provider.trim() &&
-    formData.fallbackLLM.trim();
+    formData.name?.trim() &&
+    formData.modelId?.trim() &&
+    formData.baseURL?.trim() &&
+    formData.provider?.trim() &&
+    formData.fallbackLLM?.trim();
 
   // Filter features to only show Text Completion and Function calling/Tool Use
   const userCustomModelFeatures = CUSTOM_LLM_FEATURES.filter(
@@ -171,15 +173,15 @@ export function CreateUserCustomModelModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="baseUrl" className="text-base font-normal mr-2 text-[#1E1E1E]">
+            <Label htmlFor="baseURL" className="text-base font-normal mr-2 text-[#1E1E1E]">
               Base URL <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="baseUrl"
+              id="baseURL"
               type="url"
-              value={formData.baseUrl}
-              onChange={(e) => handleInputChange('baseUrl', e.target.value)}
-              placeholder="https://api.smythos.com/example"
+              value={formData.baseURL}
+              onChange={(e) => handleInputChange('baseURL', e.target.value)}
+              placeholder="http://127.0.0.1:1234/v1"
               fullWidth
               className="w-full"
             />
