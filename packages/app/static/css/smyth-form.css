@@ -52,8 +52,8 @@
 }
 
 .field-action-btn {
-  right: 32px;
-  top: 24px;
+  right: 18px;
+  top: 30px;
   cursor: pointer;
 }
 .form-group-key-value .field-action-btn {
@@ -118,6 +118,9 @@
   background: #fff;
   margin-top: 5px;
 }
+.template-var-buttons.triggers {
+  background: transparent;
+}
 .form-group-key-value .template-var-buttons {
   border: 1px solid #ccc;
   border-top: 0 none;
@@ -137,6 +140,10 @@
 }
 .button.template-var-button.btn-global-var {
   background-color: #818cf8;
+}
+.button.template-var-button.btn-trigger-var {
+  background-color: #a7f881;
+  color: #000;
 }
 .button.small.template-var-button {
   padding: 4px 11px 4px;

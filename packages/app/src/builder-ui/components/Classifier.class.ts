@@ -39,7 +39,7 @@ export class Classifier extends Component {
       model: {
         type: 'select',
         label: 'Select a model',
-        help: 'Choose a model that applies labels and fits your context size.',
+        help: 'Choose an AI model to process the prompt.',
         tooltipClasses: 'w-56',
         arrowClasses: '-ml-11',
         value: this.defaultModel,
@@ -77,7 +77,6 @@ export class Classifier extends Component {
         value:
           'Classify the input content to one of the categories.\nSet the selected category to true and the others to empty value',
         attributes: { 'data-template-vars': 'true' },
-        help: 'Explain how text should be classified and what labels to return. <a href="https://smythos.com/docs/agent-studio/components/base/classifier/?utm_source=studio&utm_medium=tooltip&utm_campaign=classifier&utm_content=prompt#step-2---write-or-update-the-prompt" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt tips</a>',
       },
     };
 

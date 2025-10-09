@@ -34,7 +34,6 @@ import {
   CUSTOM_LLM_FEATURES,
   CUSTOM_LLM_PROVIDERS,
 } from '@src/shared/constants/custom-llm.constants';
-import DOMPurify from 'dompurify';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaCircleExclamation } from 'react-icons/fa6';
@@ -273,7 +272,7 @@ export function CreateEnterpriseModal({
                       placement="right"
                     >
                       <div
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(infoIcon) }}
+                        dangerouslySetInnerHTML={{ __html: infoIcon }}
                         className="w-4 h-4 text-gray-400"
                       />
                     </ToolTip>

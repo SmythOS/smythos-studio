@@ -573,11 +573,11 @@ button.editIconsm {
   color: #757575;
 }
 #agent-save-status.st-progress {
-  color: #3b82f6;
+  color: #3B82F6;
   font-weight: 500;
 }
 #agent-save-status.st-success {
-  color: #237b4b;
+  color: #237B4B;
   font-weight: 500;
 }
 .warning-message {
@@ -641,13 +641,12 @@ button.editIconsm {
   font-family: 'Font Awesome 5 Free';
   font-weight: 900;
   font-size: 12px;
-  color: #616161;
+  color: #000;
   transform: rotate(-90deg);
 }
 
 .section.form-section-toggle.active-toggle {
   font-weight: 700;
-  border-bottom: 0 !important;
 }
 .section.form-section-toggle.active-toggle::before {
   transform: rotate(0deg);
@@ -1212,33 +1211,6 @@ html {
 .tooltip-pill.tooltip-trigger[data-tooltip-position='right']::after {
   border-right-color: #000;
 }
-
-/* Ensure tooltip links stay on one line */
-.tooltip a,
-[role="tooltip"] a,
-.smt-hint a {
-  white-space: nowrap !important;
-  display: inline-block;
-  text-decoration: underline;
-  color: inherit;
-  word-break: keep-all;
-  overflow-wrap: normal;
-}
-
-.tooltip a:hover,
-[role="tooltip"] a:hover,
-.smt-hint a:hover {
-  text-decoration: underline;
-  opacity: 0.8;
-}
-
-/* Ensure tooltip containers can accommodate longer links */
-.smt-hint {
-  max-width: 400px !important;
-  min-width: 200px;
-  word-break: normal;
-}
-
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top']::after,
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top-left']::after,
 .tooltip-pill.tooltip-trigger[data-tooltip-position='top-right']::after {

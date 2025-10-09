@@ -7,6 +7,7 @@ import {
 } from '../../../constants';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import { cacheClient } from '../../../services/cache.service';
+import { LLMService } from '../../../services/LLMHelper/LLMService.class';
 import Vault from '../../../services/SmythVault.class';
 import {
   deleteTeamSettingsObj,
@@ -17,7 +18,6 @@ import { Team } from '../../../types';
 import { isSmythStaff } from '../../../utils';
 import { isCustomLLMAllowed } from '../../../utils/customLLM';
 import { customLLMHelper } from '../../router.helpers/customLLM.helper';
-import { userCustomLLMHelper } from '../../router.helpers/userCustomLLM.helper';
 import { getVaultKeys, setVaultKey } from '../../router.utils';
 
 const router = express.Router();
@@ -358,10 +358,12 @@ router.get('/oauth-connections', includeTeamDetails, async (req, res) => {
     res.json(sanitizedSettings);
   } catch (error) {
     console.error('Error fetching OAuth connections:', error?.message);
-    res.status(500).json({
-      success: false,
-      error: 'An unexpected error occurred while fetching OAuth connections.',
-    });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while fetching OAuth connections.',
+      });
   }
 });
 
@@ -512,10 +514,12 @@ router.put('/oauth-connections', includeTeamDetails, async (req, res) => {
     res.json({ success: true, data: finalDataToSave }); // Respond with the data that was saved
   } catch (error) {
     console.error(`[PUT /oauth-connections] Error processing request for ${entryId}:`, error);
-    res.status(500).json({
-      success: false,
-      error: 'An unexpected error occurred while saving the OAuth connection.',
-    });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while saving the OAuth connection.',
+      });
   }
 });
 
@@ -545,10 +549,12 @@ router.delete('/oauth-connections/:connectionId', includeTeamDetails, async (req
     res.status(200).json({ success: true });
   } catch (error) {
     console.error(`Error deleting OAuth connection ${connectionId}:`, error);
-    res.status(500).json({
-      success: false,
-      error: 'An unexpected error occurred while deleting the OAuth connection.',
-    });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'An unexpected error occurred while deleting the OAuth connection.',
+      });
   }
 });
 
@@ -593,22 +599,9 @@ router.put('/recommended-models/:providerId', includeTeamDetails, async (req, re
   res.send({ success: true, data: result?.data });
 });
 
-// TODO: Refactor this file by splitting it into separate modules for better organization.
-// Suggested structure:
-// - vault/index.ts
-// - vault/custom-llm.ts
-// - vault/user-custom-llm.ts
+export default router;
 
-// #region Custom LLM Routes
-/**
- * Custom LLM Routes
- *
- * Provides endpoints for managing team-specific custom LLM models:
- * - CRUD operations for custom LLM configurations
- * - Access control based on team subscription and user permissions
- * - Cache management for custom model data
- */
-
+// #region Custom LLM
 const customLLMAccessMw = async (req: any, res: any, next: any) => {
   //* should be called after `includeTeamDetails` middleware to get the team details
   const teamDetails: Team = req._team;
@@ -668,8 +661,9 @@ router.put('/custom-llm/:id', customLLMRouteMiddlewares, handleCustomLLMSave);
 
 router.get('/custom-llm', includeTeamDetails, async (req, res) => {
   try {
-    const enterpriseModels = await customLLMHelper.getAllEnterpriseModels(req);
-    res.status(200).json({ success: true, data: enterpriseModels });
+    const llmProvider = new LLMService();
+    const allCustomModels = await llmProvider.getCustomModels(req);
+    res.status(200).json({ success: true, data: allCustomModels });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Error getting custom LLM models.' });
   }
@@ -739,148 +733,3 @@ router.delete('/custom-llm/:provider/:id', customLLMRouteMiddlewares, async (req
   }
 });
 // #endregion
-
-// #region User Custom LLM Routes
-/**
- * User Custom LLM Routes
- *
- * Provides endpoints for managing team-specific user custom LLM models:
- * - CRUD operations for user custom LLM configurations
- * - No access control checks (ACL) required - available for all users
- * - Cache management for user custom model data
- * - Secure credential access via with-credentials endpoint
- *
- * Data structure:
- * {
- *   id: {
- *     name: <the friendly name>,
- *     id: <id of the entry>,
- *     modelId: <the model id entered by the user>,
- *     baseURL: <base url>,
- *     provider: <provider/compatible SDK, e.g., 'OpenAI', 'Ollama'>,
- *     features: <array of features, e.g., ['text', 'tools']>,
- *     fallbackLLM: <llm ID from builtin LLMs>
- *   }
- * }
- */
-
-/**
- * Create or update a user custom LLM model
- */
-const handleUserCustomLLMSave = async (req, res) => {
-  const teamId = req?._team?.id;
-  const id = req.params?.id; // This will be undefined for POST requests
-
-  try {
-    const saveUserCustomLLM = await userCustomLLMHelper.saveUserCustomLLM(req, {
-      id,
-      ...req.body,
-    });
-
-    // Delete the user custom LLM model cache
-    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-      console.warn('Error deleting user custom LLM model cache:', error?.message);
-    });
-
-    res.status(200).json({ success: true, data: saveUserCustomLLM.data });
-  } catch (error) {
-    console.error('Error saving user custom LLM model:', error?.message);
-    res.status(500).json({ success: false, error: 'Error saving user custom LLM model.' });
-  }
-};
-
-/**
- * Create a new user custom LLM model
- * POST /user-custom-llm/
- */
-router.post('/user-custom-llm/', includeTeamDetails, handleUserCustomLLMSave);
-
-/**
- * Update an existing user custom LLM model
- * PUT /user-custom-llm/:id
- */
-router.put('/user-custom-llm/:id', includeTeamDetails, handleUserCustomLLMSave);
-
-/**
- * Get all user custom LLM models
- * GET /user-custom-llm
- */
-router.get('/user-custom-llm', includeTeamDetails, async (req, res) => {
-  try {
-    const allUserCustomModels = await userCustomLLMHelper.getAllUserCustomLLMs(req);
-    res.status(200).json({ success: true, data: allUserCustomModels });
-  } catch (error) {
-    console.error('Error getting user custom LLM models:', error?.message);
-    res.status(500).json({ success: false, error: 'Error getting user custom LLM models.' });
-  }
-});
-
-/**
- * Get a specific user custom LLM model by ID
- * GET /user-custom-llm/:id
- */
-router.get('/user-custom-llm/:id', includeTeamDetails, async (req, res) => {
-  try {
-    const entryId = req.params.id;
-    const modelInfo = await userCustomLLMHelper.getUserCustomLLMByEntryId(req, entryId);
-
-    if (!modelInfo) {
-      return res.status(404).json({ success: false, error: 'User custom LLM model not found.' });
-    }
-
-    res.status(200).json({ success: true, data: modelInfo });
-  } catch (error) {
-    console.error('Error getting user custom LLM model:', error?.message);
-    res.status(500).json({ success: false, error: 'Error getting user custom LLM model.' });
-  }
-});
-
-/**
- * Get a user custom LLM model with credentials by name
- * GET /user-custom-llm/with-credentials/:name
- */
-router.get('/user-custom-llm/with-credentials/:name', includeTeamDetails, async (req, res) => {
-  try {
-    const modelName = req.params.name;
-    const modelInfo = await userCustomLLMHelper.getUserCustomLLMByName(req, modelName);
-
-    if (!modelInfo || Object.keys(modelInfo).length === 0) {
-      return res.status(404).json({ success: false, error: 'User custom LLM model not found.' });
-    }
-
-    // Return the full model configuration including credentials (baseURL, etc.)
-    res.status(200).json({ success: true, data: modelInfo });
-  } catch (error) {
-    console.error('Error getting user custom LLM model with credentials:', error?.message);
-    res
-      .status(500)
-      .json({ success: false, error: 'Error getting user custom LLM model with credentials.' });
-  }
-});
-
-/**
- * Delete a user custom LLM model
- * DELETE /user-custom-llm/:id
- */
-router.delete('/user-custom-llm/:id', includeTeamDetails, async (req, res) => {
-  try {
-    const teamId = req?._team?.id;
-    const id = req.params.id;
-
-    const deleteResult = await userCustomLLMHelper.deleteUserCustomLLM(req, id);
-
-    // Delete the user custom LLM model cache
-    await cacheClient.del(config.cache.getCustomModelsCacheKey(teamId)).catch((error) => {
-      console.warn('Error deleting user custom LLM model cache:', error?.message);
-    });
-
-    res.status(200).json({ success: true, data: deleteResult.data });
-  } catch (error) {
-    console.error('Error deleting user custom LLM model:', error?.message);
-    res.status(500).json({ success: false, error: 'Error deleting user custom LLM model.' });
-  }
-});
-
-// #endregion
-
-export default router;

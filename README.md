@@ -46,13 +46,12 @@ docker compose up -d
 
 ```
 
-**Access your application:** http://localhost
+**Access your application:** http://localhost:5050
 
-🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for container deployment with automatic SSL, database, and caching.
-
-**Troubleshooting**: If you encounter any issues during setup, check the [Troubleshooting section](DOCKER_COMPOSE.md#troubleshooting) in the Docker Compose guide.
+🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for production-ready multi-container deployment with automatic SSL, database, and caching.
 
 ---
+
 
 ### Method 2: Local Development Setup
 
@@ -75,12 +74,35 @@ pnpm dev
 ```
 
 **Next Steps:**
-
 1. Configure your MySQL database in `.env`
 2. Set up required subdomains for embodiments
 3. Start building your first agent!
 
 📖 **Detailed Setup**: See our [Contributing Guide](CONTRIBUTING.md) for complete development setup instructions.
+
+
+
+Get up and running instantly with a single Docker command.
+
+```bash
+# Copy environment configuration
+cp .env.example .env
+# REQUIRED: Edit .env with your database credentials
+
+# Build and run with Docker
+docker build -t smythos-studio .
+docker run -d \
+  --name smythos-studio \
+  -p 5050:5050 \
+  -p 5053:5053 \
+  --env-file .env \
+  -v smythos_data:/home/node/smythos-data \
+  smythos-studio:latest
+```
+
+**Access your application:** http://localhost:5050
+
+🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for deploying the app with automatic SSL, database, and caching.
 
 ---
 
@@ -93,7 +115,6 @@ This monorepo contains the complete SmythOS UI platform:
 The main application containing the visual builder, React frontend, and backend services.
 
 **Key Features:**
-
 - **Visual Agent Builder**: Drag-and-drop interface for creating agent workflows
 - **React Frontend**: Modern, responsive user interface
 - **Backend API**: RESTful services for agent management and execution
@@ -104,7 +125,6 @@ The main application containing the visual builder, React frontend, and backend 
 Core API services and database management for the SmythOS UI platform.
 
 **Features:**
-
 - **Database Management**: Prisma-based ORM with MySQL support
 - **API Layer**: Centralized business logic and data access
 
@@ -113,16 +133,27 @@ Core API services and database management for the SmythOS UI platform.
 The execution server that uses (SRE Core Engine)[https://github.com/SmythOS/sre/tree/main] to execute the agents.
 
 **Features:**
-
 - **Agent Execution**: High-performance runtime for agent workflows
 - **Debugging Tools**: Real-time debugging and monitoring
 - **Scalable Architecture**: Handles multiple concurrent agent executions
 - **Embodiment Support**: Deploy agents as chatbots, APIs, and integrations
 
+
+## Architecture Highlights
+
+### Multi-Environment Deployment
+
+Your agents work seamlessly across environments:
+
+- **Development**: Visual builder with hot-reload and debugging
+- **Staging**: Full production simulation with monitoring
+- **Production**: Scalable deployment with enterprise security
+
+
 ## Documentation
 
 - **[Contributing Guide](CONTRIBUTING.md)** - Set up your development environment and contribute to the project
-- **[Docker Compose Setup](DOCKER_COMPOSE.md)** - Container deployment with automatic SSL, database, and caching.
+- **[Docker Compose Setup](DOCKER_COMPOSE.md)** - Production-ready deployment with multi-container architecture
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines and standards
 
 ## Contributing
@@ -130,7 +161,6 @@ The execution server that uses (SRE Core Engine)[https://github.com/SmythOS/sre/
 We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help makes SmythOS UI better for everyone.
 
 **Ways to Contribute:**
-
 - 🐛 Report bugs and issues
 - 💡 Suggest new features and improvements
 - 🔧 Submit pull requests with fixes and enhancements
@@ -138,14 +168,13 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 - 🎨 Design UI/UX improvements
 
 **Get Started:**
-
 1. Read our [Contributing Guide](CONTRIBUTING.md)
 2. Check out [open issues](https://github.com/SmythOS/smythos-studio/issues)
 3. Join our [Discord community](https://discord.gg/smythos)
 
 ## Contributors
 
-<a href="https://github.com/SmythOS/smythos-studio/graphs/contributors">
+<a href="https://github.com/SmythOS/smythos-ui/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=SmythOS/smythos-studio" />
 </a>
 
@@ -160,7 +189,8 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 This project is licensed under the [MIT License](LICENSE).
 
-**Ready to build your first AI agent?**
+
+**Ready to build your first AI agent?** 
 
 🚀 [Get Started Now](#quick-start) | 💬 [Join our Discord](https://discord.gg/smythos) | 🌟 [Star this repo](https://github.com/SmythOS/smythos-studio)
 
@@ -168,4 +198,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 **/smɪθ oʊ ɛs juː aɪ/**
 
-_Build visually. Deploy globally. Scale infinitely._
+*Build visually. Deploy globally. Scale infinitely.*

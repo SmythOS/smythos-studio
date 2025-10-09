@@ -1,3 +1,5 @@
+import { Component } from './Component.class';
+import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
@@ -8,7 +10,8 @@ export class FSleep extends FunctionComponent {
       delay: {
         type: 'range',
         label: 'Delay',
-        help: 'Pause for the set seconds, then continue; input passes through unchanged. <a href="https://smythos.com/docs/agent-studio/components/advanced/sleep/?utm_source=studio&utm_medium=tooltip&utm_campaign=sleep&utm_content=component-header#step-1-set-the-delay-duration" target="_blank" class="text-blue-600 hover:text-blue-800">See dynamic delays and limits</a>',
+        hint: 'Delay in seconds',
+        help: 'Wait for the specified number of seconds before continuing.The provided input will be passed to the output without any changes.',
         min: 1,
         max: 3600,
         value: 1,

@@ -1,3 +1,4 @@
+import { SMYTHOS_DOCS_URL } from '../../shared/constants/general';
 import { LLM_PROVIDERS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import { createBadge } from '../ui/badges';
@@ -110,7 +111,7 @@ export class ImageGenerator extends Component {
         type: 'select',
         withoutSearch: true,
         label: 'Select a model',
-        help: 'Choose a model that matches your style and detail needs.',
+        help: 'Choose an AI model to process the prompt.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         value: this.defaultModel,
@@ -180,7 +181,8 @@ export class ImageGenerator extends Component {
         validateMessage: `The length of the prompt must be between 2 and 2000 characters.`,
         class: 'mt-1',
         value: '{{Prompt}}',
-        help: 'Describe what to generate by describing the subject, style, and constraints. <a href="https://smythos.com/docs/agent-studio/components/base/image-generator/?utm_source=studio&utm_medium=tooltip&utm_campaign=image-generator&utm_content=prompt#step-2-define-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt tips</a>',
+        hint: `Your prompt is aware of any files you add to the Attachment or Binary type input.\nSee <a href="${SMYTHOS_DOCS_URL}/agent-studio/components/base/image-generator" class="underline" target="_blank">documentation</a>.`,
+        hintPosition: 'after_label',
         attributes: {
           'data-template-vars': 'true',
           'data-template-excluded-vars': 'Attachment',
@@ -192,7 +194,7 @@ export class ImageGenerator extends Component {
         type: 'select',
         withoutSearch: true,
         label: 'Quality',
-        help: 'Decide how detailed the output is, trading off speed and cost.',
+        help: 'Choose the image quality—high for best clarity, medium for a balance between quality and size, or low for faster processing and smaller file size.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-15',
         value: '', // We need to keep this empty as 'standard' is not supported for other models like GPT Image 1
@@ -211,7 +213,7 @@ export class ImageGenerator extends Component {
         type: 'select',
         withoutSearch: true,
         label: 'Output Format',
-        help: "Set the file type you'll get back, like JPEG for photos, PNG for transparency, or WebP for web use.",
+        help: 'Select the output format: JPEG for smaller size, PNG for transparency support, or WebP for modern compression with good quality. ',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         value: 'JPEG',
@@ -277,7 +279,7 @@ function getRunwareSettings(savedData: Record<string, string>) {
       value: savedData.negativePrompt || '',
       section: 'Advanced',
       attributes: { 'data-supported-models': LLM_PROVIDERS.RUNWARE },
-      help: 'Block unwanted elements, styles, or colors from appearing in the image.',
+      help: `A negative prompt is a text instruction to guide the model on generating the image. It is usually a sentence or a paragraph that provides negative guidance for the task. This parameter helps to avoid certain undesired results.\nFor example, if the negative prompt is &#34;red dragon, cup&#34;, the model will follow the positive prompt but will avoid generating an image of a red dragon or including a cup. The more detailed the prompt, the more accurate the results.`,
       tooltipClasses: 'w-56 ',
       arrowClasses: '-ml-11',
     },
@@ -367,7 +369,7 @@ function getGoogleAISettings(savedData: Record<string, any>) {
       type: 'select',
       withoutSearch: true,
       label: 'Aspect Ratio',
-      help: 'Set the shape of the image, like square (1:1) or widescreen (16:9).',
+      help: 'Choose the aspect ratio for the generated images.',
       tooltipClasses: 'w-56',
       arrowClasses: '-ml-11',
       value: savedData.aspectRatio || '1:1',
@@ -388,7 +390,7 @@ function getGoogleAISettings(savedData: Record<string, any>) {
       type: 'select',
       withoutSearch: true,
       label: 'Person Generation',
-      help: 'Control if people can appear and which age groups are included. <a href="https://smythos.com/docs/agent-studio/components/base/image-generator/?utm_source=studio&utm_medium=tooltip&utm_campaign=image-generator&utm_content=person-generation#model-verification-and-troubleshooting" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt tips</a>',
+      help: "Allow the model to generate images of people. &quot;Don't Allow&quot; blocks generation of images of people. &quot;Allow Adult&quot; generates images of adults, but not children (default). &quot;Allow All&quot; generates images that include adults and children.",
       tooltipClasses: 'w-56',
       arrowClasses: '-ml-11',
       value: savedData.personGeneration || 'dont_allow',

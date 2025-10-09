@@ -82,7 +82,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             focus:ring-offset-0
             focus:ring-shadow-none
             text-sm 
-            font-light
+            font-normal
             placeholder:text-sm
             placeholder:font-normal`,
               isSearch ? 'pl-10 pr-[10px] py-0' : 'px-[10px]',

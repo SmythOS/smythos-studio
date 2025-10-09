@@ -1172,25 +1172,6 @@ export function sidebarEditValues({
             }
           }, 500);
 
-          /**
-           * Helper function to update textarea scrollbar state
-           * @param textarea - The textarea element to update
-           */
-          const updateTextareaScrollbar = (textarea: HTMLTextAreaElement): void => {
-            // Remove MetroUI class that interferes
-            textarea.parentElement?.classList.remove('no-scroll-vertical');
-
-            // Show/hide scrollbar only when content exceeds available space
-            // Account for borders: offsetHeight includes borders, clientHeight doesn't
-            const borderHeight = textarea.offsetHeight - textarea.clientHeight;
-            const maxContentHeight = 176 - borderHeight;
-            const needsScroll = textarea.scrollHeight > maxContentHeight;
-
-            // Use CSS classes instead of inline styles to override MetroUI
-            textarea.classList.remove('overflow-y-auto', 'overflow-y-hidden');
-            textarea.classList.add(needsScroll ? 'overflow-y-auto' : 'overflow-y-hidden');
-          };
-
           // Listen for immediate input changes (text inputs, textareas)
           _form.addEventListener(
             'input',
@@ -1203,7 +1184,18 @@ export function sidebarEditValues({
                 if (target.matches('textarea')) {
                   const textarea = target as HTMLTextAreaElement;
                   setTimeout(() => {
-                    updateTextareaScrollbar(textarea);
+                    // Remove MetroUI class that interferes
+                    textarea.parentElement?.classList.remove('no-scroll-vertical');
+
+                    // Show/hide scrollbar only when content exceeds available space
+                    // Account for borders: offsetHeight includes borders, clientHeight doesn't
+                    const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+                    const maxContentHeight = 176 - borderHeight;
+                    const needsScroll = textarea.scrollHeight > maxContentHeight;
+
+                    // Use CSS classes instead of inline styles to override MetroUI
+                    textarea.classList.remove('overflow-y-auto', 'overflow-y-hidden');
+                    textarea.classList.add(needsScroll ? 'overflow-y-auto' : 'overflow-y-hidden');
                   }, 0);
                 }
               }
@@ -1263,15 +1255,6 @@ export function sidebarEditValues({
 
           _form._init();
           forms[tab] = { form: _form, fields: formFields };
-
-          // Initialize scrollbar state for all textareas (including prefilled ones)
-          // Use setTimeout to ensure the DOM is fully rendered and textarea dimensions are calculated
-          setTimeout(() => {
-            const textareas = _form.querySelectorAll('textarea') as NodeListOf<HTMLTextAreaElement>;
-            textareas.forEach((textarea: HTMLTextAreaElement) => {
-              updateTextareaScrollbar(textarea);
-            });
-          }, 0);
         } else {
           containers[tab].innerHTML = entriesObject[tab];
           containers[tab].classList.add('mx-4');

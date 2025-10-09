@@ -11,12 +11,37 @@ declare var Metro;
  * for better separation of concerns and reusability.
  */
 export class GmailTrigger extends Trigger {
+  public schema: any = {
+    email: {
+      id: 'string',
+      threadId: 'string',
+      labelIds: 'array',
+      snippet: 'string',
+      sizeEstimate: 'number',
+      internalDate: 'string',
+      headers: {
+        from: 'string',
+        to: 'string',
+        cc: 'string',
+        bcc: 'string',
+        subject: 'string',
+        date: 'string',
+        messageId: 'string',
+      },
+      body: {
+        text: 'string',
+        html: 'string',
+      },
+      attachments: 'array',
+      isUnread: 'boolean',
+    },
+  };
   private oauth: oAuthSettings | undefined;
 
   protected async prepare(): Promise<boolean> {
     try {
       // Initialize OAuth settings helper
-      this.oauth = new oAuthSettings(this);
+      this.oauth = new oAuthSettings(this, 'oauth_cred_id');
       await this.oauth.initialize();
       return true;
     } catch (error) {
@@ -45,8 +70,11 @@ export class GmailTrigger extends Trigger {
       ...this.oauth?.configure(),
     };
 
-    this.drawSettings.iconCSSClass = 'svg-icon ' + this.constructor.name;
-    this.drawSettings.color = '#ff00f2';
+    this.drawSettings.icon = `/img/triggers/gmail.svg`;
+
+    this.drawSettings.color = '#00ff00';
+    this.drawSettings.componentDescription = 'Poll Gmail for new incoming emails';
+    this.drawSettings.displayName = '<i class="fa-solid fa-bolt"></i> GmailTrigger';
   }
 
   public async checkSettings(): Promise<void> {

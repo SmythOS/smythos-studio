@@ -213,7 +213,7 @@ class SmythVault {
           owner: data.owner,
           scope: JSON.stringify(data.scope || []),
         },
-        secretId: keyId,
+        secretId: data.name,
       });
 
       data.metadata = {

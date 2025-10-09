@@ -1356,4 +1356,15 @@ router.post('/store-limit-reached', async (req, res) => {
   }
 });
 
+router.post('/trigger/:name/register/:id', async (req, res) => {
+  const { id } = req.params;
+  const { payload } = req.body;
+
+  const url = `${config.env.API_SERVER}/trigger/${id}/register`;
+
+  const result: any = await axios.post(url, { ...payload });
+
+  res.send({ result });
+});
+
 export default router;

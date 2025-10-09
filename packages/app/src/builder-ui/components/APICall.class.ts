@@ -94,7 +94,7 @@ export class APICall extends Component {
         options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
         value: 'GET',
         validate: 'required',
-        help: 'Choose the HTTP method to read, create, update, or delete data.',
+        help: `The Method field defines the type of HTTP request your API call will use—such as GET to retrieve data, POST to create, or DELETE to remove. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See full method guide →</a>`,
         hintPosition: 'bottom',
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-11',
@@ -108,7 +108,7 @@ export class APICall extends Component {
         validateMessage: 'Provide a valid URL',
         attributes: { 'data-template-vars': 'true' },
         cls: 'pr-4',
-        help: `Enter the website address and add any path or query parts.\n <a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-1-choose-method-and-url" target="_blank" class="text-blue-600 hover:text-blue-800">See URL patterns</a>`,
+        help: `Configure the URL field using static or dynamic values for flexibility. Use query (?key={{value}}) and path parameters ({{url}}/segment) to adapt endpoints. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See URL configuration guide →</a>`,
         hintPosition: 'bottom',
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-15',
@@ -130,7 +130,7 @@ export class APICall extends Component {
         type: 'textarea',
         label: 'Headers',
         readonly: true,
-        help: 'Add keys the service needs, like Authorization or Content-Type.<br /><a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-2-add-headers-and-body" target="_blank" class="text-blue-600 hover:text-blue-800">See header usage</a>',
+        help: `Headers pass essential metadata like Content-Type and authentication details. <br />Edit them in the API component settings to match your API's requirements. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See headers guide →</a>`,
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-13',
         validate: `custom=isValidJson`,
@@ -152,7 +152,7 @@ export class APICall extends Component {
       contentType: {
         type: 'select',
         label: 'Content-Type',
-        help: 'Tell the server what kind of body you are sending, like JSON or form data.',
+        help: `The Content-Type header specifies the format of the data in the request body—e.g., application/json, multipart/form-data, or text/plain. Choose the type that matches your API's requirements. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See Content-Type guide →</a>`,
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-5',
         options: [
@@ -173,7 +173,7 @@ export class APICall extends Component {
         type: 'textarea',
         label: 'Body',
         attributes: { 'data-template-vars': 'true', 'data-vault': `${COMP_NAMES.apiCall},All` },
-        help: 'Write what you want to send and use variables from earlier steps.',
+        help: `Body contains data sent to the server. SmythOS dynamically adapts content based on selected Content-Type and allows integration of variables from other components. <br /><a style="color: #3b82f6;text-decoration: underline;" href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call" target="_blank">See Body guide →</a>`,
         tooltipClasses: 'w-64',
         arrowClasses: '-ml-17',
         actions: [
@@ -232,7 +232,7 @@ export class APICall extends Component {
         label: 'Authentication Service',
         section: 'OAuth',
         sectionHelp:
-          'Sign in once and let tokens attach to your calls automatically. <a href="https://smythos.com/docs/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-3-add-authentication" target="_blank" class="text-blue-600 hover:text-blue-800">See OAuth setup</a>',
+          'SmythOS supports OAuth 2.0 with OpenID Connect (OIDC) for secure user authentication and authorization.',
         sectionTooltipClasses: 'w-64',
         sectionArrowClasses: '-ml-11',
         options: [...OAUTH_SERVICES],
@@ -338,7 +338,6 @@ export class APICall extends Component {
         type: 'textarea',
         label: 'Proxy URLs',
         section: 'Advanced',
-        help: 'Send calls through a proxy if your network or vendor asks for it.',
         validateMessage: `Enter your proxy URLs in the following format:<br/>
                 [scheme]://[username]:[password]@[host]:[port]<br/><br/>
                 For multiple URLs, place each one in a new line.<br/><br/>
@@ -1186,16 +1185,16 @@ export class APICall extends Component {
         if (_editor) {
           _editor.style.minHeight = '80px !important';
         }
-
+        
         // Add event listener to the Ace editor for auto-save
-        const body_editor = bodyElm?._editor;
+        const body_editor = bodyElm._editor;
         if (body_editor) {
           body_editor.session.setOption('useWorker', false);
           body_editor.clearSelection();
-
+          
           // Remove any existing event listeners to avoid duplicates
           body_editor.off('change');
-
+          
           // Add event listener to the Ace editor for auto-save
           body_editor.on('change', () => {
             // Trigger the form's input event to activate auto-save
@@ -1203,7 +1202,7 @@ export class APICall extends Component {
             bodyElm.dispatchEvent(inputEvent);
           });
         }
-
+        
         if (value !== this.data.contentType) {
           bodyElm.value = '';
           this.data.body = '';
@@ -1211,9 +1210,7 @@ export class APICall extends Component {
       } else {
         toggleMode(bodyElm, false);
         destroyCodeEditor(bodyElm);
-        if (bodyElm?.classList?.contains('hidden')) {
-          bodyElm.classList.remove('hidden');
-        }
+        bodyElm.classList.remove('hidden');
       }
       if (wrapper && wrapper.classList.contains('focused') && value !== this.data.contentType) {
         bodyElm.value = '';

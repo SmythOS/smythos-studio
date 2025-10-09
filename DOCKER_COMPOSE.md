@@ -5,34 +5,34 @@ This guide explains how to run SmythOS UI using Docker, both with the standalone
 ## Contents
 
 - [Docker Setup Guide for SmythOS UI](#docker-setup-guide-for-smythos-ui)
-  - [Contents](#contents)
-  - [Prerequisites](#prerequisites)
-  - [Quick Start with Docker Compose (Recommended)](#quick-start-with-docker compose-recommended)
-    - [1. Environment Setup](#1-environment-setup)
-    - [2. Start All Services](#2-start-all-services)
-    - [3. Access the Application](#3-access-the-application)
-  - [Docker Compose Architecture](#docker compose-architecture)
-    - [Services Overview](#services-overview)
-    - [Network Architecture](#network-architecture)
-    - [Volume Management](#volume-management)
-  - [Standalone Dockerfile Usage](#standalone-dockerfile-usage)
-    - [Running the Container](#running-the-container)
-  - [Environment Variables](#environment-variables)
-    - [Required Variables](#required-variables)
-  - [Production Deployment](#production-deployment)
-    - [Domain & SSL/TLS Configuration](#domain-ssltls-configuration)
-    - [Security Considerations](#security-considerations)
-  - [Troubleshooting](#troubleshooting)
-    - [Common Issues](#common-issues)
-  - [Maintenance](#maintenance)
-    - [Updates](#updates)
+	- [Contents](#contents)
+	- [Prerequisites](#prerequisites)
+	- [Quick Start with Docker Compose (Recommended)](#quick-start-with-docker compose-recommended)
+		- [1. Environment Setup](#1-environment-setup)
+		- [2. Start All Services](#2-start-all-services)
+		- [3. Access the Application](#3-access-the-application)
+	- [Docker Compose Architecture](#docker compose-architecture)
+		- [Services Overview](#services-overview)
+		- [Network Architecture](#network-architecture)
+		- [Volume Management](#volume-management)
+	- [Standalone Dockerfile Usage](#standalone-dockerfile-usage)
+		- [Running the Container](#running-the-container)
+	- [Environment Variables](#environment-variables)
+		- [Required Variables](#required-variables)
+	- [Production Deployment](#production-deployment)
+		- [Domain & SSL/TLS Configuration](#domain-ssltls-configuration)
+		- [Security Considerations](#security-considerations)
+	- [Troubleshooting](#troubleshooting)
+		- [Common Issues](#common-issues)
+	- [Maintenance](#maintenance)
+		- [Updates](#updates)
 
 ## Prerequisites
 
 - **Docker**: Version 20.10 or newer
 - **Docker Compose**: Version 2.0 or newer (included with Docker Desktop)
 - **Root/Admin Access**: Required for Docker commands
-- **System Requirements**:
+- **System Requirements**: 
   - 8GB RAM minimum
   - 10GB free disk space
   - Ports 80, 443, 5050, 5053, 8080 available
@@ -59,6 +59,7 @@ cp .env.compose.example .env
 ```
 
 (Optional) Edit the `.env` file with your configuration (e.g. changing default passwords, your domains, etc.)
+
 
 ### 3. Start All Services
 
@@ -87,12 +88,12 @@ Once all services are healthy:
 
 ### Services Overview
 
-| Service     | Purpose                         | Port            | Health Check          |
-| ----------- | ------------------------------- | --------------- | --------------------- |
-| **traefik** | Reverse proxy & SSL termination | 80, 443, 8080   | Built-in              |
-| **mysql**   | Database server                 | 3306 (internal) | mysqladmin ping       |
-| **redis**   | Cache & session store           | 6379 (internal) | redis-cli ping        |
-| **smythos** | Main application                | 5050, 5053      | HTTP health endpoints |
+| Service | Purpose | Port | Health Check |
+|---------|---------|------|--------------|
+| **traefik** | Reverse proxy & SSL termination | 80, 443, 8080 | Built-in |
+| **mysql** | Database server | 3306 (internal) | mysqladmin ping |
+| **redis** | Cache & session store | 6379 (internal) | redis-cli ping |
+| **smythos** | Main application | 5050, 5053 | HTTP health endpoints |
 
 ### Network Architecture
 
@@ -124,7 +125,6 @@ For custom configurations, you can use the Dockerfile directly.
 ### Running the Container
 
 ```bash
-cp .env.example .env
 # Run with environment file
 docker run -d \
   --name smythos-app \
@@ -132,16 +132,19 @@ docker run -d \
   -p 5053:5053 \
   --env-file .env \
   -v smythos_data:/home/node/smythos-data \
-  smythos/smythos-studio:alpha
+  smythos-ui:latest
 ```
 
 ## Environment Variables
 
 ### Required Variables
 
-| Variable       | Description             | Example                          |
-| -------------- | ----------------------- | -------------------------------- |
+| Variable | Description | Example |
+|----------|-------------|---------|
 | `DATABASE_URL` | MySQL connection string | `mysql://user:pass@host:3306/db` |
+
+
+
 
 ## Production Deployment
 
@@ -149,21 +152,16 @@ docker run -d \
 
 The docker compose setup includes automatic SSL certificate generation via Let's Encrypt:
 
-1. **Configure your domains & tls configuration** in `.env`:
-
+1. **Configure your domains** in `.env`:
    ```env
-   APP_DOMAIN=https://yourdomain.com
-   RUNTIME_DOMAIN=https://runtime.yourdomain.com
+   APP_DOMAIN=http://yourdomain.com
+   RUNTIME_DOMAIN=http://runtime.yourdomain.com
    DEFAULT_AGENT_DOMAIN=dev.yourdomain.com
    PROD_AGENT_DOMAIN=live.yourdomain.com
    LETSENCRYPT_EMAIL=admin@yourdomain.com
-   ENABLE_TLS=true
    ```
 
-   - remove the `AGENT_DOMAIN_PORT` variable
-
 2. **Ensure DNS records** point to your server:
-
    ```
    yourdomain.com          A    YOUR_SERVER_IP
    runtime.yourdomain.com  A    YOUR_SERVER_IP
@@ -184,36 +182,13 @@ The docker compose setup includes automatic SSL certificate generation via Let's
 - **Regular updates** of Docker images
 - **Monitor logs** for suspicious activity
 
+
 ## Troubleshooting
 
 ### Common Issues
 
-**1. Port conflicts:**
 
-If you see errors like:
-
-```
-docker: Error response from daemon: driver failed programming external connectivity on endpoint <container_name> (xxxxxxxxxxxxxxx): Bind for 0.0.0.0:80 failed: port is already allocated.
-```
-
-or
-
-```
-docker: Error response from daemon: driver failed programming external connectivity on endpoint <container_name> (xxxxxxxxxxxxxxx): Error starting userland proxy: listen tcp 0.0.0.0:0: bind: cannot assign requested address.
-```
-
-This means a service is already running on port 80 and/or 443. You need to stop that service first.
-
-```bash
-# Check what's using the ports
-netstat -tlnp | grep :80
-netstat -tlnp | grep :443
-
-# Stop any service using 80 and/or 443
-```
-
-**2. Services not starting:**
-
+**1. Services not starting:**
 ```bash
 # Check service status
 docker compose ps
@@ -223,14 +198,25 @@ docker compose logs mysql
 docker compose logs smythos
 ```
 
-**3. Database connection errors:**
-
+**2. Database connection errors:**
 ```bash
 # Verify MySQL is healthy
 docker compose exec mysql mysqladmin ping -u root -p
 
 # Check database connectivity from app
 docker compose exec smythos sh -c "mysql -h mysql -u \$DATABASE_USER -p\$DATABASE_PASSWORD -e 'SELECT 1'"
+```
+
+**3. Port conflicts:**
+```bash
+# Check what's using the ports
+netstat -tlnp | grep :80
+netstat -tlnp | grep :443
+
+
+# Either stop any service using 80 and/or 443 OR use different ports in .env (not suitable for production) 
+EXPOSE_TRAEFIK_PORT=8080
+EXPOSE_HTTPS_TRAEFIK_PORT=8443
 ```
 
 ## Maintenance
@@ -247,6 +233,7 @@ docker compose pull
 # Rebuild and restart services
 docker compose up -d
 ```
+
 
 ## Support
 

@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@src/react/shared/components/ui/card';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import DOMPurify from 'dompurify';
 import { AlertCircle, Crown, Info, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,12 +36,10 @@ const containsHTML = (str: string): boolean => {
  */
 const renderStep = (step: string, index: number): JSX.Element => {
   if (containsHTML(step)) {
-    // Sanitize HTML to prevent XSS attacks
-    const sanitizedStep = DOMPurify.sanitize(step);
     return (
       <li
         key={index}
-        dangerouslySetInnerHTML={{ __html: sanitizedStep }}
+        dangerouslySetInnerHTML={{ __html: step }}
         className="[&_a]:text-[#3C89F9] [&_a]:hover:underline"
       />
     );
@@ -52,12 +49,10 @@ const renderStep = (step: string, index: number): JSX.Element => {
 
 const renderDescription = (description: string) => {
   if (containsHTML(description)) {
-    // Sanitize HTML to prevent XSS attacks
-    const sanitizedDescription = DOMPurify.sanitize(description);
     return (
       <CardDescription
         className="text-gray-600 leading-relaxed text-[14px] font-inter font-normal [&_a]:text-[#3C89F9] [&_a]:hover:underline"
-        dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+        dangerouslySetInnerHTML={{ __html: description }}
       ></CardDescription>
     );
   }
@@ -153,21 +148,11 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
           <div className="text-center">
             <p className="text-xs text-gray-500 font-inter font-normal">
               Need help? Visit our{' '}
-              <a
-                href={SMYTHOS_DOCS_URL}
-                className="text-[#3C89F9] hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={SMYTHOS_DOCS_URL} className="text-[#3C89F9] hover:underline" target="_blank" rel="noopener noreferrer">
                 documentation
               </a>{' '}
               or{' '}
-              <a
-                href="https://discord.gg/smythos"
-                className="text-[#3C89F9] hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href="https://discord.gg/smythos" className="text-[#3C89F9] hover:underline" target="_blank" rel="noopener noreferrer">
                 contact support
               </a>
             </p>

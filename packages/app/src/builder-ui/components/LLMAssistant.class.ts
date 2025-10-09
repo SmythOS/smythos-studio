@@ -1,3 +1,4 @@
+import { SMYTHOS_DOCS_URL } from '../../shared/constants/general';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import { createBadge } from '../ui/badges';
 import { IconArrowRight, IconConfigure } from '../ui/icons';
@@ -39,7 +40,7 @@ export class LLMAssistant extends Component {
       model: {
         type: 'select',
         label: 'Select a Model',
-        help: `Choose the chat model for this assistant; balance speed, cost, and context.`,
+        help: `Primary language model<br />Used for chat and chatbot interactions<br />Affects response quality and capabilities`,
         hintPosition: 'bottom',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -133,7 +134,7 @@ export class LLMAssistant extends Component {
         validateMessage: `The behavior prompt should be a non empty text of less than 30,000 characters`,
         value: 'You are a helpful assistant that helps people with their questions',
         attributes: { 'data-template-vars': 'true' },
-        help: 'Set the assistant’s tone, rules, and actions so replies fit the intended use case. <a href="https://smythos.com/docs/agent-studio/components/advanced/llm-assistant/?utm_source=studio&utm_medium=tooltip&utm_campaign=llm-assistant&utm_content=behavior#step-2-define-the-behavior" target="_blank" class="text-blue-600 hover:text-blue-800">See behaviour examples</a>',
+        help: 'Describe how the agent should behave—include tone, decision-making style, or specific actions it should take when responding.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
@@ -143,7 +144,7 @@ export class LLMAssistant extends Component {
         value: false,
         attributes: { 'data-supported-models': 'all' },
         section: 'Advanced',
-        help: `Send raw replies into the workflow for filtering or transformation before display. <a href="https://smythos.com/docs/agent-studio/components/advanced/llm-assistant/?utm_source=studio&utm_medium=tooltip&utm_campaign=llm-assistant&utm_content=passthrough#step-4-configure-advanced-settings" target="_blank" class="text-blue-600 hover:text-blue-800">See passthrough controls</a>`,
+        help: `Passthrough mode gives you control over what gets streamed to users. Enable it to manually handle assistant outputs before they're shown—ideal for custom logic or post-processing.<br /><a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/llm-assistant" target="_blank">See LLM Assistant guide →</a>`,
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },

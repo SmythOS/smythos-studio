@@ -8,8 +8,8 @@ export class Note extends Component {
   protected async init() {
     // Initialize markdown parser with same config as ChatUI
     this.markdownParser = markdownit({
-      html: true, // Allow HTML tags
-      linkify: true, // Auto-convert URLs to links
+      html: true,        // Allow HTML tags
+      linkify: true,     // Auto-convert URLs to links
       typographer: true, // Smart quotes, dashes, etc.
     });
 
@@ -21,7 +21,7 @@ export class Note extends Component {
 
       if (this.data.markdown_enabled) {
         this.data.formatting_mode = 'markdown';
-        this.data.content = desc && md ? desc.trim() + '\n\n' + md.trim() : md || desc;
+        this.data.content = (desc && md) ? (desc.trim() + '\n\n' + md.trim()) : (md || desc);
       } else {
         this.data.formatting_mode = 'plaintext';
         this.data.content = desc || '';
@@ -43,7 +43,7 @@ export class Note extends Component {
           { text: 'Plain Text', value: 'plaintext' },
           { text: 'Markdown', value: 'markdown' },
         ],
-        help: 'Choose how your note is rendered, like plain text or Markdown for styling.',
+        help: 'Choose how your note content is formatted and displayed.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
@@ -59,7 +59,7 @@ export class Note extends Component {
         type: 'textarea',
         label: 'Content',
         value: this.data.content || '',
-        help: 'The text of your note; use it to explain decisions, label sections, or add context on the canvas.',
+        help: "Add your note's text or markdown content.",
         tooltipClasses: 'w-40',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
@@ -72,7 +72,7 @@ export class Note extends Component {
         label: 'Text Color',
         class: 'w-full',
         value: this.data.textColor || '#000000',
-        help: 'Pick the color for your note’s text to make it readable or emphasize meaning.',
+        help: "Choose the color of the note's text to improve readability or match your style.",
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         hintPosition: 'bottom',
@@ -90,7 +90,7 @@ export class Note extends Component {
         label: 'Background Color',
         class: 'w-full',
         value: this.data.color || '#c7ff1529',
-        help: 'Set the background color to distinguish notes or visually group them.',
+        help: 'Set the background color of the note to organize or highlight different types of information.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
         events: {
@@ -153,9 +153,7 @@ export class Note extends Component {
     const form = (e.target as HTMLElement).closest('form');
     if (!form) return;
 
-    const markdownContentField = form.querySelector(
-      '.form-box[data-field-name="markdown_content"]',
-    );
+    const markdownContentField = form.querySelector('.form-box[data-field-name="markdown_content"]');
     const textarea = markdownContentField?.querySelector('textarea') as HTMLTextAreaElement;
     if (!markdownContentField || !textarea) return;
 

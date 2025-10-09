@@ -7,19 +7,18 @@ export class MemoryReadKeyVal extends Component {
       memoryName: {
         type: 'input',
         label: 'name',
-        value: '',
+        value: 'default',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
         attributes: { 'data-template-vars': 'true' },
-        help: 'Tells the component which namespace to search so it finds the value you wrote.',
       },
       key: {
         type: 'input',
         label: 'Key',
         value: '{{Key}}',
+        hint: 'Key to read from memory',
         validate: `maxlength=50`,
         attributes: { 'data-template-vars': 'true' },
-        help: 'Targets the exact item to retrieve using its saved identifier.',
       },
       // scope: {
       //   type: 'select',
@@ -31,11 +30,10 @@ export class MemoryReadKeyVal extends Component {
       //     { value: 'workflow', text: 'Workflow' },
       //     { value: 'ttl', text: 'TTL' },
       //   ],
-      // help: 'Choose session, user, or project for the lookup. <a href="#" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
       // },
     };
 
-    const dataEntries = ['memoryName', 'key'];
+    const dataEntries = ['key'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }

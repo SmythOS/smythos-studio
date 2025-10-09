@@ -566,16 +566,14 @@
 
 .form-section-content {
   border-width: 0px !important;
-  border-bottom: 1px solid #e0e0e0 !important;
-  padding: 0 !important;
+}
+
+.form-section-content {
+  padding: 5px !important;
 }
 
 .right-sidebar .form-html {
   padding: 8px !important;
-}
-
-.right-sidebar .form-group-toggle label {
-  margin-bottom: 0 !important;
 }
 
 /* Ensure tooltip inside right sidebar title is not clipped */
@@ -674,18 +672,7 @@
 
 .right-sidebar .select {
   padding: 0px 2px 0px 2px !important;
-  height: 40px;
-  background: white !important;
-  box-shadow: none;
-  border-radius: 4px !important;
-  border-bottom-color: #616161 !important;
-}
-
-.right-sidebar .select.focused {
-  outline: none;
-  box-shadow: none;
-  border-bottom-width: 2px !important;
-  border-bottom-color: #3b82f6 !important;
+  height: 48px;
 }
 
 .right-sidebar .select .select-input {
@@ -695,10 +682,8 @@
 
 .right-sidebar .select .select-input,
 .right-sidebar .select .dropdown-toggle {
-  height: 40px;
-  line-height: 38px;
-  font-size: 14px;
-  border-bottom-color: #616161;
+  height: 48px;
+  line-height: 3;
 }
 
 .right-sidebar .select .drop-container {
@@ -1032,7 +1017,6 @@ code.language-plan.done::before {
   background-color: white;
   border: 1px solid !important;
   border-color: #e5e7eb !important;
-  border-bottom-color: #616161 !important;
   color: #111827;
   border-radius: 0.25rem;
   padding: 0.5rem 0.75rem;
@@ -1043,12 +1027,7 @@ code.language-plan.done::before {
   transition: border-bottom-color 0.3s ease-in-out;
 }
 
-.right-sidebar .form-group .invalid input[type='input']:focus,
-.dlg-form .input.invalid input {
-  border-color: #c50f1f !important;
-  border-bottom-width: 1px !important;
-}
-.dlg-form .input:not(.invalid) input:focus,
+.dlg-form .input input:focus,
 .right-sidebar .form-group input[type='text']:focus,
 .right-sidebar .form-group input[type='input']:focus,
 .right-sidebar .form-group input[type='number']:focus,
@@ -1121,7 +1100,7 @@ code.language-plan.done::before {
 .right-sidebar .form-group textarea::placeholder {
   color: #9ca3af;
   font-size: 0.875rem;
-  font-weight: 300 !important;
+  font-weight: normal;
 }
 
 .right-sidebar .form-group .metro-input.valid:focus,
@@ -1304,10 +1283,4 @@ body.locked nav #builder-button svg {
 /* Inspect button icon hover state - ensure it works when debug is off */
 #cmp-inspect-btn:hover svg path {
   stroke: white !important;
-}
-
-.dropdown-toggle::before {
-  height: 0.5rem !important;
-  width: 0.5rem !important;
-  margin-top: -0.35rem !important;
 }

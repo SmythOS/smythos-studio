@@ -135,6 +135,8 @@ export function createTemplateVarBtn(
     cls = ' btn-field-var';
   } else if (type === 'global') {
     cls = ' btn-global-var';
+  } else if (type === 'trigger') {
+    cls = ' btn-trigger-var';
   }
 
   button.className = `button primary small template-var-button${cls}`;
@@ -170,6 +172,9 @@ export function generateTemplateVarBtns(
   const globalVarWrapper = document.createElement('div');
   globalVarWrapper.classList.add('global-vars-wrapper');
 
+  const triggerVarWrapper = document.createElement('div');
+  triggerVarWrapper.classList.add('trigger-vars-wrapper');
+
   if (variables?.size > 0) {
     for (const [key, value] of variables) {
       if (key) {
@@ -178,9 +183,15 @@ export function generateTemplateVarBtns(
         switch (value?.type) {
           case 'field':
             fieldVarWrapper.appendChild(button);
+            wrapper.classList.add('fields');
             break;
           case 'global':
             globalVarWrapper.appendChild(button);
+            wrapper.classList.add('globals');
+            break;
+          case 'trigger':
+            triggerVarWrapper.appendChild(button);
+            wrapper.classList.add('triggers');
             break;
           default:
             // Default case handles standard input types (e.g. Any, String, Binary) by adding them to inputVarWrapper
@@ -198,6 +209,9 @@ export function generateTemplateVarBtns(
     }
     if (globalVarWrapper?.children?.length) {
       wrapper.appendChild(globalVarWrapper);
+    }
+    if (triggerVarWrapper?.children?.length) {
+      wrapper.appendChild(triggerVarWrapper);
     }
 
     wrapper.style.display = 'block';
@@ -235,7 +249,10 @@ export function handleTemplateVars(targetElm) {
             .querySelector('[data-template-vars=true]') as HTMLTextAreaElement) ||
           (buttonElm
             .closest('.form-group')
-            .querySelector('[data-agent-vars=true]') as HTMLTextAreaElement);
+            .querySelector('[data-agent-vars=true]') as HTMLTextAreaElement) ||
+          (buttonElm
+            .closest('.form-group')
+            .querySelector('[data-trigger-vars=true]') as HTMLTextAreaElement);
 
         // changing select element does not remove template-var-buttons and these buttons can add inputs to readonly field
         if (!focusedField.hasAttribute('readonly')) {
@@ -349,6 +366,31 @@ export function handleTemplateVars(targetElm) {
 
         const focusedElmParent = clickedElm.closest('.form-group');
         focusedElmParent.appendChild(buttonsContainer);
+      } else if (
+        clickedElm.getAttribute('data-trigger-vars') === 'true' &&
+        !clickedElm?.hasAttribute('readonly')
+      ) {
+        console.log('clicked elm', clickedElm);
+        const triggersList = clickedElm.getAttribute('data-triggers')?.split(',');
+        const triggersSchema = triggersList.map((triggerId) => {
+          const component = document.getElementById(triggerId);
+          const control = (component as any)?._control;
+          return control?.schema;
+        });
+
+        //generate variables from schema
+        let variables = new Map();
+        for (const schema of triggersSchema) {
+          const triggerVariables = extractTriggerVariables(schema);
+          for (const [key, value] of triggerVariables) {
+            variables.set(key, value);
+          }
+        }
+
+        const buttonsContainer = generateTemplateVarBtns(variables, compUid) as HTMLDivElement;
+        if (!buttonsContainer) return;
+        const focusedElmParent = clickedElm.closest('.form-group');
+        focusedElmParent.appendChild(buttonsContainer);
       } else {
         // * Remove template variable buttons
         document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`)?.remove();
@@ -357,6 +399,21 @@ export function handleTemplateVars(targetElm) {
       console.log('Template variables display error: ', err);
     }
   };
+}
+function extractTriggerVariables(schema: any, path = '') {
+  let variables = new Map();
+
+  for (const key in schema) {
+    const fullPath = `${path?.trim() ? `${path}.` : ''}${key}`;
+    variables.set(fullPath, { var: `{{${fullPath}}}`, type: 'trigger' });
+    if (typeof schema[key] === 'object') {
+      const nestedVariables = extractTriggerVariables(schema[key], fullPath);
+      for (const [nestedKey, nestedValue] of nestedVariables) {
+        variables.set(nestedKey, nestedValue);
+      }
+    }
+  }
+  return variables;
 }
 
 export const setTabIndex = (selector: string): void => {

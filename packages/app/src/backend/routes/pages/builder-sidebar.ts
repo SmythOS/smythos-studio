@@ -94,12 +94,13 @@ const baseMenu: Menu = {
   ],
 
   //hide triggers for now
-  //Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
+  Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
   Integrations: [],
 };
 
 if (config.env.NODE_ENV === 'PROD') {
   //remove memory section
+  delete baseMenu.Memory;
   delete baseMenu.Triggers;
 }
 

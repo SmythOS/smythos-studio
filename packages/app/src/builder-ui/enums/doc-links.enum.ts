@@ -23,7 +23,7 @@ export enum ComponentDocLinks {
   ServerlessCode = '/agent-studio/components/tools/node-js',
   WebScrape = '/agent-studio/components/tools/web-scrape',
   WebSearch = '/agent-studio/components/tools/web-search',
-
+  
   // Crypto Components
   FEncDec = '/agent-studio/components/crypto/encode-decode',
   FHash = '/agent-studio/components/crypto/hash',
@@ -58,10 +58,4 @@ export enum ComponentDocLinks {
 
   //Zapier Integration Component
   ZapierAction = '/agent-studio/integrations/zapier-integration',
-
-  //Memory Components
-  MemoryWriteKeyVal = '/agent-studio/components/memory/memory-write',
-  MemoryWriteObject = '/agent-studio/components/memory/memory-write-multi',
-  MemoryReadKeyVal = '/agent-studio/components/memory/memory-read',
-  MemoryDeleteKeyVal = '/agent-studio/components/memory/memory-delete',
 }

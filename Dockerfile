@@ -13,7 +13,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy root package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .env ./
 
 # Copy TypeScript config
 COPY tsconfig.json ./
@@ -28,9 +28,7 @@ RUN npm install -g pnpm@10.12.2
 COPY packages/ ./packages/  
 
 # Install dependencies for all packages
-RUN pnpm install --frozen-lockfile && \
-    pnpm store prune && \
-    rm -rf /root/.pnpm-store /root/.cache /root/.npm /tmp/*
+RUN pnpm install
 
 # Build all packages
 RUN pnpm run build

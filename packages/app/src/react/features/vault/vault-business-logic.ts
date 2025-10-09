@@ -1,16 +1,10 @@
+import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
+import type { UserProfile, BuiltInModel, UserModel, EnterpriseModel, ApiKey } from './types/types';
+import { customModels } from '@src/shared/custom-models';
 import {
   CUSTOM_LLM_PROVIDERS,
   CUSTOM_LLM_REGIONS,
 } from '@src/shared/constants/custom-llm.constants';
-import { VAULT_SCOPE_AGENT_LLM } from '@src/shared/constants/general';
-import { customModels } from '@src/shared/custom-models';
-import type {
-  ApiKey,
-  BuiltInModel,
-  EnterpriseModel,
-  UserCustomModel,
-  UserModel,
-} from './types/types';
 
 export interface Provider {
   id: string;
@@ -541,7 +535,7 @@ export const apiKeyService = {
   },
 };
 
-export const globalModelKeyNameMap = {
+const globalModelKeyNameMap = {
   openai: 'OpenAI',
   anthropic: 'Anthropic',
   googleai: 'GoogleAI',
@@ -645,163 +639,5 @@ export const providerService = {
 
   getProviderOptions: async (providerId: string): Promise<Provider | null> => {
     return providerService.providers.find((p) => p.id === providerId) || null;
-  },
-};
-
-export const userCustomModelService = {
-  userCustomModels: [],
-
-  /**
-   * Fetches all user custom LLM models for the current team
-   */
-  getUserCustomModels: async (): Promise<UserCustomModel[]> => {
-    try {
-      const response = await fetch('/api/page/vault/user-custom-llm', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch user custom models');
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch user custom models');
-      }
-
-      // Convert the user custom LLM data to our UserCustomModel format
-      // Handle both new field names (contextWindow, maxOutputTokens) and old ones (tokens, completionTokens)
-      const models = Object.entries(result.data || {}).map(([id, value]: [string, any]) => ({
-        id: value.id || id,
-        name: value.name,
-        modelId: value.modelId,
-        baseURL: value.baseURL,
-        provider: value.provider,
-        // Check for new field name first, then fall back to old field name
-        contextWindow: value.contextWindow !== undefined ? value.contextWindow : value.tokens,
-        maxOutputTokens: value.maxOutputTokens !== undefined ? value.maxOutputTokens : value.completionTokens,
-        fallbackLLM: value.fallbackLLM || '', // Provide default empty string for backward compatibility with cached data
-        features: value.features,
-      }));
-
-      return models;
-    } catch (error) {
-      console.error('Error fetching user custom models:', error);
-      return [];
-    }
-  },
-
-  /**
-   * Creates a new user custom LLM model
-   */
-  createUserCustomModel: async (
-    modelDetails: Omit<UserCustomModel, 'id'>,
-  ): Promise<UserCustomModel> => {
-    try {
-      const response = await fetch('/api/page/vault/user-custom-llm/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(modelDetails),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create user custom model');
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to create user custom model');
-      }
-
-      // Return the created model with the generated ID
-      return {
-        id: result.data.id,
-        name: result.data.name,
-        modelId: modelDetails.modelId,
-        baseURL: modelDetails.baseURL,
-        provider: modelDetails.provider,
-        contextWindow: modelDetails.contextWindow,
-        maxOutputTokens: modelDetails.maxOutputTokens,
-        fallbackLLM: modelDetails.fallbackLLM,
-        features: modelDetails.features,
-      };
-    } catch (error) {
-      console.error('Error creating user custom model:', error);
-      throw new Error(error.error || error.message || 'Failed to create user custom model');
-    }
-  },
-
-  /**
-   * Updates an existing user custom LLM model
-   */
-  updateUserCustomModel: async (
-    modelId: string,
-    updatedFields: Partial<UserCustomModel>,
-  ): Promise<UserCustomModel> => {
-    try {
-      const response = await fetch(`/api/page/vault/user-custom-llm/${modelId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedFields),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update user custom model');
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update user custom model');
-      }
-
-      // Return the updated model
-      return {
-        id: modelId,
-        name: result.data.name,
-        modelId: updatedFields.modelId || '',
-        baseURL: updatedFields.baseURL || '',
-        provider: updatedFields.provider || '',
-        contextWindow: updatedFields.contextWindow,
-        maxOutputTokens: updatedFields.maxOutputTokens,
-        fallbackLLM: updatedFields.fallbackLLM || '',
-        features: updatedFields.features,
-      };
-    } catch (error) {
-      console.error('Error updating user custom model:', error);
-      throw new Error(error.error || error.message || 'Failed to update user custom model');
-    }
-  },
-
-  /**
-   * Deletes a user custom LLM model
-   */
-  deleteUserCustomModel: async (modelId: string): Promise<void> => {
-    try {
-      const response = await fetch(`/api/page/vault/user-custom-llm/${modelId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete user custom model');
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to delete user custom model');
-      }
-    } catch (error) {
-      console.error('Error deleting user custom model:', error);
-      throw new Error(error.error || error.message || 'Failed to delete user custom model');
-    }
   },
 };

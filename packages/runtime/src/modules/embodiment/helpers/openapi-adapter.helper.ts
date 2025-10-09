@@ -60,8 +60,12 @@ const agentDataConnector = new EmbodimentAgentDataConnector();
  * Constructs the server URL from domain using environment configuration
  */
 function constructServerUrl(domain: string): string {
-  const serverUrlScheme = config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN) ? 'http' : 'https';
-  const serverUrlPort = config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN) ? `:${config.env.AGENT_DOMAIN_PORT}` : '';
+  const serverUrlScheme =
+    config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN) ? 'http' : 'https';
+  const serverUrlPort =
+    config.env.NODE_ENV === 'development' && config.env.AGENT_DOMAIN_PORT && domain.includes(config.env.DEFAULT_AGENT_DOMAIN)
+      ? `:${config.env.AGENT_DOMAIN_PORT}`
+      : '';
   return `${serverUrlScheme}://${domain}${serverUrlPort}`;
 }
 

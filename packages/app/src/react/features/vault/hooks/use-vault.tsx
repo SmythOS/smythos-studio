@@ -2,14 +2,12 @@ import type {
   ApiKey,
   ApiKeysResponse,
   EnterpriseModel,
-  UserCustomModel,
   UserModel,
 } from '@react/features/vault/types/types';
 import {
   apiKeyService,
   enterpriseModelService,
   recommendedModelsService,
-  userCustomModelService,
   userModelService,
   vaultService,
 } from '@react/features/vault/vault-business-logic';
@@ -279,58 +277,6 @@ export function useUpdateRecommendedModel() {
       recommendedModelsService.updateRecommendedModels(providerId, enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recommendedModels'] });
-    },
-  });
-}
-
-// User Custom Model Hooks
-const USER_CUSTOM_MODEL_QUERY_KEYS = {
-  USER_CUSTOM_MODELS: ['userCustomModels'],
-} as const;
-
-export function useUserCustomModels() {
-  return useQuery({
-    queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS,
-    queryFn: () => userCustomModelService.getUserCustomModels(),
-  });
-}
-
-export function useCreateUserCustomModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (modelDetails: Omit<UserCustomModel, 'id'>) =>
-      userCustomModelService.createUserCustomModel(modelDetails),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
-    },
-  });
-}
-
-export function useUpdateUserCustomModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      modelId,
-      updatedFields,
-    }: {
-      modelId: string;
-      updatedFields: Partial<UserCustomModel>;
-    }) => userCustomModelService.updateUserCustomModel(modelId, updatedFields),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
-    },
-  });
-}
-
-export function useDeleteUserCustomModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation<void, Error, { modelId: string }>({
-    mutationFn: ({ modelId }) => userCustomModelService.deleteUserCustomModel(modelId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USER_CUSTOM_MODEL_QUERY_KEYS.USER_CUSTOM_MODELS });
     },
   });
 }

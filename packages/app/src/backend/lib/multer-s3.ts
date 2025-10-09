@@ -1,13 +1,13 @@
 // copy of: https://github.com/anacronw/multer-s3/blob/master/index.js
 // to add 'Tagging' to the upload for correct lifecycle management
 
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
 import crypto from 'crypto';
+import stream from 'stream';
 import fileType from 'file-type';
 import htmlCommentRegex from 'html-comment-regex';
 import parallel from 'run-parallel';
-import stream from 'stream';
+import { Upload } from '@aws-sdk/lib-storage';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import util from 'util';
 
 function staticValue(value) {
@@ -307,16 +307,9 @@ S3Storage.prototype._handleFile = function (req, file, cb) {
       params.ContentEncoding = opts.contentEncoding;
     }
 
-    // Configure Upload with proper multipart settings for files > 5MB
-    // partSize: 10MB (minimum is 5MB, maximum is 5GB)
-    // queueSize: 4 concurrent part uploads
-    // leavePartsOnError: false to clean up failed uploads
     var upload = new Upload({
       client: this.s3,
       params: params,
-      queueSize: 4,
-      partSize: 1024 * 1024 * 10, // 10MB per part
-      leavePartsOnError: false,
     });
 
     upload.on('httpUploadProgress', function (ev) {

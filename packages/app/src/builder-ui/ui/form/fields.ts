@@ -1,4 +1,3 @@
-import DOMPurify from 'dompurify';
 import { Tooltip } from 'flowbite-react';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -188,14 +187,7 @@ export function createInfoButton(
   },
   entryIndex = 0,
 ) {
-  // Calculate width based on text length, but allow more space for tooltips with links
-  const hasLinks = text.includes('<a ');
   let estimatedWidth = text.length * 2 > 48 ? 48 : text.length * 2;
-
-  // If tooltip contains links, use a more generous width calculation
-  if (hasLinks) {
-    estimatedWidth = Math.min(60, Math.max(40, text.length * 1.8));
-  }
   // TODO: This is a temporary fix to avoid the tooltip being cutoff in the sidebar and showing it on the top.
   // if (entryIndex < 2) {
   //   position = position || 'bottom';
@@ -218,11 +210,6 @@ export function createInfoButton(
     src: '/img/icons/Info.svg',
   });
 
-  // Sanitize the HTML content to prevent XSS attacks
-  // DOMPurify's default configuration already allows all safe HTML tags
-  // and blocks dangerous elements like <script>, event handlers, etc.
-  const sanitizedText = DOMPurify.sanitize(text);
-
   // Render the Tooltip component
   const root = createRoot(tooltipContainer);
   root.render(
@@ -230,14 +217,11 @@ export function createInfoButton(
       Tooltip,
       {
         content: React.createElement('div', {
-          dangerouslySetInnerHTML: { __html: sanitizedText },
+          dangerouslySetInnerHTML: { __html: text },
         }),
         placement: position as any,
         className:
-          clsHint +
-          ' whitespace-normal text-xs ' +
-          (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
-          ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+          clsHint + ' whitespace-normal text-xs ' + (tooltipClasses || `w-${estimatedWidth}`),
         style: 'dark',
         arrow: true,
       },
@@ -364,10 +348,9 @@ export function createToggle(label: string, value: boolean | string, hintOnSelec
     'checked:bg-none checked:text-blue-600 checked:border-blue-600 checked:bg-blue-600',
     'focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent',
     'before:inline-block before:w-4 before:h-4 before:bg-white',
+    'checked:before:bg-blue-200 before:translate-x-0 checked:before:translate-x-full',
     'before:rounded-full before:shadow before:transform before:ring-0',
     'before:transition before:ease-in-out before:duration-200 before:mt-[1px]',
-    'before:ml-[1px] before:translate-x-px checked:before:translate-x-full',
-    'checked:before:bg-blue-200 checked:before:ml-0',
   ].join(' ');
 
   return toggle;
@@ -382,21 +365,10 @@ export function createTagInput({ maxTags, value }: { maxTags: number; value: str
   return input;
 }
 
-/**
- * Creates a hint element with sanitized HTML content
- * @param text - The HTML text content to display in the hint
- * @returns HTMLElement - The hint element with sanitized content
- */
 export function createHint(text: string) {
   const elm = document.createElement('small');
   elm.classList.add('field-hint');
-
-  // Sanitize the HTML content to prevent XSS attacks
-  // DOMPurify's default configuration already allows all safe HTML tags
-  // and blocks dangerous elements like <script>, event handlers, etc.
-  const sanitizedText = DOMPurify.sanitize(text);
-
-  elm.innerHTML = sanitizedText;
+  elm.innerHTML = text;
 
   return elm;
 }

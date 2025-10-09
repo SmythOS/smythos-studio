@@ -37,6 +37,7 @@ export type DrawSettingsType = {
   displayName?: string;
   cssClass?: string;
   iconCSSClass?: string;
+  icon?: string;
   showSettings?: boolean;
   addOutputButton?: string;
   addInputButton?: string;

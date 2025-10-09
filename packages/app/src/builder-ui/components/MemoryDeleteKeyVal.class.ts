@@ -7,23 +7,22 @@ export class MemoryDeleteKeyVal extends Component {
       memoryName: {
         type: 'input',
         label: 'name',
-        value: '',
+        value: 'default',
         validate: `required maxlength=100`,
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
         attributes: { 'data-template-vars': 'true' },
-        help: 'Tells the component which namespace to search so it removes the correct value.',
       },
       key: {
         type: 'input',
         label: 'Key',
         value: '{{Key}}',
+        hint: 'Key to delete from memory',
         validate: `maxlength=50`,
         attributes: { 'data-template-vars': 'true' },
-        help: 'Targets the exact item to delete using its saved identifier.',
       },
     };
 
-    const dataEntries = ['memoryName', 'key'];
+    const dataEntries = ['key'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }

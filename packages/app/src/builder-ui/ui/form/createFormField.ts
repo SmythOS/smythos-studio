@@ -41,11 +41,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   const events = entry.events || {};
 
   const div = document.createElement('div');
-  div.className = 'form-box px-4 py-2';
+  div.className = 'form-box p-2';
   div.classList.add('form-group');
   div.classList.add(`form-group-${entry.type}`);
   div.setAttribute('data-field-name', entry.name);
-  if (!entry.class) entry.class = 'mb-0';
+  if (!entry.class) entry.class = 'mt-1 mb-0';
 
   if (entry.class)
     entry.class.split(' ').forEach((cls) => cls.trim() && div.classList.add(cls.trim()));
@@ -426,9 +426,9 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let labelElement = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
-    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${
+    labelElement.className = `form-label text-[#1E1E1E] text-base font-medium ${
       attributes.labelCase ? attributes.labelCase : 'capitalize'
-    }`;
+    } mb-2`;
 
     if (entry.type?.toLowerCase() === 'key-value' || entry.type?.toLowerCase() === 'table') {
       labelElement.classList.add('form-label__kv');
@@ -590,8 +590,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   if (entry.validateMessage) {
     const span = document.createElement('span');
     span.classList.add('invalid_feedback');
-    // Use textContent instead of innerHTML for validation messages (no HTML needed)
-    span.textContent = entry.validateMessage;
+    span.innerHTML = entry.validateMessage;
     div.appendChild(span);
   }
 
@@ -881,7 +880,7 @@ function generateTooltip(entry, elm, entryIndex) {
     entry?.help,
     {
       cls: 'btn-info ' + entry?.tooltipIconClasses || '',
-      clsHint: 'smt-hint drop-shadow bg-[#111111] rounded-lg text-white text-left normal-case',
+      clsHint: 'smt-hint drop-shadow bg-[#111111] rounded-lg text-white text-center',
       position: entry?.hintPosition,
       arrowClasses: entry?.arrowClasses || '',
       tooltipClasses: entry?.tooltipClasses || '',

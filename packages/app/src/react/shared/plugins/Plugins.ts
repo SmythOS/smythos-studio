@@ -12,7 +12,6 @@ export enum PluginTarget {
   AgentsPageSection = 'agentsPage/section',
   AgentsPageGenerateAgentForm = 'agentsPage/generateAgentForm',
   AgentsPageOnboardingTasks = 'agentsPage/onboardingTasks',
-  VaultPageSmythOSRecommendedModels = 'vaultPage/smythOSRecommendedModels',
 }
 
 export enum PluginType {

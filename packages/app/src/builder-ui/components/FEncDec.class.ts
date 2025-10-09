@@ -1,3 +1,5 @@
+import { Component } from './Component.class';
+import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
@@ -8,7 +10,7 @@ export class FEncDec extends FunctionComponent {
       action: {
         type: 'select',
         label: 'Action',
-        help: 'Select Encode to produce a formatted string, or Decode to read one.',
+        hint: 'Action to perform',
         value: 'Encode',
         options: ['Encode', 'Decode'],
       },
@@ -17,7 +19,6 @@ export class FEncDec extends FunctionComponent {
         label: 'encoding',
         value: 'hex',
         options: encodings,
-        help: 'Choose the scheme: Base64 for binary, hex for hashes, UTF-8 for text. <a href="https://smythos.com/docs/agent-studio/components/crypto/encode-decode/?utm_source=studio&utm_medium=tooltip&utm_campaign=encode-decode&utm_content=encoding#step-1-select-an-action-and-encoding-method" target="_blank" class="text-blue-600 hover:text-blue-800">See common schemes</a>',
       },
     };
 
