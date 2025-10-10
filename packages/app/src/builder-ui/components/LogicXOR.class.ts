@@ -20,6 +20,7 @@ export class LogicXOR extends Component {
     this.drawSettings.showSettings = false;
     this.drawSettings.cssClass = 'logic-component';
     this.drawSettings.iconCSSClass = 'svg-icon ' + this.constructor.name;
+    this.drawSettings.displayName = 'Exclusive OR';
     this.drawSettings.color = '#333';
     this.drawSettings.addOutputButton = null;
     this.drawSettings.addOutputButtonLabel = ' ';

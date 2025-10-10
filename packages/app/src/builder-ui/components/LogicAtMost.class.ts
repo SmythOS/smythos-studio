@@ -29,6 +29,7 @@ export class LogicAtMost extends Component {
     this.drawSettings.showSettings = true;
     this.drawSettings.cssClass = 'logic-component';
     this.drawSettings.iconCSSClass = 'svg-icon ' + this.constructor.name;
+    this.drawSettings.displayName = 'At most';
     this.drawSettings.color = '#333';
     this.drawSettings.addOutputButton = null;
     this.drawSettings.addOutputButtonLabel = ' ';

@@ -72,6 +72,7 @@ export class MemoryWriteObject extends Component {
 
     // #region [ Draw config ] ==================
     //this.drawSettings.showSettings = false;
+    this.drawSettings.displayName = 'Memory Write Multi';
     this.drawSettings.iconCSSClass = 'svg-icon Memory ' + this.constructor.name;
     this.drawSettings.addOutputButton = ' ';
     // this.drawSettings.addInputButton = ' + Entry';

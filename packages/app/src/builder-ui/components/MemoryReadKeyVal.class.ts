@@ -51,6 +51,7 @@ export class MemoryReadKeyVal extends Component {
 
     // #region [ Draw config ] ==================
     //this.drawSettings.showSettings = false;
+    this.drawSettings.displayName = 'Memory Read';
     this.drawSettings.iconCSSClass = 'svg-icon Memory ' + this.constructor.name;
     this.drawSettings.addOutputButton = ' ';
     this.drawSettings.addInputButton = ' ';
