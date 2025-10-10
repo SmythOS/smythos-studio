@@ -106,8 +106,7 @@ export class oAuthSettings {
             visible: () => true,
             events: {
               click: () => {
-                this.component.data.oauth_con_id = 'None';
-                this.handleOAuthConnectionAction();
+                this.handleOAuthConnectionAction('None');
               },
             },
           },
@@ -119,7 +118,7 @@ export class oAuthSettings {
             visible: () =>
               this.component.data.oauth_con_id && this.component.data.oauth_con_id !== 'None',
             events: {
-              click: () => this.handleOAuthConnectionAction(),
+              click: () => this.handleOAuthConnectionAction(this.component.data.oauth_con_id),
             },
           },
         ],
@@ -291,13 +290,11 @@ export class oAuthSettings {
   /**
    * Handles OAuth connection creation/editing
    */
-  private async handleOAuthConnectionAction(): Promise<void> {
+  private async handleOAuthConnectionAction(currentValue: string): Promise<void> {
     if (!this.oauthService || !this.uiHelper) {
       errorToast('OAuth service not initialized', 'Error', 'alert');
       return;
     }
-
-    const currentValue = this.component.data.oauth_con_id;
 
     try {
       const connections = await this.oauthService.loadConnections();

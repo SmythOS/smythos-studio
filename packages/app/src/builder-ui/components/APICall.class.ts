@@ -209,8 +209,7 @@ export class APICall extends Component {
             visible: () => true, // Always visible
             events: {
               click: () => {
-                this.data.oauth_con_id = 'None';
-                this.handleOAuthConnectionAction();
+                this.handleOAuthConnectionAction('None');
               },
             },
           },
@@ -222,7 +221,7 @@ export class APICall extends Component {
             cls: 'mt-[7px] !mr-[24px] !pt-[10px]',
             visible: () => this.data.oauth_con_id && this.data.oauth_con_id !== 'None',
             events: {
-              click: () => this.handleOAuthConnectionAction(),
+              click: () => this.handleOAuthConnectionAction(this.data.oauth_con_id),
             },
           },
         ],
@@ -1598,10 +1597,9 @@ export class APICall extends Component {
     this.updateOAuthActionButton();
   }
 
-  private async handleOAuthConnectionAction() {
-    const currentValue = this.data.oauth_con_id;
+  private async handleOAuthConnectionAction(currentValue: string) {
     const isNone = !currentValue || currentValue === 'None';
-    // console.log('[OAuth Edit] Action started. Current Value:', currentValue, 'Is None:', isNone);
+    
     // Fetch existing OAuth connections ONLY when editing to avoid modal delay on "Add New"
     if (!isNone) {
       try {
