@@ -2731,6 +2731,13 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
   border: none !important;
 }
 
+#boarding-popover-item .boarding-next-btn.boarding-disabled,
+#boarding-popover-item .boarding-prev-btn.boarding-disabled {
+  background-color: #cccccc !important;
+  color: #666666 !important;
+  opacity: 0.5 !important;
+}
+
 #boarding-popover-item .boarding-close-btn {
   font-size: 12px !important;
   font-weight: 500 !important;
