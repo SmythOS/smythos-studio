@@ -148,7 +148,10 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
     const section = sections[sectionName];
     if (section.length > 0) {
       const sectionWrapper = document.createElement('div');
-      sectionWrapper.setAttribute('class', 'form-section flex flex-wrap');
+      sectionWrapper.setAttribute(
+        'class',
+        `form-section flex flex-wrap ${sectionName !== 'main' ? 'overflow-y-auto max-h-[280px]' : ''}`,
+      );
       sectionWrapper.setAttribute('data-name', sectionName);
       form.appendChild(sectionWrapper);
 
