@@ -56,6 +56,8 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   const devUrl = devDomain && scheme ? `${scheme}://${devDomain}/alexa` : '';
   const prodUrl = prodDomain && scheme ? `${scheme}://${prodDomain}/alexa` : '';
 
+  const voicePreviewUrl = devDomain && scheme ? `${scheme}://${devDomain}/emb/voice` : '';
+
   /**
    * Copies the given text to clipboard.
    * @param {string} text - The text to copy.
@@ -90,8 +92,6 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
         });
   </script>`;
 
-  const previewUrl = `${getFullDomain(domain)}/emb/voice`;
-
   return (
     <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50">
       <div className="relative bg-white rounded-2xl shadow-lg w-full p-6 flex flex-col overflow-auto max-h-[90vh] max-w-[480px]">
@@ -109,7 +109,7 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
                 Voice Integration
               </label>
               <a
-                href={previewUrl}
+                href={voicePreviewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[13px] text-[#707070]"

@@ -46,7 +46,7 @@ export interface OpenAPISpec {
     version: string;
   };
   servers: Array<{ url: string }>;
-  paths: { [path: string]: any };
+  paths: Record<string, Record<string, any>>;
   components?: {
     schemas?: { [key: string]: any };
     securitySchemes?: { [key: string]: any };

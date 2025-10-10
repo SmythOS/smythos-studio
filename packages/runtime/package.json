@@ -71,7 +71,8 @@
     "source-map-support": "^0.5.21",
     "swagger-ui-express": "^5.0.0",
     "swagger-ui-dist": "^5.18.2",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "ws": "^8.18.3"
   },
   "keywords": [],
   "license": "ISC"

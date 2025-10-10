@@ -14,6 +14,7 @@ import { mcpRouter } from '@embodiment/modules/mcp/routes/router';
 import { openaiRouter } from '@embodiment/modules/openai/routes/router';
 import { postmanRouter } from '@embodiment/modules/postman/routes/router';
 import { swaggerRouter } from '@embodiment/modules/swagger/routes/router';
+import { voiceRouter } from '@embodiment/modules/voice/routes/router';
 
 const mainRouter = Router();
 
@@ -77,6 +78,10 @@ const defaultRoutes: Route[] = [
     rootPath: ['/form-preview', '/emb/form-preview'],
     route: formPreviewRouter,
   },
+  {
+    rootPath: ['/voice', '/emb/voice'],
+    route: voiceRouter,
+},
 ];
 
 const devRoutes: Route[] = [];
