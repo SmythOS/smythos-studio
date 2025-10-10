@@ -62,11 +62,12 @@ export async function processAgentRequest(agentId: string, req: any) {
   await agentProcess.ready();
   // const req = agent.agentRequest;
 
-  req.socket.on('close', () => {
-    // console.log('Client socket closed, killing agent');
-    // Handle the cancellation logic
-    // agentProcess.agent.kill();
-  });
+  // req.socket.on('close', () => {
+  //   // console.log('Client socket closed, killing agent');
+  //   // Handle the cancellation logic
+  //   // agentProcess.agent.kill();
+  // });
+  const { includeNewState } = req.query || {};
 
   const skipDebug = typeof req.header('X-DEBUG-SKIP') != 'undefined';
   const monitorIds = req.header('X-MONITOR-ID')
@@ -157,12 +158,32 @@ export async function processAgentRequest(agentId: string, req: any) {
   }
 
   // #endregion[mock_data]
-
+  let result;
   if (startLiveDebug) {
-    return runAgentDebug(agentId, agentProcess, req);
+    result = await runAgentDebug(agentId, agentProcess, req);
   } else {
-    return runAgentProcess(agentId, agentProcess, req);
+    result = await runAgentProcess(agentId, agentProcess, req);
   }
+
+  if (includeNewState) {
+    const readStateId = result?.data?.dbgSession;
+    if (readStateId) {
+      try {
+        const newState = await agentProcess.readDebugState(readStateId, {
+          ...req,
+          path: req.url,
+          url: undefined,
+          headers: {
+            ...req.headers,
+          },
+        });
+        result.data.newState = newState;
+      } catch (error: any) {
+        result.data.newState = null;
+      }
+    }
+  }
+  return result;
 }
 
 async function runAgentProcess(agentId: string, agentProcess: AgentProcess, req: any) {
