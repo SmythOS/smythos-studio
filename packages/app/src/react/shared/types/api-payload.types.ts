@@ -19,12 +19,6 @@ export interface InviteTeamMemberRequest {
   agentName?: string;
   roleId: number;
 }
-export interface InviteTeamMemberWithSubteamRequest {
-  email: string;
-  organizationId: string;
-  spaceId: string;
-  roleId: number;
-}
 
 export interface ShareAgentWithTeamMemberRequest {
   email: string;
