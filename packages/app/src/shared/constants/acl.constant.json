@@ -50,6 +50,7 @@
     "/enterprise-t2": { "access": "rw", "name": "Enterprise T2", "internal": true },
     "/enterprise-t3": { "access": "rw", "name": "Enterprise T3", "internal": true },
     "/enterprise-t4": { "access": "rw", "name": "Enterprise T4", "internal": true },
+    "/business-unlimited": { "access": "rw", "name": "Business Unlimited", "internal": true },
     "/plans-legacy": { "access": "rw", "name": "Plans", "internal": true }
   },
   "api": {
