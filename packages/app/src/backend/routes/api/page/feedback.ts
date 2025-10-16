@@ -12,7 +12,12 @@ router.post('/submit', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Failed to submit feedback' });
     }
 
-    res.json(result);
+    // Return standardized success response
+    res.json({
+      success: true,
+      message: 'Feedback submitted successfully',
+      data: result,
+    });
   } catch (error) {
     console.error('Error in feedback submission:', error?.message);
     res.status(500).json({ success: false, error: 'Internal server error' });

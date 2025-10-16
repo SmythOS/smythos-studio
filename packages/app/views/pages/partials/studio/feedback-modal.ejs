@@ -200,10 +200,11 @@
         throw new Error('Failed to submit feedback');
       }
 
-      return response.json();
+      const result = await response.json();
+      return result;
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      return null;
+      return { success: false, error: error.message };
     }
   }
 
@@ -263,10 +264,9 @@
 
     setLoadingState(false);
 
-    if (result) {
-      toast?.('Thank you for your feedback!', 'Success', 'success');
-      console.log('Feedback submitted successfully to HubSpot');
+    if (result && result.success) {
       closeFeedbackModal();
+      toast?.('Thank you for your feedback!', 'Success', 'success');
     } else {
       toast?.('Failed to submit feedback. Please try again.', 'Error', 'alert');
       console.error('Failed to submit feedback to HubSpot');
