@@ -326,7 +326,7 @@ router.get('/agent-auth/:agentId', async (req, res) => {
   const token = req.user.accessToken;
 
   try {
-    const authData = await getAgentSetting(token, agentId, AGENT_AUTH_SETTINGS_KEY);
+    const authData = await getAgentSetting(token, agentId, AGENT_AUTH_SETTINGS_KEY, req);
     return res.send({ success: true, data: authData });
   } catch (error) {
     return res
@@ -1245,7 +1245,7 @@ router.get('/mock-data/:agentId', async (req, res) => {
   const token = req.user.accessToken;
 
   try {
-    const mockData = await getAgentSetting(token, agentId, AGENT_MOCK_DATA_SETTINGS_KEY);
+    const mockData = await getAgentSetting(token, agentId, AGENT_MOCK_DATA_SETTINGS_KEY, req);
     return res.send({ success: true, data: mockData });
   } catch (error) {
     return res
@@ -1260,7 +1260,7 @@ router.get('/mock-data/:agentId/:componentId', async (req, res) => {
   const token = req.user.accessToken;
 
   try {
-    const mockData = await getAgentSetting(token, agentId, AGENT_MOCK_DATA_SETTINGS_KEY);
+    const mockData = await getAgentSetting(token, agentId, AGENT_MOCK_DATA_SETTINGS_KEY, req);
     const componentMockData = mockData?.data?.[componentId];
     return res.send({ success: true, data: componentMockData });
   } catch (error) {

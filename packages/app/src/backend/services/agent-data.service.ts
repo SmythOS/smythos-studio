@@ -1,17 +1,15 @@
-import exp from 'constants';
-import { APIResponse } from '../types/general.types';
-import { smythAPIReq, includeAxiosAuth, headersWithToken, authHeaders } from '../utils/';
+import { authHeaders, headersWithToken, smythAPIReq } from '../utils/';
 
 export async function getAgentSetting<T = any>(
   accessToken: string,
   agentId: string,
   settingKey: string,
+  req?: any,
 ): Promise<T | Record<string, string>> {
   try {
-    const res = await smythAPIReq.get(
-      `/ai-agent/${agentId}/settings/${settingKey}`,
-      headersWithToken(accessToken),
-    );
+    const headers = req ? await authHeaders(req) : headersWithToken(accessToken);
+
+    const res = await smythAPIReq.get(`/ai-agent/${agentId}/settings/${settingKey}`, headers);
 
     const settings = JSON.parse(res?.data?.setting?.value || '{}');
 
@@ -38,10 +36,10 @@ export async function updateOrInsertAgentSetting({
   data: {
     [key: string]: any;
   };
-  req:any;
+  req: any;
 }): Promise<any> {
   try {
-    let setting = (await getAgentSetting(accessToken, agentId, settingKey)) || {};
+    let setting = (await getAgentSetting(accessToken, agentId, settingKey, req)) || {};
 
     const res = await smythAPIReq.put(
       `/ai-agent/${agentId}/settings`,
@@ -62,12 +60,12 @@ export async function deleteAgentSetting(
   accessToken: string,
   agentId: string,
   settingKey: string,
+  req?: any,
 ): Promise<any> {
   try {
-    const res = await smythAPIReq.delete(
-      `/ai-agent/${agentId}/settings/${settingKey}`,
-      headersWithToken(accessToken),
-    );
+    const headers = req ? await authHeaders(req) : headersWithToken(accessToken);
+
+    const res = await smythAPIReq.delete(`/ai-agent/${agentId}/settings/${settingKey}`, headers);
     return res.data;
   } catch (error) {
     throw error;
