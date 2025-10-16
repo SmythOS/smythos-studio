@@ -8,7 +8,6 @@ import { Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
 import { ApiKeys } from '../components/api-keys';
-import { EnterpriseModels } from '../components/enterprise-models';
 import { OAuthConnections } from '../components/oauth-connections';
 import UserCustomModels from '../components/user-custom-models';
 import { UserModels } from '../components/user-models';
@@ -85,7 +84,7 @@ export default function VaultPage() {
       {!window.location.hostname.includes('smythos.com') && (
         <UserCustomModels pageAccess={pageAccess} />
       )}
-      <EnterpriseModels pageAccess={pageAccess} />
+      <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
       <OAuthConnections />
 
       <ErrorBoundarySuspense

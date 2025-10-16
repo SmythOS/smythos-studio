@@ -1,25 +1,21 @@
 import type {
   ApiKey,
   ApiKeysResponse,
-  EnterpriseModel,
   UserCustomModel,
   UserModel,
 } from '@react/features/vault/types/types';
 import {
   apiKeyService,
-  enterpriseModelService,
   recommendedModelsService,
   userCustomModelService,
   userModelService,
   vaultService,
 } from '@react/features/vault/vault-business-logic';
-import { hasCustomLLMAccess } from '@src/builder-ui/helpers/customLLM.helper';
 import { queryClient } from '@src/react/shared/query-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useVault() {
-  const [enterpriseModels, setEnterpriseModels] = useState<EnterpriseModel[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,12 +23,7 @@ export function useVault() {
   const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [entModels, keysData] = await Promise.all([
-        enterpriseModelService.getEnterpriseModels(),
-        apiKeyService.fetchAPIKeys(),
-      ]);
-
-      setEnterpriseModels(entModels);
+      const keysData = await apiKeyService.fetchAPIKeys();
       setApiKeys(keysData.keys || []);
     } catch (error) {
       console.error(
@@ -41,7 +32,6 @@ export function useVault() {
       );
 
       // Set default empty states
-      setEnterpriseModels([]);
       setApiKeys([]);
     } finally {
       setIsLoading(false);
@@ -189,7 +179,6 @@ export function useVault() {
   }, [fetchAllData]);
 
   return {
-    enterpriseModels,
     apiKeys,
     isLoading,
     exportVault,
@@ -203,67 +192,6 @@ export function useVault() {
     useUpdateUserModelKey,
     useDeleteUserModelKey,
   };
-}
-
-// Query keys
-const QUERY_KEYS = {
-  ENTERPRISE_MODELS: ['enterpriseModels'],
-  CAN_USE_ENTERPRISE_MODELS: ['canUseEnterpriseModels'],
-} as const;
-
-export function useEnterpriseModels() {
-  return useQuery({
-    queryKey: QUERY_KEYS.ENTERPRISE_MODELS,
-    queryFn: () => enterpriseModelService.getEnterpriseModels(),
-  });
-}
-
-export function useCanUseEnterpriseModels() {
-  return useQuery({
-    queryFn: () => hasCustomLLMAccess(),
-    queryKey: QUERY_KEYS.CAN_USE_ENTERPRISE_MODELS,
-  });
-}
-
-export function useCreateEnterpriseModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (modelDetails: Omit<EnterpriseModel, 'id'>) =>
-      enterpriseModelService.createEnterpriseModel(modelDetails),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ENTERPRISE_MODELS });
-    },
-  });
-}
-
-export function useUpdateEnterpriseModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      modelId,
-      updatedFields,
-    }: {
-      modelId: string;
-      updatedFields: Partial<EnterpriseModel>;
-    }) => enterpriseModelService.updateEnterpriseModel(modelId, updatedFields),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ENTERPRISE_MODELS });
-    },
-  });
-}
-
-export function useDeleteEnterpriseModel() {
-  const queryClient = useQueryClient();
-
-  return useMutation<void, Error, { modelId: string; provider: string }>({
-    mutationFn: ({ modelId, provider }) =>
-      enterpriseModelService.deleteEnterpriseModel(modelId, provider),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ENTERPRISE_MODELS });
-    },
-  });
 }
 
 export function useRecommendedModels() {

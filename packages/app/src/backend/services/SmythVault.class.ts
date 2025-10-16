@@ -582,16 +582,22 @@ class SmythVault {
 
     let settings = cacheResult?.data || {}; // removed cache for now
     // let settings = {};
-    if (settings && !Object.keys(settings)?.length) {
-      const secretsResponse = await getVaultAllSecrets({
-        token: idToken,
-        teamId: team,
-        metadataFilter,
-      });
-      settings = mapSecretsTeamSettingObj(secretsResponse?.secrets || [], team);
+    try {
+      if (settings && !Object.keys(settings)?.length) {
+        const secretsResponse = await getVaultAllSecrets({
+          token: idToken,
+          teamId: team,
+          metadataFilter,
+        });
+        settings = mapSecretsTeamSettingObj(secretsResponse?.secrets || [], team);
 
-      if (!settings) return null;
-      cache.set(cacheKey, settings, 60 * 60); // 1 hour ttl
+        if (!settings) return null;
+        cache.set(cacheKey, settings, 60 * 60); // 1 hour ttl
+      }
+    } catch (error) {
+      console.log('Error getting keys from hashicorp vault'); // #TODO: Remove this log after QA
+      console.log(error); // #TODO: Remove this log after QA
+      return null;
     }
 
     return settings;
