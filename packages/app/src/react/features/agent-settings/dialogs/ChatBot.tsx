@@ -27,7 +27,7 @@ import { extractError } from '@react/shared/utils/errors';
 import { validateDomains, validateURL } from '@react/shared/utils/utils';
 import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
@@ -601,10 +601,13 @@ const ChatBotDialog = ({
                                       onChange={(e) => {
                                         setIsChatBotFullScreen(e.target.checked);
                                         if (e.target.checked) {
-                                          Analytics.track('app_chatbot_message_view_enabled', {
-                                            description:
-                                              'Event is triggered when the message view checkbox in chatbot configurations is ticked',
-                                          });
+                                          Observability.observeInteraction(
+                                            'app_chatbot_message_view_enabled',
+                                            {
+                                              description:
+                                                'Event is triggered when the message view checkbox in chatbot configurations is ticked',
+                                            },
+                                          );
                                         }
                                       }}
                                     />

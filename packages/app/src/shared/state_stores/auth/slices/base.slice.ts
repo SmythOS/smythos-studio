@@ -9,7 +9,7 @@ import { getUserInfo } from '@src/react/features/account/clients';
 import { getUserOnboardingInfo } from '@src/react/features/onboarding/clients';
 import { getUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import { IMembershipTeam } from '@src/react/shared/types/entities';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { StateCreator } from 'zustand';
 import { FEATURE_FLAGS } from '../../../constants/featureflags';
 import { userSettingKeys } from '../../../userSettingKeys';
@@ -205,7 +205,7 @@ export const baseSlice: StateCreator<AuthStore, [], [], AuthSlice> = (set, get) 
         aclUtils = new ACLUtils(authInfo, pageAcl, apiAcl);
 
         // get feature flag for staff domains
-        const staffDomains = PostHog.getFeatureFlag(
+        const staffDomains = Observability.features.getFeatureFlag(
           FEATURE_FLAGS.DONT_DELETE_IMPORTANT_SMYTH_STAFF_DOMAINS,
         );
         const isStaffUser =

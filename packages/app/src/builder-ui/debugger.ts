@@ -1,5 +1,5 @@
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import interact from 'interactjs';
 import { jsonrepair } from 'jsonrepair';
 import { Component } from './components/Component.class';
@@ -142,7 +142,10 @@ function toggleSwitch(on: boolean) {
   const debugSwitcherMessage = document?.querySelector('.debug-switcher-message');
 
   if (on) {
-    PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'debug' });
+    Observability.observeInteraction('debug_button_click', {
+      position: 'bottom center of builder',
+      type: 'debug',
+    });
   }
   // if (switcherText?.classList.contains('hidden')) {
   //   if (on) {
@@ -251,7 +254,7 @@ function applyDebugButtonStyles(debugLogBtn: HTMLElement, fixWithAIBtn: HTMLElem
 
 function runDebugInjectButtonExperiment() {
   try {
-    const featureVariant = PostHog.getFeatureFlag(
+    const featureVariant = Observability.features.getFeatureFlag(
       FEATURE_FLAGS.DEBUG_INJECT_TEXT_EXPERIMENT,
     ) as string;
     handleDebugButtons(featureVariant);
@@ -261,7 +264,7 @@ function runDebugInjectButtonExperiment() {
 }
 
 function runFixWithAIEExperiment() {
-  const featureVariant = PostHog.getFeatureFlag(
+  const featureVariant = Observability.features.getFeatureFlag(
     FEATURE_FLAGS.POSTHOG_EXPERIMENT_FIX_WITH_AI,
   ) as string;
   if (featureVariant === FIX_WITH_AI_EXPERIMENT_VARIANTS.VARIANT_1) {
@@ -392,7 +395,10 @@ export async function init() {
   const attachBtn = document.getElementById('debug-menubtn-attach');
   runBtn?.addEventListener('click', async (event) => {
     console.log('debug run');
-    PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'run' });
+    Observability.observeInteraction('debug_button_click', {
+      position: 'bottom center of builder',
+      type: 'run',
+    });
     const playIcon = runBtn.querySelector('.mif-play');
     const stopIcon = runBtn.querySelector('.mif-pause');
     const isRunning = runBtn.classList.contains('running');
@@ -432,7 +438,10 @@ export async function init() {
   });
   stepBtn.addEventListener('click', async (event) => {
     console.log('debug Step');
-    PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'step' });
+    Observability.observeInteraction('debug_button_click', {
+      position: 'bottom center of builder',
+      type: 'step',
+    });
     const agent = workspace.agent;
     if (!debugSessions?.[agent.id]?.sessionID) {
       _openDebugDialog(event, 'step');
@@ -487,7 +496,10 @@ export async function init() {
 
   attachBtn.addEventListener('click', async (e) => {
     //attach to a live debug session
-    PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'attach' });
+    Observability.observeInteraction('debug_button_click', {
+      position: 'bottom center of builder',
+      type: 'attach',
+    });
     log('Attaching to live debug session ...');
     const agent = workspace.agent;
     if (!agent) return;
@@ -522,7 +534,10 @@ export async function init() {
   });
 
   document.getElementById('debug-menubtn-stop').addEventListener('click', async (e) => {
-    PostHog.track('debug_button_click', { position: 'bottom center of builder', type: 'stop' });
+    Observability.observeInteraction('debug_button_click', {
+      position: 'bottom center of builder',
+      type: 'stop',
+    });
     stopDebugSession();
 
     runBtn.removeAttribute('disabled');
@@ -610,7 +625,7 @@ export async function runDebug() {
   runBtn.classList.add('running');
   isRunning = true;
 
-  PostHog.track('app_run_agent', {});
+  Observability.observeInteraction('app_run_agent', {});
 
   let sessionID;
   let processComponents = true;
@@ -652,7 +667,10 @@ export async function runDebug() {
   }
   console.log('debug run end');
 
-  PostHog.track('app_workflow_test_completed', { status: workflowStatus, source: 'debugger' });
+  Observability.observeInteraction('app_workflow_test_completed', {
+    status: workflowStatus,
+    source: 'debugger',
+  });
 
   runTooltipLabel.innerHTML = 'Run';
   runBtn.classList.remove('running');

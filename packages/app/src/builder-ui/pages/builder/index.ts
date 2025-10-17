@@ -329,7 +329,7 @@ export default async function scripts() {
   // handle A/B testing for help button
   // const helpButton = document.querySelector('#help-button') as HTMLElement;
   // if (helpButton) {
-  //   if (PostHog.getFeatureFlag('app-help-button') === 'show') {
+  //   if (Observability.features.getFeatureFlag('app-help-button') === 'show') {
   //     helpButton.classList.remove('hidden');
   //     helpButton.classList.add('flex');
   //   } else {

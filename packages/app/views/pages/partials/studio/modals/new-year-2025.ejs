@@ -86,7 +86,6 @@
           if (modal) {
             modal.classList.remove('hidden');
             localStorage.setItem('newYearModal2025Seen', 'true');
-            posthog?.capture?.('new-year-modal-2025-seen');
           }
         }
       }
@@ -94,7 +93,7 @@
 
     window.closeNewYearModal2025 = () => {
       const modal = document.getElementById('new-year-modal-2025');
-      posthog?.capture?.('new-year-modal-2025-closed');
+      // Community edition: No tracking
       if (modal) {
         modal.classList.add('hidden');
       }

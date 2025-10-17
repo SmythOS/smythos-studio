@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Modal from '@react/shared/components/ui/modals/Modal';
-import { Analytics } from '@shared/posthog/services/analytics';
+import { Observability } from '@shared/observability';
 
 type Props = {
   body?: ReactNode;
@@ -14,14 +14,14 @@ type Props = {
 const UpSellModal = ({ onClose, children, analytics }: Props) => {
   const navigate = useNavigate();
   useEffect(() => {
-    Analytics.track('upgrade_impression', {
+    Observability.observeInteraction('upgrade_impression', {
       page_url: analytics?.page_url,
       source: analytics.source,
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUpgradeClick = () => {
-    Analytics.track('upgrade_click', {
+    Observability.observeInteraction('upgrade_click', {
       page_url: analytics?.page_url,
       source: analytics?.source,
     });

@@ -5,7 +5,7 @@ import { Workspace } from '../../workspace/Workspace.class';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
 import { V4_ENTERPRISE_PLANS } from '@src/react/features/agent-settings/constants';
 import { LEGACY_PLANS } from '@src/shared/constants/general';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import interact from 'interactjs';
 import { Agent } from '../../Agent.class';
 import config from '../../config';
@@ -748,7 +748,7 @@ function setupBuilderMenuDragDrop() {
         return;
       }
 
-      Analytics.track('app_component_used', {
+      Observability.observeInteraction('app_component_used', {
         name: event.relatedTarget.getAttribute('smt-component'),
         type: !!templateId ? 'integration' : 'component',
       });
@@ -914,7 +914,7 @@ function setupBuilderMenuDragDrop() {
 }
 
 function renderUpgradeModal() {
-  Analytics.track('upgrade_impression', {
+  Observability.observeInteraction('upgrade_impression', {
     page_url: '/builder',
     source: 'adding integrations to the agent',
   });
@@ -940,7 +940,7 @@ function renderUpgradeModal() {
           cssClass:
             'bg-primary-100 text-white rounded-md px-4 py-1.5 hover:opacity-75 cursor-pointer w-full',
           callback: (_, dialog) => {
-            Analytics.track('upgrade_click', {
+            Observability.observeInteraction('upgrade_click', {
               page_url: '/builder',
               source: 'adding integrations in the agent',
             });
@@ -977,7 +977,7 @@ function renderCompUpgradeModal({
     page_url: string;
   };
 }) {
-  Analytics.track('upgrade_impression', {
+  Observability.observeInteraction('upgrade_impression', {
     page_url: analytics.page_url,
     source: analytics.source,
   });
@@ -1090,7 +1090,7 @@ function isLegacyPlan() {
 }
 
 function renderRestrictedAccessModal(feature: string) {
-  Analytics.track('upgrade_impression', {
+  Observability.observeInteraction('upgrade_impression', {
     page_url: '/builder',
     source: `adding ${feature}`,
   });
@@ -1148,7 +1148,7 @@ function renderRestrictedAccessModal(feature: string) {
 }
 
 function renderRestrictedAccessModalWebTools() {
-  Analytics.track('upgrade_impression', {
+  Observability.observeInteraction('upgrade_impression', {
     page_url: '/builder',
     source: 'adding web tools',
   });

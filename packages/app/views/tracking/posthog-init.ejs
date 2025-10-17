@@ -1,0 +1,22 @@
+<!-- PostHog stub (Community Edition) - No tracking -->
+<script>
+  // Community edition: No-op PostHog stub to prevent errors
+  window.posthog = {
+    init: function () {},
+    identify: function () {},
+    capture: function () {},
+    reset: function () {},
+    getFeatureFlag: function () {
+      return false;
+    },
+    isFeatureEnabled: function () {
+      return false;
+    },
+    reloadFeatureFlags: function () {},
+    people: {
+      set: function () {},
+      set_once: function () {},
+    },
+    __loaded: false,
+  };
+</script>

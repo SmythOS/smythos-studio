@@ -1,5 +1,5 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { Component } from '.';
 import { FEATURE_FLAGS } from '../../../shared/constants/featureflags';
 import {
@@ -85,7 +85,7 @@ async function onComponentLoad(sidebar) {
   deleteButton.onclick = component.delete.bind(this, false);
 
   // Add Test with Debug button based on feature flag
-  const testWithDebugFeatureFlag = PostHog.getFeatureFlag(
+  const testWithDebugFeatureFlag = Observability.features.getFeatureFlag(
     FEATURE_FLAGS.TEST_WITH_DEBUG_COMPONENT_SIDEBAR,
   );
   if (testWithDebugFeatureFlag === 'variant_1' && !component.workspace?.locked) {
@@ -112,7 +112,7 @@ async function onComponentLoad(sidebar) {
         const isDebugCurrentlyOn = debugSwitcher && debugSwitcher.classList.contains('active');
 
         // Fire telemetry event
-        PostHog.track('test_with_debug_component_sidebar_clicked', {
+        Observability.observeInteraction('test_with_debug_component_sidebar_clicked', {
           source: 'component_settings_sidebar',
           componentType: component.constructor.name,
           componentId: component.uid,

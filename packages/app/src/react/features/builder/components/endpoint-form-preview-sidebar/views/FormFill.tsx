@@ -2,8 +2,7 @@ import { generateComponentInputsSchema } from '@src/react/features/agent-setting
 import AgentComponentInput from '@src/react/features/agent-settings/utils/AgentComponentInput';
 import { useEndpointFormPreview } from '@src/react/features/builder/contexts/endpoint-form-preview-sidebar.context';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
-import { PostHog } from '@src/shared/posthog';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import { Form, Formik } from 'formik';
 import { useEffect, useRef } from 'react';
 /**
@@ -18,15 +17,21 @@ const FormFill = ({ setIsFormVisible }: { setIsFormVisible: (value: boolean) => 
   const dynamicValidationSchema = generateComponentInputsSchema(selectedSkill?.inputsTypes);
   const handleSubmit = async (values: any, { resetForm }: { resetForm: () => void }) => {
     setIsFormVisible(false);
-    Analytics.track('app_form_preview_run_button_click', {});
+    Observability.observeInteraction('app_form_preview_run_button_click', {});
     callSkillMutation.mutate(values, {
       onSuccess: () => {
-        PostHog.track('app_workflow_test_completed', { status: 'success', source: 'form preview' });
+        Observability.observeInteraction('app_workflow_test_completed', {
+          status: 'success',
+          source: 'form preview',
+        });
         setLastFormValues(values);
         setView('home');
       },
       onError: () => {
-        PostHog.track('app_workflow_test_completed', { status: 'failed', source: 'form preview' });
+        Observability.observeInteraction('app_workflow_test_completed', {
+          status: 'failed',
+          source: 'form preview',
+        });
         setLastFormValues(values);
         setView('home');
       },

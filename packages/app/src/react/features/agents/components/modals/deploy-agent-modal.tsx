@@ -21,7 +21,7 @@ import FormEmbodimentModal from '@src/react/features/embodiments/form-embodiment
 import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useQuery } from '@tanstack/react-query';
 import { Tooltip } from 'flowbite-react';
@@ -339,14 +339,14 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
           },
           operation: 'insertOrUpdate',
         });
-        Analytics.track('app_deploy_first_agent', {
+        Observability.observeInteraction('app_deploy_first_agent', {
           createdAt: new Date().toISOString().split('T')[0],
         });
-        Analytics.track('app_deploy_agent', {
+        Observability.observeInteraction('app_deploy_agent', {
           createdAt: new Date().toISOString().split('T')[0],
         });
       } else {
-        Analytics.track('app_deploy_agent', {
+        Observability.observeInteraction('app_deploy_agent', {
           createdAt: new Date().toISOString().split('T')[0],
         });
       }

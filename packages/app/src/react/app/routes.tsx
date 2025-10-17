@@ -6,7 +6,7 @@ import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { IPageRoute } from '@src/react/shared/types/route';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { useGetBookAnIntroCall } from '../features/onboarding/hooks/useGetUserOnboardingSettings';
@@ -28,7 +28,9 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
     const { subs } = userInfoCtx?.userInfo ?? {};
     const planNameLower = subs?.plan?.name?.toLowerCase() || '';
     const isBuilderPlan = planNameLower === PRICING_PLANS_V4.BUILDER.toLowerCase();
-    const flagValue = PostHog.getFeatureFlag(FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN);
+    const flagValue = Observability.features.getFeatureFlag(
+      FEATURE_FLAGS.ONBOARDING_CALLS_FOR_BUILDER_PLAN,
+    );
 
     if (isBuilderPlan && typeof flagValue !== 'boolean' && flagValue !== 'variant_1') {
       useGetBookAnIntroCall({
@@ -68,7 +70,7 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
       const { name: planName, isDefaultPlan, isCustomPlan } = subs?.plan ?? {};
       const { name, jobtype, jobRoleLabel } = userOnBoarding ?? {};
 
-      PostHog.identify(id, {
+      Observability.userIdentity.identifyUser(id, {
         name,
         email,
         autenticationSource: avatar
@@ -88,7 +90,7 @@ const RoutesWrapper = ({ pages }: { pages: IPageRoute[] }) => {
       });
 
       // Reload feature flags after user identification
-      PostHog.reloadFeatureFlags();
+      Observability.features.reloadFeatureFlags();
 
       // Wait a bit longer for flags to reload before checking features
       setTimeout(checkFeatureFlag, 2000);

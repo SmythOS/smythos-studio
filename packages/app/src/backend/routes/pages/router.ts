@@ -46,7 +46,6 @@ router.use(async (req, res, next) => {
   res.locals.env = config.env.NODE_ENV;
   res.locals.isSmythStaff = ejsHelper.isSmythStaff(req._user);
   res.locals.isSmythAlpha = ejsHelper.isSmythAlpha(req._user);
-  res.locals.postHogSignupEvents = [];
   res.locals.isCallBooked = true;
   res.locals.SMYTHOS_DOCS_URL = SMYTHOS_DOCS_URL;
   next();

@@ -16,7 +16,7 @@ import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import config from '@src/builder-ui/config';
 import FullScreenError from '@src/react/features/error-pages/pages/FullScreenError';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import { Breadcrumb } from 'flowbite-react';
 import { useEffect, useRef, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
@@ -62,16 +62,18 @@ export const AgentSettingTabs = () => {
   const isWriteAccess = pageAccess.write;
   const isOnPaidPlan = userInfo?.subs?.plan?.paid ?? false;
 
-  const pluginWidgets = plugins.getPluginsByTarget(PluginTarget.AgentSettingsWidgets, PluginType.Config).flatMap((plugin) => (plugin as any).config).reduce((acc, plugin) => {
-    Object.keys(plugin).forEach((key) => {
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(...plugin[key]);
-    });
-    return acc;
-  }, {});
-
+  const pluginWidgets = plugins
+    .getPluginsByTarget(PluginTarget.AgentSettingsWidgets, PluginType.Config)
+    .flatMap((plugin) => (plugin as any).config)
+    .reduce((acc, plugin) => {
+      Object.keys(plugin).forEach((key) => {
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(...plugin[key]);
+      });
+      return acc;
+    }, {});
 
   const baseWidgets: Record<keyof typeof BaseAgentSettingsTabs, React.ReactNode[]> = {
     Overview: [<OverviewWidgetsContainer isWriteAccess={isWriteAccess} />],
@@ -98,8 +100,7 @@ export const AgentSettingTabs = () => {
     ],
   };
 
-  let mergedWidgets = {...baseWidgets, ...pluginWidgets};
-
+  let mergedWidgets = { ...baseWidgets, ...pluginWidgets };
 
   // we need to make sure that the original widgets objects are not overridden by the plugin widgets if the same key exists
   Object.keys(baseWidgets).forEach((key) => {
@@ -107,8 +108,6 @@ export const AgentSettingTabs = () => {
       mergedWidgets[key] = [...(baseWidgets[key] || []), ...(pluginWidgets[key] || [])];
     }
   });
-
-
 
   return (
     <>
@@ -173,7 +172,7 @@ export const AgentSettingsPageBody = (props: Props) => {
   );
 
   const handleUpgrade = () => {
-    Analytics.track('upgrade_click', {
+    Observability.observeInteraction('upgrade_click', {
       page_url: '/agent_settings',
       source: 'upgrade button displayed alongside My Workflow',
     });
@@ -181,7 +180,7 @@ export const AgentSettingsPageBody = (props: Props) => {
   };
 
   useEffect(() => {
-    Analytics.track('upgrade_impression', {
+    Observability.observeInteraction('upgrade_impression', {
       page_url: '/agent_settings',
       source: 'upgrade button displayed alongside My Workflow',
     });

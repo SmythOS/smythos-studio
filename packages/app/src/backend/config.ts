@@ -80,6 +80,7 @@ const config = {
     LOGTO_API_RESOURCE: process.env.LOGTO_API_RESOURCE,
     LOGTO_M2M_APP_ID: process.env.LOGTO_M2M_APP_ID,
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
+    POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
     PUB_API_SERVER: process.env.PUB_API_SERVER,
   },
   api: {

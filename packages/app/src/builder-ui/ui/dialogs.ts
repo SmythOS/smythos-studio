@@ -17,7 +17,7 @@ import {
 import { createForm, handleTemplateVars, readFormValidation, readFormValues } from './form/';
 
 import { errorToast } from '@src/shared/components/toast';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import yaml from 'js-yaml';
 import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatbotButton = document.getElementById('btn-emb-chatbot-main');
   if (chatbotButton) {
     chatbotButton.addEventListener('click', async (event) => {
-      PostHog.track('test_embodiment_click', {
+      Observability.observeInteraction('test_embodiment_click', {
         position: 'top right of builder dropdown',
       });
 
@@ -431,14 +431,14 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
       switch (key.toLowerCase()) {
         case 'llm':
           if (window.workspace) {
-            PostHog.track('agentLLM_embodiment_click', {
+            Observability.observeInteraction('agentLLM_embodiment_click', {
               position: 'embodiment sidebar tab',
             });
             openLLMEmbodiment(window.workspace, embodimentHandlers.openEmbodimentDialog);
           }
           break;
         case 'api':
-          PostHog.track('api_embodiment_click', {
+          Observability.observeInteraction('api_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openAPIEmbodiment?.();
@@ -446,7 +446,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
         case 'chat':
           const chatContCls = convertTitleToClass(EMBODIMENT_DESCRIPTIONS.chat.title);
           if (!sidebarContent.querySelector(`.${chatContCls}`)) {
-            PostHog.track('chatbot_embodiment_click', {
+            Observability.observeInteraction('chatbot_embodiment_click', {
               position: 'embodiment sidebar tab',
             });
             embodimentHandlers.openChatbotEmbodiment?.();
@@ -471,26 +471,26 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
           }
           break;
         case 'chatgpt':
-          PostHog.track('chatgpt_embodiment_click', {
+          Observability.observeInteraction('chatgpt_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openChatGPTEmbodiment?.();
           break;
         case 'postman':
-          PostHog.track('postman_embodiment_click', {
+          Observability.observeInteraction('postman_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openPostmanEmbodiment?.();
           break;
         case 'alexa':
-          PostHog.track('alexa_embodiment_click', {
+          Observability.observeInteraction('alexa_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openAlexaEmbodiment?.();
           break;
         case 'agent_skill':
           const agentSkillContCls = convertTitleToClass(EMBODIMENT_DESCRIPTIONS.agent_skill.title);
-          PostHog.track('form_preview_embodiment_click', {
+          Observability.observeInteraction('form_preview_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           if (!sidebarContent.querySelector(`.${agentSkillContCls}`)) {
@@ -511,7 +511,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
           break;
 
         case 'mcp':
-          PostHog.track('mcp_embodiment_click', {
+          Observability.observeInteraction('mcp_embodiment_click', {
             position: 'embodiment sidebar tab',
           });
           embodimentHandlers.openMCPEmbodiment?.();

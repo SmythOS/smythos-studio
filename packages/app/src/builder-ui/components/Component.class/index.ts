@@ -11,7 +11,7 @@ import { readFormValues, syncCompositeValues } from '../../ui/form';
 import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { jsonrepair } from 'jsonrepair';
 import { isEqual } from 'lodash-es';
 import { TooltipV2 } from '../../../react/shared/components/_legacy/ui/tooltip/tooltipV2';
@@ -525,7 +525,7 @@ export class Component extends EventEmitter {
         `Missing Settings ${missingSettings.map((e) => e.name).join(', ')}`,
         'alert pointer',
         () => {
-          PostHog.track('app_component_alert_click', {
+          Observability.observeInteraction('app_component_alert_click', {
             type: 'missing settings',
           });
           this.editSettings();
@@ -625,7 +625,7 @@ export class Component extends EventEmitter {
 
       if (missingSettings.length > 0) {
         this.addComponentMessage(`Missing Settings`, 'alert pointer', () => {
-          PostHog.track('app_component_alert_click', {
+          Observability.observeInteraction('app_component_alert_click', {
             type: 'missing settings',
           });
           this.editSettings();
@@ -747,7 +747,7 @@ export class Component extends EventEmitter {
           `Missing Key "${keyName}"`,
           'alert pointer',
           () => {
-            PostHog.track('app_component_alert_click', {
+            Observability.observeInteraction('app_component_alert_click', {
               type: 'missing key',
             });
             missingKeyMessageClickHandler.bind(this, keyName)();
@@ -2939,7 +2939,7 @@ export class Component extends EventEmitter {
     operation: 'step' | 'run' = 'step',
     prefillValues?: Record<string, any>,
   ) {
-    PostHog.track('app_debug_inject_click', {});
+    Observability.observeInteraction('app_debug_inject_click', {});
     event.stopPropagation();
     event.stopImmediatePropagation();
     const debugBtn = this.domElement.querySelector('.btn-debug');
@@ -3519,7 +3519,7 @@ function addMissingKey({
       await saveKey({ ...fieldValues, apiKey: mockKey }, dialog);
 
       // #region enable mock data
-      PostHog.track('app_mock_screen_impression', {
+      Observability.observeInteraction('app_mock_screen_impression', {
         source: 'skip_and_set_mock_data',
       });
       await saveMockOutputs(component);

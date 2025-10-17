@@ -19,8 +19,8 @@ import {
 } from '@react/features/ai-chat/hooks';
 import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
 import { useAgent } from '@react/shared/hooks/agent';
+import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
-import { Analytics } from '@shared/posthog/services/analytics';
 
 const AIChat = () => {
   const params = useParams<{ agentId: string }>();
@@ -118,8 +118,8 @@ const AIChat = () => {
     clearMessages();
     await createNewChatSession();
     chatInputRef.current?.focus();
-    Analytics.track(EVENTS.CHAT_EVENTS.SESSION_END);
-    Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
+    Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
+    Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createNewChatSession, clearMessages, stopGenerating, setShowScrollButton]);
 
   useEffect(() => {
@@ -138,8 +138,8 @@ const AIChat = () => {
   }, [isAgentLoading, inputDisabled]);
 
   useEffect(() => {
-    Analytics.track(EVENTS.CHAT_EVENTS.SESSION_START);
-    return () => Analytics.track(EVENTS.CHAT_EVENTS.SESSION_END);
+    Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
+    return () => Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
   }, []);
 
   // Fast context value - minimal dependencies

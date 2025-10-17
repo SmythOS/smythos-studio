@@ -1,5 +1,5 @@
 import { TooltipV2 } from '@src/react/shared/components/_legacy/ui/tooltip/tooltipV2';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import interact from 'interactjs';
 import jsPlumb from 'jsplumb';
 import EventEmitter from '../EventEmitter.class';
@@ -608,7 +608,7 @@ export class AgentCard extends EventEmitter {
         destroyCanvasContextMenu();
         e.stopPropagation();
 
-        PostHog.track('app_preview_as_chatbot_click', {});
+        Observability.observeInteraction('app_preview_as_chatbot_click', {});
 
         const embodimentTestButton = document.querySelector('#btn-emb-chatbot-main');
         const embodimentOpened = document.querySelector(

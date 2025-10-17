@@ -1,6 +1,6 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
-import { useFeatureFlagPayload } from 'posthog-js/react';
-import React, { ReactNode, useMemo } from 'react';
+import { Observability } from '@src/shared/observability';
+import React, { ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   FEATURE_FLAG_PAYLOAD_RELEASE_TYPE,
   FEATURE_FLAGS,
@@ -39,7 +39,15 @@ export const useFeatureVisibility = (
 ): boolean => {
   const isProdEnv = useIsProdEnv();
   const { isStaffUser, loading } = useAuthCtx();
-  const featureFlagPayload = useFeatureFlagPayload(featureFlag);
+  const [featureFlagPayload, setFeatureFlagPayload] = useState<Record<string, unknown> | undefined>(
+    undefined,
+  );
+
+  // Load feature flag payload from Observability API
+  useEffect(() => {
+    const payload = Observability.features.getFeatureFlagPayload(featureFlag);
+    setFeatureFlagPayload(payload);
+  }, [featureFlag]);
 
   const visibility = useMemo(() => {
     if (!featureFlagPayload) {

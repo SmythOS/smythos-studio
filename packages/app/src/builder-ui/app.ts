@@ -1,6 +1,7 @@
 // import 'flowbite/dist/flowbite.js';
 import { TEAM_ID_HEADER } from '../backend/constants';
 import { FRONTEND_USER_SETTINGS } from '../react/shared/enums';
+import { Observability } from '../shared/observability';
 import { authStore } from '../shared/state_stores/auth';
 import { builderStore } from '../shared/state_stores/builder/store';
 import config from './config';
@@ -15,6 +16,11 @@ export function initApp() {
     // TODO: move this to a script that runs on the page immediately better
     builderStore.getState().init();
     authStore.getState().init();
+
+    // Expose Observability API globally for EJS templates (only if tracking is enabled)
+    if ((window as any).isObservability === true) {
+      (window as any).Observability = Observability;
+    }
   }
 
   {

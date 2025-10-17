@@ -4,7 +4,7 @@ import { useDeploymentSidebarCtx } from '@src/react/features/builder/contexts/de
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { Deployment } from '@src/react/shared/types/api-results.types';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
 import { useState } from 'react';
 
@@ -28,7 +28,7 @@ const DeploymentsHistory = () => {
 
   const restoreVersionConfirmation = async (deploymentId: string) => {
     if (!userInfo?.subs?.plan?.paid) {
-      Analytics.track('upgrade_impression', {
+      Observability.observeInteraction('upgrade_impression', {
         page_url: '/builder',
         source: 'restoring previous version',
       });

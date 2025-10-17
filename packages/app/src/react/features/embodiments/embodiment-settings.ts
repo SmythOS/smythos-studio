@@ -2,8 +2,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
 import config from '../../../builder-ui/config';
+import { Observability } from '../../../shared/observability';
 import { EVENTS } from '../../../shared/posthog/constants/events';
-import { PostHog } from '../../../shared/posthog/index';
 import { useAuthCtx } from '../../shared/contexts/auth.context';
 import { Embodiment } from '../../shared/types/api-results.types';
 import { updateEmbodiment } from '../agent-settings/clients';
@@ -342,7 +342,7 @@ export const useAgentEmbodimentSettings = (
       await updateEmbodiment(agentId, embodimentType, status);
 
       if (status) {
-        PostHog.track(EVENTS.AGENT_SETTINGS_EVENTS.app_work_location_toggle, {
+        Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_work_location_toggle, {
           locationType: embodimentType.toLowerCase(),
         });
       }

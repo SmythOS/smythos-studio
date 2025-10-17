@@ -1,7 +1,7 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { useGetUserSettings, useStoreUserSettings } from '@react/shared/hooks/useUserSettings';
 import { TUTORIAL_CUTOFF_DATE } from '@src/shared/constants/tutorial';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import { userSettingKeys } from '@src/shared/userSettingKeys';
 import { useEffect, useRef } from 'react';
 
@@ -68,7 +68,7 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
           },
           onReset: () => {
             // Called when overlay is about to be cleared
-            Analytics.track('home_page_tutorial_completed', {
+            Observability.observeInteraction('home_page_tutorial_completed', {
               page_url: '/agents',
               source: 'Tutorial completed on home page onboarding',
             });

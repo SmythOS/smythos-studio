@@ -13,6 +13,19 @@ export enum PluginTarget {
   AgentsPageGenerateAgentForm = 'agentsPage/generateAgentForm',
   AgentsPageOnboardingTasks = 'agentsPage/onboardingTasks',
   VaultPageSmythOSRecommendedModels = 'vaultPage/smythOSRecommendedModels',
+
+  /**
+   * ObservabilityProvider - Unified observability provider injected by enterprise edition
+   * Provides complete implementation for:
+   * - User behavior tracking (interactions, feature usage, workflows)
+   * - System insights (events, errors, performance metrics)
+   * - User identity management (identification, context correlation)
+   * - Feature configuration (flags, A/B testing, rollouts)
+   *
+   * Default: No-op implementation in community edition (all operations disabled)
+   * Enterprise: PostHog-based implementation for complete observability
+   */
+  ObservabilityProvider = 'observability/provider',
 }
 
 export enum PluginType {

@@ -2,8 +2,8 @@ import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@react/shared/constants/style';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
+import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
-import { PostHog } from '@src/shared/posthog/index';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
@@ -115,7 +115,7 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
                 `${isAgentDeployed ? PRIMARY_BUTTON_STYLE : SECONDARY_BUTTON_STYLE}`,
               )}
               onClick={(e) => {
-                PostHog.track(EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent, {
+                Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent, {
                   source: 'agent settings',
                 });
                 !isAgentDeployed && e.preventDefault();

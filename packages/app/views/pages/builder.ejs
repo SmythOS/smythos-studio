@@ -153,24 +153,13 @@
   window.__LLM_MODELS__ = JSON.parse('<%- JSON.stringify(LLMModels) %>');
   window.isSmythStaff = JSON.parse('<%- JSON.stringify(isSmythStaff) %>');
   window.isSmythAlpha = JSON.parse('<%- JSON.stringify(isSmythAlpha) %>');
-  window.postHogSignupEvents = JSON.parse(
-    '<%- typeof postHogSignupEvents !== "undefined" ? JSON.stringify(postHogSignupEvents) : "[]" %>',
-  );
+  
+  // Observability flag
+  window.isObservability = false;
 
   window.navPages = JSON.parse('<%- JSON.stringify(navPages) %>');
   window.user = JSON.parse('<%- JSON.stringify(user) %>');
-  function sendPostHogEvents() {
-    if (posthog?.capture) {
-      window.postHogSignupEvents?.forEach((event) => {
-        if (event?.eventType && event?.eventData) {
-          posthog.capture(event.eventType, event.eventData);
-        }
-      });
-    } else {
-      setTimeout(sendPostHogEvents, 1000);
-    }
-  }
-  sendPostHogEvents();
+  
   const setup = () => {
     const isSmythStaff = window.isSmythStaff || false;
     const isSmythAlpha = window.isSmythAlpha || false;

@@ -16,10 +16,10 @@ import {
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
+import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
 import { Tooltip } from 'flowbite-react';
-import { useFeatureFlagPayload } from 'posthog-js/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FaCircleNotch,
   FaClockRotateLeft,
@@ -48,8 +48,24 @@ interface AgentCardProps {
  */
 export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardProps) {
   const navigate = useNavigate();
-  const featureFlagPayload = useFeatureFlagPayload(FEATURE_FLAGS.AGENT_KEY_DROPDOWN);
   const { isStaffUser } = useAuthCtx();
+
+  // Feature flag payload state
+  const [featureFlagPayload, setFeatureFlagPayload] = useState<unknown>(undefined);
+
+  // Load feature flag payload
+  // Use Observability API to wait for flags to be ready
+  useEffect(() => {
+    const loadFeatureFlag = () => {
+      const payload = Observability.features.getFeatureFlagPayload(
+        FEATURE_FLAGS.AGENT_KEY_DROPDOWN,
+      );
+      setFeatureFlagPayload(payload);
+    };
+
+    // Wait for feature flags to be fully loaded before reading payload
+    Observability.features.onFeatureFlagsReady(loadFeatureFlag);
+  }, []);
 
   // Modal states
   const [isContributorsModalOpen, setIsContributorsModalOpen] = useState(false);

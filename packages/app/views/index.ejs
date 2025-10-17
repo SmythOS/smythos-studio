@@ -42,9 +42,9 @@
 
   <link rel="stylesheet" href="/css/smyth-tailwind.css" />
 
+  <%- include('tracking/posthog-init'); -%>
 
-
-  <%- include('tracking/posthog-tracking'); -%> <% if (env !== 'DEV' && typeof includeTracking !==
+  <% if (env !== 'DEV' && typeof includeTracking !==
     'undefined' && includeTracking) { %> <%- include('tracking/head-tracking'); -%> <% } %>
 </head>
 

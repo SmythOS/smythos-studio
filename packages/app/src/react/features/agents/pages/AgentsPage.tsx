@@ -10,7 +10,7 @@ import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { FEATURE_FLAGS } from '@shared/constants/featureflags';
 import { V4_ALL_PLANS } from '@shared/constants/general';
-import { Analytics } from '@shared/posthog/services/analytics';
+import { Observability } from '@shared/observability';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
@@ -94,7 +94,9 @@ function AgentsPage() {
         },
         operation: 'insertOrUpdate',
       });
-      Analytics.track('app_build_first_agent', { createdAt: sortedAgents[0]?.createdAt });
+      Observability.observeInteraction('app_build_first_agent', {
+        createdAt: sortedAgents[0]?.createdAt,
+      });
     }
   }, [agents, isUserSettingsFetched]);
 

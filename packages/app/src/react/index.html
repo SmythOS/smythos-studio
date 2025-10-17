@@ -1,222 +1,168 @@
 <!doctype html>
 <html lang="en" class="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
+    <title>SmythOS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <!-- <link rel="stylesheet" href="/metroui/css/metro-all.css" /> -->
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
-  <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
-  <title>SmythOS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap"
-    rel="stylesheet" />
-  <!-- <link rel="stylesheet" href="/metroui/css/metro-all.css" /> -->
+    <link rel="stylesheet" href="/metroui/css/metro-reset.css" />
+    <!-- <link rel="stylesheet" href="/metroui/css/metro-common.css" /> -->
+    <!-- <link rel="stylesheet" href="/metroui/css/metro-colors.css" /> -->
+    <link rel="stylesheet" href="/metroui/css/metro-components.css" />
+    <link rel="stylesheet" href="/metroui/css/metro-icons.css" />
+    <link rel="stylesheet" href="/css/smyth-metro-override.css" />
 
-  <link rel="stylesheet" href="/metroui/css/metro-reset.css" />
-  <!-- <link rel="stylesheet" href="/metroui/css/metro-common.css" /> -->
-  <!-- <link rel="stylesheet" href="/metroui/css/metro-colors.css" /> -->
-  <link rel="stylesheet" href="/metroui/css/metro-components.css" />
-  <link rel="stylesheet" href="/metroui/css/metro-icons.css" />
-  <link rel="stylesheet" href="/css/smyth-metro-override.css" />
+    <link rel="stylesheet" href="/css/smyth-global.css" />
+    <link rel="stylesheet" href="/css/smyth-builder.css" />
+    <link rel="stylesheet" href="/css/smyth-builder-override.css" />
+    <link rel="stylesheet" href="/css/menus.css" />
+    <link rel="stylesheet" href="/css/smyth-debugger.css" />
+    <link rel="stylesheet" href="/css/smyth-components.css" />
+    <!-- <link rel="stylesheet" href="/css/smyth-domain.css" /> -->
+    <link rel="stylesheet" href="/css/smyth-vector.css" />
+    <link rel="stylesheet" href="/css/smyth-form.css" />
+    <link rel="stylesheet" href="/css/react-toastify.css" />
 
-  <link rel="stylesheet" href="/css/smyth-global.css" />
-  <link rel="stylesheet" href="/css/smyth-builder.css" />
-  <link rel="stylesheet" href="/css/smyth-builder-override.css" />
-  <link rel="stylesheet" href="/css/menus.css" />
-  <link rel="stylesheet" href="/css/smyth-debugger.css" />
-  <link rel="stylesheet" href="/css/smyth-components.css" />
-  <!-- <link rel="stylesheet" href="/css/smyth-domain.css" /> -->
-  <link rel="stylesheet" href="/css/smyth-vector.css" />
-  <link rel="stylesheet" href="/css/smyth-form.css" />
-  <link rel="stylesheet" href="/css/react-toastify.css" />
+    <link rel="stylesheet" href="/css/icons.css" />
 
-  <link rel="stylesheet" href="/css/icons.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <!-- Conditional loading of Tailwind CSS2 -->
+    <link rel="stylesheet" href="/assets/css/tailwind-v2.css" />
 
-  <!-- Conditional loading of Tailwind CSS2 -->
-  <link rel="stylesheet" href="/assets/css/tailwind-v2.css" />
+    <link rel="stylesheet" href="/css/smyth-tailwind.css" />
+  </head>
 
-  <link rel="stylesheet" href="/css/smyth-tailwind.css" />
+  <body>
+    <div id="preload-overlay"></div>
 
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <div id="overlay" class="hidden"></div>
+    <div class="overlay-secondary hidden"></div>
+    <div id="modal-root"></div>
 
+    <script>
+      window.__LLM_MODELS__ = JSON.parse(``);
+    </script>
 
-  <!-- Posthog  -->
-<script>
-    !(function (t, e) {
-        var o, n, p, r;
-        e.__SV ||
-            ((window.posthog = e),
-            (e._i = []),
-            (e.init = function (i, s, a) {
-                function g(t, e) {
-                    var o = e.split('.');
-                    2 == o.length && ((t = t[o[0]]), (e = o[1])),
-                        (t[e] = function () {
-                            t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
-                        });
-                }
-                ((p = t.createElement('script')).type = 'text/javascript'),
-                    (p.async = !0),
-                    (p.src = s.api_host + '/static/array.js'),
-                    (r = t.getElementsByTagName('script')[0]).parentNode.insertBefore(p, r);
-                var u = e;
-                for (
-                    void 0 !== a ? (u = e[a] = []) : (a = 'posthog'),
-                        u.people = u.people || [],
-                        u.toString = function (t) {
-                            var e = 'posthog';
-                            return 'posthog' !== a && (e += '.' + a), t || (e += ' (stub)'), e;
-                        },
-                        u.people.toString = function () {
-                            return u.toString(1) + '.people (stub)';
-                        },
-                        o =
-                            'capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId'.split(
-                                ' ',
-                            ),
-                        n = 0;
-                    n < o.length;
-                    n++
-                )
-                    g(u, o[n]);
-                e._i.push([i, s, a]);
-            }),
-            (e.__SV = 1));
-    })(document, window.posthog || []);
-    posthog.init('phc_lxgXwZRs6ySZqrHI4niOdYJlVXJAgMjTOhDau7f7VC3', {
-        api_host: 'https://us.i.posthog.com',
-        person_profiles: 'identified_only',
-    });
-</script>
- 
-</head>
-
-<body>
-  <div id="preload-overlay"></div>
-
-   <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
-  <div id="overlay" class="hidden"></div>
-  <div class="overlay-secondary hidden"></div>
-  <div id="modal-root"></div>
-
-  <script>
-    window.__LLM_MODELS__ = JSON.parse(
-      ``,
-    );
-  </script>
-
-  <script src="/metroui/js/metro.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
-  <script async
-    src="//smythos.com/wp-content/themes/generatepress_child/js/iframeResizer.contentWindow.min.js"></script>
+    <script src="/metroui/js/metro.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+    <script
+      async
+      src="//smythos.com/wp-content/themes/generatepress_child/js/iframeResizer.contentWindow.min.js"
+    ></script>
     <!-- Should be placed in builder partial so it does not load on other pages -->
-  
-  <script src="/assets/index.dev.js"></script>
-  
-  <script src="/js/misc.js"></script>
 
+    <script src="/assets/index.dev.js"></script>
 
-  
+    <script src="/js/misc.js"></script>
 
-  <div
-  id="smythos-v3-march-25"
-  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999] p-4"
->
-  <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-semibold">What's new? The features you've been asking for!</h3>
-      <button onclick="closeSmythosV3March25Modal()" class="text-gray-500 hover:text-gray-700">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
-    <div class="mb-6">
-      <div class="text-sm mb-6">
-        <p class="text-gray-700 mb-3">
-          For those of you who are new, welcome! And to those of you who have been here for a while,
-          thank you so much for being here. This latest update is loaded with exciting enhancements,
-          including <b>one-click access</b> to leading models from OpenAI, Claude, Gemini, and more.
-          You'll also find a new <b>Form UI</b> for viewing and testing your agent's Skills,
-          <b>tools that require no API configuration</b> for tasks like web scraping and web
-          searching, among many other updates!
+    <div
+      id="smythos-v3-march-25"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999] p-4"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">What's new? The features you've been asking for!</h3>
+          <button onclick="closeSmythosV3March25Modal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="mb-6">
+          <div class="text-sm mb-6">
+            <p class="text-gray-700 mb-3">
+              For those of you who are new, welcome! And to those of you who have been here for a
+              while, thank you so much for being here. This latest update is loaded with exciting
+              enhancements, including <b>one-click access</b> to leading models from OpenAI, Claude,
+              Gemini, and more. You'll also find a new <b>Form UI</b> for viewing and testing your
+              agent's Skills, <b>tools that require no API configuration</b> for tasks like web
+              scraping and web searching, among many other updates!
+            </p>
+            <p class="text-gray-700 mb-3">Want to learn more? Check out this demo video 👇</p>
+          </div>
+          <!--YOUTUBE EMBED START-->
+          <iframe
+            width="100%"
+            height="360"
+            frameborder="0"
+            title="SmythOS March 2025 Update"
+            src="https://www.youtube.com/embed/-Aoog97_nHc?si=k60ZCgGuOqE1MqVn"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+          ></iframe>
+          <!--YOUTUBE EMBED END-->
+        </div>
+        <p class="text-sm text-gray-600">
+          Thank you for choosing SmythOS to bring your ideas to life. Your feedback drives us to
+          make SmythOS even better every day. Happy building!
         </p>
-        <p class="text-gray-700 mb-3">Want to learn more? Check out this demo video 👇</p>
       </div>
-      <!--YOUTUBE EMBED START-->
-      <iframe
-        width="100%"
-        height="360"
-        frameborder="0"
-        title="SmythOS March 2025 Update"
-        src="https://www.youtube.com/embed/-Aoog97_nHc?si=k60ZCgGuOqE1MqVn"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen
-      ></iframe>
-      <!--YOUTUBE EMBED END-->
     </div>
-    <p class="text-sm text-gray-600">
-      Thank you for choosing SmythOS to bring your ideas to life. Your feedback drives us to make
-      SmythOS even better every day. Happy building!
-    </p>
-  </div>
-</div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const checkAndShowSmythosV3March25Modal = () => {
-      const now = new Date();
-      const startDate = new Date('2025-03-20'); // 20 Mar 2025
-      const endDate = new Date('2025-03-31'); // 31 Mar 2025
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const checkAndShowSmythosV3March25Modal = () => {
+          const now = new Date();
+          const startDate = new Date('2025-03-20'); // 20 Mar 2025
+          const endDate = new Date('2025-03-31'); // 31 Mar 2025
 
-      if (now >= startDate && now <= endDate) {
-        const hasSeenModal = localStorage.getItem('smythosV3March25ModalSeen');
+          if (now >= startDate && now <= endDate) {
+            const hasSeenModal = localStorage.getItem('smythosV3March25ModalSeen');
 
-        if (!hasSeenModal) {
-          const modal = document.getElementById('smythos-v3-march-25');
-          const path = window.location.pathname;
-          // not show on onboarding page
-          if (modal && !path.includes('/welcome')) {
-            modal.classList.remove('hidden');
-            localStorage.setItem('smythosV3March25ModalSeen', 'true');
-            posthog?.capture?.('smythos-v3-march-25-modal-seen');
+            if (!hasSeenModal) {
+              const modal = document.getElementById('smythos-v3-march-25');
+              const path = window.location.pathname;
+              // not show on onboarding page
+              if (modal && !path.includes('/welcome')) {
+                modal.classList.remove('hidden');
+                localStorage.setItem('smythosV3March25ModalSeen', 'true');
+              }
+            }
           }
-        }
-      }
-    };
+        };
 
-    window.closeSmythosV3March25Modal = () => {
-      const modal = document.getElementById('smythos-v3-march-25');
-      posthog?.capture?.('smythos-v3-march-25-modal-closed');
-      if (modal) {
-        modal.classList.add('hidden');
-      }
-    };
+        window.closeSmythosV3March25Modal = () => {
+          const modal = document.getElementById('smythos-v3-march-25');
+          if (modal) {
+            modal.classList.add('hidden');
+          }
+        };
 
-    setTimeout(checkAndShowSmythosV3March25Modal, 1000);
-  });
-</script>
+        setTimeout(checkAndShowSmythosV3March25Modal, 1000);
+      });
+    </script>
 
-
-  <script type="module">
-    import { Boarding } from "https://unpkg.com/boarding.js/dist/main.js";
-    window.Tutorial = Boarding;
-  </script>
-  <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/main.css" />
-  <!-- optionally include the base theme -->
-  <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/themes/basic.css" />
-
-</body>
-
+    <script type="module">
+      import { Boarding } from 'https://unpkg.com/boarding.js/dist/main.js';
+      window.Tutorial = Boarding;
+    </script>
+    <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/main.css" />
+    <!-- optionally include the base theme -->
+    <link rel="stylesheet" href="https://unpkg.com/boarding.js/styles/themes/basic.css" />
+  </body>
 </html>

@@ -1,6 +1,6 @@
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 import { useEffect } from 'react';
 import config from '../../../../builder-ui/config';
 
@@ -14,14 +14,14 @@ type Props = {
 
 const WidgetSubscribeInfo = ({ infoText, analytics }: Props) => {
   useEffect(() => {
-    Analytics.track('upgrade_impression', {
+    Observability.observeInteraction('upgrade_impression', {
       page_url: analytics?.page_url,
       source: analytics?.source,
     });
   }, []);
 
   const handleUpgrade = () => {
-    Analytics.track('upgrade_click', {
+    Observability.observeInteraction('upgrade_click', {
       page_url: analytics?.page_url,
       source: analytics?.source,
     });

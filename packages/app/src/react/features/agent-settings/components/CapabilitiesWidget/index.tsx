@@ -7,7 +7,7 @@ import { Component } from '@react/shared/types/agent-data.types';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { CloseIcon } from '@src/react/shared/components/svgs';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 
 import { Badge, Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
@@ -121,9 +121,12 @@ function Endpoint({ component }: { component: Component }) {
           <button
             className=" flex group-hover:flex items-center"
             onClick={() => {
-              PostHog.track(EVENTS.AGENT_SETTINGS_EVENTS.app_agent_skills_click, {
-                button: 'call',
-              });
+              Observability.observeInteraction(
+                EVENTS.AGENT_SETTINGS_EVENTS.app_agent_skills_click,
+                {
+                  button: 'call',
+                },
+              );
               setIsTriggeringSkill(true);
             }}
           >

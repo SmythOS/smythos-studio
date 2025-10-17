@@ -1,7 +1,7 @@
 import { PRIMARY_BUTTON_STYLE } from '@src/react/shared/constants/style';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { EMBODIMENT_DESCRIPTIONS, SMYTHOS_DOCS_URL } from '../../../shared/constants/general';
 import { EmbodimentRPCManager } from '../../../shared/services/embodiment_rpc_manager';
 import { builderStore } from '../../../shared/state_stores/builder/store';
@@ -638,7 +638,7 @@ function updateWorkspaceEmbodiments(agent) {
 
   if (btnAgentLLM) {
     btnAgentLLM.onclick = () => {
-      // PostHog.track('agentLLM_embodiment_click', {
+      // Observability.userBehavior.recordInteraction('agentLLM_embodiment_click', {
       //   position: 'top right of builder inside dropdown',
       // });
       openLLMEmbodiment(workspace, openEmbodimentDialog);
@@ -792,7 +792,7 @@ export async function openEmbodimentDialog(content, actions = {}, title, tooltip
 }
 
 export async function openChatGPTEmbodiment() {
-  // PostHog.track('chatgpt_embodiment_click', { position: 'top right of builder inside dropdown' });
+  // Observability.userBehavior.recordInteraction('chatgpt_embodiment_click', { position: 'top right of builder inside dropdown' });
   const { dev: testDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
 
   if (!testDomain && !prodDomain) {
@@ -848,7 +848,7 @@ export async function openChatGPTEmbodiment() {
 }
 
 export async function openPostmanEmbodiment() {
-  // PostHog.track('postman_embodiment_click', { position: 'top right of builder inside dropdown' });
+  // Observability.userBehavior.recordInteraction('postman_embodiment_click', { position: 'top right of builder inside dropdown' });
 
   const { dev: testDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
 
@@ -906,7 +906,9 @@ export async function openPostmanEmbodiment() {
 }
 
 export async function openAlexaEmbodiment() {
-  PostHog.track('alexa_embodiment_click', { position: 'top right of builder inside dropdown' });
+  Observability.userBehavior.recordInteraction('alexa_embodiment_click', {
+    position: 'top right of builder inside dropdown',
+  });
   const { dev: testDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
   const wrapContent = (content) => `<div id="alexa-embodiment-wrapper">${content}</div>`;
 
@@ -1144,7 +1146,7 @@ export async function openAlexaEmbodiment() {
 }
 
 export async function openChatbotEmbodiment() {
-  // PostHog.track('chatbot_embodiment_click', { position: 'top right of builder inside dropdown' });
+  // Observability.userBehavior.recordInteraction('chatbot_embodiment_click', { position: 'top right of builder inside dropdown' });
   const { dev: testDomain, scheme } = builderStore.getState().agentDomains;
 
   const modalBox: HTMLElement = document.querySelector('.modalBox');
@@ -1262,7 +1264,7 @@ export async function openChatbotEmbodiment() {
 }
 
 export async function openAPIEmbodiment() {
-  // PostHog.track('api_embodiment_click', { position: 'top right of builder inside dropdown' });
+  // Observability.userBehavior.recordInteraction('api_embodiment_click', { position: 'top right of builder inside dropdown' });
   const { dev: testDomain, scheme } = builderStore.getState().agentDomains;
   console.log('test domain found,', testDomain, 'Store:', builderStore.getState());
   const modalBox: HTMLElement = document.querySelector('.modalBox');
@@ -1330,7 +1332,9 @@ export async function openAPIEmbodiment() {
 }
 
 export async function openMCPEmbodiment() {
-  PostHog.track('mcp_embodiment_click', { position: 'top right of builder inside dropdown' });
+  Observability.userBehavior.recordInteraction('mcp_embodiment_click', {
+    position: 'top right of builder inside dropdown',
+  });
   const { dev: testDomain, prod: prodDomain, scheme } = builderStore.getState().agentDomains;
   const wrapContent = (content) => `<div id="mcp-embodiment-wrapper">${content}</div>`;
 
@@ -1444,7 +1448,7 @@ export async function openMCPEmbodiment() {
 }
 
 async function openFormPreviewEmbodiment() {
-  // PostHog.track('form_preview_embodiment_click', { position: 'top right of builder inside dropdown' });
+  // Observability.userBehavior.recordInteraction('form_preview_embodiment_click', { position: 'top right of builder inside dropdown' });
   const modalBox: HTMLElement = document.querySelector('.modalBox');
   if (modalBox) {
     modalBox.style.width = '800px';

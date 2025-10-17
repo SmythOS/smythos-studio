@@ -2,7 +2,7 @@ import { authStore } from '@shared/state_stores/auth';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { getUserSettings, saveUserSettings } from '@src/react/shared/hooks/useUserSettings';
 import { TUTORIAL_CUTOFF_DATE } from '@src/shared/constants/tutorial';
-import { Analytics } from '@src/shared/posthog/services/analytics';
+import { Observability } from '@src/shared/observability';
 
 export const builderPageTutorialWorkflow = async () => {
   const userInfo = authStore.getState().userInfo;
@@ -32,7 +32,7 @@ export const builderPageTutorialWorkflow = async () => {
     },
     onReset: () => {
       // Called when overlay is about to be cleared
-      Analytics.track('builder_page_tutorial_completed', {
+      Observability.observeInteraction('builder_page_tutorial_completed', {
         page_url: '/builder',
         source: 'Tutorial completed on builder page onboarding',
       });

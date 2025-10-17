@@ -1,4 +1,4 @@
-import { PostHog } from '@src/shared/posthog';
+import { Observability } from '@src/shared/observability';
 import { lsCache } from '../../../shared/Cache.class';
 import { MOCK_DATA_CACHE_KEY } from '../../../shared/constants/general';
 import { JSON_FIELD_CLASS } from '../../constants';
@@ -210,7 +210,7 @@ export function saveMockOutputs(component: Component) {
             try {
               await insertOrUpdateMockData(component.uid, { enabled: true, data: { outputs } });
 
-              PostHog.track('app_set_mock_data', {});
+              Observability.observeInteraction('app_set_mock_data', {});
 
               resolve('saved');
             } finally {
@@ -441,7 +441,7 @@ export async function addMockDataToggleButton(component: Component) {
               await insertOrUpdateMockData(component.uid, { enabled: false });
               MockDataToggleButtonState.turnOff(component);
             } else {
-              PostHog.track('app_mock_screen_impression', {
+              Observability.observeInteraction('app_mock_screen_impression', {
                 source: 'use_mock_data_button',
               });
               await saveMockOutputs(component);
