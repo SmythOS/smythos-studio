@@ -182,7 +182,7 @@ export default class S3Storage implements StaticStorage {
   }
 
   public getPublicUrl(key: string): string {
-    return `https://${appConfig.env.AWS_S3_PUB_BUCKET_NAME}/${key}`;
+    return `https://${appConfig.env.AWS_S3_PUB_BUCKET_NAME}.s3.${appConfig.env.AWS_S3_PUB_REGION}.amazonaws.com/${key}`;
   }
 
   async stat(key: string): Promise<FileMetadata> {
