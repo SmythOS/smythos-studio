@@ -190,7 +190,7 @@ const AIChat = () => {
           smartScrollToBottom={smartScrollToBottom}
         />
         <Footer
-          ref={chatInputRef}
+          chatInputRef={chatInputRef}
           clearError={clearError}
           uploadError={uploadError}
           scrollToBottom={scrollToBottom}

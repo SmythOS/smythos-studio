@@ -1,25 +1,19 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
-// import { Tooltip } from 'flowbite-react';
-// import { FC, useRef, useState } from 'react';
-// import { FaCheck, FaRegCopy } from 'react-icons/fa6';
-// import ReactMarkdown from 'react-markdown';
-// import remarkGfm from 'remark-gfm';
 
 import '../styles/index.css';
 
 import {
-  CodeBlockWithCopyButton,
+  CodeBlock,
   FileItemPreview,
   ReplyLoader,
   ThinkingMessage,
 } from '@react/features/ai-chat/components';
-import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
+import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { Tooltip } from 'flowbite-react';
-import { FC, useRef, useState } from 'react';
+import { FC, useCallback, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import '../styles/index.css';
 
 const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
@@ -27,62 +21,90 @@ const DEFAULT_AVATAR_URL =
 // Re-export the interface for use in other components
 export type { IChatMessage };
 
+/**
+ * Chat Bubble Component
+ * Renders different message types based on type discriminator
+ *
+ * @param props - IChatMessage properties
+ * @returns Appropriate message bubble component
+ */
 export const ChatBubble: FC<IChatMessage> = ({
-  me,
   files,
   avatar,
-  isLast,
   message,
   type,
-  isReplying,
-  isRetrying,
   onRetryClick,
-  isError = false,
-  hideMessageBubble,
   thinkingMessage,
 }) => {
-  if (me) {
+  // ✅ Type-based discrimination - type is single source of truth
+
+  // User message
+  if (type === 'user') {
+    return <UserMessageBubble message={message} files={files} />;
+  }
+
+  // Thinking message
+  if (type === 'thinking') {
+    return <ThinkingMessage message={message} avatar={avatar} />;
+  }
+
+  // Loading state (replying/retrying)
+  if (type === 'loading') {
+    return <ReplyLoader />;
+  }
+
+  // Error message
+  if (type === 'error') {
     return (
-      <UserMessageBubble message={message} files={files} hideMessageBubble={hideMessageBubble} />
+      <SystemMessageBubble
+        avatar={avatar}
+        message={message}
+        isError={true}
+        onRetryClick={onRetryClick}
+        isRetrying={false}
+        thinkingMessage={thinkingMessage}
+      />
     );
   }
 
-  // Handle thinking messages
-  if (type === 'thinking') return <ThinkingMessage message={message} avatar={avatar} />;
-
-  return isReplying || isRetrying ? (
-    <ReplyLoader avatar={avatar ?? DEFAULT_AVATAR_URL} />
-  ) : (
-    <div className={me ? 'pl-[100px]' : ''}>
-      {!hideMessageBubble && (
-        <SystemMessageBubble
-          avatar={avatar}
-          message={message}
-          isError={isError}
-          onRetryClick={onRetryClick}
-          isRetrying={isRetrying}
-          thinkingMessage={thinkingMessage}
-        />
-      )}
-    </div>
+  // System message (default)
+  return (
+    <SystemMessageBubble
+      avatar={avatar}
+      message={message}
+      isError={false}
+      onRetryClick={onRetryClick}
+      isRetrying={false}
+      thinkingMessage={thinkingMessage}
+    />
   );
 };
 
+/**
+ * User Message Bubble Properties
+ */
 interface IUserMessageBubble {
   message: string;
-  files?: FileWithMetadata[];
-  hideMessageBubble?: boolean;
+  files?: IMessageFile[];
 }
 
-const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files, hideMessageBubble }) => {
+/**
+ * User Message Bubble Component
+ * Displays user's message with optional file attachments
+ * Message bubble automatically hidden if message is empty
+ */
+const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files }) => {
+  const hasFiles = files && files.length > 0;
+
   return (
     <div className="break-all flex flex-col items-end">
-      {files && files.length > 0 && (
+      {/* File Attachments */}
+      {hasFiles && (
         <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto">
           {files.map((fileWithKey, index) => (
             <FileItemPreview
               isReadOnly
-              key={index}
+              key={fileWithKey.id || index}
               file={fileWithKey}
               fileKey={fileWithKey.metadata.key}
               inChatBubble={true}
@@ -90,7 +112,9 @@ const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files, hideMessage
           ))}
         </div>
       )}
-      {!hideMessageBubble && message && (
+
+      {/* Message Bubble - automatically hidden if empty */}
+      {message && (
         <div className="rounded-[18px] bg-[#f4f4f4] text-[#2b2b2b] p-3 px-4 w-fit whitespace-pre-wrap text-wrap max-w-[535px]">
           {message}
         </div>
@@ -99,6 +123,9 @@ const UserMessageBubble: FC<IUserMessageBubble> = ({ message, files, hideMessage
   );
 };
 
+/**
+ * System Message Bubble Properties
+ */
 interface ISystemMessageBubble {
   message: string;
   avatar?: string;
@@ -108,6 +135,76 @@ interface ISystemMessageBubble {
   thinkingMessage?: string;
 }
 
+/**
+ * Copy timeout duration (milliseconds)
+ */
+const COPY_RESET_TIMEOUT = 2000;
+
+/**
+ * Markdown component overrides for consistent formatting
+ */
+const MARKDOWN_COMPONENTS = {
+  // Headings with proper font sizes
+  h1: ({ node, ...props }: { node?: unknown }) => (
+    <h1 style={{ fontWeight: 'bold', fontSize: '2em' }} {...props} />
+  ),
+  h2: ({ node, ...props }: { node?: unknown }) => (
+    <h2 style={{ fontWeight: 'bold', fontSize: '1.5em' }} {...props} />
+  ),
+  h3: ({ node, ...props }: { node?: unknown }) => (
+    <h3 style={{ fontWeight: 'bold', fontSize: '1.17em' }} {...props} />
+  ),
+  h4: ({ node, ...props }: { node?: unknown }) => (
+    <h4 style={{ fontWeight: 'bold', fontSize: '1em' }} {...props} />
+  ),
+  h5: ({ node, ...props }: { node?: unknown }) => (
+    <h5 style={{ fontWeight: 'bold', fontSize: '0.83em' }} {...props} />
+  ),
+  h6: ({ node, ...props }: { node?: unknown }) => (
+    <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />
+  ),
+
+  // Code blocks with syntax highlighting
+  code({
+    node,
+    className,
+    children,
+    ...props
+  }: {
+    node?: unknown;
+    className?: string;
+    children?: React.ReactNode;
+  }) {
+    const match = /language-(\w+)/.exec(className || '');
+    return match ? (
+      <CodeBlock language={match[1]}>{String(children).replace(/\n$/, '')}</CodeBlock>
+    ) : (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    );
+  },
+
+  // Images with responsive styling
+  img: ({ node, ...props }: { node?: unknown }) => (
+    <img {...props} className="rounded-xl" style={{ maxWidth: '100%', height: 'auto' }} />
+  ),
+
+  // Links that open in new tab
+  a: ({ node, ...props }: { node?: unknown }) => (
+    <a {...props} target="_blank" rel="noopener noreferrer" />
+  ),
+
+  // Paragraphs with whitespace preserved
+  p: ({ children }: { children?: React.ReactNode }) => (
+    <p className="whitespace-pre-wrap">{children}</p>
+  ),
+};
+
+/**
+ * System Message Bubble Component
+ * Displays AI/system response with markdown support and copy functionality
+ */
 const SystemMessageBubble: FC<ISystemMessageBubble> = ({
   avatar,
   message,
@@ -119,25 +216,32 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleCopy = () => {
-    if (contentRef.current) {
-      const range = document.createRange();
-      range.selectNodeContents(contentRef.current);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+  /**
+   * Handles copying message content to clipboard
+   */
+  const handleCopy = useCallback(() => {
+    const content = contentRef.current;
+    if (!content) return;
 
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy text: ', err); // eslint-disable-line no-console
-      }
+    const range = document.createRange();
+    range.selectNodeContents(content);
 
-      selection?.removeAllRanges();
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => setCopied(false), COPY_RESET_TIMEOUT);
+    } catch (error) {
+      console.error('Failed to copy text:', error); // eslint-disable-line no-console
+    } finally {
+      selection.removeAllRanges();
     }
-  };
+  }, []);
 
   return (
     <div className="system-message-bubble relative">
@@ -150,56 +254,14 @@ const SystemMessageBubble: FC<ISystemMessageBubble> = ({
           />
         ) : (
           <div className="chat-rich-text-response space-y-1 rounded-lg p-3 text-[#141414]">
+            {/* Markdown content with syntax highlighting and formatting */}
             <ReactMarkdown
               children={message}
               remarkPlugins={[remarkGfm]}
-              components={{
-                // adding components to ensure formatting is preserved
-                h1: ({ node, ...props }) => (
-                  <h1 style={{ fontWeight: 'bold', fontSize: '2em' }} {...props} />
-                ),
-                h2: ({ node, ...props }) => (
-                  <h2 style={{ fontWeight: 'bold', fontSize: '1.5em' }} {...props} />
-                ),
-                h3: ({ node, ...props }) => (
-                  <h3 style={{ fontWeight: 'bold', fontSize: '1.17em' }} {...props} />
-                ),
-                h4: ({ node, ...props }) => (
-                  <h4 style={{ fontWeight: 'bold', fontSize: '1em' }} {...props} />
-                ),
-                h5: ({ node, ...props }) => (
-                  <h5 style={{ fontWeight: 'bold', fontSize: '0.83em' }} {...props} />
-                ),
-                h6: ({ node, ...props }) => (
-                  <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />
-                ),
-                code({ node, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  return match ? (
-                    <CodeBlockWithCopyButton language={match[1]}>
-                      {String(children).replace(/\n$/, '')}
-                    </CodeBlockWithCopyButton>
-                  ) : (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  );
-                },
-                img: ({ node, ...props }) => (
-                  <img
-                    {...props}
-                    className="rounded-xl"
-                    style={{ maxWidth: '100%', height: 'auto' }}
-                  />
-                ),
-                a: ({ node, ...props }) => (
-                  <a {...props} target="_blank" rel="noopener noreferrer" />
-                ),
-                p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
-              }}
+              components={MARKDOWN_COMPONENTS}
             />
 
-            {/* Display thinking message inline if present */}
+            {/* Inline thinking message indicator */}
             {thinkingMessage && <ThinkingMessage message={thinkingMessage} avatar={avatar} />}
           </div>
         )}

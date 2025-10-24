@@ -10,6 +10,7 @@ export * from './footer';
 export * from './header';
 export * from './input';
 export * from './markdown-renderer';
+export * from './message-turn-group';
 export * from './reply-loader';
 export * from './scroll-to-bottom-button';
 export * from './send-button';

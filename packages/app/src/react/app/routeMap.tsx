@@ -3,7 +3,7 @@ import AgentsPage from '@src/react/features/agents/pages/AgentsPage';
 import { IPageRoute } from '@src/react/shared/types/route';
 import AccountDeletedPage from '../features/account/pages/AccountDeletedPage';
 import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPage';
-import AIChatPage from '../features/ai-chat/pages/ai-chat';
+import AgentChatPage from '../features/ai-chat/pages/agent-chat';
 
 export const routeMap: IPageRoute[] = [
   {
@@ -24,7 +24,7 @@ export const routeMap: IPageRoute[] = [
   },
   {
     path: '/chat',
-    component: AIChatPage,
+    component: AgentChatPage,
     layoutOptions: {
       sidebar: false,
       topMenu: false,
@@ -33,7 +33,7 @@ export const routeMap: IPageRoute[] = [
   },
   {
     path: '/chat/:agentId/chat?/:chatId?',
-    component: AIChatPage,
+    component: AgentChatPage,
     layoutOptions: {
       sidebar: false,
       topMenu: false,

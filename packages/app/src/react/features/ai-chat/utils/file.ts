@@ -1,4 +1,4 @@
-import { FileWithMetadata } from '@react/shared/types/chat.types';
+import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
 
 /**
  * Constants for file upload limitations
@@ -142,7 +142,7 @@ export const deleteFile = async (key: string): Promise<boolean> => {
  * @param file The file to create metadata for
  * @returns FileWithMetadata object
  */
-export const createFileMetadata = (file: File): FileWithMetadata => ({
+export const createFileMetadata = (file: File): IMessageFile => ({
   file,
   id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
   metadata: { fileType: file.type, previewUrl: getLocalPreviewUrl(file), isUploading: true },

@@ -9,8 +9,6 @@ interface IErrorMessage {
 }
 
 export const ErrorMessage: FC<IErrorMessage> = ({ message, onRetryClick, isRetrying }) => {
-  // Check if this is a 401 API key error
-
   const isApiKeyError =
     message.includes('Incorrect API key provided') ||
     (message.includes('401') &&

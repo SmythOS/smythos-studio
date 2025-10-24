@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-import { FileWithMetadata, IChatMessage } from '@react/shared/types/chat.types';
+import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { ChangeEvent, createContext, FC, PropsWithChildren, useContext } from 'react';
 
 interface ChatContextType {
-  files: FileWithMetadata[];
+  files: IMessageFile[];
   uploadingFiles: Set<string>;
   isUploadInProgress: boolean;
   isMaxFilesUploaded: boolean;
@@ -21,7 +21,7 @@ interface ChatContextType {
   isInputProcessing: boolean;
   messagesHistory: IChatMessage[];
 
-  sendMessage: (query: string, files?: FileWithMetadata[]) => void;
+  sendMessage: (query: string, files?: IMessageFile[]) => void;
   retryLastMessage: () => void;
   stopGenerating: () => void;
   clearChatSession: () => Promise<void>;

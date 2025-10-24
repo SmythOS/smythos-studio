@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 
+import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import {
   createFileMetadata,
   deleteFile,
@@ -8,7 +9,6 @@ import {
   uploadFile,
   validateSingleFile,
 } from '@react/features/ai-chat/utils/file';
-import { FileWithMetadata } from '@react/shared/types/chat.types';
 
 interface FileUploadError {
   show: boolean;
@@ -16,7 +16,7 @@ interface FileUploadError {
 }
 
 interface UseFileUploadReturn {
-  files: FileWithMetadata[];
+  files: IMessageFile[];
   uploadingFiles: Set<string>;
   uploadError: FileUploadError;
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -32,10 +32,13 @@ const generateUniqueFileId = (file: File): string => {
   return `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-export const useFileUpload = (params?: { agentId?: string; chatId?: string }): UseFileUploadReturn => {
+export const useFileUpload = (params?: {
+  agentId?: string;
+  chatId?: string;
+}): UseFileUploadReturn => {
   const agentId = params?.agentId || '';
   const chatId = params?.chatId;
-  const [files, setFiles] = useState<FileWithMetadata[]>([]);
+  const [files, setFiles] = useState<IMessageFile[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [uploadError, setUploadError] = useState<FileUploadError>({ show: false, message: '' });
 
@@ -116,7 +119,11 @@ export const useFileUpload = (params?: { agentId?: string; chatId?: string }): U
 
             if (result.success) {
               // Normalize response from runtime (/aichat/upload)
-              const runtimeFile = result.data?.files?.[0];
+              const data = result.data as {
+                files?: Array<{ url?: string; mimetype?: string }>;
+                file?: { url?: string; type?: string };
+              };
+              const runtimeFile = data?.files?.[0];
               setFiles((prevFiles) =>
                 prevFiles.map((f) =>
                   f.id === id
@@ -125,8 +132,8 @@ export const useFileUpload = (params?: { agentId?: string; chatId?: string }): U
                         metadata: {
                           ...f.metadata,
                           // Do not set key for runtime uploads (avoid delete attempts)
-                          publicUrl: runtimeFile?.url || result.data?.file?.url,
-                          fileType: runtimeFile?.mimetype || result.data?.file?.type,
+                          publicUrl: runtimeFile?.url || data?.file?.url,
+                          fileType: runtimeFile?.mimetype || data?.file?.type,
                           isUploading: false,
                         },
                       }
