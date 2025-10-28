@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Performance Monitoring Utility for Chat Streaming
  *
@@ -30,52 +31,35 @@
  * Represents a single chunk's performance metrics
  */
 interface ChunkMetric {
-  /** High-resolution timestamp when chunk was received */
-  timestamp: number;
-  /** Sequential index of this chunk in the stream */
-  chunkIndex: number;
-  /** Time elapsed since previous chunk (milliseconds) */
-  networkTime?: number;
-  /** Time spent processing/parsing the chunk (milliseconds) */
-  processingTime?: number;
-  /** Time spent rendering the chunk in UI (milliseconds) */
-  renderTime?: number;
-  /** Size of chunk data in bytes */
-  chunkSize: number;
-  /** Type of content in this chunk */
-  type: 'content' | 'thinking' | 'tool' | 'debug';
+  timestamp: number; // High-resolution timestamp when chunk was received
+  chunkIndex: number; // Sequential index of this chunk in the stream
+  networkTime?: number; // Time elapsed since previous chunk (milliseconds)
+  processingTime?: number; // Time spent processing/parsing the chunk (milliseconds)
+  renderTime?: number; // Time spent rendering the chunk in UI (milliseconds)
+  chunkSize: number; // Size of chunk data in bytes
+  type: 'content' | 'thinking' | 'tool' | 'debug'; // Type of content in this chunk
 }
 
 /**
  * Aggregated performance metrics for an entire stream
  */
 interface PerformanceMetrics {
-  /** Total number of chunks received */
-  totalChunks: number;
-  /** Average time between chunks (milliseconds) */
-  averageNetworkTime: number;
-  /** Average processing time per chunk (milliseconds) */
-  averageProcessingTime: number;
-  /** Average render time per chunk (milliseconds) */
-  averageRenderTime: number;
-  /** Total stream duration (milliseconds) */
-  totalDuration: number;
-  /** Chunk with highest total latency */
-  slowestChunk: ChunkMetric | null;
-  /** Throughput in chunks per second */
-  chunksPerSecond: number;
+  totalChunks: number; // Total number of chunks received
+  averageNetworkTime: number; // Average time between chunks (milliseconds)
+  averageProcessingTime: number; // Average processing time per chunk (milliseconds)
+  averageRenderTime: number; // Average render time per chunk (milliseconds)
+  totalDuration: number; // Total stream duration (milliseconds)
+  slowestChunk: ChunkMetric | null; // Chunk with highest total latency
+  chunksPerSecond: number; // Throughput in chunks per second
 }
 
 /**
  * Global debug interface exposed on window object
  */
 interface ChatDebugInterface {
-  /** Enable performance monitoring */
-  enable: () => void;
-  /** Disable performance monitoring */
-  disable: () => void;
-  /** Get current performance metrics */
-  metrics: () => PerformanceMetrics;
+  enable: () => void; // Enable performance monitoring
+  disable: () => void; // Disable performance monitoring
+  metrics: () => PerformanceMetrics; // Get current performance metrics
 }
 
 /**
@@ -111,30 +95,21 @@ class PerformanceMonitor {
    * Only logs when monitoring is enabled
    */
   private log(...args: unknown[]): void {
-    if (this.enabled && typeof console !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.log(...args);
-    }
+    if (this.enabled && typeof console !== 'undefined') console.log(...args);
   }
 
   /**
    * Safe console warning wrapper
    */
   private warn(...args: unknown[]): void {
-    if (this.enabled && typeof console !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.warn(...args);
-    }
+    if (this.enabled && typeof console !== 'undefined') console.warn(...args);
   }
 
   /**
    * Safe console error wrapper
    */
   private error(...args: unknown[]): void {
-    if (this.enabled && typeof console !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.error(...args);
-    }
+    if (this.enabled && typeof console !== 'undefined') console.error(...args);
   }
 
   /**
