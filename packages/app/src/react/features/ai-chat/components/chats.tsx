@@ -16,6 +16,7 @@ interface IChatsProps {
   containerRef: RefObject<HTMLElement>; // Container ref for scroll control
   smartScrollToBottom: (smooth?: boolean) => void; // Smart scroll to bottom function
   handleFileDrop: (droppedFiles: File[]) => Promise<void>; // File drop handler for drag-and-drop uploads
+  shouldAutoScroll: boolean; // Whether auto-scroll is enabled (user is near bottom)
 }
 
 /**
@@ -40,32 +41,116 @@ const combineRefs =
  */
 export const Chats: FC<IChatsProps> = (props) => {
   const { agent, messages, containerRef, handleFileDrop, ...scroll } = props;
-  const { handleScroll, smartScrollToBottom } = scroll;
+  const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll;
 
   const ref = useRef<HTMLDivElement>(null);
   const { retryLastMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
   /**
-   * Auto-scroll effect optimized for streaming
-   * Only scrolls when last message is system type and changes
-   * Uses ref to track last scroll to prevent excessive scrolling
+   * ULTRA-SMOOTH SCROLL OPTIMIZATION WITH USER CONTROL
+   *
+   * KEY IMPROVEMENTS:
+   * - Instant scroll during streaming (no smooth animation lag)
+   * - Aggressive 16ms throttle (60fps) for buttery smoothness
+   * - Respects user scroll position (shouldAutoScroll check)
+   * - User scrolls up >200px = auto-scroll disabled
+   * - User scrolls back to bottom = auto-scroll re-enabled
+   * - Uses requestAnimationFrame for perfect frame sync
    */
   const lastScrolledIdRef = useRef<string | number | undefined>();
+  const lastMessageLengthRef = useRef<number>(0);
+  const lastScrollTimeRef = useRef<number>(0);
+  const rafRef = useRef<number | null>(null);
+  const { isGenerating } = useChatContext();
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
 
-    // ✅ Use type-based discrimination instead of 'me' boolean
     const isSystemMessage = lastMessage.type === 'system';
 
-    // Only scroll if it's a system message and we haven't scrolled for this message yet
-    if (isSystemMessage && lastMessage.id !== lastScrolledIdRef.current) {
-      lastScrolledIdRef.current = lastMessage.id;
-      smartScrollToBottom();
+    if (isSystemMessage) {
+      const messageLength = lastMessage.message?.length || 0;
+      const isNewMessage = lastMessage.id !== lastScrolledIdRef.current;
+      const contentGrew = messageLength > lastMessageLengthRef.current;
+
+      if (isNewMessage || contentGrew) {
+        lastScrolledIdRef.current = lastMessage.id;
+        lastMessageLengthRef.current = messageLength;
+
+        /**
+         * ULTRA-SMOOTH SCROLL STRATEGY WITH USER CONTROL:
+         *
+         * 1. Check shouldAutoScroll FIRST
+         *    - If user scrolled up >200px, shouldAutoScroll = false
+         *    - Don't scroll if user is reading history
+         *    - Result: User stays in control
+         *
+         * 2. During streaming: Use instant scrolling (no smooth animation)
+         *    - Reason: Smooth animation causes lag with rapid updates
+         *    - Result: Instant, responsive, no lag
+         *
+         * 3. Throttle at 16ms (60fps): Perfect for human perception
+         *    - Reason: 60fps is maximum visible smoothness
+         *    - Result: Buttery smooth, no excessive calls
+         *
+         * 4. Use RAF for frame-perfect timing
+         *    - Reason: Syncs with browser paint cycle
+         *    - Result: Smooth, no jank
+         */
+
+        // CRITICAL: Check if user wants auto-scroll
+        // If user scrolled up >200px, shouldAutoScroll = false
+        // This respects user's intent to read history
+        if (!shouldAutoScroll) {
+          return; // Don't scroll if user is reading above
+        }
+
+        const now = performance.now();
+        const timeSinceLastScroll = now - lastScrollTimeRef.current;
+        const shouldThrottle = !isNewMessage && timeSinceLastScroll < 16; // 60fps
+
+        // Cancel pending RAF
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+
+        const performScroll = () => {
+          lastScrollTimeRef.current = performance.now();
+
+          // CRITICAL: Use instant scroll during streaming for smoothness
+          // Smooth animation causes lag when content updates rapidly
+          if (containerRef?.current) {
+            containerRef.current.scrollTo({
+              top: containerRef.current.scrollHeight,
+              behavior: isGenerating ? 'auto' : 'smooth', // instant during streaming!
+            });
+          }
+        };
+
+        if (shouldThrottle) {
+          // Throttle: Use RAF for next frame
+          rafRef.current = requestAnimationFrame(() => {
+            performScroll();
+            rafRef.current = null;
+          });
+        } else {
+          // Immediate: New message or throttle passed
+          performScroll();
+        }
+      }
     }
-  }, [messages, smartScrollToBottom]);
+
+    // Cleanup
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [messages, isGenerating, containerRef, shouldAutoScroll]);
 
   const avatar = agent?.aiAgentSettings?.avatar;
 

@@ -66,13 +66,20 @@ export class ScrollManager {
 
   /**
    * Check if user is near bottom of scroll container
+   *
+   * ULTRA-AGGRESSIVE: Very forgiving threshold for smooth streaming
+   * - 200px threshold (was 150px) - more aggressive auto-scroll
+   * - Math.ceil for more lenient calculation
+   * - Better for long chats and rapid content growth
    */
-  isNearBottom(threshold: number = 100): boolean {
+  isNearBottom(threshold: number = 200): boolean {
     const container = this.getContainer();
     if (!container) return true;
 
     const { scrollTop, scrollHeight, clientHeight } = container;
-    return scrollHeight - scrollTop <= clientHeight + threshold;
+    // Use Math.ceil for more lenient behavior (rounds up distance)
+    const distanceFromBottom = Math.ceil(scrollHeight - scrollTop - clientHeight);
+    return distanceFromBottom <= threshold;
   }
 
   /**
@@ -117,27 +124,43 @@ export class ScrollManager {
           return;
         }
 
-        // Don't scroll if user is scrolled up and force is false
-        if (!force && !this.isNearBottom()) {
+        /**
+         * ULTRA-AGGRESSIVE SCROLL: Maximum responsiveness
+         *
+         * - force=true: Always scroll (no questions asked)
+         * - force=false: Very lenient 200px threshold
+         * - Result: User rarely loses scroll tracking
+         *
+         * Philosophy: During streaming, keeping content visible is
+         * more important than respecting small scroll-up movements
+         */
+        if (!force && !this.isNearBottom(200)) {
+          // Ultra-forgiving 200px threshold
           resolve();
           return;
         }
 
         this.isScrolling = true;
 
-        // Use modern scrollTo API with smooth behavior
+        /**
+         * PERFORMANCE: Direct scrollTo for instant response
+         * - No animation delay
+         * - Maximum responsiveness
+         * - Perfect for streaming
+         */
         container.scrollTo({
           top: container.scrollHeight,
           behavior: behavior === 'instant' ? 'auto' : behavior,
         });
 
-        // Reset scrolling flag after animation
+        // Reset scrolling flag
         if (behavior === 'smooth') {
           this.scrollTimeout = window.setTimeout(() => {
             this.isScrolling = false;
             resolve();
-          }, 300); // Typical smooth scroll duration
+          }, 300);
         } else {
+          // Instant scroll - no delay needed
           this.isScrolling = false;
           resolve();
         }

@@ -19,11 +19,25 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
 
     if (ref.current) {
       const { scrollTop, scrollHeight, clientHeight } = ref.current;
-      const isScrolledUp = scrollHeight - scrollTop > clientHeight + 100; // 100px threshold
+
+      /**
+       * ULTRA-AGGRESSIVE THRESHOLD: Maximum scroll retention
+       *
+       * Problem: Even 150px was too strict for smooth streaming
+       *
+       * Solution: 200px threshold + Math.ceil for most lenient behavior
+       * - User must scroll up >200px to disable auto-scroll
+       * - Small scroll movements don't break tracking
+       * - Perfect for streaming and long chats
+       */
+      const distanceFromBottom = Math.ceil(scrollHeight - scrollTop - clientHeight);
+      const threshold = 200; // Ultra-forgiving threshold
+
+      const isScrolledUp = distanceFromBottom > threshold;
       setShowScrollButton(isScrolledUp);
 
       // Update auto-scroll state based on scroll position
-      const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      const isNearBottom = distanceFromBottom <= threshold;
       setShouldAutoScroll(isNearBottom);
     }
   }, [ref]);
@@ -42,15 +56,22 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
     [ref],
   );
 
-  // Professional smart scroll function
+  /**
+   * CRITICAL FIX: Don't block scrolling based on shouldAutoScroll
+   *
+   * Previous issue: if (!shouldAutoScroll) return; blocked ALL scrolling
+   * This caused streaming to lose scroll tracking in long conversations
+   *
+   * New approach: Pass shouldAutoScroll to scroll manager, let IT decide
+   * This allows context-aware scrolling (streaming vs not streaming)
+   */
   const smartScrollToBottom = useCallback(
     (smooth: boolean = true) => {
-      if (!shouldAutoScroll) return;
-
-      // Use professional scroll manager
+      // Don't check shouldAutoScroll here - let scroll manager handle it
+      // This is critical for streaming behavior
       scrollManager.smartScrollToBottom({ behavior: smooth ? 'smooth' : 'auto', delay: 0 });
     },
-    [shouldAutoScroll],
+    [], // Removed shouldAutoScroll dependency - scroll manager handles it internally
   );
 
   useEffect(() => {

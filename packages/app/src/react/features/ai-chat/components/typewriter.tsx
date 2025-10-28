@@ -1,7 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 
 import { MarkdownRenderer } from '@react/features/ai-chat/components';
-import { forceScrollToBottom } from '@react/features/ai-chat/utils/scroll-utils';
 import { useChatContext } from '../contexts';
 
 interface ITypewriterProps {
@@ -39,7 +38,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
    *
    * Result: Real-time streaming like ChatGPT
    */
-  const TYPING_SPEED = 0; // Instant display - no artificial delay
+  const TYPING_SPEED = 0; // Zero delay - truly instant display
 
   // Handle immediate display when generation is complete
   useEffect(() => {
@@ -53,17 +52,19 @@ export const Typewriter: FC<ITypewriterProps> = ({
     }
   }, [isGenerating, message, onComplete]);
 
-  // Separate effect for force scroll only when generation completes
-  useEffect(() => {
-    if (!isGenerating && message.length > 0) {
-      // Force scroll to bottom when message is fully generated (ignores user scroll position)
-
-      // Add a small delay to ensure the content is fully rendered
-      setTimeout(() => {
-        forceScrollToBottom({ behavior: 'smooth', delay: 0 });
-      }, 200);
-    }
-  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
+  /**
+   * SCROLL OPTIMIZATION:
+   * Removed duplicate scroll trigger from typewriter
+   *
+   * Reason: chats.tsx already handles scrolling with smartScrollToBottom
+   * Having multiple scroll triggers causes conflicts and inconsistent behavior
+   *
+   * The main scroll logic in chats.tsx is more intelligent:
+   * - Respects user scroll position (shouldAutoScroll)
+   * - Tracks message changes properly
+   * - Works consistently across all scenarios
+   */
+  // REMOVED: Duplicate scroll logic (handled by chats.tsx)
 
   useEffect(() => {
     if (!isTyping) {

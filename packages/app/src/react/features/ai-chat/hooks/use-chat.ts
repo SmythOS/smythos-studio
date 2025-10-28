@@ -287,7 +287,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         pendingUpdateRef.current = null;
       }
       updateThrottleRef.current = null;
-    }, 50); // 50ms throttle - balances performance and responsiveness
+    }, 16); // 16ms throttle (60fps) - ultra-smooth, matches scroll rate
   }, []);
 
   /**
