@@ -138,7 +138,7 @@ const DomainRow = ({
             readOnly
             value={selectedDomain}
             onClick={(e) => (e.target as HTMLInputElement).select()}
-            className="border-none w-full p-2.5 truncate bg-white border border-gray-300 rounded-lg text-sm text-gray-900 cursor-text outline-none focus:outline-none focus:ring-0 focus:border-gray-300"
+            className="w-full p-2 truncate bg-white border border-gray-300 rounded-lg text-sm text-gray-900 cursor-text outline-none focus:outline-none focus:ring-0 focus:border-gray-300"
           />
         )}
       </div>
@@ -242,8 +242,8 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
     const protocol = workspace?.serverData?.frontUrl
       ? new URL(workspace.serverData.frontUrl).protocol
       : serverData?.frontUrl
-      ? new URL(serverData.frontUrl).protocol
-      : 'https:';
+        ? new URL(serverData.frontUrl).protocol
+        : 'https:';
 
     return `${protocol}//${agentId}.${agentDomain}`;
   }, [workspace?.serverData, agentId, serverData]);
