@@ -11,7 +11,7 @@ import {
   IStreamChunk,
   IStreamConfig,
 } from '@react/features/ai-chat/types/chat.types';
-import { performanceMonitor } from '@src/react/features/ai-chat/utils/chat-performance-monitor';
+import { performanceMonitor } from '@react/features/ai-chat/utils/chat-performance-monitor';
 import {
   createThinkingManager,
   extractFunctionName,
