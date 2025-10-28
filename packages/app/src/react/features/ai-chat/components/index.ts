@@ -19,4 +19,3 @@ export * from './system-message';
 export * from './thinking-message';
 export * from './typewriter';
 export * from './user-message';
-export * from './warning-info';

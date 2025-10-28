@@ -1,7 +1,7 @@
-import { useEffect, useRef, useCallback, RefObject } from 'react';
+import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 interface UseDragAndDropProps {
-  onDrop: (files: File[]) => Promise<void>;
+  onDrop: (files: File[]) => Promise<void>; // eslint-disable-line no-unused-vars
 }
 
 /**

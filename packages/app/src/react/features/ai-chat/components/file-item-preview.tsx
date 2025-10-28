@@ -18,8 +18,7 @@ interface FileItemPreviewProps {
   isUploading?: boolean;
   fileKey?: string;
   isReadOnly?: boolean;
-  /** Indicates if the preview is being rendered inside a chat bubble */
-  inChatBubble?: boolean;
+  inChatBubble?: boolean; // Indicates if the preview is being rendered inside a chat bubble
 }
 
 const commonProps = { className: 'text-white', fontSize: 20 };

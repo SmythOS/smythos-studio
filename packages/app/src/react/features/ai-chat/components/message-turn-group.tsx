@@ -14,13 +14,9 @@ import { IChatMessage } from '../types/chat.types';
 import { Chat } from './chat';
 
 interface IMessageTurnGroupProps {
-  /** Messages in this conversation turn (all share same conversationTurnId) */
-  messages: IChatMessage[];
-  /** Agent avatar URL */
-  avatar?: string;
-  /** Retry callback for error messages */
-  onRetryClick?: () => void;
-  /** Scroll to bottom callback */
+  messages: IChatMessage[]; // Messages in this conversation turn (all share same conversationTurnId)
+  avatar?: string; // Agent avatar URL
+  onRetryClick?: () => void; // Retry callback for error messages
   scrollToBottom: (smooth?: boolean) => void; // eslint-disable-line no-unused-vars
 }
 

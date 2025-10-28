@@ -1,14 +1,8 @@
 import { FC, ReactNode, useCallback, useEffect, useRef } from 'react';
 
-interface ContainerProps {
-  children: ReactNode;
-}
+type Props = { children: ReactNode };
 
-/**
- * Container component that overrides parent max-width constraint
- * to provide full-width layout for chat interface
- */
-export const Container: FC<ContainerProps> = ({ children }) => {
+export const Container: FC<Props> = ({ children }) => {
   const parentElementRef = useRef<HTMLElement | null>(null);
   const originalStateRef = useRef<{ className: string; maxWidth: string } | null>(null);
 
