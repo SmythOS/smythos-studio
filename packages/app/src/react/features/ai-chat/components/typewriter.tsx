@@ -30,8 +30,16 @@ export const Typewriter: FC<ITypewriterProps> = ({
   const [lastMessageLength, setLastMessageLength] = useState(0);
   const { isGenerating = true } = useChatContext();
 
-  // Consistent typing speed for all characters - ultra-fast typing
-  const TYPING_SPEED = 1; // 1ms for instant-like consistent typing across all chunks
+  /**
+   * PERFORMANCE OPTIMIZATION:
+   * Instant streaming display without artificial typing delay
+   *
+   * Previous issue: 1 character per 1ms = 1000ms for 1000 chars
+   * Solution: Instant display as chunks arrive (0ms delay)
+   *
+   * Result: Real-time streaming like ChatGPT
+   */
+  const TYPING_SPEED = 0; // Instant display - no artificial delay
 
   // Handle immediate display when generation is complete
   useEffect(() => {
@@ -74,8 +82,16 @@ export const Typewriter: FC<ITypewriterProps> = ({
     }
 
     if (currentIndex < message.length) {
-      // Consistent batch size for all characters and message lengths
-      const batchSize = 1; // Always process 1 character at a time for consistent speed
+      /**
+       * PERFORMANCE OPTIMIZATION:
+       * Display entire new content instantly instead of character-by-character
+       *
+       * Previous: 1 char at a time = 1000 updates for 1000 chars
+       * Now: All new content at once = 1 update
+       *
+       * This gives instant streaming display as chunks arrive from server
+       */
+      const batchSize = message.length - currentIndex; // Display all remaining content instantly
 
       const charsToAdd = message.slice(currentIndex, currentIndex + batchSize);
 
