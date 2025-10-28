@@ -46,7 +46,6 @@ export const SystemMessage: FC<ISystemMessageProps> = (props) => {
           {typingAnimation ? (
             <Typewriter
               message={message}
-              speed={2}
               isTyping={typingAnimation}
               onComplete={onTypingComplete}
               onTypingProgress={onTypingProgress}

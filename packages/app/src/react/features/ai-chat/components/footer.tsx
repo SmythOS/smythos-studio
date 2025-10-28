@@ -30,7 +30,7 @@ export const Footer: FC<FooterProps> = (props) => {
   } = props;
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full max-w-4xl pt-2.5">
       {uploadError.show && <ErrorToast message={uploadError.message} onClose={clearError} />}
       <div className="relative">
         {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom(true)} />}

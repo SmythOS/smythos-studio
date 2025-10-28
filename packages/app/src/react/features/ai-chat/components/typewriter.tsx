@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { MarkdownRenderer } from '@react/features/ai-chat/components';
 import { forceScrollToBottom } from '@react/features/ai-chat/utils/scroll-utils';
@@ -6,7 +6,6 @@ import { useChatContext } from '../contexts';
 
 interface ITypewriterProps {
   message: string;
-  speed?: number;
   onComplete?: () => void;
   isTyping?: boolean;
   minSpeed?: number;
@@ -20,7 +19,6 @@ interface ITypewriterProps {
  */
 export const Typewriter: FC<ITypewriterProps> = ({
   message,
-  speed = 5,
   onComplete,
   isTyping = true,
   minSpeed = 1,
@@ -32,43 +30,8 @@ export const Typewriter: FC<ITypewriterProps> = ({
   const [lastMessageLength, setLastMessageLength] = useState(0);
   const { isGenerating = true } = useChatContext();
 
-  // Fast typewriter-effect library style speed
-  const getTypingSpeed = useCallback((char: string, messageLength: number): number => {
-    // Very fast base speed like typewriter-effect library
-    let baseSpeed = 20; // 20ms base speed (very fast)
-
-    // Character-specific speeds (minimal variation for smoothness)
-    if (char === ' ' || char === '\n') {
-      baseSpeed = 10; // Almost instant for spaces
-    } else if (/[a-zA-Z0-9]/.test(char)) {
-      baseSpeed = 15; // Very fast for letters/numbers
-    } else if (/[.,!?;:]/.test(char)) {
-      baseSpeed = 25; // Slight pause for punctuation
-    } else if (/[{}()[\]<>]/.test(char)) {
-      baseSpeed = 12; // Fast for brackets
-    } else if (char === '\t') {
-      baseSpeed = 8; // Very fast for tabs
-    } else if (/[#*`~]/.test(char)) {
-      baseSpeed = 18; // Fast for markdown
-    }
-
-    // Add tiny random variation for natural feel (like typewriter-effect)
-    const variation = (Math.random() - 0.5) * 8; // ±4ms variation
-    baseSpeed += variation;
-
-    // Slightly faster for longer messages (like typewriter-effect)
-    if (messageLength > 200) {
-      baseSpeed *= 0.8;
-    }
-    if (messageLength > 500) {
-      baseSpeed *= 0.7;
-    }
-    if (messageLength > 1000) {
-      baseSpeed *= 0.6;
-    }
-
-    return Math.max(5, baseSpeed); // Minimum 5ms for ultra-smoothness
-  }, []);
+  // Consistent typing speed for all characters - ultra-fast typing
+  const TYPING_SPEED = 1; // 1ms for instant-like consistent typing across all chunks
 
   // Handle immediate display when generation is complete
   useEffect(() => {
@@ -111,24 +74,8 @@ export const Typewriter: FC<ITypewriterProps> = ({
     }
 
     if (currentIndex < message.length) {
-      const currentChar = message[currentIndex];
-      const dynamicSpeed = getTypingSpeed(currentChar, message.length);
-
-      // Fast typewriter-effect style batching for smooth performance
-      let batchSize = 1;
-
-      // Smart batching based on message length (like typewriter-effect library)
-      if (message.length > 2000) {
-        batchSize = currentChar === ' ' || currentChar === '\n' ? 8 : 3;
-      } else if (message.length > 1000) {
-        batchSize = currentChar === ' ' || currentChar === '\n' ? 6 : 2;
-      } else if (message.length > 500) {
-        batchSize = currentChar === ' ' || currentChar === '\n' ? 4 : 2;
-      } else if (message.length > 200) {
-        batchSize = currentChar === ' ' || currentChar === '\n' ? 3 : 1;
-      } else {
-        batchSize = currentChar === ' ' || currentChar === '\n' ? 2 : 1;
-      }
+      // Consistent batch size for all characters and message lengths
+      const batchSize = 1; // Always process 1 character at a time for consistent speed
 
       const charsToAdd = message.slice(currentIndex, currentIndex + batchSize);
 
@@ -137,7 +84,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
         setCurrentIndex((prevIndex) => prevIndex + batchSize);
         // Trigger scroll during typing progress
         onTypingProgress?.();
-      }, dynamicSpeed);
+      }, TYPING_SPEED);
 
       return () => clearTimeout(timer);
     } else if (currentIndex >= message.length && displayedText.length === message.length) {
@@ -145,7 +92,6 @@ export const Typewriter: FC<ITypewriterProps> = ({
     }
   }, [
     message,
-    speed,
     currentIndex,
     displayedText.length,
     isTyping,
@@ -153,7 +99,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
     onTypingProgress,
     minSpeed,
     maxSpeed,
-    getTypingSpeed,
+    TYPING_SPEED,
   ]);
 
   // Reset only when message length decreases (new message) or when message is empty
