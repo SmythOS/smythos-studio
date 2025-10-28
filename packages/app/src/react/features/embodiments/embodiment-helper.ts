@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Agent as AgentInstance } from '../../../builder-ui/Agent.class';
 import { EMBODIMENT_TYPE } from '../../shared/enums';
 import { Agent } from '../../shared/types/agent-data.types';
@@ -68,27 +68,19 @@ export function structureAgentSetting(
 
   if (key === 'mcp') {
     try {
-      // Handle case where value might already be an object or a valid JSON string
-      if (typeof value === 'string') {
-        // Handle empty string or whitespace-only strings
-        if (!value.trim()) {
-          valueEmb = { isEnabled: false };
-        } else {
-          valueEmb = JSON.parse(value);
-        }
+      if (!value?.trim()) {
+        embEnabled = false;
       } else {
-        valueEmb = value;
+        const parsedSettings = JSON.parse(value);
+        embEnabled =
+          typeof parsedSettings === 'boolean' ? parsedSettings : parsedSettings?.isEnabled;
       }
-    } catch (error) {
+    } catch {
       // If JSON.parse fails, treat as disabled MCP
-      console.warn(`Failed to parse MCP value: ${value}`, error);
-      valueEmb = { isEnabled: false };
+      embEnabled = false;
+    } finally {
+      valueEmb = JSON.stringify(embEnabled);
     }
-    // Ensure valueEmb is an object and has isEnabled property
-    if (!valueEmb || typeof valueEmb !== 'object') {
-      valueEmb = { isEnabled: false };
-    }
-    embEnabled = Boolean(valueEmb?.isEnabled);
   } else {
     valueEmb = value;
     embEnabled = value === 'true';
@@ -261,8 +253,6 @@ export const useAgentSettings = (
     refreshEmbodiments?: () => void;
   },
 ) => {
-  const queryClient = useQueryClient();
-
   return useQuery({
     queryKey: ['agentSettings', agentId],
     queryFn: async () => {
@@ -291,8 +281,6 @@ export const useAgentSettings = (
  * @returns Query result with embodiments data, loading state, and refetch function
  */
 export const useAgentEmbodiments = (agentId: string, callback?: AgentSettingsCallback) => {
-  const queryClient = useQueryClient();
-
   return useQuery({
     queryKey: ['agentEmbodiments', agentId],
     queryFn: async () => {

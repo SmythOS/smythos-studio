@@ -496,8 +496,9 @@ export class Agent extends EventEmitter {
         [EMBODIMENT_TYPE.CHAT_GPT]: 'true',
         [EMBODIMENT_TYPE.LLM]: 'true',
         [EMBODIMENT_TYPE.API.toUpperCase()]: 'true',
-        [EMBODIMENT_TYPE.MCP]: '{"isEnabled":true}',
+        [EMBODIMENT_TYPE.MCP]: 'true',
         [EMBODIMENT_TYPE.ALEXA]: 'true',
+        [EMBODIMENT_TYPE.FORM]: 'true',
       };
       const currentSettings = await getAgentSettings(agentId);
 

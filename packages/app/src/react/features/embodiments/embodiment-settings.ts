@@ -40,7 +40,7 @@ type UseAgentEmbodimentSettingsCallback = (
 ) => void;
 
 // Global state for modal management to prevent multiple instances
-let globalModalManager = {
+const globalModalManager = {
   activeAgentId: null as string | null,
   activeInstanceId: null as string | null,
   activeModal: null as string | null,
@@ -334,8 +334,7 @@ export const useAgentEmbodimentSettings = (
   const updateEmbodimentStatus = async (embodimentType: string, status: boolean) => {
     try {
       // Format the value correctly for MCP settings to match API behavior
-      const formattedValue =
-        embodimentType === 'mcp' ? JSON.stringify({ isEnabled: status }) : status.toString();
+      const formattedValue = status.toString();
 
       updateAgentSettingsCache(embodimentType, formattedValue, true);
       callCallback();

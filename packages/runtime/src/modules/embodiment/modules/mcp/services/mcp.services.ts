@@ -11,9 +11,7 @@ export const isMcpEnabled = (agent: Agent) => {
   if (mcpSettings) {
     try {
       const parsedMcpSettings = JSON.parse(mcpSettings);
-      if (parsedMcpSettings.isEnabled) {
-        isEnabled = true;
-      }
+      isEnabled = typeof parsedMcpSettings === 'boolean' ? parsedMcpSettings : parsedMcpSettings?.isEnabled;
     } catch (error) {
       isEnabled = false;
     }

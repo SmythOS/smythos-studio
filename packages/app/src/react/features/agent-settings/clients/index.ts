@@ -16,10 +16,6 @@ export const updateEmbodiment = async (agentId, embodimentType, status): Promise
     key: embodimentType,
     value: status.toString(),
   };
-  // Added exemption for MCP as it may contain other settings
-  if (embodimentType === 'mcp') {
-    updatePayload.value = JSON.stringify({ isEnabled: status });
-  }
 
   const result = await fetch(`/api/page/agents/agent/${agentId}/settings`, {
     method: 'PUT',
