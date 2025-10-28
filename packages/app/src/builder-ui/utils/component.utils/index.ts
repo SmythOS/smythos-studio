@@ -24,7 +24,7 @@ const uiServer = config.env.UI_SERVER;
 // * N:B Need to invoke this function with .bind(this), .call(this) or .apply(this) to get the correct context
 export async function handleKvFieldEditBtn(
   fieldName: string,
-  options?: { title: string; showVault: boolean; vaultScope: string },
+  options?: { title: string; showVault: boolean; vaultScope: string; dialogClasses?: string },
 ): Promise<void> {
   const attributes = { 'data-template-vars': 'true' };
 
@@ -44,6 +44,7 @@ export async function handleKvFieldEditBtn(
       },
     },
     showCloseButton: true,
+    dialogClasses: options?.dialogClasses || '',
   });
 
   //editValuesDialog;
@@ -74,6 +75,7 @@ export async function handleKvFieldEditBtn(
 export async function handleKvFieldEditBtnForParams(options?: {
   showVault: boolean;
   vaultScope: string;
+  dialogClasses?: string;
 }): Promise<void> {
   // * Old implementation of edit values field, will remove it
   // const queryParamValues: any = await editValues({
@@ -114,6 +116,7 @@ export async function handleKvFieldEditBtnForParams(options?: {
       },
     },
     showCloseButton: true,
+    dialogClasses: options?.dialogClasses || '',
   });
 
   if (queryParamValues) {

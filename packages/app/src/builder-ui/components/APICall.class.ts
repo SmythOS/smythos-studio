@@ -126,6 +126,7 @@ export class APICall extends Component {
               click: handleKvFieldEditBtnForParams.bind(this, {
                 showVault: true,
                 vaultScope: COMP_NAMES.apiCall,
+                dialogClasses: 'overflow-x-hidden',
               }),
             },
           },
@@ -150,6 +151,7 @@ export class APICall extends Component {
               click: handleKvFieldEditBtn.bind(this, 'headers', {
                 showVault: true,
                 vaultScope: COMP_NAMES.apiCall,
+                dialogClasses: 'overflow-x-hidden', 
               }),
             },
           },
@@ -192,6 +194,7 @@ export class APICall extends Component {
               click: handleKvFieldEditBtn.bind(this, 'body', {
                 showVault: true,
                 vaultScope: COMP_NAMES.apiCall,
+                dialogClasses: 'overflow-x-hidden',
               }),
             },
           },
