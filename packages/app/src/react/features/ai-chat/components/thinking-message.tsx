@@ -28,7 +28,7 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, avatar }) =>
       <div className="flex items-center gap-3">
         {/* Avatar inside the bubble */}
         <div className="flex-shrink-0">
-          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+          <div className="size-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             {avatar ? (
               <img src={avatar} alt="AI Avatar" className="w-full h-full object-cover" />
             ) : (

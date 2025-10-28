@@ -1,36 +1,97 @@
 /**
  * Performance Monitoring Utility for Chat Streaming
  *
- * Helps identify bottlenecks in:
+ * PRODUCTION-SAFE monitoring tool that helps identify bottlenecks in:
  * - Network latency (server response time)
  * - Chunk processing time
  * - UI render time
  *
+ * Features:
+ * - Zero performance impact when disabled
+ * - Automatic memory cleanup
+ * - Type-safe implementation
+ * - ESLint compliant
+ *
  * Usage:
  * 1. Enable via localStorage: localStorage.setItem('CHAT_DEBUG_MODE', 'true')
  * 2. Check console for detailed metrics
- * 3. Use getMetrics() to analyze performance
+ * 3. Use window.chatDebug.metrics() to analyze performance
+ *
+ * @example
+ * // Enable monitoring
+ * window.chatDebug.enable();
+ *
+ * // After chat stream completes
+ * const metrics = window.chatDebug.metrics();
+ * console.log(metrics);
  */
 
+/**
+ * Represents a single chunk's performance metrics
+ */
 interface ChunkMetric {
+  /** High-resolution timestamp when chunk was received */
   timestamp: number;
+  /** Sequential index of this chunk in the stream */
   chunkIndex: number;
-  networkTime?: number; // Time from request to chunk arrival
-  processingTime?: number; // Time to process chunk
-  renderTime?: number; // Time to render in UI
-  chunkSize: number; // Size in bytes
+  /** Time elapsed since previous chunk (milliseconds) */
+  networkTime?: number;
+  /** Time spent processing/parsing the chunk (milliseconds) */
+  processingTime?: number;
+  /** Time spent rendering the chunk in UI (milliseconds) */
+  renderTime?: number;
+  /** Size of chunk data in bytes */
+  chunkSize: number;
+  /** Type of content in this chunk */
   type: 'content' | 'thinking' | 'tool' | 'debug';
 }
 
+/**
+ * Aggregated performance metrics for an entire stream
+ */
 interface PerformanceMetrics {
+  /** Total number of chunks received */
   totalChunks: number;
+  /** Average time between chunks (milliseconds) */
   averageNetworkTime: number;
+  /** Average processing time per chunk (milliseconds) */
   averageProcessingTime: number;
+  /** Average render time per chunk (milliseconds) */
   averageRenderTime: number;
+  /** Total stream duration (milliseconds) */
   totalDuration: number;
+  /** Chunk with highest total latency */
   slowestChunk: ChunkMetric | null;
+  /** Throughput in chunks per second */
   chunksPerSecond: number;
 }
+
+/**
+ * Global debug interface exposed on window object
+ */
+interface ChatDebugInterface {
+  /** Enable performance monitoring */
+  enable: () => void;
+  /** Disable performance monitoring */
+  disable: () => void;
+  /** Get current performance metrics */
+  metrics: () => PerformanceMetrics;
+}
+
+/**
+ * Extend Window interface with chatDebug property
+ */
+declare global {
+  interface Window {
+    chatDebug: ChatDebugInterface;
+  }
+}
+
+/**
+ * Maximum number of chunks to track before cleanup
+ * Prevents memory issues in very long sessions
+ */
+const MAX_METRICS_SIZE = 10000;
 
 class PerformanceMonitor {
   private enabled: boolean = false;
@@ -46,6 +107,47 @@ class PerformanceMonitor {
   }
 
   /**
+   * Safe console logging wrapper
+   * Only logs when monitoring is enabled
+   */
+  private log(...args: unknown[]): void {
+    if (this.enabled && typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log(...args);
+    }
+  }
+
+  /**
+   * Safe console warning wrapper
+   */
+  private warn(...args: unknown[]): void {
+    if (this.enabled && typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn(...args);
+    }
+  }
+
+  /**
+   * Safe console error wrapper
+   */
+  private error(...args: unknown[]): void {
+    if (this.enabled && typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.error(...args);
+    }
+  }
+
+  /**
+   * Cleanup old metrics to prevent memory bloat
+   */
+  private cleanupOldMetrics(): void {
+    if (this.metrics.length > MAX_METRICS_SIZE) {
+      // Keep only the most recent 1000 metrics
+      this.metrics = this.metrics.slice(-1000);
+    }
+  }
+
+  /**
    * Starts monitoring a new stream
    */
   startStream(): void {
@@ -56,12 +158,14 @@ class PerformanceMonitor {
     this.chunkIndex = 0;
     this.metrics = [];
 
-    console.log('%c🚀 STREAM STARTED', 'color: #00ff00; font-weight: bold; font-size: 14px');
-    console.log(`⏱️  Start Time: ${new Date().toISOString()}`);
+    this.log('%c🚀 STREAM STARTED', 'color: #00ff00; font-weight: bold; font-size: 14px');
+    this.log(`⏱️  Start Time: ${new Date().toISOString()}`);
   }
 
   /**
    * Records when a chunk arrives from network
+   * @param chunkData - Raw chunk data received
+   * @param type - Type of chunk content
    */
   recordChunkArrival(chunkData: string, type: ChunkMetric['type'] = 'content'): void {
     if (!this.enabled) return;
@@ -80,9 +184,12 @@ class PerformanceMonitor {
     this.metrics.push(metric);
     this.lastChunkTime = now;
 
+    // Cleanup if metrics array is getting too large
+    this.cleanupOldMetrics();
+
     // Log if chunk took too long (> 100ms is suspicious)
     if (networkTime > 100) {
-      console.warn(
+      this.warn(
         `⚠️  SLOW CHUNK #${metric.chunkIndex}: ${networkTime.toFixed(2)}ms (${metric.chunkSize} bytes)`,
         `Type: ${type}`,
       );
@@ -91,6 +198,8 @@ class PerformanceMonitor {
 
   /**
    * Records chunk processing time
+   * @param chunkIndex - Index of the chunk being processed
+   * @param processingTime - Time taken to process in milliseconds
    */
   recordProcessingTime(chunkIndex: number, processingTime: number): void {
     if (!this.enabled) return;
@@ -100,13 +209,14 @@ class PerformanceMonitor {
       metric.processingTime = processingTime;
 
       if (processingTime > 50) {
-        console.warn(`⚠️  SLOW PROCESSING #${chunkIndex}: ${processingTime.toFixed(2)}ms`);
+        this.warn(`⚠️  SLOW PROCESSING #${chunkIndex}: ${processingTime.toFixed(2)}ms`);
       }
     }
   }
 
   /**
    * Records UI render time
+   * @param renderTime - Time taken to render in milliseconds
    */
   recordRenderTime(renderTime: number): void {
     if (!this.enabled) return;
@@ -117,7 +227,7 @@ class PerformanceMonitor {
 
       if (renderTime > 16.67) {
         // More than 1 frame at 60fps
-        console.warn(
+        this.warn(
           `⚠️  SLOW RENDER #${lastMetric.chunkIndex}: ${renderTime.toFixed(2)}ms (dropped frames!)`,
         );
       }
@@ -126,6 +236,7 @@ class PerformanceMonitor {
 
   /**
    * Ends stream and shows summary
+   * Displays comprehensive performance report in console
    */
   endStream(): void {
     if (!this.enabled) return;
@@ -133,22 +244,22 @@ class PerformanceMonitor {
     const totalDuration = performance.now() - this.streamStartTime;
     const metrics = this.getMetrics();
 
-    console.log('%c✅ STREAM COMPLETED', 'color: #00ff00; font-weight: bold; font-size: 14px');
-    console.log(`⏱️  Total Duration: ${totalDuration.toFixed(2)}ms`);
-    console.log(`📦 Total Chunks: ${metrics.totalChunks}`);
-    console.log(`⚡ Chunks/Second: ${metrics.chunksPerSecond.toFixed(2)}`);
-    console.log('\n📊 PERFORMANCE BREAKDOWN:');
-    console.log(`  🌐 Network (avg): ${metrics.averageNetworkTime.toFixed(2)}ms`);
-    console.log(`  ⚙️  Processing (avg): ${metrics.averageProcessingTime.toFixed(2)}ms`);
-    console.log(`  🎨 Rendering (avg): ${metrics.averageRenderTime.toFixed(2)}ms`);
+    this.log('%c✅ STREAM COMPLETED', 'color: #00ff00; font-weight: bold; font-size: 14px');
+    this.log(`⏱️  Total Duration: ${totalDuration.toFixed(2)}ms`);
+    this.log(`📦 Total Chunks: ${metrics.totalChunks}`);
+    this.log(`⚡ Chunks/Second: ${metrics.chunksPerSecond.toFixed(2)}`);
+    this.log('\n📊 PERFORMANCE BREAKDOWN:');
+    this.log(`  🌐 Network (avg): ${metrics.averageNetworkTime.toFixed(2)}ms`);
+    this.log(`  ⚙️  Processing (avg): ${metrics.averageProcessingTime.toFixed(2)}ms`);
+    this.log(`  🎨 Rendering (avg): ${metrics.averageRenderTime.toFixed(2)}ms`);
 
     if (metrics.slowestChunk) {
-      console.log('\n🐌 SLOWEST CHUNK:');
-      console.log(`  Index: #${metrics.slowestChunk.chunkIndex}`);
-      console.log(`  Network: ${metrics.slowestChunk.networkTime?.toFixed(2)}ms`);
-      console.log(`  Processing: ${metrics.slowestChunk.processingTime?.toFixed(2)}ms`);
-      console.log(`  Render: ${metrics.slowestChunk.renderTime?.toFixed(2)}ms`);
-      console.log(`  Size: ${metrics.slowestChunk.chunkSize} bytes`);
+      this.log('\n🐌 SLOWEST CHUNK:');
+      this.log(`  Index: #${metrics.slowestChunk.chunkIndex}`);
+      this.log(`  Network: ${metrics.slowestChunk.networkTime?.toFixed(2)}ms`);
+      this.log(`  Processing: ${metrics.slowestChunk.processingTime?.toFixed(2)}ms`);
+      this.log(`  Render: ${metrics.slowestChunk.renderTime?.toFixed(2)}ms`);
+      this.log(`  Size: ${metrics.slowestChunk.chunkSize} bytes`);
     }
 
     // Identify bottleneck
@@ -157,14 +268,15 @@ class PerformanceMonitor {
 
   /**
    * Analyzes metrics and identifies the bottleneck
+   * @param metrics - Performance metrics to analyze
    */
   private identifyBottleneck(metrics: PerformanceMetrics): void {
     const { averageNetworkTime, averageProcessingTime, averageRenderTime } = metrics;
 
-    console.log('\n🎯 BOTTLENECK ANALYSIS:');
+    this.log('\n🎯 BOTTLENECK ANALYSIS:');
 
     if (averageNetworkTime > 50) {
-      console.error(
+      this.error(
         '❌ SERVER/NETWORK BOTTLENECK DETECTED!',
         `\n   Average network time: ${averageNetworkTime.toFixed(2)}ms`,
         '\n   ➡️  Issue: Chunks are arriving slowly from server',
@@ -173,7 +285,7 @@ class PerformanceMonitor {
     }
 
     if (averageProcessingTime > 30) {
-      console.error(
+      this.error(
         '❌ CHUNK PROCESSING BOTTLENECK DETECTED!',
         `\n   Average processing time: ${averageProcessingTime.toFixed(2)}ms`,
         '\n   ➡️  Issue: Parsing/processing chunks is slow',
@@ -182,7 +294,7 @@ class PerformanceMonitor {
     }
 
     if (averageRenderTime > 16.67) {
-      console.error(
+      this.error(
         '❌ UI RENDERING BOTTLENECK DETECTED!',
         `\n   Average render time: ${averageRenderTime.toFixed(2)}ms`,
         '\n   ➡️  Issue: UI updates are slow (dropping frames)',
@@ -191,7 +303,7 @@ class PerformanceMonitor {
     }
 
     if (averageNetworkTime <= 50 && averageProcessingTime <= 30 && averageRenderTime <= 16.67) {
-      console.log('✅ NO BOTTLENECKS DETECTED! Performance is optimal.');
+      this.log('✅ NO BOTTLENECKS DETECTED! Performance is optimal.');
     }
   }
 
@@ -252,24 +364,26 @@ class PerformanceMonitor {
 
   /**
    * Enables debug mode
+   * Persists setting to localStorage
    */
   enable(): void {
     this.enabled = true;
     if (typeof window !== 'undefined') {
       localStorage.setItem('CHAT_DEBUG_MODE', 'true');
     }
-    console.log('✅ Performance monitoring enabled');
+    this.log('✅ Performance monitoring enabled');
   }
 
   /**
    * Disables debug mode
+   * Removes setting from localStorage
    */
   disable(): void {
     this.enabled = false;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('CHAT_DEBUG_MODE');
     }
-    console.log('❌ Performance monitoring disabled');
+    this.log('❌ Performance monitoring disabled');
   }
 
   /**
@@ -280,12 +394,23 @@ class PerformanceMonitor {
   }
 }
 
-// Singleton instance
+/**
+ * Singleton instance of PerformanceMonitor
+ * Single instance ensures consistent tracking across the application
+ */
 export const performanceMonitor = new PerformanceMonitor();
 
-// Global helpers for browser console
+/**
+ * Initialize global debug interface for browser console access
+ * Safely attaches to window object with proper TypeScript typing
+ *
+ * Usage in browser console:
+ * - window.chatDebug.enable() - Enable monitoring
+ * - window.chatDebug.disable() - Disable monitoring
+ * - window.chatDebug.metrics() - Get current metrics
+ */
 if (typeof window !== 'undefined') {
-  (window as any).chatDebug = {
+  window.chatDebug = {
     enable: () => performanceMonitor.enable(),
     disable: () => performanceMonitor.disable(),
     metrics: () => performanceMonitor.getMetrics(),
