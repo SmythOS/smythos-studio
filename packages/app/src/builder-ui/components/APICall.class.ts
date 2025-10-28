@@ -802,11 +802,14 @@ export class APICall extends Component {
           await this.updateOAuthConnectionOptions(); // Refresh options to replace legacy entry
           this.refreshSettingsSidebar(); // Refresh the sidebar to show updated name
           this.updateOAuthActionButton(); // Update action button state
-          // Note: updateAuthenticationButtonState not needed here as the button was already
-          // set to "Sign Out" in updateSidebarForOAuth and we know it's authenticated
 
-          // Update component's button state
-          this.checkSettings();
+          // Update both sidebar and component-level buttons after successful authentication
+          // Clear auth check cache first to force a fresh check
+          this.authCheckPromises.delete(selectedConnectionId);
+          await this.updateAuthenticationButton(selectedConnectionId);
+
+          // Clear component messages (remove any auth warnings)
+          this.clearComponentMessages();
         } else {
           // Update local state to reflect failure
           if (this.oauthConnections[selectedConnectionId]) {
@@ -897,10 +900,11 @@ export class APICall extends Component {
           }
           this.refreshSettingsSidebar();
           this.updateOAuthActionButton();
-          // Update authentication button state after sidebar refresh
-          await this.updateAuthenticationButtonState();
+          // Update both sidebar and component-level buttons after successful auth
+          await this.updateAuthenticationButton(this.data.oauth_con_id);
         });
-        this.checkSettings();
+        // Also immediately update component messages to remove auth button
+        this.clearComponentMessages();
         window.removeEventListener('message', this.boundHandleAuthMessage);
         break;
 
@@ -941,8 +945,8 @@ export class APICall extends Component {
   /**
    * Checks the current authentication status for the selected connection.
    */
-  private async checkAuthentication(): Promise<boolean> {
-    const selectedValue = this.data.oauth_con_id;
+  private async checkAuthentication(overrideConnectionId?: string): Promise<boolean> {
+    const selectedValue = overrideConnectionId ?? this.data.oauth_con_id;
 
     // If 'None' or no value is selected, it's not authenticated for this component.
     if (selectedValue === 'None' || !selectedValue) {
@@ -963,24 +967,24 @@ export class APICall extends Component {
     // Store the promise in the cache
     this.authCheckPromises.set(selectedValue, authCheckPromise);
 
-    // Keep the cache for longer to handle rapid successive calls
-    // We'll clear it after 1 second to allow all related UI updates to complete
+    // Keep the cache for rapid successive calls and connection switching
+    // Clear it after 3 seconds to allow all related UI updates and user interactions to complete
     authCheckPromise.finally(() => {
       setTimeout(() => {
         // Only clear if it's still the same promise (not replaced by a newer one)
         if (this.authCheckPromises.get(selectedValue) === authCheckPromise) {
           this.authCheckPromises.delete(selectedValue);
         }
-      }, 1000); // Keep cache for 1 second after completion
+      }, 3000); // Keep cache for 3 seconds after completion for better UX when switching connections
     });
 
-    // Also set a timeout to clear stale promises (increase to 5 seconds)
+    // Also set a timeout to clear stale promises
     setTimeout(() => {
       // Only clear if it's still the same promise
       if (this.authCheckPromises.get(selectedValue) === authCheckPromise) {
         this.authCheckPromises.delete(selectedValue);
       }
-    }, 5000); // Clear after 5 seconds max
+    }, 10000); // Clear after 10 seconds max to prevent memory leaks
 
     return authCheckPromise;
   }
@@ -1402,26 +1406,37 @@ export class APICall extends Component {
   public async checkSettings() {
     this.clearComponentMessages();
     this.addComponentMessage('Checking Auth Info...', 'info text-center');
-    const authCheck = await this.checkAuthentication();
+
+    // Call parent class validation
     await super.checkSettings();
 
     // Replace temporary status with the final state
     this.clearComponentMessages();
 
+    // Update component-level button based on current OAuth connection's auth state
+    // Use the centralized updateAuthenticationButton method which handles both sidebar and component buttons
     if (this.data.oauth_con_id && this.data.oauth_con_id !== 'None') {
-      if (!authCheck) {
-        this.addComponentButton(
-          `<div class="fa-solid fa-user-shield"></div><p class="">Authenticate</p>`,
-          'warning',
-          { class: 'oauthButton' },
-          this.collectAndConsoleOAuthValues.bind(this),
-        );
+      // Get the current auth status and update component button accordingly
+      const authCheck = await this.checkAuthentication(this.data.oauth_con_id);
+      const cptButton: any = this.domElement?.querySelector('button.oauthButton');
+
+      if (authCheck) {
+        // Authenticated: remove the button if present
+        if (cptButton) {
+          cptButton.remove();
+        }
+      } else {
+        // Not authenticated: add the button if not present
+        if (!cptButton) {
+          this.addComponentButton(
+            `<div class="fa-solid fa-user-shield"></div><p class="">Authenticate</p>`,
+            'warning',
+            { class: 'oauthButton' },
+            this.collectAndConsoleOAuthValues.bind(this),
+          );
+        }
       }
     }
-
-    // Note: updateAuthenticationButtonState is not needed here since we already called checkAuthentication
-    // which uses the same cached promise that updateAuthenticationButtonState would use
-    // The sidebar button will be updated through other paths if needed
   }
 
   // remove tokens to invalidate authentication
@@ -1482,8 +1497,9 @@ export class APICall extends Component {
         // Force refresh the sidebar to ensure all states are updated
         this.refreshSettingsSidebar();
 
-        // Note: The authentication button was already updated to "Authenticate" above
-        // No need to call updateAuthenticationButtonState again
+        // Update both sidebar and component-level buttons to show correct state after sign out
+        // Pass the connection ID to ensure it checks the correct (now unauthenticated) connection
+        await this.updateAuthenticationButton(this.data.oauth_con_id);
 
         // Update component messages
         this.clearComponentMessages();
@@ -1531,18 +1547,31 @@ export class APICall extends Component {
     // Update component messages separately
     this.clearComponentMessages();
   }
-  private async updateAuthenticationButton() {
-    // This function is now just a wrapper that calls updateAuthenticationButtonState
-    // to leverage the debouncing and caching mechanisms
-    await this.updateAuthenticationButtonState();
+  private async updateAuthenticationButton(overrideConnectionId?: string) {
+    // Update the sidebar button state (debounced + cached)
+    await this.updateAuthenticationButtonState(overrideConnectionId);
 
-    // Also update the component button if needed
-    const isDataValid = await this.checkAuthentication();
+    // Also update the component-level button - reuse the same cached auth check result
+    const isDataValid = await this.checkAuthentication(overrideConnectionId);
     const cptButton: any = this.domElement?.querySelector('button.oauthButton');
-    if (cptButton) {
-      cptButton.disabled = false;
-      if (!isDataValid) {
-        cptButton.innerHTML = `<div class="fa-solid fa-user-shield"></div><p class="">Authenticate</p>`;
+    if (isDataValid) {
+      // Authenticated: remove the Authenticate button if present
+      if (cptButton) {
+        cptButton.remove();
+      }
+    } else {
+      // Not authenticated: ensure Authenticate button exists and shows correct content
+      const authHtml = `<div class="fa-solid fa-user-shield"></div><p class="">Authenticate</p>`;
+      if (cptButton) {
+        cptButton.disabled = false;
+        cptButton.innerHTML = authHtml;
+      } else {
+        this.addComponentButton(
+          authHtml,
+          'warning',
+          { class: 'oauthButton' },
+          this.collectAndConsoleOAuthValues.bind(this),
+        );
       }
     }
   }
@@ -1567,10 +1596,8 @@ export class APICall extends Component {
     const sidebar = this.getSettingsSidebar();
     const previousValue = this.data.oauth_con_id;
 
-    // Clear auth check cache when changing connections
-    if (previousValue) {
-      this.authCheckPromises.delete(previousValue);
-    }
+    // Note: We don't clear cache here - let the cached results remain valid for performance
+    // The cache will auto-expire after 3 seconds (see checkAuthentication method)
 
     // First handle the selection change
     if (!selectedValue || selectedValue === 'None') {
@@ -1594,10 +1621,10 @@ export class APICall extends Component {
         this.data.oauthService = 'None';
       }
 
-      // If the selection has changed, check authentication status and update button
+      // If the selection has changed, check authentication status and update both sidebar + component buttons
       if (selectedValue !== previousValue) {
-        // Update button state (this will check backend)
-        await this.updateAuthenticationButtonState();
+        // Update both buttons (sidebar + component) - pass selectedValue to check the correct connection
+        await this.updateAuthenticationButton(selectedValue);
       }
     }
 
@@ -2094,7 +2121,7 @@ export class APICall extends Component {
   /**
    * Updates the authentication button state based on current connection status
    */
-  private async updateAuthenticationButtonState() {
+  private async updateAuthenticationButtonState(overrideConnectionId?: string) {
     // Clear any existing debounce timer
     if (this.updateAuthButtonDebounceTimer) {
       clearTimeout(this.updateAuthButtonDebounceTimer);
@@ -2103,7 +2130,7 @@ export class APICall extends Component {
     // Debounce the actual update to prevent rapid successive calls
     return new Promise<void>((resolve) => {
       this.updateAuthButtonDebounceTimer = setTimeout(async () => {
-        await this.performAuthButtonUpdate();
+        await this.performAuthButtonUpdate(overrideConnectionId);
         resolve();
       }, 150); // Increased to 150ms debounce to better group rapid calls
     });
@@ -2112,23 +2139,24 @@ export class APICall extends Component {
   /**
    * Performs the actual authentication button state update
    */
-  private async performAuthButtonUpdate() {
+  private async performAuthButtonUpdate(overrideConnectionId?: string) {
     const sidebar = this.getSettingsSidebar();
     if (!sidebar) return;
 
     const oauth_button: any = sidebar?.querySelector(`[data-field-name="authenticate"] button`);
     if (!oauth_button) return;
 
-    // console.log(`[performAuthButtonUpdate] Updating button for connection: ${this.data.oauth_con_id}`);
+    // Use override connection ID if provided, otherwise use this.data.oauth_con_id
+    const connectionIdToCheck = overrideConnectionId ?? this.data.oauth_con_id;
 
     // Show loading state while checking
     this.activateSpinner(oauth_button);
 
     // Check authentication status with backend for accurate state
     let isAuthenticated = false;
-    if (this.data.oauth_con_id && this.data.oauth_con_id !== 'None') {
+    if (connectionIdToCheck && connectionIdToCheck !== 'None') {
       // Always verify with backend to ensure accurate state
-      isAuthenticated = await this.checkAuthentication();
+      isAuthenticated = await this.checkAuthentication(connectionIdToCheck);
     }
 
     oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
