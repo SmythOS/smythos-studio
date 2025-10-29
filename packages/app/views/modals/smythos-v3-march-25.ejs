@@ -65,6 +65,7 @@
           if (modal && !path.includes('/welcome')) {
             modal.classList.remove('hidden');
             localStorage.setItem('smythosV3March25ModalSeen', 'true');
+            window?.observeEvent?.('smythos-v3-march-25-modal-seen');
           }
         }
       }
@@ -72,6 +73,7 @@
 
     window.closeSmythosV3March25Modal = () => {
       const modal = document.getElementById('smythos-v3-march-25');
+      window?.observeEvent?.('smythos-v3-march-25-modal-closed');
       if (modal) {
         modal.classList.add('hidden');
       }

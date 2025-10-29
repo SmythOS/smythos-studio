@@ -360,10 +360,6 @@ button.inner-link:hover {
   background: #f8f8f8;
   border-radius: 8px;
 }
-.dialog-center .__btnClose svg {
-  width: 20px !important;
-  height: 20px !important;
-}
 .dialog-center .form-label {
   font-size: 16px !important;
   color: #1e1e1e !important;
