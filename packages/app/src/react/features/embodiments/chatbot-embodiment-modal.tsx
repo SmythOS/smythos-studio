@@ -127,6 +127,7 @@ export interface ChatbotEmbodimentModalProps {
       introMessage?: string;
       isFullScreen?: boolean;
       allowFileAttachments?: boolean;
+      enableMetaMessages?: boolean;
     };
   };
   /**
@@ -199,6 +200,7 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
 
   const isFullScreen = embodimentData?.properties?.isFullScreen;
   const allowFileAttachments = embodimentData?.properties?.allowFileAttachments;
+  const enableMetaMessages = embodimentData?.properties?.enableMetaMessages;
   const isUsingFullScreen = Boolean(isFullScreen);
 
   /**
@@ -222,6 +224,7 @@ const ChatbotEmbodimentModal: React.FC<ChatbotEmbodimentModalProps> = ({
             isChatOnly: ${isUsingFullScreen},
             ${isUsingFullScreen ? 'containerId: "smythos-chatbot-container",' : ''}
             allowAttachments: ${allowFileAttachments || false},
+            enableMetaMessages: ${enableMetaMessages || false},
             // ... additional settings ...
             introMessage: '${
               embodimentData?.properties?.introMessage || 'Hello, how can I assist you today?'

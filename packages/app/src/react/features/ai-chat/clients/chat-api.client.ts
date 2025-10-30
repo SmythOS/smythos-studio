@@ -119,7 +119,7 @@ export class ChatAPIClient {
         ...this.config.defaultHeaders,
         'X-AGENT-ID': agentId,
         'x-conversation-id': chatId,
-        'x-ai-agent': 'true',
+        'x-enable-meta-messages': 'true',
         ...headers,
       };
 

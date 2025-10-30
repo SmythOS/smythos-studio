@@ -33,6 +33,7 @@ export type TChatBotProperties = {
   allowedDomains: string[];
   isFullScreen?: boolean;
   allowFileAttachments?: boolean;
+  enableMetaMessages?: boolean;
 };
 
 export type TFormPreviewProperties = {

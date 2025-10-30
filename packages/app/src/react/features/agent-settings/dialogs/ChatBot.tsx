@@ -112,6 +112,7 @@ const ChatBotDialog = ({
     allowedDomains: [],
     isFullScreen: false,
     allowFileAttachments: false,
+    enableMetaMessages: false,
   };
 
   useEffect(() => {
@@ -666,6 +667,40 @@ const ChatBotDialog = ({
                                     className="ml-2 text-sm font-normal text-[#1E1E1E]"
                                   >
                                     Allow file attachments
+                                  </label>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex items-center mb-4">
+                                  <div className="relative flex items-center">
+                                    <Field
+                                      type="checkbox"
+                                      id="enableMetaMessages"
+                                      name="enableMetaMessages"
+                                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded peer appearance-none focus:outline-none box-shadow-none"
+                                      checked={props.values?.enableMetaMessages || false}
+                                      onChange={(e) => {
+                                        props.setFieldValue('enableMetaMessages', e.target.checked);
+                                      }}
+                                    />
+                                    <svg
+                                      className="absolute w-4 h-4 pointer-events-none hidden peer-checked:block top-0 left-0 text-v2-blue"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  </div>
+                                  <label
+                                    htmlFor="enableMetaMessages"
+                                    className="ml-2 text-sm font-normal text-[#1E1E1E]"
+                                  >
+                                    Enable Meta Messages
                                   </label>
                                 </div>
                               </div>
