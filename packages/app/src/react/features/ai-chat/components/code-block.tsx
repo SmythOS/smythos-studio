@@ -1,33 +1,60 @@
-import { FC, useState } from 'react';
+import { DetailedHTMLProps, FC, HTMLAttributes, ReactNode, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { materialDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlock {
-  language: string;
-  children: string;
+  inline?: boolean;
+  children?: ReactNode;
 }
 
-export const CodeBlock: FC<CodeBlock> = ({ language, children }) => {
+type Props = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & CodeBlock;
+
+export const CodeBlock: FC<Props> = ({ className, children, inline, ...props }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const match = /language-(\w+)/.exec(className || '');
+  let language = match ? match[1] : '';
+  const codeContent = String(children).replace(/\n$/, '');
+
+  // Render inline code without syntax highlighting
+  if (inline) {
+    return (
+      <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-sm" {...props}>
+        {children}
+      </code>
+    );
+  }
+
+  // Language aliases for better compatibility
+  const languageAliases = {
+    js: 'javascript',
+    ts: 'typescript',
+    jsx: 'javascript',
+    tsx: 'typescript',
+    py: 'python',
+    sh: 'bash',
+    yml: 'yaml',
+  };
+
+  // Normalize language
+  if (languageAliases[language]) {
+    language = languageAliases[language];
+  }
 
   const handleCopyClick = () => {
-    navigator.clipboard.writeText(children).then(() => {
+    navigator.clipboard.writeText(String(children)).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
     });
   };
 
   return (
-    <div className="relative">
-      <div
-        className="flex items-center justify-between bg-gray-800 absolute top-0 right-0 rounded-br-none rounded-bl-none w-full px-2"
-        style={{ zIndex: 1 }}
-      >
-        <div className="text-xs text-gray-400">{language}</div>
+    <div className="relative rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between bg-gray-800 px-2 w-full">
+        <div className="text-xs text-slate-400">{language}</div>
         <button
           onClick={handleCopyClick}
-          className="text-gray-400 rounded py-1 text-xs flex items-center"
+          className="text-slate-400 rounded py-1 text-xs flex items-center"
         >
           {isCopied ? <FaCheck /> : <FaRegCopy />}
           {isCopied ? ' Copied!' : ' Copy code'}
@@ -35,12 +62,25 @@ export const CodeBlock: FC<CodeBlock> = ({ language, children }) => {
       </div>
       <SyntaxHighlighter
         language={language}
-        style={materialDark}
+        style={oneDark}
         PreTag="div"
-        wrapLongLines
+        className=""
         wrapLines
+        wrapLongLines
+        showLineNumbers={false}
+        customStyle={{
+          margin: 0,
+          borderRadius: '0',
+          fontSize: '0.875rem',
+          transition: 'none',
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          maxWidth: '100%',
+        }}
+        codeTagProps={{ style: { transition: 'none' } }}
       >
-        {children}
+        {codeContent}
       </SyntaxHighlighter>
     </div>
   );

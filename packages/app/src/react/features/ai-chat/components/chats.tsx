@@ -207,6 +207,8 @@ export const Chats: FC<IChatsProps> = (props) => {
     return groups;
   }, [messages]);
 
+  console.log('Group Messages', groupedMessages);
+
   return (
     <div
       data-chat-container

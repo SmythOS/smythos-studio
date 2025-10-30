@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { CodeBlock } from '@react/features/ai-chat/components';
-import { cn } from '@src/react/shared/utils/general';
 
 interface IMarkdownRendererProps {
   message: string;
@@ -15,50 +14,63 @@ interface IMarkdownRendererProps {
  * Used by both SystemMessage and Typewriter components
  */
 export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, className }) => {
+  /**
+   * Preprocess markdown to handle nested code blocks properly
+   * Simple and robust: Only unwrap if entire content is in a single outer fence
+   */
+  const preprocessMarkdown = (text: string): string => {
+    if (!text) return text;
+
+    // Trim to avoid whitespace issues
+    const trimmed = text.trim();
+    const lines = trimmed.split('\n');
+
+    // Must have at least 3 lines (opening fence, content, closing fence)
+    if (lines.length < 3) return text;
+
+    const firstLine = lines[0].trim();
+    const lastLine = lines[lines.length - 1].trim();
+
+    // Check if wrapped in code fences
+    // First line: ```optionalLanguage
+    // Last line: ```
+    if (firstLine.startsWith('```') && lastLine === '```') {
+      // Extract inner content (everything between first and last line)
+      const innerContent = lines.slice(1, -1).join('\n');
+
+      // Only unwrap if inner content has nested code blocks
+      // This indicates it's a documentation wrapper, not actual code
+      if (innerContent.includes('```')) {
+        return innerContent;
+      }
+    }
+
+    return text;
+  };
+
+  // Process markdown: remove nested wrappers if present
+  const normalizedMessage = preprocessMarkdown(message);
+
   return (
     <div className={className}>
       <ReactMarkdown
-        children={message}
+        children={normalizedMessage}
         remarkPlugins={[remarkGfm]}
         components={{
-          // Headers with consistent styling
-          h1: (props) => <h1 style={{ fontWeight: 'bold', fontSize: '2em' }} {...props} />,
-          h2: (props) => <h2 style={{ fontWeight: 'bold', fontSize: '1.5em' }} {...props} />,
-          h3: (props) => <h3 style={{ fontWeight: 'bold', fontSize: '1.17em' }} {...props} />,
-          h4: (props) => <h4 style={{ fontWeight: 'bold', fontSize: '1em' }} {...props} />,
-          h5: (props) => <h5 style={{ fontWeight: 'bold', fontSize: '0.83em' }} {...props} />,
-          h6: (props) => <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />,
+          // Headers with proper spacing using Tailwind
+          h1: (props) => <h1 className="text-3xl font-bold my-4" {...props} />,
+          h2: (props) => <h2 className="text-2xl font-bold my-3" {...props} />,
+          h3: (props) => <h3 className="text-xl font-bold my-3" {...props} />,
+          h4: (props) => <h4 className="text-lg font-bold my-2" {...props} />,
+          h5: (props) => <h5 className="text-base font-bold my-2" {...props} />,
+          h6: (props) => <h6 className="text-sm font-bold my-2" {...props} />,
 
           // Code blocks and inline code
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
-            const content = String(children).replace(/\n$/, '');
+          code: ({ ...props }) => <CodeBlock {...props} />,
 
-            // Determine if content should be rendered as CodeBlock
-            const isCodeBlock =
-              match ||
-              content.includes('\n') ||
-              content.length > 50 ||
-              /[{}();=<>]/.test(content) ||
-              /^(function|class|import|export|const|let|var|if|for|while)/.test(content.trim());
+          // Paragraph with proper spacing
+          p: ({ ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
 
-            return isCodeBlock ? (
-              <CodeBlock language={match?.[1] || 'text'}>{content}</CodeBlock>
-            ) : (
-              <code
-                className={cn(
-                  'bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border whitespace-pre-wrap text-wrap max-w-full',
-                  className,
-                )}
-                {...props}
-              >
-                {children}
-              </code>
-            );
-          },
-
-          // Paragraph with spacing
-          p: ({ ...props }) => <p className="leading-relaxed" {...props} />,
           // Links with color and underline
           a: ({ ...anchorProps }) => (
             <a
@@ -68,25 +80,21 @@ export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, classNam
               className="text-blue-600 hover:text-blue-800 underline"
             />
           ),
-          // Unordered list with bullets
-          ul: ({ ...props }) => (
-            <ul className="list-disc list-inside mb-4 ml-4 space-y-2" {...props} />
-          ),
-          // Ordered list with numbers
+
+          // Lists with proper spacing and visible markers
+          ul: ({ ...props }) => <ul className="list-disc list-outside pl-8 space-y-4" {...props} />,
           ol: ({ ...props }) => (
-            <ol className="list-decimal list-inside mb-4 ml-4 space-y-2" {...props} />
+            <ol className="list-decimal list-outside pl-8 space-y-4" {...props} />
           ),
-          // List items
-          li: ({ ...props }) => <li className="leading-relaxed" {...props} />,
+          li: ({ ...props }) => <li className="leading-relaxed ml-2 mb-4" {...props} />,
+
           // Blockquote styling
           blockquote: ({ ...props }) => (
-            <blockquote
-              className="border-l-4 border-slate-300 pl-4 py-2 mb-4 italic text-slate-700"
-              {...props}
-            />
+            <blockquote className="border-l-4 border-slate-300 pl-4 py-2 my-3 italic" {...props} />
           ),
-          // Pre-formatted code blocks - now handled by SyntaxHighlighter
-          pre: ({ ...props }) => <pre {...props} />,
+
+          // Pre-formatted code blocks - pass through with wrapper
+          pre: ({ children }) => <div className="my-4">{children}</div>,
           // Horizontal rule
           hr: ({ ...props }) => <hr className="my-6 border-t border-slate-300" {...props} />,
           // Strong/bold text
