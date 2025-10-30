@@ -4,7 +4,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../utils';
 import { handleKvFieldEditBtn, handleVaultBtn } from '../../utils/component.utils';
-import { handleTemplateVars } from './misc';
+import { addBracketSelection, handleTemplateVars } from './misc';
 
 declare var Metro;
 
@@ -291,6 +291,7 @@ interface TextAreaWithEditor extends HTMLTextAreaElement {
     getValue: () => string;
     setValue: (value: string) => void;
     focus: () => void;
+    container?: HTMLElement;
   };
 }
 
@@ -678,6 +679,8 @@ function syncTextareaValues(
 /**
  * Initialize code editor in a textarea element
  * Uses requestAnimationFrame for optimal DOM readiness detection
+ * Adds json-editor class to match inline textarea behavior
+ * Sets up Ace editor with bracket selection for variable syntax
  */
 async function initializeCodeEditor(
   textarea: TextAreaWithEditor,
@@ -702,6 +705,12 @@ async function initializeCodeEditor(
   if (textarea._editor) {
     textarea._editor.setValue(initialValue);
     textarea._editor.focus();
+
+    // Setup bracket selection for Ace editor content
+    const aceContentElement = textarea._editor.container?.querySelector('.ace_content') as HTMLElement | null;
+    if (aceContentElement) {
+      addBracketSelection(aceContentElement);
+    }
   }
 }
 
@@ -752,6 +761,26 @@ function copyTextareaAttributes(
     Object.entries(additionalAttributes).forEach(([key, value]) => {
       targetTextarea.setAttribute(key, value);
     });
+  }
+}
+
+/**
+ * Setup bracket selection for Metro UI textareas in modal
+ * Waits for Metro UI initialization and attaches handlers to both fake and real textareas
+ */
+async function setupMetroUIBracketSelection(textarea: HTMLTextAreaElement): Promise<void> {
+  // Wait for Metro UI to initialize its wrapper structure
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  const textareaWrapper = textarea.closest('.textarea');
+  const fakeTextarea = textareaWrapper?.querySelector('.fake-textarea') as HTMLElement;
+
+  if (fakeTextarea) {
+    // Attach to both elements: fake receives clicks, real handles some focus events
+    addBracketSelection(fakeTextarea);
+    addBracketSelection(textarea);
+  } else {
+    addBracketSelection(textarea);
   }
 }
 
@@ -993,6 +1022,12 @@ async function handleExpandTextarea(
   modalTextarea.classList.add('form-control', 'flex-1', 'resize-none');
   modalTextarea.id = 'expanded-textarea';
 
+  // Add Metro UI data-role for regular textareas (non-code editor)
+  if (!hasCodeEditor) {
+    modalTextarea.setAttribute('data-role', 'textarea');
+    modalTextarea.setAttribute('data-auto-size', 'false');
+  }
+
   // Copy validation attributes from original textarea for Metro UI validation
   const validateAttr = originalTextarea.getAttribute('data-validate');
   if (validateAttr) {
@@ -1118,6 +1153,9 @@ async function handleExpandTextarea(
         );
       } else {
         initializeRegularTextarea(modalTextareaInDialog);
+
+        // Setup bracket selection for Metro UI textareas
+        await setupMetroUIBracketSelection(modalTextareaInDialog);
       }
 
       // Template variables setup (if enabled)

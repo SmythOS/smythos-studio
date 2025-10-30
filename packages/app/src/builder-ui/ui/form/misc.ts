@@ -246,9 +246,14 @@ export function handleTemplateVars(targetElm, component = null) {
         e.preventDefault();
 
         // for some reason clickedElm does not able to get parent elements, so we need to query it again
-        const buttonElm = document.querySelector(
+        // Search for the button within the current target element scope (modal or inline)
+        // This ensures we get the correct button when there are multiple forms (inline + modal)
+        const buttonElm = targetElm.querySelector(
           `.template-var-button[data-var="${clickedElm.getAttribute('data-var')}"]`,
-        );
+        ) as HTMLElement;
+
+        // If button not found in current scope, return early
+        if (!buttonElm) return;
 
         // Prioritize finding json-editor (ACE editor textarea) first, then fall back to regular fields
         const formGroup = buttonElm.closest('.form-group');
@@ -460,48 +465,82 @@ export const setTabIndex = (selector: string): void => {
   fakeTextarea.forEach((el) => el.setAttribute('tabindex', '-1'));
 };
 
-function _bracketSelectionEvent(e: any) {
-  let inputElement: HTMLInputElement = e.target;
-
+/**
+ * Finds and returns the bracket match range for a given cursor position
+ * Only matches if cursor is ON or INSIDE the brackets, not before/after them
+ */
+function findBracketMatch(text: string, cursorPosition: number): { start: number; end: number } | null {
   const regex = /{{.*?}}/g;
   let match;
 
-  if (inputElement?.classList?.contains('ace_content')) {
-    const editor = (<any>(
-      inputElement?.closest('.smt-input-textarea')?.querySelector('.json-editor')
-    ))?._editor;
+  while ((match = regex.exec(text)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
 
-    const cursorPosition = editor?.getCursorPosition();
-    const rowPosition = cursorPosition?.row;
-    const columnPosition = cursorPosition?.column;
+    // Only select if cursor is strictly inside the brackets (start < cursor < end)
+    // This excludes clicking before opening {{ or after closing }}
+    if (start < cursorPosition && cursorPosition < end) {
+      return { start, end };
+    }
+  }
 
-    const text = editor?.session?.getLine(rowPosition);
+  return null;
+}
 
-    while ((match = regex.exec(text)) !== null) {
-      const start = match.index;
-      const end = match.index + match[0].length;
+/**
+ * Handles bracket selection for variable syntax (e.g., {{variable}})
+ * Supports: Ace editors, Metro UI textareas, and regular textareas
+ */
+function _bracketSelectionEvent(e: any) {
+  const inputElement: HTMLInputElement = e.target;
+  const aceContentElement = inputElement?.classList?.contains('ace_content')
+    ? inputElement
+    : inputElement?.closest?.('.ace_content');
 
-      if (start <= columnPosition && columnPosition <= end) {
-        editor.selection.setRange({
-          start: { row: rowPosition, column: start },
-          end: { row: rowPosition, column: end },
-        });
-        break;
-      }
+  if (aceContentElement) {
+    // Handle Ace editor clicks
+    const editorContainer = aceContentElement.closest('.ace-editor');
+    const textarea = editorContainer?.previousElementSibling as any;
+    const editor = textarea?._editor ||
+      (aceContentElement.closest('.form-group')?.querySelector('.json-editor') as any)?._editor;
+
+    if (editor) {
+      setTimeout(() => {
+        const { row, column } = editor.getCursorPosition();
+        const text = editor.session.getLine(row);
+        const match = findBracketMatch(text, column);
+
+        if (match) {
+          editor.selection.setRange({
+            start: { row, column: match.start },
+            end: { row, column: match.end },
+          });
+        }
+      }, 0);
+    }
+  } else if (inputElement?.classList?.contains('fake-textarea')) {
+    // Handle Metro UI fake textarea clicks
+    const textareaWrapper = inputElement.closest('.textarea');
+    const realTextarea = textareaWrapper?.querySelector('textarea:not(.fake-textarea)') as HTMLTextAreaElement;
+
+    if (realTextarea) {
+      realTextarea.focus();
+
+      // Longer delay needed for Metro UI to sync cursor position
+      setTimeout(() => {
+        const match = findBracketMatch(realTextarea.value, realTextarea.selectionStart);
+
+        if (match) {
+          realTextarea.setSelectionRange(match.start, match.end);
+        }
+      }, 50);
     }
   } else {
-    const text = inputElement.value;
-    const cursorPosition = inputElement.selectionStart;
+    // Handle regular textarea/input clicks
+    const match = findBracketMatch(inputElement.value, inputElement.selectionStart);
 
-    while ((match = regex.exec(text)) !== null) {
-      const start = match.index;
-      const end = match.index + match[0].length;
-
-      if (start <= cursorPosition && cursorPosition <= end) {
-        inputElement.selectionStart = start;
-        inputElement.selectionEnd = end;
-        break;
-      }
+    if (match) {
+      inputElement.setSelectionRange(match.start, match.end);
     }
   }
 }
