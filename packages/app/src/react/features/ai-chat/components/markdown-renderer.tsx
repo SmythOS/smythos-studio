@@ -57,16 +57,58 @@ export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, classNam
             );
           },
 
-          // Images with responsive styling
-          img: (props) => (
-            <img {...props} className="rounded-xl" style={{ maxWidth: '100%', height: 'auto' }} />
+          // Paragraph with spacing
+          p: ({ ...props }) => <p className="leading-relaxed" {...props} />,
+          // Links with color and underline
+          a: ({ ...anchorProps }) => (
+            <a
+              {...anchorProps}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            />
           ),
-
-          // Links with security attributes
-          a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-
-          // Paragraphs with proper whitespace handling
-          p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+          // Unordered list with bullets
+          ul: ({ ...props }) => (
+            <ul className="list-disc list-inside mb-4 ml-4 space-y-2" {...props} />
+          ),
+          // Ordered list with numbers
+          ol: ({ ...props }) => (
+            <ol className="list-decimal list-inside mb-4 ml-4 space-y-2" {...props} />
+          ),
+          // List items
+          li: ({ ...props }) => <li className="leading-relaxed" {...props} />,
+          // Blockquote styling
+          blockquote: ({ ...props }) => (
+            <blockquote
+              className="border-l-4 border-slate-300 pl-4 py-2 mb-4 italic text-slate-700"
+              {...props}
+            />
+          ),
+          // Pre-formatted code blocks - now handled by SyntaxHighlighter
+          pre: ({ ...props }) => <pre {...props} />,
+          // Horizontal rule
+          hr: ({ ...props }) => <hr className="my-6 border-t border-slate-300" {...props} />,
+          // Strong/bold text
+          strong: ({ ...props }) => <strong className="font-bold" {...props} />,
+          // Emphasis/italic text
+          em: ({ ...props }) => <em className="italic" {...props} />,
+          // Tables
+          table: ({ ...props }) => (
+            <table className="border-collapse border border-slate-300 my-4 w-full" {...props} />
+          ),
+          thead: ({ ...props }) => <thead className="bg-slate-200 font-semibold" {...props} />,
+          tbody: ({ ...props }) => <tbody {...props} />,
+          tr: ({ ...props }) => <tr className="border-b border-slate-300" {...props} />,
+          th: ({ ...props }) => (
+            <th
+              className="border border-slate-300 px-4 py-2 text-left font-bold bg-slate-200"
+              {...props}
+            />
+          ),
+          td: ({ ...props }) => <td className="border border-slate-300 px-4 py-2" {...props} />,
+          // Images with responsive sizing
+          img: ({ ...props }) => <img className="max-w-full h-auto rounded my-4" {...props} />,
         }}
       />
     </div>
