@@ -679,8 +679,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     span.textContent = entry.validateMessage;
 
     // For expandable textareas, append the error message inside the wrapper
-    // so it's a sibling to the textarea element (which gets the .invalid class)
+    // Position it absolutely below the textarea so it doesn't push the expand button
     if (textareaWrapper) {
+      span.style.cssText = 'display: none; position: absolute; bottom: -24px; left: 0; font-size: 12px; color: #c50f1f; font-weight: 500;';
+      textareaWrapper.style.position = 'relative';
+      textareaWrapper.style.marginBottom = '24px';
       textareaWrapper.appendChild(span);
     } else {
       div.appendChild(span);
