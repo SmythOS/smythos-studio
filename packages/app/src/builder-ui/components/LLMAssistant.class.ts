@@ -30,7 +30,15 @@ export class LLMAssistant extends Component {
     // TODO: set warning if the model is not available
 
     //remove undefined models
-    this.modelOptions = modelOptions.filter((e) => e);
+    this.modelOptions = modelOptions.filter((item) => {
+      if (!item) return false;
+
+      // Keep the currently selected model even if it's hidden
+      if (item?.value === model) return true;
+
+      // Otherwise, filter out hidden models
+      return !item?.hidden;
+    });
 
     return true;
   }

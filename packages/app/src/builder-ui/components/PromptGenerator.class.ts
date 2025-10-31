@@ -48,7 +48,15 @@ export class PromptGenerator extends Component {
     // TODO: set warning if the model is not available
 
     //remove undefined models
-    this.modelOptions = modelOptions.filter((e) => e);
+    this.modelOptions = modelOptions.filter((item) => {
+      if (!item) return false;
+
+      // Keep the currently selected model even if it's hidden
+      if (item?.value === model) return true;
+
+      // Otherwise, filter out hidden models
+      return !item?.hidden;
+    });
 
     this.setModelParams(model);
 
@@ -293,8 +301,9 @@ export class PromptGenerator extends Component {
       },
       maxContextTokens: {
         type: 'div',
-        html: `<strong class="px-2">Context window size: <span class="tokens_num">${allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
-          }</span> tokens</strong><br/>`,
+        html: `<strong class="px-2">Context window size: <span class="tokens_num">${
+          allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
+        }</span> tokens</strong><br/>`,
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,xAI,TogetherAI,VertexAI,Bedrock,cohere',

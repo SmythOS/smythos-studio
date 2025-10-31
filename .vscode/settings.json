@@ -18,7 +18,7 @@
   // ✅ CORRECT CURRENT SETTINGS: Force alias usage
   "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
   "typescript.updateImportsOnPaste.enabled": true,
-  "cSpell.words": ["logto", "smythos"]
+  "cSpell.words": ["logto", "smythfs", "smythos"]
 
   // ✅ Additional helpful settings
 }
