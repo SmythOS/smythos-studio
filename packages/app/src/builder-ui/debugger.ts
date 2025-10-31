@@ -1511,6 +1511,11 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
       if (active) {
         componentElement.classList.add('dbg-active');
         activeComponentsInfo.push(componentElement);
+
+        const debugBtn = componentElement.querySelector('.btn-debug');
+        if (debugBtn) {
+          debugBtn.setAttribute('data-tooltip', 'Debug Step');
+        }
       }
 
       if (result.state[id].alwaysActive) componentElement.classList.add('dbg-always-active');
@@ -3237,6 +3242,11 @@ function resetComponentsState({
     component.classList.remove('has-empty-inputs'); // Remove the class that marks components with empty inputs
     component.classList.remove('empty-input-style');
     $(component.querySelector('.cpt-overlay')).hide();
+
+    const debugBtn = component.querySelector('.btn-debug');
+    if (debugBtn) {
+      debugBtn.setAttribute('data-tooltip', 'Run with Debug');
+    }
 
     if (resetMessages) {
       component['_control']?.clearComponentMessages();

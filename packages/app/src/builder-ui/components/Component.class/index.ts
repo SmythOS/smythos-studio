@@ -494,7 +494,19 @@ export class Component extends EventEmitter {
       `;
 
     debugBtn.appendChild(svgContainer);
-    debugBtn.onclick = this.openDebugDialog.bind(this);
+    debugBtn.onclick = (event) => {
+      // if the component is already active, step the component
+      if (this.domElement.classList.contains('dbg-active')) {
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        const stepBtn = document.getElementById('debug-menubtn-step');
+        stepBtn && stepBtn.click();
+        return;
+      }
+
+      // otherwise, open the debug dialog
+      this.openDebugDialog(event);
+    };
 
     new TooltipV2(debugBtn, {
       text: 'Run with Debug',

@@ -125,6 +125,12 @@
   cursor: not-allowed;
 }
 
+.debug-enabled.debugging .component:not(.dbg-active) .btn-debug {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .component .endpoint .dbg-output {
   display: none;
 }
