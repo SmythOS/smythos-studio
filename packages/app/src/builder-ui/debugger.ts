@@ -2604,28 +2604,6 @@ export function createDebugInjectDialog(
     element.value = fileValues.length === 1 ? fileValues[0] : fileValues;
   };
 
-  /**
-   * Handles the first-time debug session logic for showing the inspector bar
-   * Scope: global per user. If dismissed once for any agent (in any team),
-   * it won't auto-pop for other agents or teams for that user.
-   */
-  function handleFirstDebugSession() {
-    const userEmail = workspace?.userData?.email;
-    // Global per user (across teams and agents)
-    if (userEmail) {
-      const debugSessionKey = `first-debug-session-${userEmail}`;
-
-      const isFirstDebugSession = localStorage.getItem(debugSessionKey) === null;
-
-      // Only show bottom bar if it's the first debug session
-      const bottomBar = document.getElementById('bottom-bar');
-      if (isFirstDebugSession && bottomBar) {
-        bottomBar.classList.remove('hidden');
-        localStorage.setItem(debugSessionKey, 'false');
-      }
-    }
-  }
-
   const handleDebugAction = async function (
     component: Component,
     dialog,
@@ -2651,9 +2629,6 @@ export function createDebugInjectDialog(
         el.classList.remove('has-empty-inputs');
       });
     }
-
-    // Call the function to handle first debug session
-    handleFirstDebugSession();
 
     debugInputs[component.uid] = {
       inputs: {},
