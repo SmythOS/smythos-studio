@@ -194,7 +194,7 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
 
     // Construct the debugger server URL for file streaming
     // The debugger server will extract agent ID from the URL path
-    const debuggerUrl = new URL(`${config.env.API_SERVER}/smythfs/stream`);
+    const debuggerUrl = new URL(`${config.env.API_SERVER}/user/smythfs/stream`);
     debuggerUrl.searchParams.set('url', url);
 
     // Forward the range header if present
