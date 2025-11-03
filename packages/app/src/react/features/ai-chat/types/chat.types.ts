@@ -81,6 +81,7 @@ export interface IStreamConfig {
   agentId: string; // Target agent ID
   chatId: string; // Conversation ID
   message: string; // User message content
+  modelId?: string; // Model ID to override backend model selection
   attachments?: IFileAttachment[]; // File attachments
   signal: AbortSignal; // Abort signal for cancellation
   headers?: Record<string, string>; // Custom headers

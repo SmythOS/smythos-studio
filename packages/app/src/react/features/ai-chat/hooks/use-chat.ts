@@ -22,6 +22,7 @@ import { useChatStream } from './use-chat-stream';
 interface IUseChatConfig {
   agentId: string;
   chatId: string; // Chat/Conversation ID
+  modelId?: string; // Model ID to override backend model selection
   avatar?: string;
   client?: ChatAPIClient; // Custom chat API client
   headers?: Record<string, string>; // Custom headers for requests
@@ -65,7 +66,7 @@ interface IUseChatConfig {
  * ```
  */
 export const useChat = (config: IUseChatConfig): IUseChatReturn => {
-  const { agentId, chatId, avatar, client, headers, onChatComplete, onError } = config;
+  const { agentId, chatId, modelId, avatar, client, headers, onChatComplete, onError } = config;
 
   // State management
   const [messages, setMessages] = useState<IChatMessage[]>([]);
@@ -324,6 +325,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             agentId,
             chatId,
             message,
+            modelId, // Pass model ID to override backend model selection
             attachments,
             signal: new AbortController().signal, // Signal managed by useChatStream
             headers,

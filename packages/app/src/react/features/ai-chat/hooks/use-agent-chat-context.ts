@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -50,6 +50,9 @@ export interface IUseAgentChatContextReturn {
     retryLastMessage: () => void;
     stopGenerating: () => void;
     clearChatSession: () => Promise<void>;
+    // Model override (temporary, not saved to agent config)
+    selectedModelOverride: string | null;
+    setSelectedModelOverride: (model: string | null) => void;
   };
   agent: ReturnType<typeof useAgent>['data'];
   agentSettings: ReturnType<typeof useAgentSettings>['data'];
@@ -94,6 +97,9 @@ export const useAgentChatContext = (
   // Internal refs for tracking state
   const isFirstMessageSentRef = useRef(false);
   const hasInitializedChatRef = useRef(false);
+
+  // Model override state (temporary, not saved to agent config)
+  const [selectedModelOverride, setSelectedModelOverride] = useState<string | null>(null);
 
   // ============================================================================
   // API HOOKS
@@ -146,6 +152,8 @@ export const useAgentChatContext = (
   } = useChat({
     agentId,
     chatId: agentSettings?.lastConversationId || '',
+    // Use override if set, otherwise fall back to agent's default model
+    modelId: selectedModelOverride || agentSettings?.chatGptModel,
     avatar: agent?.aiAgentSettings?.avatar,
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
@@ -301,6 +309,10 @@ export const useAgentChatContext = (
       retryLastMessage,
       stopGenerating,
       clearChatSession,
+
+      // Model override (temporary, not saved to agent config)
+      selectedModelOverride,
+      setSelectedModelOverride,
     }),
     [
       // File handling dependencies
@@ -325,6 +337,9 @@ export const useAgentChatContext = (
       retryLastMessage,
       stopGenerating,
       clearChatSession,
+      // Model override dependencies
+      selectedModelOverride,
+      setSelectedModelOverride,
     ],
   );
 
