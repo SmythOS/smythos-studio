@@ -25,6 +25,10 @@ interface ChatContextType {
   retryLastMessage: () => void;
   stopGenerating: () => void;
   clearChatSession: () => Promise<void>;
+  
+  // Model override (temporary, not saved to agent config)
+  selectedModelOverride: string | null;
+  setSelectedModelOverride: (model: string | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
