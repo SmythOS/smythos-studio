@@ -151,41 +151,41 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             )}
           </figure>
 
-          <div className="flex items-center">
+          <div className="flex items-start justify-center flex-col">
             {isAgentLoading ? (
               <Skeleton className="w-24 h-6 rounded-md" />
             ) : (
-              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
+              <span className="text-lg leading-none font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
                 {agentName || 'Unknown Agent'}
               </span>
             )}
-          </div>
 
-          {/* Model selection */}
-          <div className="flex items-center">
-            {isSettingsLoading ? (
-              <Skeleton className="w-40 h-10 rounded-lg" />
-            ) : (
-              <select
-                name="model"
-                id="model"
-                value={currentModel}
-                onChange={handleModelChange}
-                className="w-fit p-2 pr-7 bg-white border border-slate-300 rounded-lg text-sm text-slate-500"
-                disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
-              >
-                {llmModels.map((model) => {
-                  let badge = getTempBadge(model.tags);
-                  badge = badge ? ' (' + badge + ')' : '';
+            {/* Model selection */}
+            <div className="flex items-center">
+              {isSettingsLoading ? (
+                <Skeleton className="w-20 h-5 rounded-lg" />
+              ) : (
+                <select
+                  name="model"
+                  id="model"
+                  value={currentModel}
+                  onChange={handleModelChange}
+                  className="appearance-none [&::-ms-expand]:hidden w-fit -ml-1 p-0 pl-1 pr-6 bg-white bg-none border-0 rounded-t-md text-xs text-slate-500 focus:ring-slate-300"
+                  disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
+                >
+                  {llmModels.map((model) => {
+                    let badge = getTempBadge(model.tags);
+                    badge = badge ? ' (' + badge + ')' : '';
 
-                  return (
-                    <option key={model.value} value={model.value}>
-                      {model.label + badge}
-                    </option>
-                  );
-                })}
-              </select>
-            )}
+                    return (
+                      <option key={model.value} value={model.value}>
+                        {model.label + badge}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+            </div>
           </div>
         </div>
 
