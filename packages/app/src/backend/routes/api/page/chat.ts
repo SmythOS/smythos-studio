@@ -66,6 +66,7 @@ router.post('/stream', async (req, res) => {
   const token = req.user.accessToken;
   const agentId = req.headers['x-agent-id'];
   const conversationId = req.headers['x-conversation-id'];
+  const modelId = req.headers['x-model-id']; // Extract model ID for backend override
   const isAgentChat = req.headers['x-ai-agent'] === 'true';
 
   try {
@@ -81,6 +82,7 @@ router.post('/stream', async (req, res) => {
           'x-conversation-id': conversationId,
           'x-smyth-team-id': teamId,
           'x-ai-agent': isAgentChat,
+          ...(modelId ? { 'x-model-id': modelId } : {}), // Forward model ID if provided
         },
         responseType: 'stream',
       },
