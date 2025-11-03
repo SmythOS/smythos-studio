@@ -113,9 +113,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
             setIsStreaming(false);
             abortControllerRef.current = null;
 
-            if (onStreamEnd) {
-              onStreamEnd();
-            }
+            if (onStreamEnd) onStreamEnd();
 
             callbacks.onComplete();
           },
