@@ -248,14 +248,20 @@ export class Workspace extends EventEmitter {
 
       if (conflict) this.jsPlumbInstance.deleteConnection(info.connection);
 
-      const agentCardValid = AgentCard.checkConnValidity(info);
-      if (!agentCardValid) this.jsPlumbInstance.deleteConnection(info.connection);
+      // const agentCardValid = AgentCard.checkConnValidity(info);
+      // if (!agentCardValid) this.jsPlumbInstance.deleteConnection(info.connection);
 
       //! SHOULDN'T WE ABORT EARLY IF THERE WAS A CONFLICT!!?? I feel like it aborts and works correctly
       //! but cannot detect how and where does it abort if a conflict or non-valid conn was detected
 
       const sourceComponent = info.source.closest('.component')?._control;
       const targetComponent = info.target.closest('.component')?._control;
+
+      const validSourceConn = sourceComponent?.checkConnValidity(info);
+      if (!validSourceConn) this.jsPlumbInstance.deleteConnection(info.connection);
+
+      const validTargetConn = targetComponent?.checkConnValidity(info);
+      if (!validTargetConn) this.jsPlumbInstance.deleteConnection(info.connection);
 
       sourceComponent?.emit(
         'connectionAttached',
@@ -1399,16 +1405,7 @@ export class Workspace extends EventEmitter {
         );
       }
     } else {
-      //handle the special case of triggers connecting to APIEndpoints
-
-      if (
-        sourceComponent.classList.contains('Trigger') &&
-        targetComponent.classList.contains('APIEndpoint')
-      ) {
-        targetEndpoint = targetComponent.querySelector(`.endpoint-connection`);
-      } else {
-        targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
-      }
+      targetEndpoint = [...targetComponent.querySelectorAll(`.input-endpoint`)][targetEndpointID];
     }
 
     // @ts-ignore

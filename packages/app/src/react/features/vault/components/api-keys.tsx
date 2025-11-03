@@ -442,42 +442,48 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
                     </td>
                     <td className="pl-4 py-2">
                       <div className="flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopy(key.key, key.id)}
-                        >
-                          {copiedKeyId === key.id ? (
-                            <Check className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                        {pageAccess?.write && (
+                        <Tooltip content={copiedKeyId === key.id ? 'Copied!' : 'Copy'}>
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={key.scope?.includes('CUSTOM_LLM')}
-                            onClick={() => {
-                              setSelectedKey(key);
-                              setEditModalOpen(true);
-                            }}
+                            onClick={() => handleCopy(key.key, key.id)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            {copiedKeyId === key.id ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
                           </Button>
+                        </Tooltip>
+                        {pageAccess?.write && (
+                          <Tooltip content="Edit">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={key.scope?.includes('CUSTOM_LLM')}
+                              onClick={() => {
+                                setSelectedKey(key);
+                                setEditModalOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </Tooltip>
                         )}
                         {pageAccess?.write && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={key.scope?.includes('CUSTOM_LLM')}
-                            onClick={() => {
-                              setSelectedKey(key);
-                              setDeleteModalOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 hover:text-red-500" />
-                          </Button>
+                          <Tooltip content="Delete">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={key.scope?.includes('CUSTOM_LLM')}
+                              onClick={() => {
+                                setSelectedKey(key);
+                                setDeleteModalOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 hover:text-red-500" />
+                            </Button>
+                          </Tooltip>
                         )}
                       </div>
                     </td>

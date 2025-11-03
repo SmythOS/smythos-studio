@@ -2,7 +2,6 @@ import { privateStorage } from '@src/backend/services/storage';
 import { StorageACL } from '@src/backend/services/storage/StaticStorage';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import { checkObjectOwnership } from '../../../utils/storage.utils';
 
@@ -21,13 +20,15 @@ const uploadMw = privateStorage.createUploadMw({
   key: (req, file) => {
     const teamId = req._team.id;
 
-    const uniquePart = uuidv4();
-    const hashedFilename = crypto
-      .createHash('sha256')
-      .update(file.originalname + Date.now().toString())
-      .digest('hex');
+    // const uniquePart = uuidv4();
+    // const hashedFilename = crypto
+    //   .createHash('sha256')
+    //   .update(file.originalname + Date.now().toString())
+    //   .digest('hex')
+    //   .slice(0, 16);
+    const randomId = crypto.randomBytes(8).toString('hex'); // 16-char hex ID
 
-    return `/datasources/teams/${teamId}/${hashedFilename}-${uniquePart}`;
+    return `/datasources/teams/${teamId}/${randomId}--${file.originalname}`;
   },
 
   metadata: (req, file) => {

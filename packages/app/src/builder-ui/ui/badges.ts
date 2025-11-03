@@ -32,9 +32,10 @@ export type FeatureType =
 
 export type ModelStatus =
   | 'new'
-  | 'legacy'
   | 'limited'
+  | 'legacy'
   | 'deprecated'
+  | 'retired'
   | 'removed'
   | 'groq'
   | 'togetherai'
@@ -58,14 +59,14 @@ const statusBadgeConfigs: Record<ModelStatus, BadgeConfig> = {
     classes:
       'text-smyth-emerald-400 border-smyth-emerald-400 [.drop-container_&]:bg-smyth-emerald-400 [.drop-container_&]:text-white',
   },
-  legacy: {
-    label: 'Legacy',
+  limited: {
+    label: 'Limited',
     icon: '',
     classes:
       'text-smyth-amber-500 border-smyth-amber-500 [.drop-container_&]:bg-smyth-amber-500 [.drop-container_&]:text-gray-100',
   },
-  limited: {
-    label: 'Limited',
+  legacy: {
+    label: 'Legacy',
     icon: '',
     classes:
       'text-smyth-amber-500 border-smyth-amber-500 [.drop-container_&]:bg-smyth-amber-500 [.drop-container_&]:text-gray-100',
@@ -74,13 +75,19 @@ const statusBadgeConfigs: Record<ModelStatus, BadgeConfig> = {
     label: 'Deprecated',
     icon: '',
     classes:
-      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-white',
+      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-gray-100',
+  },
+  retired: {
+    label: 'Retired',
+    icon: '',
+    classes:
+      'text-orange-600 border-orange-600 [.drop-container_&]:bg-orange-600 [.drop-container_&]:text-gray-100',
   },
   removed: {
     label: 'Removed',
     icon: '',
     classes:
-      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-white',
+      'text-smyth-red-500 border-smyth-red-500 [.drop-container_&]:bg-smyth-red-500 [.drop-container_&]:text-gray-100',
   },
   groq: {
     label: 'Groq',

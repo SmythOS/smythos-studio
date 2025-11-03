@@ -288,7 +288,7 @@ export async function twModalDialog({
   const dialogDialog = dialog.querySelector('.__dialog');
 
   const dialogTitle = dialog.querySelector('.__title');
-  const dialogContent = dialog.querySelector('.__content');
+  const dialogContent = dialog.querySelector('.__content') as HTMLElement;
 
   const dialogActions = dialog.querySelector('.__actions');
 
@@ -302,8 +302,9 @@ export async function twModalDialog({
   if (size) {
     const dialogElement = dialogDialog as HTMLElement;
     dialogElement.classList.add('flex', 'flex-col');
-    dialogContent.classList.add('h-full', 'p-4');
-    
+    dialogContent.classList.add('p-4');
+    dialogContent.style.height = 'calc(100% - 44px)';
+
     if (size.width) {
       dialogElement.style.width = size.width;
     }

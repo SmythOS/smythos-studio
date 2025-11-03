@@ -4,6 +4,7 @@ import { TextArea as CustomTextarea } from '@react/shared/components/ui/newDesig
 import { SkeletonLoader } from '@src/react/shared/components/ui/skeleton-loader';
 import { Modal, Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // #region Temporary Badges
 const TEMP_BADGES = {
@@ -28,6 +29,42 @@ const SettingsWidget = () => {
     postHogEvent: { setPostHogEvent },
     updateCurrentFormValues,
   } = useWidgetsContext();
+
+  // Animation state for modal transitions
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  // Trigger animation when modal opens/closes
+  useEffect(() => {
+    if (isModalOpen) {
+      // Show modal immediately, then animate in
+      setShowModal(true);
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setIsAnimating(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (showModal) {
+      // Animate out first, then hide modal
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setShowModal(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isModalOpen, showModal]);
+
+  /**
+   * Handle modal close with animation
+   */
+  const handleAnimatedClose = () => {
+    // Trigger animation out
+    setIsAnimating(false);
+    // After animation completes, call the actual close handler
+    setTimeout(() => {
+      handleModalClose();
+    }, 300);
+  };
 
   if (isLoading.embodiments || isLoading.llmModels) return <SkeletonLoader title="LLM" />;
 
@@ -131,12 +168,24 @@ const SettingsWidget = () => {
           </div>
 
           <Modal
-            show={isModalOpen}
-            onClose={handleModalClose}
+            show={showModal}
+            onClose={handleAnimatedClose}
             size="7xl"
             theme={{
               root: {
-                base: 'fixed inset-0 z-50 h-screen overflow-y-auto overflow-x-hidden bg-gray-900 bg-opacity-50 dark:bg-opacity-80 md:inset-0',
+                base: `fixed inset-0 z-50 h-screen overflow-y-auto overflow-x-hidden md:inset-0 transition-all duration-300 ${
+                  isAnimating ? 'bg-gray-900 bg-opacity-50 dark:bg-opacity-80' : 'bg-transparent'
+                }`,
+                show: {
+                  on: 'flex',
+                  off: 'hidden',
+                },
+              },
+              content: {
+                base: 'relative h-full w-full p-4 md:h-auto',
+                inner: `relative flex max-h-[90dvh] flex-col rounded-lg bg-white shadow dark:bg-gray-700 transition-transform duration-300 ease-out ${
+                  isAnimating ? 'scale-100' : 'scale-0'
+                }`,
               },
               header: {
                 base: 'flex items-start justify-between rounded-t border-b p-5 pb-0 dark:border-gray-600',
@@ -160,7 +209,7 @@ const SettingsWidget = () => {
                 onBlur={formik.handleBlur}
                 fullWidth
                 autoGrow={false}
-                style={{ minHeight: '500px' }}
+                style={{ minHeight: '600px' }}
               />
             </Modal.Body>
           </Modal>

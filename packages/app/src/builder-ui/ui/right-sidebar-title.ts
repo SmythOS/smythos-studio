@@ -77,13 +77,13 @@ export const rightSidebarTitle = (title: string, tooltipText: string) => {
 
   const titleHTML = `
       <div class="flex items-center justify-between h-[72px] px-4 w-full">
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 text-v2-gray-dark title-icon">${iconSvg}</span>
-          <span id="embodiment-sidebar-title" class="text-2xl font-semibold text-v2-gray-darker">${title}</span>
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+          <span class="w-6 h-6 text-v2-gray-dark title-icon shrink-0">${iconSvg}</span>
+          <span id="embodiment-sidebar-title" class="text-2xl font-semibold text-v2-gray-darker truncate block min-w-0">${title}</span>
           ${
             tooltipText
               ? `
-            <div class="relative inline-block hidden">
+            <div class="relative inline-block hidden shrink-0">
               <svg class="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-help"
                    data-tooltip-target="title-tooltip"
                    fill="none"
@@ -107,7 +107,7 @@ export const rightSidebarTitle = (title: string, tooltipText: string) => {
           }
         </div>
 
-         <div class="flex items-center gap-2">
+         <div class="flex items-center gap-2 shrink-0">
           <div class="dialog-actions actions m-0 order-none">
             <div class="action-buttons inline-flex justify-end px-0 m-0 align-middle">
               <div class="action-content flex"></div>

@@ -13,6 +13,7 @@ export class LLMRegistry {
     'default', // Added default tag for models with no special tags
     'legacy',
     'deprecated',
+    'retired',
     'removed',
   ];
 
@@ -156,28 +157,69 @@ export class LLMRegistry {
   }
 
   /**
-   * Sorts an array of LLM models based on their tags and provider.
-   * Models are grouped first by tag priority, then by provider order within each tag group.
-   * Provider order: OpenAI, Anthropic, GoogleAI, Perplexity, TogetherAI, Others
-   * Tag order: Enterprise, Custom, Personal, SmythOS, Default, then Legacy/Deprecated/Removed at the end
+   * Sorts an array of LLM models using a multi-level sorting strategy.
+   *
+   * Sorting priority (in order):
+   * 1. Exclusion group: Non-excluded models come first, then Legacy, Deprecated, Retired, Removed
+   * 2. Regular tag priority: Enterprise → Custom → Personal → SmythOS → Default (maintained within each exclusion group)
+   * 3. Provider order: OpenAI → Anthropic → GoogleAI → Perplexity → TogetherAI → Others
+   * 4. Alphabetically by label (tie-breaker)
+   *
+   * Example order:
+   * - Personal GPT-4 (non-excluded)
+   * - SmythOS Claude (non-excluded)
+   * - Personal GPT-3 (Legacy)
+   * - SmythOS GPT-3.5 (Legacy)
+   * - Personal GPT-1 (Deprecated)
+   * - SmythOS GPT-2 (Deprecated)
    *
    * @param models - Array of LLMModel objects to sort
-   * @returns New sorted array of models grouped by tags and sorted by provider (does not mutate the original array)
+   * @returns New sorted array of models (does not mutate the original array)
    */
   public static sortModels(models: LLMModel[]): LLMModel[] {
     // Create a copy to avoid mutating the original array
     const modelsCopy = [...models];
 
-    const excludedTags = new Set(['legacy', 'deprecated', 'removed']);
+    const excludedTags = new Set(['legacy', 'deprecated', 'retired', 'removed']);
 
     const hasExcludedTag = (tags: string[]): boolean => {
       return tags.some((tag) => excludedTags.has(tag.toLowerCase()));
     };
 
-    const getHighestPriorityTag = (tags: string[]): number => {
+    /**
+     * Gets the excluded tag with the lowest priority (highest index in MODELS_ORDER_BY_TAG).
+     * Returns -1 if no excluded tags are found.
+     */
+    const getLowestPriorityExcludedTag = (tags: string[]): number => {
       const normalizedTags = tags.map((tag) => tag.toLowerCase());
+      const modelExcludedTags = normalizedTags.filter((tag) => excludedTags.has(tag));
+
+      if (modelExcludedTags.length === 0) {
+        return -1;
+      }
+
+      // Find the excluded tag with the lowest priority (highest index)
+      let lowestPriorityIndex = -1;
+      for (const tag of modelExcludedTags) {
+        const index = this.MODELS_ORDER_BY_TAG.indexOf(tag);
+        if (index > lowestPriorityIndex) {
+          lowestPriorityIndex = index;
+        }
+      }
+      return lowestPriorityIndex;
+    };
+
+    /**
+     * Gets the highest priority regular tag (non-excluded).
+     * This is used for sorting within exclusion groups.
+     */
+    const getHighestPriorityRegularTag = (tags: string[]): number => {
+      const normalizedTags = tags.map((tag) => tag.toLowerCase());
+      // Filter out excluded tags and find the highest priority regular tag
+      const regularTags = normalizedTags.filter((tag) => !excludedTags.has(tag));
+
       const index = this.MODELS_ORDER_BY_TAG.findIndex((tag) =>
-        normalizedTags.includes(tag.toLowerCase()),
+        regularTags.includes(tag.toLowerCase()),
       );
       // Return index of 'default' if no matching tag is found
       return index !== -1 ? index : this.MODELS_ORDER_BY_TAG.indexOf('default');
@@ -191,24 +233,32 @@ export class LLMRegistry {
     };
 
     return modelsCopy.sort((a, b) => {
-      // First, separate excluded models (legacy, deprecated, removed) from regular models
-      const aExcluded = hasExcludedTag(a.tags);
-      const bExcluded = hasExcludedTag(b.tags);
+      // First level: Sort by excluded tag priority (non-excluded → legacy → deprecated → retired → removed)
+      const aExcludedTagWeight = getLowestPriorityExcludedTag(a.tags);
+      const bExcludedTagWeight = getLowestPriorityExcludedTag(b.tags);
 
-      // If one is excluded and the other is not, excluded goes to the end
-      if (aExcluded !== bExcluded) {
-        return aExcluded ? 1 : -1;
+      // If one has excluded tags and the other doesn't, non-excluded comes first
+      if ((aExcludedTagWeight === -1) !== (bExcludedTagWeight === -1)) {
+        return aExcludedTagWeight === -1 ? -1 : 1;
       }
 
-      // Within the same exclusion group, sort by tag priority
-      const aTagWeight = getHighestPriorityTag(a.tags);
-      const bTagWeight = getHighestPriorityTag(b.tags);
-
-      if (aTagWeight !== bTagWeight) {
-        return aTagWeight - bTagWeight;
+      // If both have excluded tags, sort by excluded tag priority
+      if (aExcludedTagWeight !== -1 && bExcludedTagWeight !== -1) {
+        if (aExcludedTagWeight !== bExcludedTagWeight) {
+          return aExcludedTagWeight - bExcludedTagWeight;
+        }
       }
 
-      // Within the same tag group, sort by provider order
+      // Second level: Within the same exclusion group, sort by regular tag priority
+      // (Enterprise → Custom → Personal → SmythOS → Default)
+      const aRegularTagWeight = getHighestPriorityRegularTag(a.tags);
+      const bRegularTagWeight = getHighestPriorityRegularTag(b.tags);
+
+      if (aRegularTagWeight !== bRegularTagWeight) {
+        return aRegularTagWeight - bRegularTagWeight;
+      }
+
+      // Third level: Within the same tag group, sort by provider order
       const aProviderWeight = getProviderPriority(a.provider);
       const bProviderWeight = getProviderPriority(b.provider);
 
@@ -216,7 +266,7 @@ export class LLMRegistry {
         return aProviderWeight - bProviderWeight;
       }
 
-      // If same tag and provider, sort alphabetically by label as a tie-breaker
+      // Fourth level: If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
   }

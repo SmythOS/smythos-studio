@@ -160,7 +160,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
         </div>
       </div>
 
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-4 pb-2">
         {isLoading ? (
           <div className="py-4 text-center text-gray-500">Loading models...</div>
         ) : (
@@ -168,8 +168,8 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
             {models.length === 0 ? (
               <div className="py-4 text-center text-gray-500">No custom models found</div>
             ) : (
-              <div className="overflow-x-auto">
-                <div className="min-w-[500px]">
+              <div className="overflow-x-auto overflow-y-visible">
+                <div className="min-w-[500px] space-y-4">
                   {models.map((model) => (
                     <div key={model.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -189,22 +189,26 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
                       <div className="flex items-center gap-2 ml-2">
                         {pageAccess.write && (
                           <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditModel(model)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteClick(model)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Trash2 className="h-4 w-4 hover:text-red-500" />
-                            </Button>
+                            <Tooltip content="Edit">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditModel(model)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content="Delete">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(model)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-4 w-4 hover:text-red-500" />
+                              </Button>
+                            </Tooltip>
                           </>
                         )}
                       </div>

@@ -1356,4 +1356,31 @@ router.post('/store-limit-reached', async (req, res) => {
   }
 });
 
+router.post('/trigger/:id/register', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { payload } = req.body;
+
+    const url = `${config.env.API_SERVER}/user/trigger/${id}/register`;
+
+    const headers = {
+      'X-AGENT-ID': req.headers['x-agent-id'],
+      ...(await authHeaders(req)), //add auth headers
+    };
+
+    console.log('trigger register url', url, headers);
+
+    const result: any = await axios.post(url, { ...payload }, headers);
+
+    console.log('>>> trigger register result', result.data);
+
+    res
+      .status(result.status || 200)
+      .send(result.error ? { error: result.error } : { ...result.data });
+  } catch (error) {
+    console.error('Error registering trigger:', error);
+    res.status(500).send({ error: 'Error registering trigger' });
+  }
+});
+
 export default router;

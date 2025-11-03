@@ -10,7 +10,6 @@ import { UIHelper } from './ui.helper';
  * for components to integrate OAuth functionality without cluttering the component code.
  */
 export class oAuthSettings {
-  private component: any;
   private oauthService: OAuthService | undefined;
   private uiHelper: UIHelper | undefined;
   private oauthConnectionNames: SelectOption[] = [];
@@ -18,7 +17,10 @@ export class oAuthSettings {
   private boundHandleFocusAfterAuth: () => Promise<void>;
   private boundHandleAuthMessage: (event: MessageEvent) => void;
 
-  constructor(component: any) {
+  constructor(
+    private component: any,
+    private setting_name: string = 'oauth_con_id',
+  ) {
     this.component = component;
     this.boundHandleFocusAfterAuth = this.handleFocusAfterAuth.bind(this);
     this.boundHandleAuthMessage = this.handleAuthMessage.bind(this);
@@ -29,8 +31,10 @@ export class oAuthSettings {
    * Minimal integration so other components can just call oauth.checkSettings().
    */
   public async checkSettings(): Promise<void> {
-    const connectionId: string | undefined = this.component?.data?.oauth_con_id;
-    const existingBtn = this.component?.domElement?.querySelector('button.oauthButton') as HTMLButtonElement || null;
+    const connectionId: string | undefined = this.component?.data?.[this.setting_name];
+    const existingBtn =
+      (this.component?.domElement?.querySelector('button.oauthButton') as HTMLButtonElement) ||
+      null;
 
     // If no connection chosen, remove component-level button (if any) and exit
     if (!connectionId || connectionId === 'None') {
@@ -87,12 +91,12 @@ export class oAuthSettings {
    */
   configure(): Record<string, any> {
     return {
-      oauth_con_id: {
+      [this.setting_name]: {
         type: 'select',
         label: 'OAuth Connection',
         section: 'OAuth',
         options: this.oauthConnectionNames,
-        value: this.component.data.oauth_con_id || 'None',
+        value: this.component.data[this.setting_name] || 'None',
         events: {
           change: (event: Event) =>
             this.handleOAuthConnectionChange((event.target as HTMLSelectElement).value),
@@ -106,6 +110,7 @@ export class oAuthSettings {
             visible: () => true,
             events: {
               click: () => {
+                this.component.data[this.setting_name] = 'None';
                 this.handleOAuthConnectionAction('None');
               },
             },
@@ -116,7 +121,8 @@ export class oAuthSettings {
             id: 'editOAuthConnection',
             cls: 'mt-[7px] !mr-[24px] !pt-[10px]',
             visible: () =>
-              this.component.data.oauth_con_id && this.component.data.oauth_con_id !== 'None',
+              this.component.data[this.setting_name] &&
+              this.component.data[this.setting_name] !== 'None',
             events: {
               click: () => this.handleOAuthConnectionAction(this.component.data.oauth_con_id),
             },
@@ -199,13 +205,13 @@ export class oAuthSettings {
       await this.oauthService.loadConnections();
       const options = this.oauthService.buildSelectOptions();
 
-      if (this.component.settings?.oauth_con_id) {
-        this.component.settings.oauth_con_id.options = options;
+      if (this.component.settings?.[this.setting_name]) {
+        this.component.settings[this.setting_name].options = options;
       }
     } catch (error) {
       console.error('Error updating OAuth connection options:', error);
-      if (this.component.settings?.oauth_con_id) {
-        this.component.settings.oauth_con_id.options = [{ value: 'None', text: 'None' }];
+      if (this.component.settings?.[this.setting_name]) {
+        this.component.settings[this.setting_name].options = [{ value: 'None', text: 'None' }];
       }
     }
   }
@@ -219,7 +225,7 @@ export class oAuthSettings {
       return;
     }
 
-    const selectedConnectionId = this.component.data.oauth_con_id;
+    const selectedConnectionId = this.component.data[this.setting_name];
     if (selectedConnectionId === 'None' || !selectedConnectionId) {
       errorToast('Please select a valid OAuth Connection first', 'Error', 'alert');
       return;
@@ -276,7 +282,7 @@ export class oAuthSettings {
 
     this.uiHelper.activateSpinner(button);
 
-    const success = await this.oauthService.signOut(this.component.data.oauth_con_id);
+    const success = await this.oauthService.signOut(this.component.data[this.setting_name]);
 
     if (success) {
       await this.uiHelper.updateAuthButtonState(false);
@@ -296,6 +302,8 @@ export class oAuthSettings {
       return;
     }
 
+    //const currentValue = this.component.data[this.setting_name];
+
     try {
       const connections = await this.oauthService.loadConnections();
 
@@ -308,7 +316,7 @@ export class oAuthSettings {
           await this.oauthService.saveConnection(connectionId, formData);
 
           // Update component state
-          this.component.data.oauth_con_id = connectionId;
+          this.component.data[this.setting_name] = connectionId;
           await this.updateOAuthConnectionOptions();
           this.component.refreshSettingsSidebar();
           this.uiHelper.updateOAuthActionButtons(this.hasValidConnection());
@@ -327,7 +335,7 @@ export class oAuthSettings {
    * Handles OAuth connection selection change
    */
   private async handleOAuthConnectionChange(selectedValue: string): Promise<void> {
-    this.component.data.oauth_con_id = selectedValue;
+    this.component.data[this.setting_name] = selectedValue;
 
     if (!selectedValue || selectedValue === 'None') {
       await this.uiHelper?.updateAuthButtonState(false);
@@ -366,7 +374,7 @@ export class oAuthSettings {
     this.uiHelper.activateSpinner(authButton);
 
     const isAuthenticated =
-      this.component.data.oauth_con_id && this.component.data.oauth_con_id !== 'None'
+      this.component.data[this.setting_name] && this.component.data[this.setting_name] !== 'None'
         ? await this.checkAuthentication()
         : false;
 
@@ -378,14 +386,16 @@ export class oAuthSettings {
    */
   private async checkAuthentication(): Promise<boolean> {
     if (!this.oauthService) return false;
-    return this.oauthService.checkAuthentication(this.component.data.oauth_con_id);
+    return this.oauthService.checkAuthentication(this.component.data[this.setting_name]);
   }
 
   /**
    * Helper to check if current connection is valid
    */
   private hasValidConnection(): boolean {
-    return !!(this.component.data.oauth_con_id && this.component.data.oauth_con_id !== 'None');
+    return !!(
+      this.component.data[this.setting_name] && this.component.data[this.setting_name] !== 'None'
+    );
   }
 
   /**

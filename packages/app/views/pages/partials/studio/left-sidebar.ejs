@@ -543,21 +543,6 @@
     </div>
   </div>
 
-  <!-- Add new border div with tooltip -->
-  <div
-    class="absolute top-0 -right-5 w-1 h-full cursor-pointer transition-colors duration-200 z-[11] hover:bg-gray-200 group"
-    @click="toggleSidebar"
-    @mousemove="handleBorderMouseMove($event)"
-  >
-    <div
-      class="absolute bg-black text-white py-2 px-3 whitespace-nowrap pointer-events-none z-[52] rounded-lg text-sm text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-      :style="borderTooltipStyle"
-    >
-      <span class="font-bold" x-text="isSidebarOpen ? 'Collapse' : 'Expand'"></span>
-      <span class="text-gray-300"> Click</span>
-    </div>
-  </div>
-
   <%- include('agent-status'); -%>
 </div>
 
@@ -567,11 +552,6 @@
     const isChatPresent = urlParams.has('chat');
 
     Alpine.data('sidebarState', () => ({
-      borderTooltipStyle: {
-        top: '50%',
-        left: '15px',
-        transform: 'translate(0, -50%)',
-      },
       previousTab: localStorage.getItem('previousTab') || null,
       buildSidebarTabs: [
         'agentBuilderTab',
@@ -740,14 +720,6 @@
             localStorage.setItem('currentSidebarTab', this.currentSidebarTab);
           }
         }
-      },
-
-      handleBorderMouseMove(e) {
-        this.borderTooltipStyle = {
-          top: `${e.clientY}px`,
-          left: '15px',
-          transform: 'translate(0, -50%)',
-        };
       },
     }));
   });

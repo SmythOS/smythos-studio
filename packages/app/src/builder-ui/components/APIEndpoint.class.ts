@@ -3,7 +3,7 @@ import { debounce } from 'lodash-es';
 import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import EventEmitter from '../EventEmitter.class';
 import { openEmbodimentDialog } from '../pages/builder/agent-settings';
-import { confirm } from '../ui/dialogs';
+import { alert, confirm } from '../ui/dialogs';
 import { renderEndpointFormPreviewSidebar } from '../ui/react-injects';
 import { delay } from '../utils';
 import { Component } from './Component.class';
@@ -469,6 +469,9 @@ export class APIEndpoint extends Component {
       if (prop === 'name') {
         const oldName = oldValue;
         const newName = newValue;
+        //!\\ don't enable this line for now, it may introduce a breaking change
+        //const newOutputName = `_.${newName}`;
+        const newOutputName = newName;
         const inputName = inputDiv.getAttribute('smt-name');
         const outputName = outputDiv.getAttribute('smt-name');
 
@@ -477,9 +480,9 @@ export class APIEndpoint extends Component {
           inputDiv.querySelector('.name').innerText = newName;
         }
 
-        if (outputName != newName) {
-          outputDiv.setAttribute('smt-name', newName);
-          outputDiv.querySelector('.name').innerText = newName;
+        if (outputName != newOutputName) {
+          outputDiv.setAttribute('smt-name', newOutputName);
+          outputDiv.querySelector('.name').innerText = newOutputName;
 
           // Update the expression attribute to use the new name
           if (outputDiv?.hasAttribute('smt-expression')) {
@@ -502,7 +505,6 @@ export class APIEndpoint extends Component {
         }
       }
     });
-
     await delay(50);
     this.advancedModeActions(this.isOnAdvancedMode);
   }
@@ -528,6 +530,8 @@ export class APIEndpoint extends Component {
 
     const outputDiv: any = await super.addOutput(
       outputParent,
+      //!\\ don't enable this line for now, it may introduce a breaking change
+      //`_.${name}`,
       name,
       {
         expression: `body.${name}`,
@@ -947,5 +951,24 @@ export class APIEndpoint extends Component {
 
     // Sync default values after redraw
     setTimeout(() => this.syncAllDefaultValues(), 100);
+  }
+  checkConnValidity(info: any) {
+    console.log('checkConnValidity', info);
+    const sourceDomComponent = info.source.closest('.component');
+    const targetDomComponent = info.target.closest('.component');
+    if (!sourceDomComponent || !targetDomComponent) return false;
+    if (
+      targetDomComponent.id === this._uid &&
+      !sourceDomComponent.classList.contains('agent-card')
+    ) {
+      alert(
+        'Unsupported Connection',
+        'Skills can only be connected to the agent card',
+        'OK',
+        'error',
+      );
+      return false;
+    }
+    return true;
   }
 }

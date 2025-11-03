@@ -37,7 +37,9 @@ import { VisionLLM } from './VisionLLM.class';
 import { ZapierAction } from './ZapierAction.class';
 
 import { AgentCard } from './AgentCard.class';
-import { GmailTrigger } from './Triggers/GmailTrigger.class';
+import { GmailTrigger } from './Triggers/Gmail.trigger';
+import { WhatsAppTrigger } from './Triggers/WhatsApp.trigger';
+import { JobSchedulerTrigger } from './Triggers/JobScheduler.trigger';
 
 const baseComponents = {
   Component,
@@ -77,7 +79,9 @@ const baseComponents = {
   ImageGenerator,
   MCPClient,
   GmailTrigger,
+  WhatsAppTrigger,
   AgentCard,
+  JobSchedulerTrigger,
 };
 
 export const getBuilderComponents = () => {

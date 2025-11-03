@@ -327,8 +327,8 @@ export class LLMFormController {
       const models = LLMRegistry.getSortedModelsByFeatures(targetFeatures);
 
       for (const model of models) {
-        let tags = model?.['tags'] || [];
-        let features = model?.['features'] || [];
+        let tags = model?.tags || [];
+        let features = model?.features || [];
 
         // Show badges for supported features from target features
         const featuresSet = new Set(features);
@@ -344,6 +344,7 @@ export class LLMFormController {
           badge: `<span class="model-name-badge"><span class="model-name">${model?.label}</span> <span class="all-badges">${statusBadges}</span></span> <span class="float-right">${capabilityBadges}</span>`,
           tags,
           default: model?.default || false,
+          hidden: model?.hidden || false,
         });
       }
 

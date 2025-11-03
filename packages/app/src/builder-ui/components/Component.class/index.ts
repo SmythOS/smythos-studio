@@ -174,6 +174,7 @@ export class Component extends EventEmitter {
     displayName: this.constructor.name,
     cssClass: '',
     iconCSSClass: 'mif-cog',
+    icon: '',
     showSettings: true,
     addOutputButton: 'Outputs',
     addInputButton: 'Inputs',
@@ -426,6 +427,10 @@ export class Component extends EventEmitter {
       }, 15);
     });
   }
+
+  checkConnValidity(info: any) {
+    return true;
+  }
   protected async repaint(redrawConnectors = false) {
     if (redrawConnectors) {
       let connections = [...this.domElement.querySelectorAll('.endpoint')]
@@ -489,7 +494,19 @@ export class Component extends EventEmitter {
       `;
 
     debugBtn.appendChild(svgContainer);
-    debugBtn.onclick = this.openDebugDialog.bind(this);
+    debugBtn.onclick = (event) => {
+      // if the component is already active, step the component
+      if (this.domElement.classList.contains('dbg-active')) {
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        const stepBtn = document.getElementById('debug-menubtn-step');
+        stepBtn && stepBtn.click();
+        return;
+      }
+
+      // otherwise, open the debug dialog
+      this.openDebugDialog(event);
+    };
 
     new TooltipV2(debugBtn, {
       text: 'Run with Debug',
@@ -856,6 +873,7 @@ export class Component extends EventEmitter {
     const propSettings = this.outputSettings[propName];
 
     switch (propSettings?.type) {
+      case 'text':
       case 'string':
         return outputProps?.[propName] || propSettings?.default || _default;
       case 'number':
@@ -866,7 +884,8 @@ export class Component extends EventEmitter {
   }
   public async addOutput(parent, name, outputProperties: any = {}, options: any = {}) {
     if (this.outputNameExists(name)) {
-      errorToast(`${name} already exists`);
+      errorToast(`Output "${name}" already exists`);
+      console.warn(`Output "${name}" already exists`, this);
       return;
     }
     const jsPlumbInstance = this.workspace.jsPlumbInstance;
@@ -993,6 +1012,7 @@ export class Component extends EventEmitter {
           : '<span class="text-xl">Edit Output</span>';
 
       const orderedValConfig = getOrderedValConfig(valConfig, [
+        'name',
         'description',
         'expression',
         'additionalOptionsLabel',
@@ -1013,6 +1033,8 @@ export class Component extends EventEmitter {
             buttonElm.classList.remove('hidden');
             titleElm.appendChild(buttonElm);
           }
+
+          this.emit('outputEditorReady', dialog);
 
           // requires a tiny delay to make sure the input is focused
           delay(50).then(() => focusField(nameElm));
@@ -1181,6 +1203,7 @@ export class Component extends EventEmitter {
 
     switch (propSettings?.type) {
       case 'string':
+      case 'text':
         return inputProps?.[propName] || propSettings?.default || _default;
       case 'number':
         return inputProps?.[propName] || propSettings?.default || _default;
@@ -1191,7 +1214,8 @@ export class Component extends EventEmitter {
 
   public async addInput(parent, name, inputProperties: any = {}) {
     if (this.inputNameExists(name)) {
-      errorToast(`${name} already exists`);
+      errorToast(`Input "${name}" already exists`);
+      console.warn(`Input "${name}" already exists`, this);
       return;
     }
     const jsPlumbInstance: any = this.workspace.jsPlumbInstance;
@@ -1432,6 +1456,8 @@ export class Component extends EventEmitter {
             buttonElm.classList.remove('hidden');
             titleElm.appendChild(buttonElm);
           }
+
+          this.emit('inputEditorReady', dialog);
 
           // requires a tiny delay to make sure the input is focused
           delay(50).then(() => focusField(nameElm));
@@ -1961,7 +1987,7 @@ export class Component extends EventEmitter {
     const titleBar = document.createElement('div');
     titleBar.className = 'title-bar';
 
-    const iconCss = this.drawSettings.iconCSSClass || '';
+    const iconCss = this.drawSettings.icon || this.drawSettings.iconCSSClass || '';
 
     if (iconCss.startsWith('<svg')) {
       const color = this.drawSettings.color || '#000';
@@ -1979,6 +2005,15 @@ export class Component extends EventEmitter {
       if (!pathFill) {
         allPathes.forEach((p) => p.setAttribute('fill', color));
       }
+    } else if (iconCss.startsWith('/img/')) {
+      titleBar.innerHTML = `<div class="flex flex-row items-center gap-1 title-bar-top">
+        <span class="icon h-full">
+        <img src="${iconCss}" />
+        </span>
+        <span class="title font-semibold">${this.title}</span>
+      </div>
+      <span class="description">${this.description}</span>
+      `;
     } else {
       titleBar.innerHTML = `<div class="flex flex-row items-center gap-1 title-bar-top">
         <span class="icon ${iconCss} h-full"></span>
@@ -2787,6 +2822,8 @@ export class Component extends EventEmitter {
           titleElm.appendChild(buttonElm);
         }
 
+        this.emit('inputEditorReady', dialog);
+
         // requires a tiny delay to make sure the input is focused
         delay(50).then(() => focusField(nameElm));
       },
@@ -2876,6 +2913,7 @@ export class Component extends EventEmitter {
         : '<span class="text-xl">Add Output</span>';
 
     const orderedValConfig = getOrderedValConfig(valConfig, [
+      'name',
       'description',
       'expression',
       'additionalOptionsLabel',
@@ -2896,6 +2934,8 @@ export class Component extends EventEmitter {
           buttonElm.classList.remove('hidden');
           titleElm.appendChild(buttonElm);
         }
+
+        this.emit('outputEditorReady', dialog);
 
         // requires a tiny delay to make sure the input is focused
         delay(50).then(() => focusField(nameElm));

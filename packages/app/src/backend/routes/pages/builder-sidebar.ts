@@ -94,7 +94,11 @@ const baseMenu: Menu = {
   ],
 
   //hide triggers for now
-  //Triggers: [{ name: 'GmailTrigger', label: 'Gmail Trigger', description: '' }],
+  // Triggers: [
+  //   { name: 'GmailTrigger', label: 'Gmail Trigger', description: '' },
+  //   { name: 'WhatsAppTrigger', label: 'Whatsapp Trigger', description: '' },
+  //   { name: 'JobSchedulerTrigger', label: 'Job Scheduler Trigger', description: '' },
+  // ],
   Integrations: [],
 };
 

@@ -1315,10 +1315,10 @@ function generateSidebarTitleHTML(component: Component): string {
     <div class="inline-flex items-center gap-2 max-w-full min-w-0">
       <span class="shrink-0 inline-flex items-center">${iconHTML}</span>
       <span class="relative min-w-0 max-w-full flex-1">
-        <span class="truncate block min-w-0 max-w-full leading-tight">${templateName}</span>
+        <span class="truncate block min-w-0 max-w-full leading-tight truncatable-text">${templateName}</span>
         <div
           role="tooltip"
-          class="absolute left-0 top-full mt-1 z-50 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible tooltip whitespace-normal break-words text-left max-w-full pointer-events-none"
+          class="absolute left-0 top-full mt-1 z-50 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible tooltip whitespace-normal break-words text-left max-w-full pointer-events-none conditional-tooltip"
         >
           ${templateName}
         </div>

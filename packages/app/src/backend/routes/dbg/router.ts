@@ -167,11 +167,10 @@ const createSSEProxyOptions: (targetUrl: string) => Options = (targetUrl: string
 // Replace the existing SSE proxy route with the new implementation
 router.use('/sse', createProxyMiddleware(createSSEProxyOptions(config.env.API_SERVER)));
 
-/**
- * Proxies file read requests to the debugger server
- * The debugger server has access to SmythFS and can read files from the runtime environment
- * This approach works for both SaaS and self-hosted environments
- */
+// TODO: should be moved to any SRE server
+//! FIX: but this will not work with self-hosted env since SRE is not guranteed to store in S3 and so this
+//! needs to be reloacted to the debugger server
+
 router.get('/file-proxy', includeTeamDetails, async (req, res) => {
   const { url } = req.query as { url: string };
 
@@ -242,9 +241,6 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
   }
 });
 
-/**
- * Parse a smythfs:// URI and extract team and path information
- */
 function URIParser(uri: string) {
   const parts = uri.split('://');
   if (parts.length !== 2) return undefined;
@@ -260,6 +256,37 @@ function URIParser(uri: string) {
     team,
     path: parsed.pathname,
   };
+}
+
+/**
+ * Get content type based on file extension
+ */
+function getContentType(extension?: string): string {
+  const contentTypes: Record<string, string> = {
+    // Images
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    // Videos
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    ogg: 'video/ogg',
+    // Audio
+    mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+    // Documents
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    // Others
+    txt: 'text/plain',
+    json: 'application/json',
+    csv: 'text/csv',
+  };
+
+  return contentTypes[extension || ''] || 'application/octet-stream';
 }
 
 export default router;

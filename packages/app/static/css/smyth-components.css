@@ -50,7 +50,6 @@
   height: 60px;
 }
 
-
 .component.Async .output-endpoint:not(.default) .name .label::before {
   content: '[ async ]';
   font-size: 10px;
@@ -268,4 +267,157 @@
 
 .Note .note-markdown li {
   display: list-item !important;
+}
+
+/*Trigger styles*/
+
+.component.Trigger {
+  min-height: 100px;
+  min-width: 280px;
+  border-radius: 100px 10px 10px 100px;
+}
+
+.component.Trigger .internal-name {
+  padding-left: 40px;
+}
+
+.component.Trigger .title-bar-top {
+  height: 100px;
+}
+.debug-enabled .component.Trigger .debug-bar {
+  position: absolute;
+  width: calc(100% - 85px);
+  margin-left: 85px !important;
+  margin-top: 10px;
+}
+.component.Trigger .title-bar {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.component.Trigger .title-bar .title {
+  position: absolute;
+  bottom: 0px;
+  margin-left: 100px;
+  padding: 5px 0px;
+  color: #888;
+}
+.component.Trigger .title-bar .icon {
+  border-radius: 100px 10px 10px 100px;
+  padding: 10px;
+}
+.component.Trigger .title-bar .icon img {
+  height: 100%;
+  padding: 5px 0px;
+}
+
+.component.Trigger .ep-control.inputs {
+  display: none !important;
+  visibility: hidden !important;
+}
+.component.Trigger .ep-control.outputs {
+  background: transparent !important;
+  position: absolute;
+  top: 4px;
+  right: -163px;
+  z-index: 1;
+}
+
+.component.Trigger .output-container {
+  position: absolute;
+  background: white;
+  width: 150px;
+  right: -160px;
+  top: -10px;
+  padding: 30px 0px 10px 0px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+.component.Trigger .output-container::before {
+  content: 'Payload';
+  position: absolute;
+  top: 0px;
+  right: 43px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ccc;
+}
+
+.collapsed.component.Trigger .output-container {
+  opacity: 1;
+  right: unset;
+  position: relative;
+  left: calc(100% - 142px);
+  border: 0px;
+  overflow: visible;
+  background: transparent;
+}
+.collapsed.component.Trigger .output-container::after {
+  content: ' ';
+  display: block;
+  background: #91df3f;
+  position: absolute;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  top: 18px;
+}
+.collapsed.component.Trigger .output-container::before {
+  right: 40px;
+  top: -26px;
+}
+
+.component.Trigger .output-container button.toggle-output-container {
+  position: absolute;
+  top: 0px;
+  right: 130px;
+}
+
+.collapsed.component.Trigger .output-container button.toggle-output-container {
+  top: -25px;
+  right: -110px;
+  left: 0px;
+}
+
+.component.Trigger .output-container button.toggle-output-container:hover {
+  scale: 1.2;
+}
+
+/*
+.component.Trigger .output-endpoint button {
+  visibility: hidden !important;
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  border: 0px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  user-select: none !important;
+}
+*/
+.component.Trigger .output-endpoint .name {
+  width: 100%;
+}
+.component.Trigger .output-endpoint .name .label {
+  color: #55ad26;
+}
+
+.component.Trigger .output-container {
+  margin-top: 10px;
+}
+
+.component.Trigger .cpt-overlay {
+  border-radius: 100px 10px 10px 100px !important;
+}
+
+.component.Trigger .cpt-overlay .content {
+  margin: 0px 0px !important;
 }
