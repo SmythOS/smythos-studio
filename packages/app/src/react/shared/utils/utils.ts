@@ -1,5 +1,18 @@
+/**
+ * Constructs a storage URL from a file key
+ * Encodes special characters (like spaces) in the pathname to ensure valid URL format
+ * @param key - The storage key/path (e.g., '/datasources/teams/123/file.pdf')
+ * @returns A properly encoded storage URL (e.g., 'storage:/datasources/teams/123/file.pdf')
+ */
 export function constructS3Url(key: string) {
-  return `storage:${key}`;
+  // Split the key into path segments, encode each segment, then reconstruct
+  // This preserves the path structure while encoding special characters like spaces
+  const segments = key.split('/').map((segment) => {
+    // Only encode non-empty segments to preserve leading/trailing slashes
+    return segment ? encodeURIComponent(segment) : segment;
+  });
+
+  return `storage:${segments.join('/')}`;
 }
 
 export const autoDetectDSFileType = async (file: File) => {
