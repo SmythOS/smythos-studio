@@ -26,7 +26,7 @@
       <input
         type="password"
         id="auth-bearer-token"
-        placeholder="MHjp4...Random Token"
+        placeholder="Enter your bearer token"
         class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ph-no-capture"
         required
         value=""
@@ -40,7 +40,7 @@
       <input
         type="text"
         id="auth-bearer-openai-verification"
-        placeholder="...Verification Token"
+        placeholder="Enter verification token"
         class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ph-no-capture"
         required
         value=""
@@ -57,7 +57,7 @@
         <input
           type="text"
           id="auth-oidc-config-url"
-          placeholder="https://auth.server.com/oicd/.well-known/openid-configuration"
+          placeholder="Enter OIDC configuration URL"
           class="mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           required
           value=""
@@ -76,7 +76,7 @@
       <input
         type="text"
         id="auth-id"
-        placeholder="ID..."
+        placeholder="Enter your client ID"
         class="mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         required
         value=""
@@ -92,7 +92,7 @@
           :type="passwordVisible ? 'text' : 'password'"
           x-model="password"
           id="auth-secret"
-          placeholder="Secret..."
+          placeholder="Enter your client secret"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 pl-2 pr-9 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           required
         />
@@ -150,7 +150,7 @@
       <input
         type="text"
         id="auth-oidc-openai-verification"
-        placeholder="...Verification Token"
+        placeholder="Enter verification token"
         class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         required
         value=""

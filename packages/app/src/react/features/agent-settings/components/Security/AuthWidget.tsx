@@ -362,11 +362,11 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
                 Token <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <input
-                  id="bearer-token"
-                  type={showBearerToken ? 'text' : 'password'}
-                  placeholder="MHjp4...Random Token"
-                  value={bearerConfig.token}
+              <input
+                id="bearer-token"
+                type={showBearerToken ? 'text' : 'password'}
+                placeholder="Enter your bearer token"
+                value={bearerConfig.token}
                   onChange={(e) => setBearerConfig((prev) => ({ ...prev, token: e.target.value }))}
                   className={`w-full p-2 text-sm border rounded-md bg-white ${
                     validationErrors.bearerToken
@@ -399,7 +399,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="bearer-verification"
                 type="text"
-                placeholder="...Verification Token"
+                placeholder="Enter verification token"
                 value={bearerConfig.BearerOpenAIVerificationToken}
                 onChange={(e) =>
                   setBearerConfig((prev) => ({
@@ -426,7 +426,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="oidc-endpoint"
                 type="text"
-                placeholder="https://auth.server.com/oidc"
+                placeholder="Enter OIDC configuration URL"
                 value={oauthConfig.OIDCConfigURL}
                 onChange={(e) =>
                   setOauthConfig((prev) => ({ ...prev, OIDCConfigURL: e.target.value }))
@@ -450,7 +450,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="client-id"
                 type="text"
-                placeholder="ID..."
+                placeholder="Enter your client ID"
                 value={oauthConfig.clientID}
                 onChange={(e) => setOauthConfig((prev) => ({ ...prev, clientID: e.target.value }))}
                 className={`w-full p-2 text-sm border rounded-md bg-white ${
@@ -475,7 +475,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="client-secret"
                 type={showClientSecret ? 'text' : 'password'}
-                placeholder="Secret..."
+                placeholder="Enter your client secret"
                 value={oauthConfig.clientSecret}
                 onChange={(e) =>
                   setOauthConfig((prev) => ({ ...prev, clientSecret: e.target.value }))
@@ -510,7 +510,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="allowed-emails"
                 type="text"
-                placeholder="Comma separated emails or domains list."
+                placeholder="Enter comma separated emails or domains"
                 value={oauthConfig.allowedEmails}
                 onChange={(e) =>
                   setOauthConfig((prev) => ({ ...prev, allowedEmails: e.target.value }))
@@ -530,7 +530,7 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
               <input
                 id="verification-token"
                 type="text"
-                placeholder="Verification Token..."
+                placeholder="Enter verification token"
                 value={oauthConfig.OIDCOpenAIVerificationToken}
                 onChange={(e) =>
                   setOauthConfig((prev) => ({
