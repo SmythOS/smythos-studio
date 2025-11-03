@@ -9,6 +9,7 @@ import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { AgentSettings } from '@react/shared/types/agent-data.types';
+import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
@@ -154,7 +155,12 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
           <div className="flex items-start justify-center flex-col">
             {isAgentLoading ? (
-              <Skeleton className="w-24 h-6 rounded-md" />
+              <Skeleton
+                className={cn(
+                  'w-25 h-[18px] rounded',
+                  (isSettingsLoading || isModelsLoading) && 'rounded-b-none',
+                )}
+              />
             ) : (
               <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
                 {agentName || 'Unknown Agent'}
@@ -164,7 +170,9 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             {/* Model selection */}
             <div className="flex items-center group">
               {isSettingsLoading || isModelsLoading ? (
-                <Skeleton className="w-20 h-5 rounded-lg" />
+                <Skeleton
+                  className={cn('w-25 h-4 rounded ', isSettingsLoading && 'rounded-t-none')}
+                />
               ) : (
                 <div ref={dropdownRef} className="relative leading-none">
                   {/* Selected value display - clickable trigger */}
