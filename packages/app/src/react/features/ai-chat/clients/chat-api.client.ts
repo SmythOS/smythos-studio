@@ -87,7 +87,7 @@ export class ChatAPIClient {
    * ```
    */
   async streamChat(streamConfig: IStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
-    const { agentId, chatId, message, attachments, signal, headers = {} } = streamConfig;
+    const { agentId, chatId, message, modelId, attachments, signal, headers = {} } = streamConfig;
     const { onContent, onThinking, onToolCall, onDebug, onError, onStart, onComplete } = callbacks;
 
     // Validate required parameters
@@ -114,12 +114,13 @@ export class ChatAPIClient {
         onStart();
       }
 
-      // Prepare request
+      // Prepare request headers with optional model override
       const requestHeaders = {
         ...this.config.defaultHeaders,
         'X-AGENT-ID': agentId,
         'x-conversation-id': chatId,
         'x-ai-agent': 'true',
+        ...(modelId ? { 'x-model-id': modelId } : {}), // Include model override if provided
         ...headers,
       };
 
