@@ -73,9 +73,9 @@ const AgentChatPage = () => {
       <Container>
         <ChatHeader
           agentName={agent?.name}
-          avatar={agentSettings?.settings?.avatar}
+          agentSettings={agentSettings?.settings}
           isAgentLoading={isLoading.agent}
-          isAvatarLoading={isLoading.settings}
+          isSettingsLoading={isLoading.settings}
         />
 
         <Chats
