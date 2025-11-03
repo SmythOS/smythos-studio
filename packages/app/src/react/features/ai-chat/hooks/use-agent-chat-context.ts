@@ -243,6 +243,7 @@ export const useAgentChatContext = (
 
   /**
    * Initialize chat session on component mount
+   * Only runs once when both agent and settings are loaded
    */
   useEffect(() => {
     if (agentSettings && agent && !hasInitializedChatRef.current) {
@@ -251,11 +252,10 @@ export const useAgentChatContext = (
 
       // This ensures fresh conversation every time user loads the page
       hasInitializedChatRef.current = true;
-      createNewChatSession().then(() => {
-        onChatReady?.();
-      });
+      createNewChatSession().then(() => onChatReady?.());
     }
-  }, [agentSettings, agent, agentId, createNewChatSession, onChatReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentSettings, agent, agentId]); // Only depend on core values, not callbacks
 
   /**
    * Track chat session lifecycle for observability
