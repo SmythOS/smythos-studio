@@ -440,6 +440,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         setIsProcessing(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       agentId,
       chatId,
