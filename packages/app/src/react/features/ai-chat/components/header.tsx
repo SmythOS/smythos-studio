@@ -155,13 +155,13 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             {isAgentLoading ? (
               <Skeleton className="w-24 h-6 rounded-md" />
             ) : (
-              <span className="text-lg leading-none font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
+              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
                 {agentName || 'Unknown Agent'}
               </span>
             )}
 
             {/* Model selection */}
-            <div className="flex items-center">
+            <div className="flex items-center w-fit">
               {isSettingsLoading ? (
                 <Skeleton className="w-20 h-5 rounded-lg" />
               ) : (
@@ -170,7 +170,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
                   id="model"
                   value={currentModel}
                   onChange={handleModelChange}
-                  className="appearance-none [&::-ms-expand]:hidden w-fit -ml-1 p-0 pl-1 pr-6 bg-white bg-none border-0 rounded-t-md text-xs text-slate-500 focus:ring-slate-300"
+                  className="w-fit -ml-1 p-0 px-1 bg-white border-0 rounded-t text-xs text-slate-500 leading-none focus:ring-slate-300 bg-none appearance-none [&::-ms-expand]:hidden"
                   disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
                 >
                   {llmModels.map((model) => {
