@@ -89,6 +89,9 @@ router.post('/ephemeral-key', async (req, res) => {
 
     if (!response.ok) {
       const error = await response.text();
+      if (error.includes('invalid_api_key')) {
+        return res.status(response.status).json({ error: `Incorrect API key provided` });
+      }
       return res.status(response.status).json({ error: `Failed to create ephemeral key: ${error}` });
     }
 
