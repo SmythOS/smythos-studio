@@ -32,6 +32,7 @@ export interface LLMModel {
   tokens: number;
   completionTokens: number;
   default?: boolean;
+  hidden?: boolean;
   searchContextTokens?: number;
   maxReasoningTokens?: number;
 }

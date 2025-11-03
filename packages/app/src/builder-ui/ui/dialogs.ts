@@ -25,6 +25,7 @@ import config from '../config';
 import { openLLMEmbodiment } from '../pages/builder/llm-embodiment';
 import { smythValidator } from './form/';
 import { getIconFormEmbTab, rightSidebarTitle } from './right-sidebar-title';
+import { setupTooltipTruncationDetection } from './tooltip-truncation-utils';
 
 // Add this near the top of the file with other declarations
 const embodimentHandlers = {
@@ -225,6 +226,13 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
 
 export async function closeRightSidebar() {
   const rightSidebar: any = document.querySelector('#right-sidebar');
+
+  // Cleanup tooltip observers and listeners before closing
+  if (rightSidebar?._tooltipCleanup && typeof rightSidebar._tooltipCleanup === 'function') {
+    rightSidebar._tooltipCleanup();
+    rightSidebar._tooltipCleanup = null;
+  }
+
   rightSidebar.closest('.sidebar-container').classList.remove('open');
   await delay(150);
 
@@ -1110,6 +1118,17 @@ export function sidebarEditValues({
     // Ensure tooltip inside title is not clipped by container overflow from truncate
     sidebarTitleEl.classList.remove('truncate');
     sidebarTitleEl.style.overflow = 'visible';
+
+    // Setup truncation detection and tooltip visibility management
+    const cleanupTooltip = setupTooltipTruncationDetection(
+      sidebarTitleEl,
+      sidebar.closest('.sidebar-container') as HTMLElement,
+    );
+    if (cleanupTooltip) {
+      // Store cleanup function on the sidebar element so it can be called later
+      (sidebar as Record<string, unknown>)._tooltipCleanup = cleanupTooltip;
+    }
+
     const sidebarContent = sidebar.querySelector('.content');
     const sidebarActions = sidebar.querySelector('.actions .action-content');
     sidebarContent.innerHTML = '';

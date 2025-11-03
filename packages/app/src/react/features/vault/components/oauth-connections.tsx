@@ -8,7 +8,8 @@ import {
   mapOAuthTypeDisplay,
 } from '@src/shared/helpers/oauth/oauth.utils';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
-import { Circle, CopyPlus, Pencil, PlusCircle, Trash2 } from 'lucide-react';
+import { Tooltip } from 'flowbite-react';
+import { Circle, CopyPlus, Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   OAUTH_QUERY_KEY, // Import the query key
@@ -343,7 +344,15 @@ export function OAuthConnections() {
     <div className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
-          <h2 className="text-lg font-semibold">OAuth Connections</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            OAuth Connections
+            <Tooltip
+              className="w-72 text-center"
+              content="Manage OAuth connections to authenticate and integrate with external services and APIs"
+            >
+              <Info className="w-4 h-4" />
+            </Tooltip>
+          </h2>
         </div>
         <div className="overflow-x-auto">
           {/* Table */}
@@ -451,37 +460,40 @@ export function OAuthConnections() {
                             ))}
 
                           {/* Duplicate Button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDuplicateClick(conn)}
-                            title="Duplicate"
-                            disabled={isDisabled}
-                          >
-                            <CopyPlus className="h-4 w-4" />
-                          </Button>
+                          <Tooltip content="Duplicate">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDuplicateClick(conn)}
+                              disabled={isDisabled}
+                            >
+                              <CopyPlus className="h-4 w-4" />
+                            </Button>
+                          </Tooltip>
 
                           {/* Edit Button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditClick(conn)}
-                            title="Edit"
-                            disabled={isDisabled}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <Tooltip content="Edit">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditClick(conn)}
+                              disabled={isDisabled}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </Tooltip>
 
                           {/* Delete Button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteClick(conn)}
-                            title="Delete"
-                            disabled={isDisabled}
-                          >
-                            <Trash2 className="h-4 w-4 hover:text-red-500" />
-                          </Button>
+                          <Tooltip content="Delete">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteClick(conn)}
+                              disabled={isDisabled}
+                            >
+                              <Trash2 className="h-4 w-4 hover:text-red-500" />
+                            </Button>
+                          </Tooltip>
                         </div>
                       </td>
                     </tr>

@@ -355,7 +355,7 @@ export const chatUtils = {
             'Content-Type': 'application/json',
             'X-AGENT-ID': input.agentId,
             'x-conversation-id': input.chatId,
-            'x-ai-agent': 'true',
+            'x-enable-meta-messages': 'true',
           },
           body: JSON.stringify({
             message: input.query,

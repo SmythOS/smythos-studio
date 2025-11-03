@@ -121,6 +121,7 @@ export const mapBotEmbodimentProperties = (properties: TChatBotProperties, activ
     allowedDomains: properties?.allowedDomains || [],
     isFullScreen: properties?.isFullScreen || false,
     allowFileAttachments: properties?.allowFileAttachments || false,
+    enableMetaMessages: properties?.enableMetaMessages || false,
   };
 };
 

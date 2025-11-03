@@ -13,7 +13,8 @@ import { Button as CustomButton } from '@src/react/shared/components/ui/newDesig
 import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { GLOBAL_VAULT_KEYS, SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { Check, Copy, Pencil, Trash2 } from 'lucide-react';
+import { Tooltip } from 'flowbite-react';
+import { Check, Copy, Info, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useVault } from '../hooks/use-vault';
 import { UpgradeModal } from './upgrade-modal';
@@ -228,7 +229,15 @@ export function UserModels({ pageAccess }: { pageAccess: { write: boolean } }) {
   return (
     <div className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
       <div className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Your Own AI Models</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
+          Your Own AI Models
+          <Tooltip
+            className="w-72 text-center"
+            content="Bring and maintain your own AI models by adding API keys for OpenAI, Google, Anthropic, and other providers"
+          >
+            <Info className="w-4 h-4" />
+          </Tooltip>
+        </h2>
         <p className="text-sm text-muted-foreground mb-4">
           Bring and maintain your own AI models. See{' '}
           <a
@@ -261,45 +270,55 @@ export function UserModels({ pageAccess }: { pageAccess: { write: boolean } }) {
                   </div>
                   {hasKey ? (
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleCopy(model?.id || '')}>
-                        {copiedKeyId === model?.id ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                      {pageAccess?.write && (
+                      <Tooltip content={copiedKeyId === model?.id ? 'Copied!' : 'Copy'}>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            setModalState({
-                              type: 'edit',
-                              model: {
-                                id: key,
-                                apiKey: model?.apiKey || '',
-                                icon: key.toLowerCase(),
-                                name: value?.['name'],
-                              },
-                            })
-                          }
+                          onClick={() => handleCopy(model?.id || '')}
                         >
-                          <Pencil className="h-4 w-4" />
+                          {copiedKeyId === model?.id ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
                         </Button>
+                      </Tooltip>
+                      {pageAccess?.write && (
+                        <Tooltip content="Edit">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setModalState({
+                                type: 'edit',
+                                model: {
+                                  id: key,
+                                  apiKey: model?.apiKey || '',
+                                  icon: key.toLowerCase(),
+                                  name: value?.['name'],
+                                },
+                              })
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Tooltip>
                       )}
                       {pageAccess?.write && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setModalState({
-                              type: 'delete',
-                              model,
-                            })
-                          }
-                        >
-                          <Trash2 className="h-4 w-4 hover:text-red-500" />
-                        </Button>
+                        <Tooltip content="Delete">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setModalState({
+                                type: 'delete',
+                                model,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-4 w-4 hover:text-red-500" />
+                          </Button>
+                        </Tooltip>
                       )}
                     </div>
                   ) : (
