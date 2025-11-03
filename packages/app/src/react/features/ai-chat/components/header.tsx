@@ -1,17 +1,14 @@
 import { Tooltip } from 'flowbite-react';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
-import { Link, useParams } from 'react-router-dom';
+import { IoChevronDown } from 'react-icons/io5';
+import { Link } from 'react-router-dom';
 
-import { SETTINGS_KEYS } from '@react/features/agent-settings/constants';
 import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
-import { useUpdateAgentSettingsMutation } from '@react/features/ai-chat/hooks';
 import { AgentSettings } from '@react/shared/types/agent-data.types';
-import { LLMFormController } from '@src/builder-ui/helpers/LLMFormController.helper';
-import { errorToast } from '@src/shared/components/toast';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
@@ -55,14 +52,18 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const avatar = agentSettings?.avatar;
   const selectedModel = agentSettings?.chatGptModel;
 
-  const { clearChatSession } = useChatContext();
-  const { agentId } = useParams<{ agentId: string }>();
-  const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
+  const { clearChatSession, selectedModelOverride, setSelectedModelOverride } = useChatContext();
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
   const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
-  const [currentModel, setCurrentModel] = useState<string>(selectedModel || '');
+
+  // State for custom dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Use override if set, otherwise use agent's default model
+  const currentModel = selectedModelOverride || selectedModel || '';
 
   /**
    * Initialize LLM models store on component mount
@@ -82,57 +83,57 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
           }),
         );
 
-        // Set default model if no model is selected
-        if (!selectedModel && models.length > 0) {
-          const defaultModel = LLMFormController.getDefaultModel(models);
-          setCurrentModel(defaultModel);
-        }
-
         setLlmModels(models);
         setIsModelsLoading(false);
       });
-  }, [selectedModel]);
+  }, []);
 
   /**
-   * Update current model when selectedModel prop changes
+   * Handle click outside dropdown to close it
    */
   useEffect(() => {
-    if (selectedModel) setCurrentModel(selectedModel);
-  }, [selectedModel]);
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   /**
    * Handle model selection change
-   * Saves the selected model to agent settings and tracks the event
+   * Only updates context state - does NOT modify agent configuration
+   * Model override is sent with each request via x-model-id header
    */
   const handleModelChange = useCallback(
-    async (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const newModel = event.target.value;
-      setCurrentModel(newModel);
+    (newModel: string) => {
+      // Set temporary model override (not saved to agent config)
+      setSelectedModelOverride(newModel);
 
-      if (!agentId) {
-        errorToast('Agent ID not found');
-        return;
-      }
+      // Close dropdown after selection
+      setIsDropdownOpen(false);
 
-      try {
-        // Save to agent settings using centralized settings key constant
-        await updateAgentSettings({
-          agentId,
-          settings: { key: SETTINGS_KEYS.chatGptModel, value: newModel },
-        });
-
-        // Track model change event (synchronous, no need to await)
-        Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_LLM_selected, {
-          model: newModel,
-        });
-      } catch {
-        errorToast('Failed to update model');
-        // Revert to previous model on error
-        setCurrentModel(selectedModel || '');
-      }
+      // Track model change event (synchronous, no need to await)
+      Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_LLM_selected, {
+        model: newModel,
+      });
     },
-    [agentId, selectedModel, updateAgentSettings],
+    [setSelectedModelOverride],
   );
+
+  /**
+   * Toggle dropdown open/close
+   */
+  const toggleDropdown = useCallback(() => {
+    setIsDropdownOpen((prev) => !prev);
+  }, []);
 
   return (
     <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10 px-2.5 lg:px-0">
@@ -155,35 +156,70 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             {isAgentLoading ? (
               <Skeleton className="w-24 h-6 rounded-md" />
             ) : (
-              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out">
+              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
                 {agentName || 'Unknown Agent'}
               </span>
             )}
 
             {/* Model selection */}
-            <div className="flex items-center w-fit">
-              {isSettingsLoading ? (
+            <div className="flex items-center group">
+              {isSettingsLoading || isModelsLoading ? (
                 <Skeleton className="w-20 h-5 rounded-lg" />
               ) : (
-                <select
-                  name="model"
-                  id="model"
-                  value={currentModel}
-                  onChange={handleModelChange}
-                  className="w-fit -ml-1 p-0 px-1 bg-white border-0 rounded-t text-xs text-slate-500 leading-none focus:ring-slate-300 bg-none appearance-none [&::-ms-expand]:hidden"
-                  disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
-                >
-                  {llmModels.map((model) => {
-                    let badge = getTempBadge(model.tags);
-                    badge = badge ? ' (' + badge + ')' : '';
+                <div ref={dropdownRef} className="relative leading-none">
+                  {/* Selected value display - clickable trigger */}
+                  <button
+                    type="button"
+                    onClick={toggleDropdown}
+                    disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
+                    className="inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none cursor-pointer hover:text-slate-900 transition-colors disabled:cursor-not-allowed disabled:opacity-50 "
+                  >
+                    {/* Display selected model label */}
+                    <span>
+                      {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
+                      {(() => {
+                        const selectedModelData = llmModels.find((m) => m.value === currentModel);
+                        if (selectedModelData) {
+                          const badge = getTempBadge(selectedModelData.tags);
+                          return badge ? ` (${badge})` : '';
+                        }
+                        return '';
+                      })()}
+                    </span>
+                    {/* Dropdown icon */}
+                    <IoChevronDown
+                      className={`size-3 text-slate-500 group-hover:text-slate-900 flex-shrink-0 transition-transform leading-none ${
+                        isDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                    return (
-                      <option key={model.value} value={model.value}>
-                        {model.label + badge}
-                      </option>
-                    );
-                  })}
-                </select>
+                  {/* Dropdown menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full -left-3 mt-1 bg-slate-100 border border-slate-200 rounded-md shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto divide-y divide-slate-200">
+                      {llmModels.map((model) => {
+                        let badge = getTempBadge(model.tags);
+                        badge = badge ? ' (' + badge + ')' : '';
+                        const isSelected = model.value === currentModel;
+
+                        return (
+                          <button
+                            key={model.value}
+                            type="button"
+                            onClick={() => handleModelChange(model.value)}
+                            className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-200 transition-colors focus:outline-none ${
+                              isSelected
+                                ? 'bg-slate-300 text-slate-800 font-medium'
+                                : 'text-slate-600'
+                            }`}
+                          >
+                            {model.label + badge}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
