@@ -14,6 +14,7 @@ import {
 } from '@react/features/ai-chat/types/chat.types';
 import { useCallback, useRef, useState } from 'react';
 import { ChatAPIClient } from '../clients/chat-api.client';
+import { USER_STOPPED_MESSAGE } from '../constants';
 import { useChatStream } from './use-chat-stream';
 
 /**
@@ -397,16 +398,50 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             },
             onError: (streamError) => {
               // Handle stream errors
-              const errorMessage = streamError.isAborted
-                ? 'Response generation was cancelled'
-                : streamError.message;
+              if (streamError.isAborted) {
+                // User stopped generation - finalize current message with generated content
+                const currentContent = currentAIMessageRef.current;
 
-              updateAIMessage(errorMessage, true);
+                // Update the last message to finalize it (convert loading to system)
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMessageIndex = updated.length - 1;
 
-              // Reset turn ID on error
+                  if (lastMessageIndex >= 0) {
+                    const lastMsg = updated[lastMessageIndex];
+                    // Finalize the AI message (change from loading to system)
+                    if (lastMsg.type === 'loading' || lastMsg.type === 'system') {
+                      updated[lastMessageIndex] = {
+                        ...lastMsg,
+                        message: currentContent || lastMsg.message,
+                        type: 'system',
+                        thinkingMessage: undefined,
+                      };
+                    }
+                  }
+
+                  // Add a separate message for user stopped notification
+                  const stopMessage: IChatMessage = {
+                    id: Date.now() + 2,
+                    message: USER_STOPPED_MESSAGE,
+                    type: 'error', // Show as error/warning style but not an actual error
+                    timestamp: Date.now(),
+                  };
+
+                  updated.push(stopMessage);
+
+                  return updated;
+                });
+              } else {
+                // Real error - show error message
+                updateAIMessage(streamError.message, true);
+              }
+
+              // Reset state
+              currentAIMessageRef.current = '';
               currentTurnIdRef.current = null;
 
-              if (onError) onError(new Error(errorMessage));
+              if (onError) onError(new Error(streamError.message));
             },
             onComplete: () => {
               // Clear throttle and flush pending updates immediately
@@ -419,10 +454,9 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
               const finalMessage = currentAIMessageRef.current;
               updateAIMessage(finalMessage, false, true); // immediate update
 
-              // Reset turn ID on complete
+              // Reset state
+              currentAIMessageRef.current = '';
               currentTurnIdRef.current = null;
-
-              // Clear pending updates
               pendingUpdateRef.current = null;
 
               if (onChatComplete) onChatComplete(finalMessage);
@@ -466,8 +500,16 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
     const { message, files } = lastUserMessageRef.current;
 
-    // Remove last two messages (user message and failed AI response)
-    setMessages((prev) => prev.slice(0, -2));
+    // Remove messages: check if last message is error (stop message)
+    setMessages((prev) => {
+      const lastMsg = prev[prev.length - 1];
+
+      // If last message is error (user stopped), remove 3 messages: user + AI + error
+      // Otherwise remove 2 messages: user + failed AI response
+      const messagesToRemove = lastMsg && lastMsg.type === 'error' ? 3 : 2;
+
+      return prev.slice(0, -messagesToRemove);
+    });
 
     // Resend the message
     await sendMessage(message, files);
@@ -475,29 +517,25 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
   /**
    * Stops the current generation
+   * The error handler will preserve generated content and append USER_STOPPED_MESSAGE
    */
   const stopGenerating = useCallback(() => {
+    // Clear throttle timeout to prevent further updates
+    if (updateThrottleRef.current) {
+      clearTimeout(updateThrottleRef.current);
+      updateThrottleRef.current = null;
+    }
+
+    // Flush any pending updates before aborting
+    if (pendingUpdateRef.current) {
+      const { content: pendingContent } = pendingUpdateRef.current;
+      currentAIMessageRef.current = pendingContent; // Save pending content
+      pendingUpdateRef.current = null;
+    }
+
+    // Abort the stream (this will trigger onError with isAborted=true)
+    // The error handler will preserve currentAIMessageRef.current and append stop message
     abortStream();
-
-    // Mark current message as stopped
-    setMessages((prev) => {
-      const updated = [...prev];
-      const lastMessageIndex = updated.length - 1;
-
-      if (
-        lastMessageIndex >= 0 &&
-        (updated[lastMessageIndex].type === 'system' ||
-          updated[lastMessageIndex].type === 'loading')
-      ) {
-        updated[lastMessageIndex] = {
-          ...updated[lastMessageIndex],
-          type: 'system', // Change from loading to system
-          thinkingMessage: undefined,
-        };
-      }
-
-      return updated;
-    });
   }, [abortStream]);
 
   /**
