@@ -70,7 +70,6 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
 export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const { agent, isLoading, agentSettings } = props;
 
-  const agentName = agent?.name;
   const avatar = agentSettings?.avatar;
   const selectedModel = agentSettings?.chatGptModel;
 
@@ -193,7 +192,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
               />
             ) : (
               <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
-                {agentName || 'Unknown Agent'}
+                {agent?.name ?? 'Unknown Agent'}
               </span>
             )}
 
