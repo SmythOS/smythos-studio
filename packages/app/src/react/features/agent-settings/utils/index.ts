@@ -188,7 +188,7 @@ export const isValidURL = (url: string): boolean => {
 
     // 2. Check for valid hostname format
     const hostnameRegex =
-      /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(\.[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$/;
+      /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(\.[a-zA-Z0-9]|\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$/;
 
     if (!hostnameRegex.test(parsedUrl.hostname)) return false;
     return true;
