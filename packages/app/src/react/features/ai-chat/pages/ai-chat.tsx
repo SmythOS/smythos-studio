@@ -35,10 +35,10 @@ const AgentChatPage = () => {
   // ============================================================================
   // All chat logic is now encapsulated in this single hook
   const {
-    chatContextValue,
     agent,
-    agentSettings,
     isLoading,
+    agentSettings,
+    chatContextValue,
     sharedMessagesHistory,
     handleFileDrop,
   } = useAgentChatContext({
@@ -71,12 +71,7 @@ const AgentChatPage = () => {
   return (
     <ChatProvider value={chatContextValue}>
       <Container>
-        <ChatHeader
-          agentName={agent?.name}
-          agentSettings={agentSettings?.settings}
-          isAgentLoading={isLoading.agent}
-          isSettingsLoading={isLoading.settings}
-        />
+        <ChatHeader agent={agent} isLoading={isLoading} agentSettings={agentSettings?.settings} />
 
         <Chats
           {...scroll}
