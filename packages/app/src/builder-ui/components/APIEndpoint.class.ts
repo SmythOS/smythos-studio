@@ -323,6 +323,32 @@ export class APIEndpoint extends Component {
     }
   }
 
+  /**
+   * Handle output edit button click by redirecting to input edit in compact mode.
+   * 
+   * In compact mode (when Advanced Request Parts is disabled), outputs are automatically
+   * created for each input and are not independently editable. When a user clicks the edit
+   * button on an output, we redirect them to edit the corresponding input instead.
+   * 
+   * @param outputDiv - The output element whose edit button was clicked
+   * @param inputDiv - The corresponding input element to redirect to
+   * @returns true in advanced mode (allow normal output edit), false in compact mode (prevent default)
+   */
+  private handleOutputEditClick(outputDiv: HTMLElement, inputDiv: HTMLElement) {
+    if (this.isOnAdvancedMode) return true;
+    const inputEditButton = inputDiv.querySelector('.btn-edit-endpoint') as HTMLElement;
+    if (inputEditButton) inputEditButton.click();
+    return false;
+  }
+
+  /**
+   * Synchronize default values and restore input/output relationships in compact mode.
+   * Called after component redraw (e.g., page refresh) to ensure proper state restoration.
+   * 
+   * This method handles the critical task of maintaining the paired relationship between
+   * inputs and outputs in compact mode, including restoring event handlers that are lost
+   * when components are loaded from saved state.
+   */
   private syncAllDefaultValues() {
     if (this.isOnAdvancedMode) {
       // Remove default values from outputs in advanced mode
@@ -330,23 +356,46 @@ export class APIEndpoint extends Component {
         this.syncDefaultValue(outputDiv, '');
       });
     } else {
-      // Sync default values from inputs to outputs in compact mode
-      this.domElement
-        ?.querySelectorAll('.input-endpoint[smt-defaultVal]:not([smt-defaultVal=""])')
-        .forEach((inputDiv: HTMLElement) => {
-          const inputName = inputDiv.getAttribute('smt-name');
-          if (!this.properties.defaultOutputs.includes(inputName)) {
-            const outputDiv = this.domElement?.querySelector(
-              `.output-endpoint[smt-name="${inputName}"]`,
-            ) as HTMLElement;
-            if (outputDiv) {
-              const defaultValue = inputDiv.getAttribute('smt-defaultVal');
-              this.syncDefaultValue(outputDiv, defaultValue);
-              (inputDiv as any)._outputDivElement = outputDiv;
-              (outputDiv as any)._inputDivElement = inputDiv;
+      // In compact mode, synchronize default values and restore relationships between inputs and outputs
+      // IMPORTANT: We process ALL inputs (not just those with default values) because we need to:
+      // 1. Restore cross-references between input/output pairs (required for name change sync, deletion, etc.)
+      // 2. Re-attach edit redirect handlers after page refresh (fixes bug where wrong modal appears)
+      this.domElement?.querySelectorAll('.input-endpoint').forEach((inputDiv: HTMLElement) => {
+        const inputName = inputDiv.getAttribute('smt-name');
+        if (!this.properties.defaultOutputs.includes(inputName)) {
+          const outputDiv = this.domElement?.querySelector(
+            `.output-endpoint[smt-name="${inputName}"]`,
+          ) as HTMLElement;
+          if (outputDiv) {
+            // Sync default value to output (only if it exists)
+            const defaultValue = inputDiv.getAttribute('smt-defaultVal');
+            if (defaultValue) this.syncDefaultValue(outputDiv, defaultValue);
+
+            // Restore cross-references between input and output elements
+            // These references are used throughout the class for synchronizing changes
+            (inputDiv as any)._outputDivElement = outputDiv;
+            (outputDiv as any)._inputDivElement = inputDiv;
+
+            // Re-attach the edit redirect handler to the output's edit button
+            // WHY: After page refresh, outputs are restored from saved state but their click
+            // handlers are lost. Without this, clicking edit on an output shows the output
+            // edit modal instead of redirecting to the input edit modal (the reported bug).
+            const outputEditButton = outputDiv.querySelector('.btn-edit-endpoint');
+            if (outputEditButton) {
+              outputEditButton.addEventListener(
+                'click',
+                (event) => {
+                  event.stopPropagation();
+                  event.stopImmediatePropagation();
+                  event.preventDefault();
+                  this.handleOutputEditClick(outputDiv, inputDiv);
+                },
+                true, // Use capture phase to intercept before base handler
+              );
             }
           }
-        });
+        }
+      });
     }
   }
 
@@ -537,19 +586,9 @@ export class APIEndpoint extends Component {
         expression: `body.${name}`,
       },
       {
-        onEditBtnClick: (event) => {
-          if (this.isOnAdvancedMode) return true;
-          // if the user clicked on outputDiv edit button, we should open the inputDiv edit button since the output is not editable in easy mode
-          const outputEditButton = outputDiv.querySelector('.btn-edit-endpoint');
-          if (outputEditButton) {
-            const inputEditButton = inputDiv.querySelector('.btn-edit-endpoint');
-            if (inputEditButton) {
-              inputEditButton.click();
-            }
-          }
-
-          return false;
-        },
+        // Redirect output edit clicks to input edit in compact mode
+        // This handler is attached when outputs are initially created
+        onEditBtnClick: () => this.handleOutputEditClick(outputDiv, inputDiv),
       },
     );
 
