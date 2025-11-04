@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { Tooltip } from 'flowbite-react';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
@@ -8,7 +9,7 @@ import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
-import { AgentSettings } from '@react/shared/types/agent-data.types';
+import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
@@ -35,9 +36,11 @@ function getTempBadge(tags: string[]): string {
 
 interface ChatHeaderProps {
   agentSettings?: AgentSettings;
-  agentName?: string;
-  isAgentLoading?: boolean;
-  isSettingsLoading?: boolean;
+  agent?: AgentDetails;
+  isLoading: {
+    agent: boolean;
+    settings: boolean;
+  };
 }
 
 interface ILLMModels {
@@ -47,13 +50,39 @@ interface ILLMModels {
   default?: boolean;
 }
 
+interface ModelAgent {
+  id: string;
+  name: string;
+  avatar: string;
+  description: string;
+}
+
+/**
+ * Fetch model agents from API
+ * @returns Promise of ModelAgent array
+ */
+const fetchModelAgents = async (): Promise<ModelAgent[]> => {
+  const response = await fetch('/api/page/agents/models');
+  const data = await response.json();
+  return data.agents;
+};
+
 export const ChatHeader: FC<ChatHeaderProps> = (props) => {
-  const { agentName, isAgentLoading, isSettingsLoading, agentSettings } = props;
+  const { agent, isLoading, agentSettings } = props;
 
   const avatar = agentSettings?.avatar;
   const selectedModel = agentSettings?.chatGptModel;
 
   const { clearChatSession, selectedModelOverride, setSelectedModelOverride } = useChatContext();
+
+  // Fetch model agents to check if current agent is a model agent
+  const { data: modelAgents } = useQuery<ModelAgent[]>({
+    queryKey: ['modelAgents'],
+    queryFn: fetchModelAgents,
+  });
+
+  // Check if current agent.id exists in modelAgents list
+  const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
@@ -142,7 +171,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
         {/* Left side - Agent Avatar, Name and Model Selection */}
         <div className="w-full flex items-center gap-3">
           <figure>
-            {isSettingsLoading ? (
+            {isLoading.settings ? (
               <Skeleton className="size-8 rounded-full" />
             ) : (
               <img
@@ -154,56 +183,70 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
           </figure>
 
           <div className="flex items-start justify-center flex-col">
-            {isAgentLoading ? (
+            {isLoading.agent ? (
               <Skeleton
                 className={cn(
                   'w-25 h-[18px] rounded',
-                  (isSettingsLoading || isModelsLoading) && 'rounded-b-none',
+                  (isLoading.settings || isModelsLoading) && 'rounded-b-none',
                 )}
               />
             ) : (
               <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
-                {agentName || 'Unknown Agent'}
+                {agent?.name ?? 'Unknown Agent'}
               </span>
             )}
 
             {/* Model selection */}
             <div className="flex items-center group">
-              {isSettingsLoading || isModelsLoading ? (
+              {isLoading.settings || isModelsLoading ? (
                 <Skeleton
-                  className={cn('w-25 h-4 rounded ', isSettingsLoading && 'rounded-t-none')}
+                  className={cn('w-25 h-4 rounded ', isLoading.settings && 'rounded-t-none')}
                 />
               ) : (
                 <div ref={dropdownRef} className="relative leading-none">
                   {/* Selected value display - clickable trigger */}
-                  <button
-                    type="button"
-                    onClick={toggleDropdown}
-                    disabled={isAgentLoading || isSettingsLoading || isModelsLoading}
-                    className="inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none cursor-pointer hover:text-slate-900 transition-colors disabled:cursor-not-allowed disabled:opacity-50 "
+                  <Tooltip
+                    content={
+                      isModelAgent ? 'Model selection is disabled for model agents' : 'Select model'
+                    }
+                    placement="bottom"
                   >
-                    {/* Display selected model label */}
-                    <span>
-                      {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
-                      {(() => {
-                        const selectedModelData = llmModels.find((m) => m.value === currentModel);
-                        if (selectedModelData) {
-                          const badge = getTempBadge(selectedModelData.tags);
-                          return badge ? ` (${badge})` : '';
-                        }
-                        return '';
-                      })()}
-                    </span>
-                    {/* Dropdown icon */}
-                    <IoChevronDown
-                      className={`size-3 text-slate-500 group-hover:text-slate-900 flex-shrink-0 transition-transform leading-none ${
-                        isDropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={toggleDropdown}
+                      disabled={
+                        isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
+                      }
+                      className={cn(
+                        'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                        !isModelAgent && 'cursor-pointer hover:text-slate-900',
+                      )}
+                    >
+                      {/* Display selected model label */}
+                      <span>
+                        {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
+                        {(() => {
+                          const selectedModelData = llmModels.find((m) => m.value === currentModel);
+                          if (selectedModelData) {
+                            const badge = getTempBadge(selectedModelData.tags);
+                            return badge ? ` (${badge})` : '';
+                          }
+                          return '';
+                        })()}
+                      </span>
+                      {/* Dropdown icon */}
+                      <IoChevronDown
+                        className={cn(
+                          'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
+                          !isModelAgent && 'group-hover:text-slate-900',
+                          isDropdownOpen && 'rotate-180',
+                        )}
+                      />
+                    </button>
+                  </Tooltip>
 
-                  {/* Dropdown menu */}
-                  {isDropdownOpen && (
+                  {/* Dropdown menu - only show if not a model agent */}
+                  {isDropdownOpen && !isModelAgent && (
                     <div className="absolute top-full -left-3 mt-1 bg-slate-100 border border-slate-200 rounded-md shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto divide-y divide-slate-200">
                       {llmModels.map((model) => {
                         let badge = getTempBadge(model.tags);
