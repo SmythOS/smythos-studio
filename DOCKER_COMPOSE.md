@@ -74,6 +74,16 @@ docker compose up -d
 docker compose logs -f
 ```
 
+**Apple Silicon / ARM64 Native Build:**
+
+By default, the SmythOS application uses a pre-built AMD64 image (emulated on Apple Silicon). For native ARM64 performance:
+
+```bash
+docker compose --profile native up -d
+```
+
+This builds the application container locally for your native architecture instead of using the pre-built AMD64 image.
+
 ### 4. Access the Application
 
 Once all services are healthy:
@@ -232,6 +242,20 @@ docker compose exec mysql mysqladmin ping -u root -p
 # Check database connectivity from app
 docker compose exec smythos sh -c "mysql -h mysql -u \$DATABASE_USER -p\$DATABASE_PASSWORD -e 'SELECT 1'"
 ```
+
+**4. Architecture mismatch (Apple Silicon):**
+
+If you see AMD64 architecture in Docker Desktop or experience slow performance on Apple Silicon:
+
+```bash
+# Stop current containers
+docker compose down
+
+# Build and start with native ARM64 profile
+docker compose --profile native up -d
+```
+
+This builds the application locally for ARM64 instead of using the pre-built AMD64 image.
 
 ## Maintenance
 

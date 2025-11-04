@@ -41,9 +41,6 @@ services:
       # Dashboard configuration (optional)
       - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
       - traefik.http.routers.traefik.service=api@internal
-    depends_on:
-      smythos:
-        condition: service_healthy
 
   # MySQL Database
   mysql:
@@ -102,8 +99,12 @@ services:
       retries: 5
       start_period: 10s
 
-  # SmythOS Application
+  # SmythOS Application - Pre-built Image (AMD64)
   smythos:
+    profiles:
+      - default
+    # Use pre-built AMD64 image (will emulate on Apple Silicon)
+    # For native build on Apple Silicon: docker compose --profile native up -d
     image: smythos/smythos-studio:alpha
     container_name: smythos-app
     restart: unless-stopped
@@ -123,7 +124,7 @@ services:
       DOCKER_CONTAINER: "true"
     labels:
       - traefik.enable=true
-      
+
       # APP_DOMAIN routing to port 5050 (UI Server)
       - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
       - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
@@ -132,12 +133,12 @@ services:
       # TLS configuration (only enable for production with real domains)
       - "traefik.http.routers.smythos-app.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-app.tls.certresolver=le"
-      
-     
-      
+
+
+
       # Service definition
       - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
-      
+
       # RUNTIME_DOMAIN routing to port 5053 (Runtime Server)
       - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
       - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
@@ -146,7 +147,7 @@ services:
       - "traefik.http.routers.smythos-runtime.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-runtime.tls.certresolver=le"
       - "traefik.http.services.smythos-runtime.loadbalancer.server.port=5053"
-      
+
       # PROD_AGENT_DOMAIN routing to port 5053 (Production Agents)
       - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`) || HostRegexp(`^.+\\.${PROD_AGENT_DOMAIN:-prod\\.localhost}$$`)"
       - "traefik.http.routers.smythos-prod-agents.entrypoints=web,websecure"
@@ -154,7 +155,7 @@ services:
       # TLS configuration (only enable for production with real domains)
       - "traefik.http.routers.smythos-prod-agents.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-prod-agents.tls.certresolver=le"
-      
+
       # DEFAULT_AGENT_DOMAIN routing to port 5053 (Default/Development Agents)
       - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`) || HostRegexp(`^.+\\.${DEFAULT_AGENT_DOMAIN:-default\\.localhost}$$`)"
       - "traefik.http.routers.smythos-default-agents.entrypoints=web,websecure"
@@ -162,7 +163,7 @@ services:
       # TLS configuration (only enable for production with real domains)
       - "traefik.http.routers.smythos-default-agents.tls=${ENABLE_TLS:-false}"
       - "traefik.http.routers.smythos-default-agents.tls.certresolver=le"
-      
+
       # Security Headers Middleware
       - "traefik.http.middlewares.smythos.headers.STSSeconds=315360000"
       - "traefik.http.middlewares.smythos.headers.STSPreload=true"
@@ -187,7 +188,98 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-      
+
+
+  # SmythOS Application - Native Build (Apple Silicon / ARM64)
+  # Activate with: docker compose --profile native up -d
+  smythos-native:
+    profiles:
+      - native
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smythos-app
+    restart: unless-stopped
+    expose:
+      - "5050"
+      - "5053"
+    env_file:
+      - .env
+    environment:
+      # Override database URL to use internal MySQL container with dynamic credentials
+      DATABASE_URL: mysql://${DATABASE_USER:-smythos_user}:${DATABASE_PASSWORD:-smythos_password}@mysql:3306/${DATABASE_NAME:-smythos_db}
+      # Override Redis to use internal Redis container (standalone mode)
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      # Docker container flag to ensure proper host binding
+      DOCKER_CONTAINER: "true"
+    labels:
+      - traefik.enable=true
+
+      # APP_DOMAIN routing to port 5050 (UI Server)
+      - "traefik.http.routers.smythos-app.rule=Host(`${APP_DOMAIN:-localhost}`)"
+      - "traefik.http.routers.smythos-app.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-app.service=smythos-app"
+      - "traefik.http.routers.smythos-app.middlewares=smythos@docker"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-app.tls=${ENABLE_TLS:-false}"
+      - "traefik.http.routers.smythos-app.tls.certresolver=le"
+
+
+
+      # Service definition
+      - "traefik.http.services.smythos-app.loadbalancer.server.port=5050"
+
+      # RUNTIME_DOMAIN routing to port 5053 (Runtime Server)
+      - "traefik.http.routers.smythos-runtime.rule=Host(`${RUNTIME_DOMAIN:-runtime.localhost}`)"
+      - "traefik.http.routers.smythos-runtime.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-runtime.service=smythos-runtime"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-runtime.tls=${ENABLE_TLS:-false}"
+      - "traefik.http.routers.smythos-runtime.tls.certresolver=le"
+      - "traefik.http.services.smythos-runtime.loadbalancer.server.port=5053"
+
+      # PROD_AGENT_DOMAIN routing to port 5053 (Production Agents)
+      - "traefik.http.routers.smythos-prod-agents.rule=Host(`${PROD_AGENT_DOMAIN:-prod.localhost}`) || HostRegexp(`^.+\\.${PROD_AGENT_DOMAIN:-prod\\.localhost}$$`)"
+      - "traefik.http.routers.smythos-prod-agents.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-prod-agents.service=smythos-runtime"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-prod-agents.tls=${ENABLE_TLS:-false}"
+      - "traefik.http.routers.smythos-prod-agents.tls.certresolver=le"
+
+      # DEFAULT_AGENT_DOMAIN routing to port 5053 (Default/Development Agents)
+      - "traefik.http.routers.smythos-default-agents.rule=Host(`${DEFAULT_AGENT_DOMAIN:-default.localhost}`) || HostRegexp(`^.+\\.${DEFAULT_AGENT_DOMAIN:-default\\.localhost}$$`)"
+      - "traefik.http.routers.smythos-default-agents.entrypoints=web,websecure"
+      - "traefik.http.routers.smythos-default-agents.service=smythos-runtime"
+      # TLS configuration (only enable for production with real domains)
+      - "traefik.http.routers.smythos-default-agents.tls=${ENABLE_TLS:-false}"
+      - "traefik.http.routers.smythos-default-agents.tls.certresolver=le"
+
+      # Security Headers Middleware
+      - "traefik.http.middlewares.smythos.headers.STSSeconds=315360000"
+      - "traefik.http.middlewares.smythos.headers.STSPreload=true"
+      - "traefik.http.middlewares.smythos.headers.BrowserXSSFilter=true"
+      - "traefik.http.middlewares.smythos.headers.ContentTypeNosniff=true"
+      - "traefik.http.middlewares.smythos.headers.ForceSTSHeader=true"
+      - "traefik.http.middlewares.smythos.headers.STSIncludeSubdomains=true"
+      - "traefik.http.middlewares.smythos.headers.ReferrerPolicy=strict-origin-when-cross-origin"
+
+    volumes:
+      - smythos_data:/home/node/smythos-data
+    networks:
+      - smythos-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5050/health && wget --no-verbose --tries=1 --spider http://127.0.0.1:5053/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   smythos-network:
@@ -202,4 +294,3 @@ volumes:
     driver: local
   traefik_letsencrypt:
     driver: local
-

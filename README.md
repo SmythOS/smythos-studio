@@ -11,7 +11,7 @@ The complete visual interface for building, deploying, and managing intelligent 
 
 [![SmythOS Studio Presentation](https://github.com/user-attachments/assets/34ee4e90-57be-4741-b587-f89eeab51667)](https://www.youtube.com/watch?v=3JCEK5So6_k)
 
-## Why SmythOS Studio 
+## Why SmythOS Studio
 
 1. **Visual Agent Building**: Creating AI agents should be as intuitive as drawing a flowchart.
 2. **No-Code to Pro-Code**: Start with visual building, extend with custom code when needed.
@@ -49,10 +49,14 @@ git clone https://github.com/SmythOS/smythos-studio.git
 cd smythos-studio
 cp .env.compose.example .env
 docker compose up -d
-
 ```
 
 **Access your application:** http://localhost:6060
+
+**Apple Silicon / ARM64**: For native ARM64 builds instead of AMD64 emulation:
+```bash
+docker compose --profile native up -d
+```
 
 🐳 **Full Docker Setup**: See our [Docker Compose Guide](DOCKER_COMPOSE.md) for container deployment with automatic SSL, database, and caching.
 
