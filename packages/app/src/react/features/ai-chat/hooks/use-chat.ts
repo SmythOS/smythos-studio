@@ -399,17 +399,16 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             onError: (streamError) => {
               // Handle stream errors
               if (streamError.isAborted) {
-                // User stopped generation - finalize current message with generated content
+                // 🎯 User stopped generation
                 const currentContent = currentAIMessageRef.current;
 
-                // Update the last message to finalize it (convert loading to system)
+                // Step 1: Finalize the AI message (loading → system)
                 setMessages((prev) => {
                   const updated = [...prev];
                   const lastMessageIndex = updated.length - 1;
 
                   if (lastMessageIndex >= 0) {
                     const lastMsg = updated[lastMessageIndex];
-                    // Finalize the AI message (change from loading to system)
                     if (lastMsg.type === 'loading' || lastMsg.type === 'system') {
                       updated[lastMessageIndex] = {
                         ...lastMsg,
@@ -420,7 +419,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                     }
                   }
 
-                  // Add a separate message for user stopped notification
+                  // Step 2: Add separate error message
                   const stopMessage: IChatMessage = {
                     id: Date.now() + 2,
                     message: USER_STOPPED_MESSAGE,
@@ -500,7 +499,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
     const { message, files } = lastUserMessageRef.current;
 
-    // Remove messages: check if last message is error (stop message)
+    // Smart removal: check last message type
     setMessages((prev) => {
       const lastMsg = prev[prev.length - 1];
 
@@ -520,21 +519,20 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
    * The error handler will preserve generated content and append USER_STOPPED_MESSAGE
    */
   const stopGenerating = useCallback(() => {
-    // Clear throttle timeout to prevent further updates
+    // Step 1: Clear throttle timeout
     if (updateThrottleRef.current) {
       clearTimeout(updateThrottleRef.current);
       updateThrottleRef.current = null;
     }
 
-    // Flush any pending updates before aborting
+    // Step 2: Flush any pending updates before aborting
     if (pendingUpdateRef.current) {
       const { content: pendingContent } = pendingUpdateRef.current;
       currentAIMessageRef.current = pendingContent; // Save pending content
       pendingUpdateRef.current = null;
     }
 
-    // Abort the stream (this will trigger onError with isAborted=true)
-    // The error handler will preserve currentAIMessageRef.current and append stop message
+    // Step 3: Abort the stream (onError will handle the rest)
     abortStream();
   }, [abortStream]);
 
