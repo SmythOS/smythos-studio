@@ -510,11 +510,11 @@ export class APIEndpoint extends Component {
   }
 
   public async addInput(parent: any, name: any, inputProperties: any = {}): Promise<any> {
-    const isRenderingAgent = this.workspace.locked; // if the agent is being rendered, the lock will be true
+    // const isRenderingAgent = this.workspace.locked; // if the agent is being rendered, the lock will be true
     if (
       this.isOnAdvancedMode ||
-      this.properties.defaultOutputs.includes(name) ||
-      isRenderingAgent
+      this.properties.defaultOutputs.includes(name)
+      // || isRenderingAgent
     ) {
       const result = await super.addInput(parent, name, inputProperties);
       this.updateFormPreviewButton();
@@ -550,6 +550,44 @@ export class APIEndpoint extends Component {
 
           return false;
         },
+
+        onSortUp: (event) => {
+          if (this.isOnAdvancedMode) return true;
+
+          // 1) do not sort up above the first visible input (exclude the default inputs [body, headers, query])
+          // we can know that by checking the prev sibling of the output item (from the event), if it is a default input, then we should not sort up
+          const outputItem = event.target.closest('.output-endpoint');
+          if (outputItem) {
+            const prevSibling = outputItem.previousSibling;
+            if (prevSibling) {
+              const prevSiblingClass = prevSibling.classList;
+              if (prevSiblingClass.contains('hidden')) {
+                return false;
+              }
+            }
+          }
+
+          // 2) Sync the sort also to the input mapped item
+          // next time we render, the order will be preserved correctly since the input and output do share the same order
+          const sortUpInputBtn = inputDiv.querySelector('.btn-moveup-endpoint');
+          if (sortUpInputBtn) {
+            sortUpInputBtn.click();
+          }
+          return true; // continue the normal (super) sorting process
+        },
+
+        onSortDown: (event) => {
+          if (this.isOnAdvancedMode) return true;
+
+          // 1) Sync the sort also to the input mapped item
+          // next time we render, the order will be preserved correctly since the input and output do share the same order
+          const sortDownInputBtn = inputDiv.querySelector('.btn-movedown-endpoint');
+          if (sortDownInputBtn) {
+            sortDownInputBtn.click();
+          }
+
+          return true; // continue the normal (super) sorting process
+        },
       },
     );
 
@@ -579,8 +617,12 @@ export class APIEndpoint extends Component {
   }
 
   public async addOutput(parent: any, name: any, outputProperties: any = {}): Promise<any> {
-    const isRenderingAgent = this.workspace.locked; // if the agent is being rendered, the lock will be true
-    if (this.isOnAdvancedMode || this.properties.defaultOutputs.includes(name) || isRenderingAgent)
+    // const isRenderingAgent = this.workspace.locked; // if the agent is being rendered, the lock will be true
+    if (
+      this.isOnAdvancedMode ||
+      this.properties.defaultOutputs.includes(name)
+      // || isRenderingAgent
+    )
       return super.addOutput(parent, name, outputProperties);
 
     return null;

@@ -1133,6 +1133,10 @@ export class Component extends EventEmitter {
     epMoveUpButton.innerHTML = '<span class="icon mif-arrow-up"></span>';
     epMoveUpButton.addEventListener('click', async (event) => {
       event.stopPropagation();
+      if (options.onSortUp) {
+        const result = await options.onSortUp(event);
+        if (result === false) return;
+      }
       outputDiv.parentElement.insertBefore(outputDiv, outputDiv.previousSibling);
       this.repaint();
       this.workspace.saveAgent();
@@ -1145,6 +1149,10 @@ export class Component extends EventEmitter {
     epMoveDownButton.innerHTML = '<span class="icon mif-arrow-down"></span>';
     epMoveDownButton.addEventListener('click', async (event) => {
       event.stopPropagation();
+      if (options.onSortDown) {
+        const result = await options.onSortDown(event);
+        if (result === false) return;
+      }
       outputDiv?.parentElement?.insertBefore(outputDiv?.nextSibling, outputDiv);
       this.repaint();
       this.workspace.saveAgent();
