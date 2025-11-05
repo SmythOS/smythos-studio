@@ -18,20 +18,21 @@ router.get('/', async (req, res) => {
 <!doctype html>
 <html lang="en" style="height: 100%;margin: 0;padding: 0;">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${agent.name}</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link  rel="icon" type="image/png" href="/static/img/icon.svg" />
+  <title>${agent.name}</title>
 </head>
 <body style="height: 100%;margin: 0;padding: 0;">
-    <div id="form-preview-container" style="height: 100%;"></div>
-    <script src="/static/embodiment/formPreview/form-preview-minified.js"></script>
-    <script>
-        FormPreview.init({
-            domain:'${req.hostname}',
-            containerId: 'form-preview-container',
-            widget: false,
-        });
-    </script>
+  <div id="form-preview-container" style="height: 100%;"></div>
+  <script src="/static/embodiment/formPreview/form-preview-minified.js"></script>
+  <script>
+      FormPreview.init({
+          domain:'${req.hostname}?endpointId=${req?.query?.endpointId || ''}',
+          containerId: 'form-preview-container',
+          widget: false,
+      });
+  </script>
 </body>
 </html>`);
 });
@@ -45,6 +46,7 @@ router.get('/params', async (req, res) => {
 
   const isLocalAgent = req.hostname.includes('localagent');
   const agentId = agent?.id;
+  const outputPreview = agent.agentSettings?.embodiments?.get('form')?.outputPreview || false;
 
   const port = isLocalAgent ? config.env.AGENT_DOMAIN_PORT : undefined;
   const agentData = {
@@ -53,6 +55,7 @@ router.get('/params', async (req, res) => {
     components: agent.components,
     domain: agent?.domain,
     port,
+    outputPreview,
   };
 
   res.send(agentData);
