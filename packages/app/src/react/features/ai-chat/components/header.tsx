@@ -220,7 +220,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             )}
           </figure>
 
-          <div className="flex items-start justify-center flex-col">
+          <div className="flex items-start justify-center flex-col w-full">
             {isLoading.agent ? (
               <Skeleton
                 className={cn(
@@ -235,18 +235,16 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             )}
 
             {/* Model selection */}
-            <div className="flex items-center group">
+            <div className="flex items-center group w-full">
               {isLoading.settings || isModelsLoading ? (
                 <Skeleton
                   className={cn('w-25 h-4 rounded ', isLoading.settings && 'rounded-t-none')}
                 />
               ) : (
-                <div ref={dropdownRef} className="relative leading-none">
+                <div ref={dropdownRef} className="relative leading-none w-full">
                   {/* Selected value display - clickable trigger */}
                   <Tooltip
-                    content={
-                      isModelAgent ? 'Model selection is disabled for model agents' : 'Select model'
-                    }
+                    content={isModelAgent ? 'Default agents have a fixed model' : 'Select model'}
                     placement="bottom"
                   >
                     <button
