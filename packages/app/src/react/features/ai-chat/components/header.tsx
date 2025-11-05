@@ -48,6 +48,7 @@ interface ILLMModels {
   value: string;
   tags: string[];
   default?: boolean;
+  provider: string;
 }
 
 interface ModelAgent {
@@ -110,6 +111,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             value: model.entryId,
             tags: model.tags,
             default: model?.default || false,
+            provider: model.provider || '',
           }),
         );
 
@@ -128,13 +130,9 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
       }
     };
 
-    if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    if (isDropdownOpen) document.addEventListener('mousedown', handleClickOutside);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isDropdownOpen]);
 
   /**
@@ -164,6 +162,46 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const toggleDropdown = useCallback(() => {
     setIsDropdownOpen((prev) => !prev);
   }, []);
+
+  // Badge priority order for sorting (lower number = higher priority)
+  const BADGE_PRIORITY: Record<string, number> = {
+    enterprise: 1,
+    personal: 2,
+    limited: 3,
+    smythos: 999, // SmythOS models come last
+  };
+
+  /**
+   * Get badge priority for sorting
+   * @param tags - Array of model tags
+   * @returns Priority number (lower = higher priority)
+   */
+  const getBadgePriority = (tags: string[]) => {
+    return BADGE_PRIORITY[getTempBadge(tags).toLowerCase()] || 999;
+  };
+
+  // Get unique providers and group models by provider
+  const providers = Array.from(new Set(llmModels.map((model) => model.provider)));
+  const modelsByProvider = providers.map((provider) => {
+    const providerModels = llmModels.filter((model) => model.provider === provider);
+
+    // Sort models with multiple criteria:
+    // 1. Badge priority (Enterprise > Personal > Limited > SmythOS)
+    // 2. Then by default flag (default models first)
+    // 3. Finally alphabetically by label
+    const sortedModels = [...providerModels].sort((a, b) => {
+      // First priority: Badge priority (Enterprise > Personal > Limited > SmythOS)
+      const priorityA = getBadgePriority(a.tags);
+      const priorityB = getBadgePriority(b.tags);
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      // Second priority: Default models come first
+      if (a.default !== b.default) return a.default ? 1 : -1;
+      // Third priority: Alphabetically by label
+      return a.label.localeCompare(b.label);
+    });
+
+    return { name: provider, models: sortedModels };
+  });
 
   return (
     <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10 px-2.5 lg:px-0">
@@ -247,27 +285,71 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
                   {/* Dropdown menu - only show if not a model agent */}
                   {isDropdownOpen && !isModelAgent && (
-                    <div className="absolute top-full -left-3 mt-1 bg-slate-100 border border-slate-200 rounded-md shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto divide-y divide-slate-200">
-                      {llmModels.map((model) => {
-                        let badge = getTempBadge(model.tags);
-                        badge = badge ? ' (' + badge + ')' : '';
-                        const isSelected = model.value === currentModel;
+                    <div className="absolute top-full -left-3 z-50 mt-1 bg-slate-100 rounded-md shadow-xl border-t border-slate-200 min-w-[250px] max-h-[500px] overflow-y-auto divide-y divide-slate-200">
+                      <div className="py-1">
+                        {modelsByProvider.map((provider, providerIndex) => (
+                          <div key={providerIndex} className="mb-2 last:mb-1">
+                            <div className="px-4 py-1.5 flex items-center gap-2">
+                              <span className="font-semibold text-sm text-slate-900">
+                                {provider.name}
+                              </span>
+                            </div>
 
-                        return (
-                          <button
-                            key={model.value}
-                            type="button"
-                            onClick={() => handleModelChange(model.value)}
-                            className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-200 transition-colors focus:outline-none ${
-                              isSelected
-                                ? 'bg-slate-300 text-slate-800 font-medium'
-                                : 'text-slate-600'
-                            }`}
-                          >
-                            {model.label + badge}
-                          </button>
-                        );
-                      })}
+                            <div className="pl-2">
+                              {provider.models.map((model, modelIndex) => {
+                                const badge = getTempBadge(model.tags);
+                                const isSelected = model.value === currentModel;
+
+                                return (
+                                  <button
+                                    key={modelIndex}
+                                    type="button"
+                                    onClick={() => handleModelChange(model.value)}
+                                    className={cn(
+                                      'w-full px-4 py-1.5 text-left hover:bg-slate-200 transition-colors flex items-center justify-between gap-2',
+                                      isSelected
+                                        ? 'font-semibold bg-slate-200/90 text-slate-900 border-l-2 border-slate-700'
+                                        : 'text-slate-700',
+                                    )}
+                                  >
+                                    <span className="text-sm flex items-center gap-1">
+                                      {model.label}
+                                      {badge && (
+                                        <span
+                                          className={cn(
+                                            'text-[10px]  rounded-full px-1.5',
+                                            badge === 'SmythOS'
+                                              ? 'bg-primary-100/50 text-slate-700'
+                                              : 'bg-primary-300 text-slate-700',
+                                          )}
+                                        >
+                                          {badge}
+                                        </span>
+                                      )}
+                                    </span>
+
+                                    {isSelected && (
+                                      <svg
+                                        className="w-5 h-5 text-slate-700 shrink-0"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2.5}
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
