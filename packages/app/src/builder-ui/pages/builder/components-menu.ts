@@ -984,13 +984,58 @@ function setupBuilderMenuDragDrop() {
       event.target.classList.add('pointer-events-none');
     })
     .on('resizemove', function (event) {
-      event.target.style.width = event.rect.width + 'px';
+      const newWidth = event.rect.width + 'px';
+      event.target.style.width = newWidth;
+
+      // Apply the same width to all right sidebars in real-time
+      const allRightSidebars = [
+        document.querySelector('#right-sidebar'),
+        document.querySelector('#embodiment-sidebar'),
+        document.querySelector('#agent-settings-sidebar'),
+      ];
+
+      allRightSidebars.forEach((sidebar) => {
+        if (sidebar && sidebar !== event.target) {
+          (sidebar as HTMLElement).style.width = newWidth;
+        }
+      });
+
+      // Dispatch resize event for Alpine.js to react to real-time changes
+      window.dispatchEvent(
+        new CustomEvent('rightSidebarResized', {
+          detail: { width: newWidth },
+        }),
+      );
     })
     .on('resizeend', function (event) {
       document.body.classList.remove('select-none');
       event.target.classList.remove('no-transition');
       event.target.classList.remove('pointer-events-none');
-      localStorage.setItem(`${event.target.id}-width`, event.target.style.width);
+
+      const finalWidth = event.target.style.width;
+
+      // Save to common width key for all right sidebars
+      localStorage.setItem('right-sidebar-common-width', finalWidth);
+
+      // Apply the final width to all right sidebars
+      const allRightSidebars = [
+        document.querySelector('#right-sidebar'),
+        document.querySelector('#embodiment-sidebar'),
+        document.querySelector('#agent-settings-sidebar'),
+      ];
+
+      allRightSidebars.forEach((sidebar) => {
+        if (sidebar) {
+          (sidebar as HTMLElement).style.width = finalWidth;
+        }
+      });
+
+      // Dispatch final resize event
+      window.dispatchEvent(
+        new CustomEvent('rightSidebarResized', {
+          detail: { width: finalWidth },
+        }),
+      );
     });
 
   // temporary debug console height: move to a better place
