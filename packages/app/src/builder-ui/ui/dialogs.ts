@@ -32,6 +32,7 @@ const embodimentHandlers = {
   openEmbodimentDialog: null,
   openChatGPTEmbodiment: null,
   openPostmanEmbodiment: null,
+  openVoiceEmbodiment: null,
   openAlexaEmbodiment: null,
   openChatbotEmbodiment: null,
   openAPIEmbodiment: null,
@@ -374,7 +375,8 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     'Custom GPT': 'Test in ChatGPT',
     'Postman Integration': 'Test in Postman',
     LLM: 'Test as LLM',
-    'Alexa Skill': 'Test with Voice',
+    Voice: 'Test with Voice',
+    'Alexa Skill': 'Test with Alexa',
   };
   let currentKey = null;
   // Create tabs from EMBODIMENT_DESCRIPTIONS
@@ -413,7 +415,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     }
 
     const button = document.createElement('button');
-    button.className = `inline-flex items-center first:ml-0 mx-4 pt-2 pb-1 mb-1 text-sm font-medium text-gray-500 hover:text-gray-700 ${
+    button.className = `inline-flex items-center first:ml-0 mx-3 pt-2 pb-1 mb-1 text-sm font-medium text-gray-500 hover:text-gray-700 ${
       key === 'chat' ? 'border-b-2 border-v2-blue' : ''
     }`;
     button.setAttribute('aria-current', 'page');
@@ -424,8 +426,14 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     button.addEventListener('click', async () => {
       sidebarTitle.querySelector('.title-icon')?.classList?.remove('hidden');
       tabContainer?.classList?.remove('hidden');
-      // Remove active state from all tabs
+
+      // Remove active state from all tabs (including those in hidden storage)
+      const hiddenTabStorage = tabContainer.querySelector('.hidden-tab-storage');
       nav.querySelectorAll('button').forEach((btn) => {
+        btn.classList.remove('text-gray-900', 'border-b-2', 'border-v2-blue');
+        btn.classList.add('text-gray-500');
+      });
+      hiddenTabStorage?.querySelectorAll('button').forEach((btn) => {
         btn.classList.remove('text-gray-900', 'border-b-2', 'border-v2-blue');
         btn.classList.add('text-gray-500');
       });
@@ -435,6 +443,11 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
       button.classList.add('text-gray-900', 'border-b-2', 'border-v2-blue');
 
       embodimentSidebar.setAttribute('openedtab', key?.toLowerCase());
+
+      // Update responsive tabs after selection - use requestAnimationFrame for reliability
+      requestAnimationFrame(() => {
+        manageResponsiveTabs(embodimentSidebar);
+      });
       // Trigger corresponding embodiment action
       switch (key.toLowerCase()) {
         case 'llm':
@@ -490,6 +503,12 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
           });
           embodimentHandlers.openPostmanEmbodiment?.();
           break;
+        case 'voice':
+          Observability.observeInteraction('voice_embodiment_click', {
+            position: 'embodiment sidebar tab',
+          });
+          embodimentHandlers.openVoiceEmbodiment?.();
+          break;
         case 'alexa':
           Observability.observeInteraction('alexa_embodiment_click', {
             position: 'embodiment sidebar tab',
@@ -543,6 +562,12 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
   }
 
   tabContainer.appendChild(nav);
+
+  // Run responsive tab management after all tabs are created
+  // Use requestAnimationFrame to ensure DOM is fully updated
+  requestAnimationFrame(() => {
+    manageResponsiveTabs(embodimentSidebar);
+  });
 
   const sidebarContent = embodimentSidebar.querySelector('.content');
   const contentCls = convertTitleToClass(title) || 'generic-content';
@@ -679,6 +704,30 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
 
   if (!embodimentSidebar.closest('.sidebar-container').classList.contains('open'))
     embodimentSidebar.closest('.sidebar-container').classList.add('open');
+
+  // Setup responsive tab management
+  setupResponsiveTabObserver(embodimentSidebar);
+
+  // Note: Initial responsive tab calculation is now done after tabs are created
+  // (see line after tabContainer.appendChild(nav))
+
+  // Also listen for Alpine.js width changes by watching the sidebar element's style attribute
+  const widthObserver = new MutationObserver(() => {
+    // Debounce width changes
+    clearTimeout((embodimentSidebar as any).__widthChangeTimeout);
+    (embodimentSidebar as any).__widthChangeTimeout = setTimeout(() => {
+      manageResponsiveTabs(embodimentSidebar);
+    }, 50);
+  });
+
+  // Observe style attribute changes (when Alpine.js updates width)
+  widthObserver.observe(embodimentSidebar, {
+    attributes: true,
+    attributeFilter: ['style'],
+  });
+
+  // Store observer for cleanup
+  (embodimentSidebar as any).__widthObserver = widthObserver;
 
   return embodimentSidebar;
 }
@@ -2024,7 +2073,8 @@ function getDisplayHeading(key: string, title: string): string {
     postman: 'Test in Postman',
     chatgpt: 'Test in ChatGPT',
     agent_skill: 'Form Preview',
-    alexa: 'Publish as Alexa Skill',
+    voice: 'Test with Voice',
+    alexa: 'Test with Alexa',
     mcp: 'MCP',
   };
 
@@ -2055,7 +2105,8 @@ function getNavText(key: string, title: string): string {
     postman: 'Postman',
     chatgpt: 'GPT',
     agent_skill: 'Form',
-    alexa: 'Voice',
+    voice: 'Voice',
+    alexa: 'Alexa',
     mcp: 'MCP',
   };
 
@@ -2067,6 +2118,570 @@ function getNavText(key: string, title: string): string {
   // For non-test cases, use the original title
   return key;
 }
+/**
+ * Gets or creates UI elements (more button and dropdown)
+ */
+function getOrCreateUIElements(
+  nav: HTMLElement,
+  tabContainer: HTMLElement,
+): { moreButton: HTMLElement; dropdownMenu: HTMLElement } {
+  // Clean up duplicate buttons
+  Array.from(nav.querySelectorAll('#tab-more-button'))
+    .slice(1)
+    .forEach((btn) => btn.remove());
+
+  let moreButton = nav.querySelector('#tab-more-button') as HTMLElement;
+  if (!moreButton) {
+    moreButton = document.createElement('button');
+    moreButton.id = 'tab-more-button';
+    moreButton.className =
+      'hidden absolute inline-flex items-center justify-center pt-2 pb-1 mb-1 text-lg font-bold text-gray-500 hover:text-gray-700 flex-shrink-0';
+    moreButton.setAttribute('aria-label', 'More tabs');
+    moreButton.innerHTML = '<span style="letter-spacing: -2px; line-height: 1;">&raquo;</span>';
+    nav.appendChild(moreButton);
+  }
+
+  // Ensure correct positioning (in case it was modified)
+  Object.assign(moreButton.style, { right: '26px' });
+  (moreButton.classList.add('absolute'), moreButton.classList.remove('ml-2'));
+
+  let dropdownMenu = tabContainer.querySelector('#tab-dropdown-menu') as HTMLElement;
+  if (!dropdownMenu) {
+    dropdownMenu = document.createElement('div');
+    dropdownMenu.id = 'tab-dropdown-menu';
+    dropdownMenu.className =
+      'hidden absolute right-4 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] w-[120px]';
+    dropdownMenu.innerHTML = '<div class="py-1" role="menu" aria-orientation="vertical"></div>';
+    tabContainer.appendChild(dropdownMenu);
+  }
+
+  return { moreButton, dropdownMenu };
+}
+
+/**
+ * Gets all tabs from nav and storage, deduplicates them
+ */
+function getAllTabs(nav: HTMLElement, hiddenTabStorage: HTMLElement): HTMLElement[] {
+  const allTabsMap = new Map<string, HTMLElement>();
+  [
+    ...Array.from(nav.querySelectorAll('button[data-embodiment-type]')),
+    ...Array.from(hiddenTabStorage.querySelectorAll('button[data-embodiment-type]')),
+  ].forEach((tab) => {
+    const key = (tab as HTMLElement).getAttribute('data-embodiment-type');
+    if (key && !allTabsMap.has(key)) allTabsMap.set(key, tab as HTMLElement);
+  });
+  return Array.from(allTabsMap.values());
+}
+
+/**
+ * Sorts tabs by their hierarchical order
+ */
+function sortTabsByHierarchy(tabs: HTMLElement[]): HTMLElement[] {
+  const tabOrderMap = new Map(
+    Object.keys(EMBODIMENT_DESCRIPTIONS)
+      .filter((key) => EMBODIMENT_DESCRIPTIONS[key].title && key.toLowerCase() !== 'agentllm')
+      .map((key, index) => [key, index]),
+  );
+  return [...tabs].sort((a, b) => {
+    const getIndex = (tab: HTMLElement) =>
+      tabOrderMap.get(tab.getAttribute('data-embodiment-type') || '') ?? Number.MAX_SAFE_INTEGER;
+    return getIndex(a) - getIndex(b);
+  });
+}
+
+/**
+ * Restores all tabs to nav for measurement in hierarchical order
+ */
+function restoreTabsToNav(
+  sortedTabs: HTMLElement[],
+  nav: HTMLElement,
+  hiddenTabStorage: HTMLElement,
+): void {
+  const storedTabs = Array.from(
+    hiddenTabStorage.querySelectorAll('button[data-embodiment-type]'),
+  ) as HTMLElement[];
+
+  storedTabs.forEach((storedTab) => {
+    const existingTab = sortedTabs.find(
+      (t) =>
+        t.getAttribute('data-embodiment-type') === storedTab.getAttribute('data-embodiment-type'),
+    );
+    if (!existingTab || !nav.contains(existingTab)) {
+      hiddenTabStorage.removeChild(storedTab);
+      if (existingTab) sortedTabs[sortedTabs.indexOf(existingTab)] = storedTab;
+    }
+  });
+
+  // Insert tabs in hierarchical order
+  sortedTabs.forEach((tab, index) => {
+    if (!nav.contains(tab) && hiddenTabStorage.contains(tab)) hiddenTabStorage.removeChild(tab);
+
+    // Find the correct position to insert this tab
+    const nextTab = sortedTabs.slice(index + 1).find((t) => nav.contains(t));
+    if (nextTab) {
+      nav.insertBefore(tab, nextTab);
+    } else {
+      nav.appendChild(tab);
+    }
+
+    Object.assign(tab.style, { display: '', visibility: 'visible' });
+    tab.classList.remove('hidden');
+  });
+}
+
+/**
+ * Measures tabs and returns measurement data
+ */
+function measureTabs(
+  sortedTabs: HTMLElement[],
+): Array<{ tab: HTMLElement; width: number; index: number }> {
+  return sortedTabs.map((tab, index) => {
+    const tabRect = tab.getBoundingClientRect();
+    const tabStyle = window.getComputedStyle(tab);
+    const width =
+      Math.ceil(tabRect.width) +
+      (parseFloat(tabStyle.marginLeft) || 0) +
+      (parseFloat(tabStyle.marginRight) || 0) +
+      1; // Add 1px safety buffer for sub-pixel rendering
+    return { tab, width, index };
+  });
+}
+
+/**
+ * Calculates which tabs should be visible and which should be hidden
+ */
+function calculateTabVisibility(
+  measuredTabs: Array<{ tab: HTMLElement; width: number; index: number }>,
+  sortedTabs: HTMLElement[],
+  selectedTabKey: string | null,
+  availableWidth: number,
+): {
+  visibleTabs: HTMLElement[];
+  hiddenTabs: HTMLElement[];
+  needsMoreButton: boolean;
+} {
+  let visibleTabs: HTMLElement[] = [];
+  let hiddenTabs: HTMLElement[] = [];
+  let currentWidth = 0;
+
+  const selectedTabElement = selectedTabKey
+    ? sortedTabs.find(
+        (tab) =>
+          tab.getAttribute('data-embodiment-type')?.toLowerCase() === selectedTabKey.toLowerCase(),
+      ) || null
+    : null;
+
+  // Add selected tab first if it exists
+  const selectedTabData = selectedTabElement
+    ? measuredTabs.find((t) => t.tab === selectedTabElement)
+    : null;
+  if (selectedTabData) {
+    visibleTabs.push(selectedTabElement);
+    currentWidth = selectedTabData.width;
+  }
+
+  // Process all tabs - stop at first tab that doesn't fit
+  let foundFirstOverflow = false;
+  for (const { tab, width } of measuredTabs) {
+    if (tab === selectedTabElement) continue;
+    // Use < instead of <= to be more conservative and prevent sub-pixel overflow
+    if (!foundFirstOverflow && currentWidth + width < availableWidth) {
+      visibleTabs.push(tab);
+      currentWidth += width;
+    } else {
+      foundFirstOverflow = true;
+      hiddenTabs.push(tab);
+    }
+  }
+
+  // Maintain hierarchical order if selected tab was prioritized
+  if (selectedTabElement) {
+    visibleTabs.sort((a, b) => sortedTabs.indexOf(a) - sortedTabs.indexOf(b));
+  }
+
+  // Deduplicate hidden tabs
+  const seen = new Set<string>();
+  hiddenTabs = hiddenTabs.filter((tab) => {
+    const key = tab.getAttribute('data-embodiment-type') || '';
+    return key && !seen.has(key) && seen.add(key);
+  });
+
+  return { visibleTabs, hiddenTabs, needsMoreButton: hiddenTabs.length > 0 };
+}
+
+/**
+ * Updates tab visibility in the DOM while maintaining hierarchical order
+ */
+function updateTabVisibility(
+  sortedTabs: HTMLElement[],
+  visibleTabs: HTMLElement[],
+  hiddenTabs: HTMLElement[],
+  nav: HTMLElement,
+  hiddenTabStorage: HTMLElement,
+): void {
+  const visibleTabKeys = new Set(
+    visibleTabs.map((tab) => tab.getAttribute('data-embodiment-type') || ''),
+  );
+
+  sortedTabs.forEach((tab, index) => {
+    const shouldBeVisible = visibleTabKeys.has(tab.getAttribute('data-embodiment-type') || '');
+    const isVisible =
+      nav.contains(tab) && tab.style.display !== 'none' && !tab.classList.contains('hidden');
+
+    if (shouldBeVisible && !isVisible) {
+      if (hiddenTabStorage.contains(tab)) hiddenTabStorage.removeChild(tab);
+
+      // Insert in correct hierarchical position
+      if (!nav.contains(tab)) {
+        const nextTab = sortedTabs.slice(index + 1).find((t) => nav.contains(t));
+        if (nextTab) {
+          nav.insertBefore(tab, nextTab);
+        } else {
+          nav.appendChild(tab);
+        }
+      }
+
+      Object.assign(tab.style, { display: '' });
+      tab.classList.remove('hidden');
+    } else if (!shouldBeVisible && isVisible) {
+      nav.contains(tab) && (nav.removeChild(tab), hiddenTabStorage.appendChild(tab));
+      Object.assign(tab.style, { display: 'none' });
+      tab.classList.add('hidden');
+    }
+  });
+}
+
+/**
+ * Builds the dropdown menu content
+ */
+function buildDropdownMenu(
+  dropdownContent: HTMLElement,
+  hiddenTabKeys: Array<string | null>,
+  sortedTabs: HTMLElement[],
+  hiddenTabStorage: HTMLElement,
+  nav: HTMLElement,
+  tabContainer: HTMLElement,
+  dropdownMenu: HTMLElement,
+): void {
+  dropdownContent.innerHTML = '';
+  const added = new Set<string>();
+
+  hiddenTabKeys.forEach((tabKey) => {
+    if (!tabKey || added.has(tabKey)) return;
+
+    const tab =
+      (Array.from(hiddenTabStorage.querySelectorAll('button[data-embodiment-type]')).find(
+        (t) => (t as HTMLElement).getAttribute('data-embodiment-type') === tabKey,
+      ) as HTMLElement) ||
+      sortedTabs.find((t) => t.getAttribute('data-embodiment-type') === tabKey);
+    if (!tab || !added.add(tabKey)) return;
+
+    const item = Object.assign(document.createElement('button'), {
+      className: `w-full text-left px-4 py-2 text-sm font-medium ${tab.classList.contains('border-b-2') && tab.classList.contains('border-v2-blue') ? 'text-gray-900 bg-gray-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`,
+      textContent: tab.textContent || '',
+    });
+    item.setAttribute('data-embodiment-type', tabKey);
+    item.addEventListener('click', (e) => {
+      (e.preventDefault(), e.stopPropagation());
+      const original =
+        nav.querySelector(`button[data-embodiment-type="${tabKey}"]`) ||
+        hiddenTabStorage.querySelector(`button[data-embodiment-type="${tabKey}"]`) ||
+        tabContainer.querySelector(`button[data-embodiment-type="${tabKey}"]`);
+      (original && (original as HTMLElement).click(), dropdownMenu.classList.add('hidden'));
+    });
+    dropdownContent.appendChild(item);
+  });
+}
+
+/**
+ * Manages responsive tab visibility based on available width
+ * Ensures selected tab is always visible
+ * @param embodimentSidebar - The embodiment sidebar element
+ */
+function manageResponsiveTabs(embodimentSidebar: HTMLElement): void {
+  // Check if already running to prevent concurrent execution
+  if ((embodimentSidebar as any).__responsiveTabsRunning) {
+    // Mark that another run is needed after current one completes
+    (embodimentSidebar as any).__responsiveTabsPending = true;
+    return;
+  }
+  (embodimentSidebar as any).__responsiveTabsRunning = true;
+  (embodimentSidebar as any).__responsiveTabsPending = false;
+
+  // Get required DOM elements
+  const tabContainer = embodimentSidebar.querySelector('.tab-container') as HTMLElement;
+  const nav = tabContainer?.querySelector('nav') as HTMLElement;
+  const { moreButton, dropdownMenu } =
+    nav && tabContainer
+      ? getOrCreateUIElements(nav, tabContainer)
+      : { moreButton: null as any, dropdownMenu: null as any };
+  const dropdownContent = dropdownMenu?.querySelector('.py-1') as HTMLElement;
+
+  // Helper function to handle early returns with pending check
+  const handleEarlyReturn = () => {
+    (embodimentSidebar as any).__responsiveTabsRunning = false;
+    if ((embodimentSidebar as any).__responsiveTabsPending) {
+      (embodimentSidebar as any).__responsiveTabsPending = false;
+      requestAnimationFrame(() => manageResponsiveTabs(embodimentSidebar));
+    }
+  };
+
+  // Early return if any required elements are missing
+  if (!tabContainer || !nav || !dropdownContent) {
+    handleEarlyReturn();
+    return;
+  }
+
+  // Get or create hidden tab storage
+  let hiddenTabStorage = tabContainer.querySelector('.hidden-tab-storage') as HTMLElement;
+  if (!hiddenTabStorage) {
+    hiddenTabStorage = Object.assign(document.createElement('div'), {
+      className: 'hidden-tab-storage',
+    });
+    hiddenTabStorage.style.display = 'none';
+    tabContainer.appendChild(hiddenTabStorage);
+  }
+
+  // Get all tabs and sort by hierarchy
+  const allTabButtons = getAllTabs(nav, hiddenTabStorage);
+  if (allTabButtons.length === 0) {
+    handleEarlyReturn();
+    return;
+  }
+
+  const sortedTabs = sortTabsByHierarchy(allTabButtons);
+
+  // Get currently selected tab
+  const selectedTab =
+    allTabButtons.find(
+      (btn) => btn.classList.contains('border-b-2') && btn.classList.contains('border-v2-blue'),
+    ) ||
+    (embodimentSidebar.getAttribute('openedtab') &&
+      allTabButtons.find(
+        (btn) =>
+          btn.getAttribute('data-embodiment-type')?.toLowerCase() ===
+          embodimentSidebar.getAttribute('openedtab')?.toLowerCase(),
+      ));
+  const selectedTabKey = selectedTab?.getAttribute('data-embodiment-type') || null;
+
+  // Restore all tabs to nav for accurate measurement
+  restoreTabsToNav(sortedTabs, nav, hiddenTabStorage);
+
+  // Force reflows and check if tabs have rendered widths - retry if not
+  (void tabContainer.offsetHeight, void nav.offsetHeight);
+  if (sortedTabs.some((tab) => tab.offsetWidth === 0 && nav.contains(tab))) {
+    handleEarlyReturn();
+    setTimeout(() => manageResponsiveTabs(embodimentSidebar), 50);
+    return;
+  }
+
+  // Calculate available width
+  const containerStyle = window.getComputedStyle(tabContainer);
+  const containerPadding =
+    (parseFloat(containerStyle.paddingLeft) || 16) +
+    (parseFloat(containerStyle.paddingRight) || 16);
+
+  // Measure more button
+  moreButton.classList.remove('hidden');
+  moreButton.style.display = '';
+  const moreButtonWidth = moreButton.getBoundingClientRect().width || moreButton.offsetWidth || 40;
+  moreButton.classList.add('hidden');
+  moreButton.style.display = 'none';
+
+  // Measure all tabs
+  const measuredTabs = measureTabs(sortedTabs);
+
+  // First pass: Calculate with full width (no more button reserved)
+  const fullAvailableWidth = tabContainer.getBoundingClientRect().width - containerPadding;
+  let result = calculateTabVisibility(measuredTabs, sortedTabs, selectedTabKey, fullAvailableWidth);
+
+  // If we need more button, recalculate with space reserved for it
+  if (result.needsMoreButton) {
+    const availableWidthWithButton =
+      fullAvailableWidth - moreButtonWidth - 8; /* 8px for ml-2 left margin on more button */
+    result = calculateTabVisibility(
+      measuredTabs,
+      sortedTabs,
+      selectedTabKey,
+      availableWidthWithButton,
+    );
+  }
+
+  const { visibleTabs, hiddenTabs, needsMoreButton } = result;
+
+  // Store keys before DOM manipulation
+  const hiddenTabCount = hiddenTabs.length;
+  const hiddenTabKeys = hiddenTabs
+    .map((tab) => tab.getAttribute('data-embodiment-type'))
+    .filter((k) => k);
+
+  // Update DOM based on visibility
+  updateTabVisibility(sortedTabs, visibleTabs, hiddenTabs, nav, hiddenTabStorage);
+
+  // Ensure more button is at the end of nav
+  if (moreButton) nav.appendChild(moreButton);
+
+  // Show/hide more button and build dropdown
+  const isCurrentlyVisible =
+    !moreButton.classList.contains('hidden') && moreButton.style.display !== 'none';
+  if (needsMoreButton && hiddenTabCount > 0) {
+    !isCurrentlyVisible && (moreButton.classList.remove('hidden'), (moreButton.style.display = ''));
+    buildDropdownMenu(
+      dropdownContent,
+      hiddenTabKeys,
+      sortedTabs,
+      hiddenTabStorage,
+      nav,
+      tabContainer,
+      dropdownMenu,
+    );
+  } else if (isCurrentlyVisible) {
+    (moreButton.classList.add('hidden'),
+      (moreButton.style.display = 'none'),
+      dropdownMenu.classList.add('hidden'));
+  }
+
+  (embodimentSidebar as any).__responsiveTabsRunning = false;
+
+  // If another run was requested while we were executing, run again
+  if ((embodimentSidebar as any).__responsiveTabsPending) {
+    (embodimentSidebar as any).__responsiveTabsPending = false;
+    requestAnimationFrame(() => manageResponsiveTabs(embodimentSidebar));
+  }
+
+  // Setup event handlers
+  (moreButton as any).__moreClickHandler &&
+    moreButton.removeEventListener('click', (moreButton as any).__moreClickHandler);
+  const clickHandler = (e: MouseEvent) => {
+    (e.preventDefault(), e.stopPropagation(), dropdownMenu.classList.toggle('hidden'));
+    !dropdownMenu.classList.contains('hidden') &&
+      document
+        .querySelectorAll('#tab-dropdown-menu:not(.hidden)')
+        .forEach((m) => m !== dropdownMenu && m.classList.add('hidden'));
+  };
+  moreButton.addEventListener('click', ((moreButton as any).__moreClickHandler = clickHandler));
+
+  (document as any).__tabDropdownClickOutsideHandler &&
+    document.removeEventListener('click', (document as any).__tabDropdownClickOutsideHandler);
+  document.addEventListener(
+    'click',
+    ((document as any).__tabDropdownClickOutsideHandler = (e: MouseEvent) =>
+      !dropdownMenu.contains(e.target as Node) &&
+      !moreButton.contains(e.target as Node) &&
+      dropdownMenu.classList.add('hidden')),
+  );
+}
+
+/**
+ * Sets up resize observer for responsive tab management
+ * @param embodimentSidebar - The embodiment sidebar element
+ */
+function setupResponsiveTabObserver(embodimentSidebar: HTMLElement): void {
+  const tabContainer = embodimentSidebar.querySelector('.tab-container') as HTMLElement;
+  if (!tabContainer) {
+    return;
+  }
+
+  // Debounce resize handler to avoid too many recalculations
+  let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+  const debouncedResize = () => {
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(() => {
+      manageResponsiveTabs(embodimentSidebar);
+    }, 50); // Debounce for 50ms
+  };
+
+  // Use ResizeObserver to watch for width changes on both sidebar and tab container
+  const resizeObserver = new ResizeObserver(debouncedResize);
+
+  // Observe both the sidebar (for overall width changes) and tab container
+  resizeObserver.observe(embodimentSidebar);
+  resizeObserver.observe(tabContainer);
+
+  // Also listen for sidebar state changes
+  const sidebarStateHandler = () => {
+    setTimeout(() => {
+      manageResponsiveTabs(embodimentSidebar);
+    }, 100);
+  };
+
+  window.addEventListener('sidebarStateChanged', sidebarStateHandler);
+
+  // CRITICAL: Watch for tab additions/removals in the nav (DOM changes)
+  const nav = tabContainer.querySelector('nav') as HTMLElement;
+
+  if (nav) {
+    // Create a mutation observer to watch for tab buttons being added/removed
+    const navMutationObserver = new MutationObserver((mutations) => {
+      // Check if we should ignore this mutation (if it's from our own responsive logic)
+      const isResponsiveRunning = (embodimentSidebar as any).__responsiveTabsRunning;
+      if (isResponsiveRunning) {
+        return; // Ignore mutations while we're making our own changes
+      }
+
+      // Check if any mutations involve REAL tab changes (not our internal moves)
+      const hasRealTabChanges = mutations.some((mutation) => {
+        if (mutation.type === 'childList') {
+          // Get all added/removed nodes that are tab buttons
+          const addedTabs = Array.from(mutation.addedNodes).filter(
+            (node) =>
+              node.nodeName === 'BUTTON' &&
+              (node as HTMLElement).hasAttribute('data-embodiment-type') &&
+              (node as HTMLElement).id !== 'tab-more-button', // Ignore more button
+          );
+
+          const removedTabs = Array.from(mutation.removedNodes).filter(
+            (node) =>
+              node.nodeName === 'BUTTON' &&
+              (node as HTMLElement).hasAttribute('data-embodiment-type') &&
+              (node as HTMLElement).id !== 'tab-more-button', // Ignore more button
+          );
+
+          // Check if these tabs are being moved to/from hiddenTabStorage (our internal operation)
+          const hiddenTabStorage = tabContainer.querySelector('.hidden-tab-storage') as HTMLElement;
+
+          // If tabs are being moved to storage, ignore (it's our responsive logic)
+          const isMovingToStorage =
+            addedTabs.length === 0 && removedTabs.length > 0 && hiddenTabStorage;
+          const isMovingFromStorage =
+            removedTabs.length === 0 && addedTabs.length > 0 && hiddenTabStorage;
+
+          if (isMovingToStorage || isMovingFromStorage) {
+            return false; // This is our internal operation
+          }
+
+          // Real change: tabs added/removed from external source
+          return addedTabs.length > 0 || removedTabs.length > 0;
+        }
+        return false;
+      });
+
+      if (hasRealTabChanges) {
+        // Use requestAnimationFrame to ensure DOM is settled
+        requestAnimationFrame(() => {
+          manageResponsiveTabs(embodimentSidebar);
+        });
+      }
+    });
+
+    // Observe the nav for child additions/removals
+    navMutationObserver.observe(nav, {
+      childList: true, // Watch for direct children being added/removed
+      subtree: false, // Don't watch nested elements
+    });
+
+    // Store for cleanup
+    (embodimentSidebar as any).__navMutationObserver = navMutationObserver;
+  }
+
+  // Store observer and handler on element for cleanup if needed
+  (embodimentSidebar as any).__tabResizeObserver = resizeObserver;
+  (embodimentSidebar as any).__tabSidebarStateHandler = sidebarStateHandler;
+  (embodimentSidebar as any).__tabResizeTimeout = resizeTimeout;
+}
+
 function convertTitleToClass(title: string): string {
   return (
     title
