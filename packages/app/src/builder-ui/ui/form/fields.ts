@@ -639,11 +639,6 @@ function applyTextareaStyles(textarea: HTMLTextAreaElement, isCodeEditor: boolea
       font-size: 14px;
       outline: none;
     `;
-  } else {
-    // Regular textarea styling for modal
-    textarea.style.cssText = `
-      overflow-y: auto;
-    `;
   }
 }
 
@@ -761,32 +756,6 @@ function copyTextareaAttributes(
     Object.entries(additionalAttributes).forEach(([key, value]) => {
       targetTextarea.setAttribute(key, value);
     });
-  }
-}
-
-/**
- * Setup bracket selection for Metro UI textareas in modal
- * Waits for Metro UI initialization and attaches handlers to both fake and real textareas
- */
-async function setupMetroUIBracketSelection(textarea: HTMLTextAreaElement): Promise<void> {
-  // Wait for Metro UI to initialize its wrapper structure
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  const textareaWrapper = textarea.closest('.textarea');
-  const fakeTextarea = textareaWrapper?.querySelector('.fake-textarea') as HTMLElement;
-
-  if (fakeTextarea) {
-    // Attach to both elements: fake receives clicks, real handles some focus events
-    addBracketSelection(fakeTextarea);
-    addBracketSelection(textarea);
-  } else {
-    addBracketSelection(textarea);
-  }
-
-  // Remove Metro UI wrapper borders to let Tailwind classes work
-  if (textareaWrapper) {
-    (textareaWrapper as HTMLElement).style.border = 'none';
-    (textareaWrapper as HTMLElement).style.boxShadow = 'none';
   }
 }
 
@@ -1022,28 +991,12 @@ async function handleExpandTextarea(
   textareaWrapper.style.flexDirection = 'column';
   textareaWrapper.style.overflow = 'hidden';
 
-  // Create modal textarea with Tailwind classes for border styling
+  // Create modal textarea
   const modalTextarea = document.createElement('textarea') as TextAreaWithEditor;
   modalTextarea.value = originalTextarea.value;
-  modalTextarea.classList.add(
-    'form-control',
-    'flex-1',
-    'resize-none',
-    'border',
-    'border-gray-200',
-    'border-b-gray-500',
-    'focus:border-b-2',
-    'focus:border-b-blue-500',
-    'focus:outline-none'
-  );
+  modalTextarea.classList.add('form-control', 'flex-1', 'resize-none');
   modalTextarea.id = 'expanded-textarea';
 
-  // Add Metro UI data-role for regular textareas (non-code editor)
-  if (!hasCodeEditor) {
-    modalTextarea.setAttribute('data-role', 'textarea');
-    modalTextarea.setAttribute('data-auto-size', 'false');
-    modalTextarea.setAttribute('data-clear-button', 'false');
-  }
 
   // Copy validation attributes from original textarea for Metro UI validation
   const validateAttr = originalTextarea.getAttribute('data-validate');
@@ -1171,8 +1124,8 @@ async function handleExpandTextarea(
       } else {
         initializeRegularTextarea(modalTextareaInDialog);
 
-        // Setup bracket selection for Metro UI textareas
-        await setupMetroUIBracketSelection(modalTextareaInDialog);
+        // Setup bracket selection for modal textarea
+        addBracketSelection(modalTextareaInDialog);
       }
 
       // Template variables setup (if enabled)
@@ -1203,12 +1156,12 @@ async function handleExpandTextarea(
           const formGroup = modalTextareaInDialog.closest('.form-group') as HTMLElement;
           if (modalTextareaInDialog?.value?.trim()?.length > maxLength) {
             formGroup?.classList.add('invalid');
+            modalTextareaInDialog.classList.add('invalid');
             if (validateError) validateError.style.display = 'block';
-            modalTextareaInDialog.style.setProperty('border', '1px solid #c50f1f', 'important');
           } else {
             formGroup?.classList.remove('invalid');
+            modalTextareaInDialog.classList.remove('invalid');
             if (validateError) validateError.style.display = 'none';
-            modalTextareaInDialog.style.setProperty('border', '1px solid rgb(209, 213, 219)', 'important');
           }
         };
 
