@@ -52,7 +52,9 @@ const UserInfoCard = () => {
 
   const isActiveSubscription = (subs) => {
     return (
-      subs.object?.status === 'active' && !subs.object?.cancel_at_period_end && subs.plan?.paid
+      (subs.object?.status === 'active' || subs.object?.status === 'past_due') &&
+      !subs.object?.cancel_at_period_end &&
+      subs.plan?.paid
     );
   };
 
