@@ -671,10 +671,6 @@ export class Workspace extends EventEmitter {
       await delay(100);
       this.domElement.style.opacity = '1';
       zoomElement.style.transition = origTransition;
-    } else if (isRemixedTemplate) {
-      // For remixed templates, set a default zoom level to show more of the canvas
-      await delay(100);
-      await this.zoomTo(0.5); // Zoom out to 50% to see more components
     }
 
     // triggered when agent is loaded ONLY
@@ -1887,6 +1883,8 @@ export class Workspace extends EventEmitter {
       // it will always be triggered after initialization of the agent card since redraw() is an async operation (next tick)
       this.agentCard.addEventListener('AgentCardCreated', () => {
         this.scrollToAgentCard();
+        // For remixed templates, set a default zoom level to show more of the canvas after the agent card is created
+        setTimeout(() => this.zoomTo(0.5), 100);
       });
     }
 
