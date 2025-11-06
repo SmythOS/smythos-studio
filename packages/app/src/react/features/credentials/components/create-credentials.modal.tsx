@@ -9,23 +9,24 @@
  */
 
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@src/react/shared/components/ui/dialog';
 import { Input } from '@src/react/shared/components/ui/input';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@src/react/shared/components/ui/select';
 import React, { useEffect, useMemo, useState } from 'react';
 import credentialsSchema from '../credentials-schema.json';
+import { credentialsService } from '../services/credentials.service';
 
 /**
  * Field schema definition from credentials-schema.json
@@ -47,6 +48,7 @@ interface ProviderSchema {
   group: string;
   auth_type: string;
   description: string;
+  logo_url?: string;
   fields: CredentialField[];
   docs_url?: string;
   test_endpoint?: string;
@@ -70,7 +72,8 @@ export interface CredentialConnection {
 interface CreateCredentialsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (result: { id?: string; name: string; provider: string; credentials: Record<string, string>; isEdit: boolean }) => void;
+   
+  onSuccess?: (data: { id?: string; name: string; provider: string; credentials: Record<string, string>; isEdit: boolean }) => void;
   group: string;
   editConnection?: CredentialConnection;
 }
@@ -287,27 +290,28 @@ export function CreateCredentialsModal({
     setIsProcessing(true);
     
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const submissionData = {
-        id: editConnection?.id,
+      const credentialData = {
+        group,
         name: connectionName,
         provider: selectedProviderId,
         credentials,
-        isEdit: isEditMode,
       };
 
-      // Log for demonstration
-      // eslint-disable-next-line no-console
-      console.log(
-        isEditMode ? 'Updating credential connection:' : 'Creating credential connection:',
-        submissionData
-      );
+      let result;
+      if (isEditMode && editConnection?.id) {
+        // Update existing credential
+        result = await credentialsService.updateCredential(editConnection.id, credentialData);
+      } else {
+        // Create new credential
+        result = await credentialsService.createCredential(credentialData);
+      }
 
       // Call success callback if provided
       if (onSuccess) {
-        onSuccess(submissionData);
+        onSuccess({
+          ...result,
+          isEdit: isEditMode,
+        });
       }
 
       // Close modal on success
@@ -315,7 +319,14 @@ export function CreateCredentialsModal({
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error submitting credentials:', error);
-      // Note: In production, you'd show an error toast here
+      
+      // Set error for connection name field to display to user
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save credential. Please try again.';
+      setErrors((prev) => ({
+        ...prev,
+        connectionName: errorMessage,
+      }));
+      setTouched((prev) => ({ ...prev, connectionName: true }));
     } finally {
       setIsProcessing(false);
     }
@@ -373,13 +384,22 @@ export function CreateCredentialsModal({
                       ) : (
                         availableProviders.map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{provider.name}</span>
-                              {provider.description && (
-                                <span className="text-xs text-muted-foreground">
-                                  {provider.description}
-                                </span>
+                            <div className="flex items-start gap-2">
+                              {provider.logo_url && (
+                                <img
+                                  src={provider.logo_url}
+                                  alt={provider.name}
+                                  className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
+                                />
                               )}
+                              <div className="flex flex-col">
+                                <span className="font-medium">{provider.name}</span>
+                                {provider.description && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {provider.description}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </SelectItem>
                         ))
@@ -429,13 +449,22 @@ export function CreateCredentialsModal({
                 {/* Provider Info */}
                 <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {selectedProvider.name}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {selectedProvider.description}
-                      </p>
+                    <div className="flex items-start gap-2">
+                      {selectedProvider.logo_url && (
+                        <img
+                          src={selectedProvider.logo_url}
+                          alt={selectedProvider.name}
+                          className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedProvider.name}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {selectedProvider.description}
+                        </p>
+                      </div>
                     </div>
                     {selectedProvider.docs_url && (
                       <a

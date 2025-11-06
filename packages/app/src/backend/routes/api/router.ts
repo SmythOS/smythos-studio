@@ -9,6 +9,7 @@ import { isSmythAlpha, isSmythStaff } from '../../utils';
 import { isCustomLLMAllowed } from '../../utils/customLLM';
 import agentRouter from './agent/router';
 import componentRouters from './component/index';
+import { credentialsRouter } from './credentials/router';
 import { feedbackRouter } from './page/feedback';
 import pageRouters from './page/index';
 import { teamSettingsRouter } from './team-settings/router';
@@ -73,6 +74,7 @@ router.get('/user', async (req, res) => {
 
 router.use('/app/user-settings', userSettingsRouter);
 router.use('/app/team-settings', teamSettingsRouter);
+router.use('/app/credentials', credentialsRouter);
 
 router.get('/status', includeTeamDetails, async (req, res) => {
   const url = `${config.env.API_SERVER}/health`;

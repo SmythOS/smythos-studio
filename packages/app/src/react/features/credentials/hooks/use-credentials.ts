@@ -1,76 +1,59 @@
 /**
  * Hook for managing credential connections
  * 
- * Currently returns hardcoded data for demonstration.
- * In production, this would fetch from an API endpoint.
+ * Fetches and manages credential connections from the backend API.
  * 
  * @module use-credentials
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CredentialConnection } from '../components/create-credentials.modal';
-
-/**
- * Hardcoded credential connections for demonstration
- * In production, this would be fetched from an API
- */
-const MOCK_CREDENTIALS: CredentialConnection[] = [
-  {
-    id: 'cred-1',
-    name: 'Production Pinecone',
-    provider: 'piencone',
-    group: 'vector_database',
-    credentials: {
-      api_key: '••••••••••••••••',
-      index_name: 'production-index',
-    },
-    isActive: true,
-  },
-  {
-    id: 'cred-2',
-    name: 'Development Pinecone',
-    provider: 'piencone',
-    group: 'vector_database',
-    credentials: {
-      api_key: '••••••••••••••••',
-      index_name: 'dev-index',
-    },
-    isActive: true,
-  },
-  {
-    id: 'cred-3',
-    name: 'Staging Vector DB',
-    provider: 'piencone',
-    group: 'vector_database',
-    credentials: {
-      api_key: '••••••••••••••••',
-      index_name: 'staging-index',
-    },
-    isActive: false,
-  },
-];
+import { credentialsService } from '../services/credentials.service';
 
 /**
  * Custom hook to fetch and manage credential connections
  * 
- * @param group - Optional group filter (e.g., 'vector_database')
- * @returns Object containing credentials data and loading state
+ * @param group - Group filter (e.g., 'vector_database')
+ * @returns Object containing credentials data, loading state, error, and refetch function
  * 
  * @example
  * ```tsx
- * const { credentials, isLoading } = useCredentials('vector_database');
+ * const { credentials, isLoading, error, refetch } = useCredentials('vector_database');
  * ```
  */
-export function useCredentials(group?: string) {
-  // Simulate loading state
-  const isLoading = false;
+export function useCredentials(group: string) {
+  const [credentials, setCredentials] = useState<CredentialConnection[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | undefined>(undefined);
 
-  // Filter by group if provided
-  const credentials = useMemo(() => {
+  /**
+   * Fetch credentials from the API
+   */
+  const fetchCredentials = async () => {
     if (!group) {
-      return MOCK_CREDENTIALS;
+      setCredentials([]);
+      setIsLoading(false);
+      return;
     }
-    return MOCK_CREDENTIALS.filter((cred) => cred.group === group);
+
+    setIsLoading(true);
+    setError(undefined);
+
+    try {
+      const data = await credentialsService.fetchCredentials(group);
+      setCredentials(data);
+    } catch (err: any) {
+      console.error('Error fetching credentials:', err);
+      setError(err.message || 'Failed to fetch credentials');
+      setCredentials([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch on mount and when group changes
+  useEffect(() => {
+    fetchCredentials();
   }, [group]);
 
   // Sort alphabetically by name
@@ -85,8 +68,10 @@ export function useCredentials(group?: string) {
     credentials: sortedCredentials,
     /** Whether credentials are currently loading */
     isLoading,
-    /** Error if fetch failed (currently always undefined for mock data) */
-    error: undefined,
+    /** Error message if fetch failed */
+    error,
+    /** Function to manually refetch credentials */
+    refetch: fetchCredentials,
   };
 }
 
@@ -94,33 +79,70 @@ export function useCredentials(group?: string) {
  * Get a single credential connection by ID
  * 
  * @param id - The credential connection ID
- * @returns The credential connection or undefined if not found
+ * @param group - The credential group
+ * @returns Object with credential data, loading state, and error
  * 
  * @example
  * ```tsx
- * const credential = useCredentialById('cred-1');
+ * const { credential, isLoading, error } = useCredentialById('cred-1', 'vector_database');
  * ```
  */
-export function useCredentialById(id: string): CredentialConnection | undefined {
-  return useMemo(() => {
-    return MOCK_CREDENTIALS.find((cred) => cred.id === id);
-  }, [id]);
+export function useCredentialById(id: string, group: string) {
+  const [credential, setCredential] = useState<CredentialConnection | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!id || !group) {
+      setCredential(undefined);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchCredential = async () => {
+      setIsLoading(true);
+      setError(undefined);
+
+      try {
+        const data = await credentialsService.fetchCredentialById(id, group);
+        setCredential(data);
+      } catch (err: any) {
+        console.error('Error fetching credential:', err);
+        setError(err.message || 'Failed to fetch credential');
+        setCredential(undefined);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCredential();
+  }, [id, group]);
+
+  return {
+    credential,
+    isLoading,
+    error,
+  };
 }
 
 /**
- * Get credentials by provider
+ * Get credentials by provider from a list
  * 
+ * @param credentials - Array of credentials
  * @param provider - The provider ID (e.g., 'piencone')
- * @returns Array of credentials for that provider
+ * @returns Filtered array of credentials for that provider
  * 
  * @example
  * ```tsx
- * const pineconeCredentials = useCredentialsByProvider('piencone');
+ * const pineconeCredentials = useCredentialsByProvider(allCredentials, 'piencone');
  * ```
  */
-export function useCredentialsByProvider(provider: string): CredentialConnection[] {
+export function useCredentialsByProvider(
+  credentials: CredentialConnection[],
+  provider: string
+): CredentialConnection[] {
   return useMemo(() => {
-    return MOCK_CREDENTIALS.filter((cred) => cred.provider === provider);
-  }, [provider]);
+    return credentials.filter((cred) => cred.provider === provider);
+  }, [credentials, provider]);
 }
 

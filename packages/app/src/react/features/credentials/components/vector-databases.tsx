@@ -21,6 +21,7 @@ import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import credentialsSchema from '../credentials-schema.json';
 import { useCredentials } from '../hooks/use-credentials';
+import { credentialsService } from '../services/credentials.service';
 import {
     CreateCredentialsModal,
     type CredentialConnection,
@@ -35,6 +36,7 @@ interface ProviderSchema {
   group: string;
   auth_type: string;
   description: string;
+  logo_url?: string;
   fields: Array<{
     key: string;
     label: string;
@@ -56,7 +58,7 @@ export function VectorDatabases() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch credentials using the hook
-  const { credentials, isLoading } = useCredentials('vector_database');
+  const { credentials, isLoading, refetch } = useCredentials('vector_db_creds');
 
   /**
    * Get provider display name from schema
@@ -64,6 +66,14 @@ export function VectorDatabases() {
   const getProviderName = (providerId: string): string => {
     const provider = (credentialsSchema as ProviderSchema[]).find((p) => p.id === providerId);
     return provider?.name || providerId;
+  };
+
+  /**
+   * Get provider logo URL from schema
+   */
+  const getProviderLogo = (providerId: string): string | undefined => {
+    const provider = (credentialsSchema as ProviderSchema[]).find((p) => p.id === providerId);
+    return provider?.logo_url;
   };
 
   /**
@@ -86,8 +96,8 @@ export function VectorDatabases() {
     // Reset state
     setEditingConnection(undefined);
     
-    // In production, you would refetch the credentials list here
-    // queryClient.invalidateQueries(['credentials', 'vector_database']);
+    // Refetch the credentials list
+    refetch();
   };
 
   /**
@@ -111,16 +121,17 @@ export function VectorDatabases() {
 
     setIsProcessing(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // eslint-disable-next-line no-console
-      console.log('Deleting connection:', connection.id);
+      await credentialsService.deleteCredential(connection.id, 'vector_db_creds');
+      
       successToast('Connection deleted successfully.');
+      
+      // Refetch the credentials list
+      refetch();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error deleting connection:', error);
-      errorToast('Failed to delete connection. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete connection. Please try again.';
+      errorToast(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -185,8 +196,17 @@ export function VectorDatabases() {
                       </td>
 
                       {/* Provider */}
-                      <td className="px-4 py-3 truncate" title={getProviderName(connection.provider)}>
-                        {getProviderName(connection.provider)}
+                      <td className="px-4 py-3" title={getProviderName(connection.provider)}>
+                        <div className="flex items-center gap-2">
+                          {getProviderLogo(connection.provider) && (
+                            <img
+                              src={getProviderLogo(connection.provider)}
+                              alt={getProviderName(connection.provider)}
+                              className="w-5 h-5 object-contain"
+                            />
+                          )}
+                          <span className="truncate">{getProviderName(connection.provider)}</span>
+                        </div>
                       </td>
 
                       {/* Actions */}
@@ -246,7 +266,7 @@ export function VectorDatabases() {
         isOpen={isCreateModalOpen}
         onClose={handleModalClose}
         onSuccess={handleSuccess}
-        group="vector_database"
+        group="vector_db_creds"
         editConnection={editingConnection}
       />
     </div>
