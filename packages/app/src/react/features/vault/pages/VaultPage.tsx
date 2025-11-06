@@ -1,4 +1,5 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
+import { VectorDatabases } from '@src/react/features/credentials/components/vector-databases';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
@@ -84,6 +85,8 @@ export default function VaultPage() {
       <UserCustomModels pageAccess={pageAccess} />
       <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
       <OAuthConnections />
+      {window.location.hostname === 'localhost' && <VectorDatabases />}
+      
 
       <ErrorBoundarySuspense
         loadingFallback={<div>Loading...</div>}
