@@ -26,6 +26,7 @@ import {
     CreateCredentialsModal,
     type CredentialConnection,
 } from './create-credentials.modal';
+import { CredentialsListSkeleton } from './credentials-list-skeleton';
 
 /**
  * Provider schema definition
@@ -165,9 +166,7 @@ export function VectorDatabases() {
         {/* Table */}
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="py-4 text-center text-muted-foreground">
-              Loading connections...
-            </div>
+            <CredentialsListSkeleton rows={3} />
           ) : credentials.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-muted-foreground mb-2">No vector database connections found</p>

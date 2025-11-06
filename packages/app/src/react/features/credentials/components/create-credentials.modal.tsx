@@ -9,24 +9,25 @@
  */
 
 import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@src/react/shared/components/ui/dialog';
 import { Input } from '@src/react/shared/components/ui/input';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@src/react/shared/components/ui/select';
 import React, { useEffect, useMemo, useState } from 'react';
 import credentialsSchema from '../credentials-schema.json';
 import { credentialsService } from '../services/credentials.service';
+import { CredentialFormSkeleton } from './credential-form-skeleton';
 
 /**
  * Field schema definition from credentials-schema.json
@@ -72,6 +73,7 @@ export interface CredentialConnection {
 interface CreateCredentialsModalProps {
   isOpen: boolean;
   onClose: () => void;
+   
    
   onSuccess?: (data: { id?: string; name: string; provider: string; credentials: Record<string, string>; isEdit: boolean }) => void;
   group: string;
@@ -140,6 +142,7 @@ export function CreateCredentialsModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isResolvingVaultKeys, setIsResolvingVaultKeys] = useState<boolean>(false);
 
   // Determine if in edit mode
   const isEditMode = !!editConnection;
@@ -158,27 +161,53 @@ export function CreateCredentialsModal({
 
   /**
    * Initialize form data when opening in edit mode
+   * Resolves vault keys to show actual values
    */
   useEffect(() => {
-    if (isOpen) {
-      if (isEditMode && editConnection) {
-        // Edit mode: populate form with existing data
-        setConnectionName(editConnection.name);
-        setSelectedProviderId(editConnection.provider);
-        setCredentials(editConnection.credentials);
-        setStep(2); // Go directly to form step
-      } else {
-        // Create mode: reset form
-        setConnectionName('');
-        setSelectedProviderId('');
-        setCredentials({});
-        setStep(1);
+    const loadConnectionData = async () => {
+      if (isOpen) {
+        if (isEditMode && editConnection) {
+          // Edit mode: resolve vault keys and populate form
+          setIsResolvingVaultKeys(true);
+          
+          try {
+            // Fetch credential with resolved vault keys
+            const resolvedCredential = await credentialsService.fetchCredentialForEdit(
+              editConnection.id,
+              group
+            );
+
+            setConnectionName(resolvedCredential.name);
+            setSelectedProviderId(resolvedCredential.provider);
+            setCredentials(resolvedCredential.credentials);
+            setStep(2); // Go directly to form step
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error loading credential for edit:', error);
+            // Fallback to unresolved data
+            setConnectionName(editConnection.name);
+            setSelectedProviderId(editConnection.provider);
+            setCredentials(editConnection.credentials);
+            setStep(2);
+          } finally {
+            setIsResolvingVaultKeys(false);
+          }
+        } else {
+          // Create mode: reset form
+          setConnectionName('');
+          setSelectedProviderId('');
+          setCredentials({});
+          setStep(1);
+          setIsResolvingVaultKeys(false);
+        }
+        // Reset validation state
+        setErrors({});
+        setTouched({});
       }
-      // Reset validation state
-      setErrors({});
-      setTouched({});
-    }
-  }, [isOpen, isEditMode, editConnection]);
+    };
+
+    loadConnectionData();
+  }, [isOpen, isEditMode, editConnection, group]);
 
   /**
    * Handle provider selection and move to step 2
@@ -290,11 +319,24 @@ export function CreateCredentialsModal({
     setIsProcessing(true);
     
     try {
+      // Transform credentials to include sensitivity metadata based on field types
+      const credentialsWithMetadata: Record<string, { value: string; sensitive: boolean }> = {};
+      
+      if (selectedProvider) {
+        selectedProvider.fields.forEach((field) => {
+          const value = credentials[field.key] || '';
+          credentialsWithMetadata[field.key] = {
+            value,
+            sensitive: field.type === 'password',
+          };
+        });
+      }
+
       const credentialData = {
         group,
         name: connectionName,
         provider: selectedProviderId,
-        credentials,
+        credentials: credentialsWithMetadata,
       };
 
       let result;
@@ -360,7 +402,10 @@ export function CreateCredentialsModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          {isResolvingVaultKeys ? (
+            <CredentialFormSkeleton />
+          ) : (
+            <div className="grid gap-4 py-4">
             {/* Step 1: Provider Selection (only shown in create mode) */}
             {step === 1 && !isEditMode && (
               <div className="space-y-4">
@@ -373,7 +418,7 @@ export function CreateCredentialsModal({
                     onValueChange={handleProviderSelect}
                     disabled={isProcessing}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={isProcessing || isResolvingVaultKeys}>
                       <SelectValue placeholder="Choose a provider..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -493,13 +538,14 @@ export function CreateCredentialsModal({
                       onBlur={() => handleBlur(field.key)}
                       error={touched[field.key] && !!errors[field.key]}
                       errorMessage={errors[field.key]}
-                      disabled={isProcessing}
+                      disabled={isProcessing || isResolvingVaultKeys}
                     />
                   </div>
                 ))}
               </div>
             )}
           </div>
+          )}
 
           <DialogFooter>
             {step === 2 && !isEditMode && (
@@ -514,9 +560,10 @@ export function CreateCredentialsModal({
             <CustomButton
               variant="primary"
               type="submit"
-              loading={isProcessing}
+              loading={isProcessing || isResolvingVaultKeys}
               disabled={
                 isProcessing ||
+                isResolvingVaultKeys ||
                 (step === 1 && !selectedProviderId && !isEditMode) ||
                 (step === 2 && (!connectionName.trim() || Object.keys(errors).length > 0))
               }

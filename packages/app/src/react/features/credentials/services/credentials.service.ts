@@ -6,6 +6,19 @@
 
 import type { CredentialConnection } from '../components/create-credentials.modal';
 
+/**
+ * Credential field with sensitivity metadata
+ */
+export interface CredentialFieldValue {
+  value: string;
+  sensitive: boolean;
+}
+
+/**
+ * Credentials with metadata for vault storage
+ */
+export type CredentialsWithMetadata = Record<string, CredentialFieldValue>;
+
 export const credentialsService = {
   /**
    * Fetch all credentials for a specific group
@@ -61,13 +74,41 @@ export const credentialsService = {
   },
 
   /**
+   * Fetch a credential by ID with resolved vault keys (for editing)
+   */
+  fetchCredentialForEdit: async (id: string, group: string): Promise<CredentialConnection> => {
+    try {
+      const response = await fetch(
+        `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}&resolveVaultKeys=true`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to fetch credential for edit:', response.statusText);
+        throw new Error('Failed to fetch credential for edit');
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Error fetching credential for edit:', error);
+      throw new Error(error.message || 'Failed to fetch credential for edit');
+    }
+  },
+
+  /**
    * Create a new credential
    */
   createCredential: async (data: {
     group: string;
     name: string;
     provider: string;
-    credentials: Record<string, string>;
+    credentials: CredentialsWithMetadata;
   }): Promise<CredentialConnection> => {
     try {
       const response = await fetch('/api/app/credentials', {
@@ -101,7 +142,7 @@ export const credentialsService = {
       group: string;
       name: string;
       provider: string;
-      credentials: Record<string, string>;
+      credentials: CredentialsWithMetadata;
     }
   ): Promise<CredentialConnection> => {
     try {
