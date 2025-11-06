@@ -118,7 +118,6 @@ export const useFileUpload = (params?: {
             const result = await uploadFile(file, agentId, chatId);
 
             if (result.success) {
-              // Normalize response from runtime (/aichat/upload)
               const data = result.data as {
                 files?: Array<{ url?: string; mimetype?: string }>;
                 file?: { url?: string; type?: string };

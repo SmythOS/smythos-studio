@@ -671,6 +671,10 @@ export class Workspace extends EventEmitter {
       await delay(100);
       this.domElement.style.opacity = '1';
       zoomElement.style.transition = origTransition;
+    } else if (isRemixedTemplate) {
+      // For remixed templates, set a default zoom level to show more of the canvas
+      await delay(100);
+      await this.zoomTo(0.5); // Zoom out to 50% to see more components
     }
 
     // triggered when agent is loaded ONLY

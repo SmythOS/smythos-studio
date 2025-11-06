@@ -815,13 +815,13 @@ export async function openChatGPTEmbodiment() {
             <li>Scroll down and Click on "Create new action" button.<br />
             ${
               testDomain
-                ? '<li>- Click Import URL and enter the following URL if you want to use your test agent: ' +
+                ? '<li>Click Import URL and enter the following URL if you want to use your test agent: ' +
                   `<b>${scheme}://${testDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }
             ${
               prodDomain
-                ? '<li> - Click Import URL and enter the following URL if you want to use your production agent: ' +
+                ? '<li>Click Import URL and enter the following URL if you want to use your production agent: ' +
                   `<b>${scheme}://${prodDomain}/api-docs/openapi-gpt.json</b></li>`
                 : ''
             }

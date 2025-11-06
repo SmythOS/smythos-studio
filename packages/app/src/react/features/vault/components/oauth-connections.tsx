@@ -1,6 +1,7 @@
 // src/webappv2/pages/vault/oauth-connections.tsx
 import { Button } from '@src/react/shared/components/ui/button'; // Standard Button component for consistency
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button'; // Your custom button
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import {
   extractPlatformFromUrl,
@@ -8,7 +9,6 @@ import {
   mapOAuthTypeDisplay,
 } from '@src/shared/helpers/oauth/oauth.utils';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
-import { Tooltip } from 'flowbite-react';
 import { Circle, CopyPlus, Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -346,11 +346,16 @@ export function OAuthConnections() {
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             OAuth Connections
-            <Tooltip
-              className="w-72 text-center"
-              content="Manage OAuth connections to authenticate and integrate with external services and APIs"
-            >
-              <Info className="w-4 h-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="w-72 text-center">
+                <p>
+                  Manage OAuth connections to authenticate and integrate with external services and
+                  APIs
+                </p>
+              </TooltipContent>
             </Tooltip>
           </h2>
         </div>
@@ -460,39 +465,54 @@ export function OAuthConnections() {
                             ))}
 
                           {/* Duplicate Button */}
-                          <Tooltip content="Duplicate">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDuplicateClick(conn)}
-                              disabled={isDisabled}
-                            >
-                              <CopyPlus className="h-4 w-4" />
-                            </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDuplicateClick(conn)}
+                                disabled={isDisabled}
+                              >
+                                <CopyPlus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Duplicate</p>
+                            </TooltipContent>
                           </Tooltip>
 
                           {/* Edit Button */}
-                          <Tooltip content="Edit">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditClick(conn)}
-                              disabled={isDisabled}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditClick(conn)}
+                                disabled={isDisabled}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit</p>
+                            </TooltipContent>
                           </Tooltip>
 
                           {/* Delete Button */}
-                          <Tooltip content="Delete">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteClick(conn)}
-                              disabled={isDisabled}
-                            >
-                              <Trash2 className="h-4 w-4 hover:text-red-500" />
-                            </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(conn)}
+                                disabled={isDisabled}
+                              >
+                                <Trash2 className="h-4 w-4 hover:text-red-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete</p>
+                            </TooltipContent>
                           </Tooltip>
                         </div>
                       </td>

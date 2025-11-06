@@ -15,9 +15,9 @@ import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import classNames from 'classnames';
-import { Tooltip } from 'flowbite-react';
 import { Check, Copy, Info, Pencil, Trash2 } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
@@ -402,11 +402,16 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             API Keys
-            <Tooltip
-              className="w-72 text-center"
-              content="Add API keys by providing a token (up to 10,000 characters), a unique name, and selecting a scope: All, API Call, Hugging Face, or Zapier Action."
-            >
-              <Info className="w-4 h-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="w-72 text-center">
+                <p>
+                  Add API keys by providing a token (up to 10,000 characters), a unique name, and
+                  selecting a scope: All, API Call, Hugging Face, or Zapier Action.
+                </p>
+              </TooltipContent>
             </Tooltip>
           </h2>
           {pageAccess?.write && (
@@ -442,47 +447,62 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
                     </td>
                     <td className="pl-4 py-2">
                       <div className="flex justify-end">
-                        <Tooltip content={copiedKeyId === key.id ? 'Copied!' : 'Copy'}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopy(key.key, key.id)}
-                          >
-                            {copiedKeyId === key.id ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </Tooltip>
-                        {pageAccess?.write && (
-                          <Tooltip content="Edit">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
                               size="sm"
-                              disabled={key.scope?.includes('CUSTOM_LLM')}
-                              onClick={() => {
-                                setSelectedKey(key);
-                                setEditModalOpen(true);
-                              }}
+                              onClick={() => handleCopy(key.key, key.id)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              {copiedKeyId === key.id ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
                             </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{copiedKeyId === key.id ? 'Copied!' : 'Copy'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        {pageAccess?.write && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={key.scope?.includes('CUSTOM_LLM')}
+                                onClick={() => {
+                                  setSelectedKey(key);
+                                  setEditModalOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit</p>
+                            </TooltipContent>
                           </Tooltip>
                         )}
                         {pageAccess?.write && (
-                          <Tooltip content="Delete">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={key.scope?.includes('CUSTOM_LLM')}
-                              onClick={() => {
-                                setSelectedKey(key);
-                                setDeleteModalOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 hover:text-red-500" />
-                            </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={key.scope?.includes('CUSTOM_LLM')}
+                                onClick={() => {
+                                  setSelectedKey(key);
+                                  setDeleteModalOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 hover:text-red-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete</p>
+                            </TooltipContent>
                           </Tooltip>
                         )}
                       </div>
