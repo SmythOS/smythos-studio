@@ -1334,3 +1334,58 @@ body.locked nav #builder-button svg {
   width: 0.5rem !important;
   margin-top: -0.35rem !important;
 }
+
+/* Invalid state for textareas */
+.dlg-form .textarea textarea.invalid,
+.right-sidebar .form-group textarea.invalid,
+.smyth-dialog #expanded-textarea.invalid {
+  border-color: #c50f1f !important;
+  border-bottom-color: #c50f1f !important;
+}
+
+.dlg-form .textarea textarea.invalid:focus,
+.right-sidebar .form-group textarea.invalid:focus,
+.smyth-dialog #expanded-textarea.invalid:focus {
+  border-bottom-width: 2px !important;
+  border-bottom-color: #c50f1f !important;
+}
+
+/* ======================================
+   Builder Collapsed Sidebar Icon Highlighting  
+   ====================================== */
+
+/**
+ * Minimal CSS for collapsed sidebar highlighting
+ * The Alpine.js bindings handle showing/hiding the grey via bg-gray-300 class
+ * This CSS just adds visual enhancements
+ */
+
+/* Add 3px grey accent bar on left side of active icons */
+#left-sidebar-nav-items button>div.bg-gray-300::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  width: 3px;
+  background-color: #6b7280;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Darken icons for better contrast with grey background */
+#left-sidebar-nav-items button>div.bg-gray-300 svg {
+  filter: brightness(0.7);
+}
+
+/* Hover effect for highlighted buttons */
+#left-sidebar-nav-items button:hover>div.bg-gray-300 {
+  background-color: #9ca3af !important;
+  /* Darker gray-400 */
+}
+
+/* Focus states for accessibility */
+#left-sidebar-nav-items button:focus-visible {
+  outline: 2px solid #6b7280;
+  outline-offset: 2px;
+}
