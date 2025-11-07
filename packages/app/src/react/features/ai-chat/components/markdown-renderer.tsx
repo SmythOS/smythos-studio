@@ -59,8 +59,8 @@ export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, classNam
 
           // Images with responsive styling
           img: (props) => <img {...props} className="max-w-full h-auto rounded my-4" />,
-          // Paragraphs with proper whitespace handling
-          p: (props) => <p className="whitespace-pre-wrap leading-relaxed" {...props} />,
+          // Paragraphs styling
+          p: (props) => <p className="leading-relaxed" {...props} />,
           // Links with color and underline
           a: (props) => (
             <a
@@ -79,7 +79,7 @@ export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, classNam
             <ol {...props} className="list-decimal list-inside space-y-2 leading-relaxed" />
           ),
           // List items
-          li: (props) => <li className="whitespace-pre-wrap leading-relaxed" {...props} />,
+          li: (props) => <li className="leading-relaxed" {...props} />,
           // Blockquote styling
           blockquote: (props) => (
             <blockquote
