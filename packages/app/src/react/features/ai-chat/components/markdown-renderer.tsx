@@ -50,14 +50,6 @@ export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, classNam
           },
 
           // Headers with consistent styling
-          // h1: (props) => <h1 style={{ fontWeight: 'bold', fontSize: '2em' }} {...props} />,
-          // h2: (props) => <h2 style={{ fontWeight: 'bold', fontSize: '1.5em' }} {...props} />,
-          // h3: (props) => <h3 style={{ fontWeight: 'bold', fontSize: '1.17em' }} {...props} />,
-          // h4: (props) => <h4 style={{ fontWeight: 'bold', fontSize: '1em' }} {...props} />,
-          // h5: (props) => <h5 style={{ fontWeight: 'bold', fontSize: '0.83em' }} {...props} />,
-          // h6: (props) => <h6 style={{ fontWeight: 'bold', fontSize: '0.67em' }} {...props} />,
-
-          // Headers with consistent styling using Tailwind
           h1: (props) => <h1 className="text-[2em] font-bold" {...props} />,
           h2: (props) => <h2 className="text-[1.5em] font-bold" {...props} />,
           h3: (props) => <h3 className="text-[1.17em] font-bold" {...props} />,
