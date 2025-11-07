@@ -308,6 +308,9 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         setIsProcessing(true);
         clearError();
 
+        // Remove any previous error messages before sending new message
+        setMessages((prev) => prev.filter((msg) => msg.type !== 'error'));
+
         // Upload files if present
         let attachments: IFileAttachment[] = [];
         if (files && files.length > 0) {
