@@ -39,13 +39,25 @@ async function getUserLLMModels(req: Request) {
         modelTpl.tags.push('alias: ' + modelTpl.alias);
       }
 
+      // #region: Legacy keyOptions handling
+      // TODO: We will clean up `keyOptions` in the future but keep it for legacy users.
+
+      const modelKeyOptions = modelTpl.keyOptions || {};
+      delete modelTpl.keyOptions;
+
+      const provider = modelTpl?.provider?.toLowerCase();
+      const hasAPIKey = !!keys[provider?.toLowerCase()];
+
+      if (hasAPIKey) {
+        modelTpl = { ...modelTpl, ...modelKeyOptions }; //override the model config with the key config
+        modelTpl.hasKey = true;
+      }
+      // #endregion
+
       let enabled =
         typeof LLMModels[modelEntryId].enabled === 'function'
           ? LLMModels[modelEntryId].enabled({ user: req.user, team: req._team })
           : modelTpl.enabled;
-
-      const provider = modelTpl?.provider?.toLowerCase();
-      const hasAPIKey = !!keys[provider?.toLowerCase()];
 
       // If the credentials are only 'vault' and the team doesn't have their own API key, disable the model.
       if (modelTpl.credentials === 'vault' && !hasAPIKey) {

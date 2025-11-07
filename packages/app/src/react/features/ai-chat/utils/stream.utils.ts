@@ -363,6 +363,9 @@ export class ThinkingMessageManager {
  * @returns Processed information
  */
 export const processStreamChunk = (chunk: IStreamChunk) => {
+  // When isError is true, the error message is in the content field
+  const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
+  
   return {
     hasContent: Boolean(chunk.content && chunk.content.trim() !== ''),
     hasDebug: Boolean(chunk.debug),
@@ -372,7 +375,7 @@ export const processStreamChunk = (chunk: IStreamChunk) => {
     functionName: chunk.function || chunk.function_call?.name || null,
     statusMessage: chunk.status_message || null,
     content: chunk.content || '',
-    error: chunk.error || null,
+    error: errorMessage || null,
   };
 };
 

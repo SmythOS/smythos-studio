@@ -652,7 +652,11 @@ export class Workspace extends EventEmitter {
       });
     }
 
-    if (this.agent.data?.ui?.panzoom) {
+    // Check if this is a remixed template - skip panzoom restoration if so
+    const params = new URLSearchParams(window.location.search);
+    const isRemixedTemplate = params.has('templateId');
+
+    if (this.agent.data?.ui?.panzoom && !isRemixedTemplate) {
       const zoomElement = document.getElementById('zoom');
       const origTransition = zoomElement.style.transition;
       zoomElement.style.transition = 'none';
@@ -1833,15 +1837,19 @@ export class Workspace extends EventEmitter {
     let requiresSave = false;
     let isFirstVisit = false;
 
+    // Check if this is a remixed template
+    const params = new URLSearchParams(window.location.search);
+    const isRemixedTemplate = params.has('templateId');
+
     let properties: ComponentProperties = {};
-    if (configuration?.ui?.agentCard) {
+    if (configuration?.ui?.agentCard && !isRemixedTemplate) {
       properties.left = configuration.ui.agentCard.left;
       properties.top = configuration.ui.agentCard.top;
     } else {
       const skills = configuration?.components?.filter((c) => c.name === 'APIEndpoint');
       // console.log('skills to compare', skills);
 
-      if (skills.length > 0) {
+      if (skills.length > 0 && !isRemixedTemplate) {
         // get the skill with the least Y and place the card above it to the left. x - agent_card_width, y - agent_card_height / 2
         const referenceSkill = skills
           // .map((s) => {
@@ -1858,6 +1866,7 @@ export class Workspace extends EventEmitter {
         requiresSave = true;
       } else {
         // handle first time loading - account for weaver sidebar being open
+        // Also treat remixed templates as first visit
         const isWeaverSidebarOpen =
           window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
         const sidebarOffset = isWeaverSidebarOpen ? 400 : 0;
@@ -1870,10 +1879,12 @@ export class Workspace extends EventEmitter {
     }
 
     this.agentCard = new AgentCard(this, properties, configuration);
-    if (isFirstVisit) {
+    if (isFirstVisit || isRemixedTemplate) {
       // it will always be triggered after initialization of the agent card since redraw() is an async operation (next tick)
       this.agentCard.addEventListener('AgentCardCreated', () => {
         this.scrollToAgentCard();
+        // For remixed templates, set a default zoom level to show more of the canvas after the agent card is created
+        setTimeout(() => this.zoomTo(0.5), 100);
       });
     }
 

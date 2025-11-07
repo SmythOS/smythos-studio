@@ -5,7 +5,6 @@ import { promisify } from 'util';
 
 import config from '../../config';
 
-import { privateStorage } from '@src/backend/services/storage';
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
 const router = express.Router();
@@ -180,7 +179,6 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
     return res.status(400).send('Invalid Resource URI');
   }
 
-  const resourceId = `teams/${smythURI.team}${smythURI.path}`;
   const teamId = req._team?.id;
 
   if (teamId !== smythURI.team) {
@@ -188,64 +186,60 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
   }
 
   try {
-    // Validate and decode the smythfs URL
+    // Validate the smythfs URL
     if (!url.startsWith('smythfs://')) {
       return res.status(400).send('Invalid URL format');
     }
 
-    // Determine content type based on file extension
-    const extension = smythURI.path.split('.').pop()?.toLowerCase();
-    const contentType = getContentType(extension);
+    // Construct the debugger server URL for file streaming
+    // The debugger server will extract agent ID from the URL path
+    const debuggerUrl = new URL(`${config.env.API_SERVER}/user/smythfs/stream`);
+    debuggerUrl.searchParams.set('url', url);
 
-    // Set appropriate headers for streaming
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Accept-Ranges', 'bytes');
-
-    // Handle range requests
-    const rangeHeader = req.headers.range;
-    let s3Range: string | undefined;
-    let statusCode = 200;
-    let streamOptions: { range?: string } = {};
-
-    if (rangeHeader) {
-      // Get file size from S3 metadata (assuming we are in SaaS so SRE would store the data in S3)
-
-      const meta = await privateStorage.stat(resourceId);
-      const fileSize = meta.size;
-
-      const [startStr, endStr] = rangeHeader.replace(/bytes=/, '').split('-');
-      const start = parseInt(startStr, 10);
-      const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
-
-      if (start >= fileSize || end >= fileSize) {
-        res.setHeader('Content-Range', `bytes */${fileSize}`);
-        return res.status(416).send('Requested Range Not Satisfiable');
-      }
-
-      const chunkSize = end - start + 1;
-      streamOptions.range = `bytes=${start}-${end}`;
-      statusCode = 206;
-
-      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-      res.setHeader('Content-Length', chunkSize);
+    // Forward the range header if present
+    const headers: Record<string, string | boolean> = {
+      'x-smyth-debug': true,
+    };
+    if (req.headers.range) {
+      headers.Range = req.headers.range;
     }
 
-    // Stream via generic adapter
-    const fileStream = await privateStorage.getStream(resourceId, streamOptions);
+    // Make request to debugger server
+    const response = await axios.get(debuggerUrl.toString(), {
+      headers,
+      responseType: 'stream', // Stream the response
+      validateStatus: (status: number) => status < 500, // Treat 4xx as successful so we can forward them to client; only throw on 5xx server errors
+    });
 
-    // Handle 'close' event to clean up if client disconnects
-    res.on('close', () => (fileStream as any)?.destroy?.());
+    // Forward status code and headers from debugger server
+    res.status(response.status);
 
-    // Set the status code
-    res.status(statusCode);
+    // Forward relevant headers
+    const headersToForward = ['content-type', 'content-length', 'content-range', 'accept-ranges'];
 
-    // Stream the file from S3
-    await pipelineAsync(fileStream, res);
+    for (const header of headersToForward) {
+      const value = response.headers[header];
+      if (value) {
+        res.setHeader(header, value);
+      }
+    }
+
+    // Handle client disconnect
+    res.on('close', () => {
+      if (response.data && typeof response.data.destroy === 'function') {
+        response.data.destroy();
+      }
+    });
+
+    // Stream the file from debugger server to client
+    await pipelineAsync(response.data, res);
   } catch (error: any) {
-    // if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
-    console.error('Error streaming file /file-proxy:', error?.message);
-    if (!res.headersSent) res.status(500).send('Error streaming file');
-    // }
+    console.error('Error proxying file from debugger server:', error?.message);
+    if (!res.headersSent) {
+      const status = error.response?.status || 500;
+      const message = error.response?.data || 'Error reading file';
+      res.status(status).send(message);
+    }
   }
 });
 
