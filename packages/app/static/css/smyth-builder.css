@@ -2343,6 +2343,7 @@ input[data-vault-exclusive='true']:disabled {
   padding: 16px;
   display: flex;
   flex-direction: column;
+  width: calc(100% - 142px);
 }
 
 .agent-header {
@@ -2359,6 +2360,10 @@ input[data-vault-exclusive='true']:disabled {
   color: #333;
   cursor: text;
   word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .menu-button {
