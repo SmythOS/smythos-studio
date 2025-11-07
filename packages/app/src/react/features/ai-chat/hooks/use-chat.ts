@@ -308,7 +308,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         setIsProcessing(true);
         clearError();
 
-        // Remove any previous error messages and incomplete AI messages before sending new message
+        // Remove any previous error messages and loading messages before sending new message
         setMessages((prev) => {
           // Check if there are any error messages (indicates stopped generation)
           const hasErrorMessages = prev.some((msg) => msg.type === 'error');
