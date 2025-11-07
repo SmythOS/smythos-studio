@@ -197,7 +197,9 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
     debuggerUrl.searchParams.set('url', url);
 
     // Forward the range header if present
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string | boolean> = {
+      'x-smyth-debug': true,
+    };
     if (req.headers.range) {
       headers.Range = req.headers.range;
     }
