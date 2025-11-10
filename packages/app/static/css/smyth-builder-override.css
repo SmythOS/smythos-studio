@@ -1331,3 +1331,19 @@ body.locked nav #builder-button svg {
   width: 0.5rem !important;
   margin-top: -0.35rem !important;
 }
+
+/* Invalid state for textareas */
+.dlg-form .textarea textarea.invalid,
+.right-sidebar .form-group textarea.invalid,
+.smyth-dialog #expanded-textarea.invalid {
+  border-color: #c50f1f !important;
+  border-bottom-color: #c50f1f !important;
+}
+
+.dlg-form .textarea textarea.invalid:focus,
+.right-sidebar .form-group textarea.invalid:focus,
+.smyth-dialog #expanded-textarea.invalid:focus {
+  border-bottom-width: 2px !important;
+  border-bottom-color: #c50f1f !important;
+}
+
