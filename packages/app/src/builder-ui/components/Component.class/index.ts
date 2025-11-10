@@ -39,9 +39,12 @@ import { closeSettings, editSettings } from './settings-editor';
 declare var Metro;
 declare var $, workspace;
 
+const DISABLE_AI_FIX_BUTTON = true;
+
 export const ComponentList = {};
 
 const triggerFixWithAIBtn = (data) => {
+  if (DISABLE_AI_FIX_BUTTON) return;
   // Check if weaver sidebar is already open
   const isSidebarOpen = localStorage.getItem('sidebarOpen') === 'true';
   const currentSidebarTab = localStorage.getItem('currentSidebarTab');
@@ -2191,46 +2194,49 @@ export class Component extends EventEmitter {
     debugBar.appendChild(debugLogBtn);
 
     //Agent Weaver Auto Fix feature
-    const fixWithAIButton = document.createElement('button');
-    fixWithAIButton.innerHTML = ` <i class="fa-solid fa-wand-magic-sparkles"></i> Fix with AI`;
-    fixWithAIButton.className = 'btn-fix-with-ai button primary mini outline hidden';
-    fixWithAIButton.onclick = async (event) => {
-      event.stopPropagation();
+    if (!DISABLE_AI_FIX_BUTTON) {
+      const fixWithAIButton = document.createElement('button');
+      fixWithAIButton.innerHTML = ` <i class="fa-solid fa-wand-magic-sparkles"></i> Fix with AI`;
+      fixWithAIButton.className = 'btn-fix-with-ai button primary mini outline hidden';
+      fixWithAIButton.onclick = async (event) => {
+        event.stopPropagation();
 
-      // Highlight the component on click of the button
-      this.workspace.refreshComponentSelection(div);
+        // Highlight the component on click of the button
+        this.workspace.refreshComponentSelection(div);
 
-      const weaverTab = document.getElementById('builder-button');
-      if (!weaverTab) {
-        errorToast('Agent Weaver is not enabled');
-        return;
-      }
-      const weaverTextArea: HTMLTextAreaElement = document.getElementById(
-        'agentMessageInput',
-      ) as HTMLTextAreaElement;
-      const weaverSendButton = document.getElementById('agentSendButton') as HTMLButtonElement;
-      const dbgBoxContent =
-        this.workspace.domElement.querySelector(`.debug-box[rel="${this._uid}"] .dbg-log`)
-          ?.textContent || '';
-      const errorMessage = fixWithAIButton.getAttribute('data-error') || '';
+        const weaverTab = document.getElementById('builder-button');
+        if (!weaverTab) {
+          errorToast('Agent Weaver is not enabled');
+          return;
+        }
+        const weaverTextArea: HTMLTextAreaElement = document.getElementById(
+          'agentMessageInput',
+        ) as HTMLTextAreaElement;
+        const weaverSendButton = document.getElementById('agentSendButton') as HTMLButtonElement;
+        const dbgBoxContent =
+          this.workspace.domElement.querySelector(`.debug-box[rel="${this._uid}"] .dbg-log`)
+            ?.textContent || '';
+        const errorMessage = fixWithAIButton.getAttribute('data-error') || '';
 
-      const inputEndpoints = this.domElement.querySelectorAll('.input-container .endpoint');
-      let inputValues = '';
+        const inputEndpoints = this.domElement.querySelectorAll('.input-container .endpoint');
+        let inputValues = '';
 
-      //constructing meaningful inputs object for weaver
-      for (let e of inputEndpoints) {
-        const name = (e.querySelector('span.name') as HTMLElement).innerText;
-        const dbgOutputArea = e.querySelector('div.dbg-output textarea.dbg') as HTMLTextAreaElement;
-        let value = dbgOutputArea ? dbgOutputArea?.value : '';
-        let jsonValue;
-        try {
-          jsonValue = parseEndpointJson(value);
-          jsonValue = recursiveTruncateLongJsonValues(jsonValue);
-          if (Array.isArray(jsonValue) && jsonValue.length > 3) {
-            jsonValue = jsonValue.slice(0, 3);
-            jsonValue.push('...(truncated to 3 items)');
-          }
-          /*
+        //constructing meaningful inputs object for weaver
+        for (let e of inputEndpoints) {
+          const name = (e.querySelector('span.name') as HTMLElement).innerText;
+          const dbgOutputArea = e.querySelector(
+            'div.dbg-output textarea.dbg',
+          ) as HTMLTextAreaElement;
+          let value = dbgOutputArea ? dbgOutputArea?.value : '';
+          let jsonValue;
+          try {
+            jsonValue = parseEndpointJson(value);
+            jsonValue = recursiveTruncateLongJsonValues(jsonValue);
+            if (Array.isArray(jsonValue) && jsonValue.length > 3) {
+              jsonValue = jsonValue.slice(0, 3);
+              jsonValue.push('...(truncated to 3 items)');
+            }
+            /*
           for (let key in jsonValue) {
             if (typeof jsonValue[key] === 'object') {
               jsonValue[key] = JSON.stringify(jsonValue[key]);
@@ -2250,25 +2256,25 @@ export class Component extends EventEmitter {
           }
             */
 
-          inputValues += `${name}: ${JSON.stringify(jsonValue)}\n`;
+            inputValues += `${name}: ${JSON.stringify(jsonValue)}\n`;
 
-          //escape html entities
-          inputValues = inputValues
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-        } catch (e) {
-          if (value.length > 300) {
-            value = value.substring(0, 300) + '...(long content truncated)';
+            //escape html entities
+            inputValues = inputValues
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+          } catch (e) {
+            if (value.length > 300) {
+              value = value.substring(0, 300) + '...(long content truncated)';
+            }
+            inputValues += `${name}: ${value}\n`;
           }
-          inputValues += `${name}: ${value}\n`;
         }
-      }
-      if (inputValues) {
-        inputValues = `===\nReceived Inputs:\n${inputValues}\n\n`;
-      }
+        if (inputValues) {
+          inputValues = `===\nReceived Inputs:\n${inputValues}\n\n`;
+        }
 
-      const weaverPrompt = `Component With ID=${this._uid} has a runtime error:
+        const weaverPrompt = `Component With ID=${this._uid} has a runtime error:
       ${errorMessage.substring(0, 500)}
 
       ${inputValues}
@@ -2276,13 +2282,14 @@ export class Component extends EventEmitter {
 
       \nPlease fix the issue, or explain it if you can't fix it`;
 
-      //${dbgBoxContent.slice(-500)}
+        //${dbgBoxContent.slice(-500)}
 
-      console.log('Weaver Error fix prompt: ', weaverPrompt);
+        console.log('Weaver Error fix prompt: ', weaverPrompt);
 
-      triggerFixWithAIBtn({ weaverPrompt, componentId: this._uid });
-    };
-    debugBar.appendChild(fixWithAIButton);
+        triggerFixWithAIBtn({ weaverPrompt, componentId: this._uid });
+      };
+      debugBar.appendChild(fixWithAIButton);
+    }
 
     const inputsControl = document.createElement('div');
     inputsControl.className = 'ep-control inputs px-2';
