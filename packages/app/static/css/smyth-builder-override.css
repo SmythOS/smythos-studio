@@ -918,6 +918,7 @@ code.language-plan.done::before {
   width: 30px !important;
   height: 30px !important;
   padding: 4px;
+  background-color: #ffffff;
 }
 
 .debug-enabled .component.dbg-active .debug-icon-container .debug-icon.default-icon:hover {
