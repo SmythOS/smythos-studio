@@ -363,8 +363,6 @@ export const userCustomModelService = {
         contextWindow: value.contextWindow !== undefined ? value.contextWindow : value.tokens,
         maxOutputTokens:
           value.maxOutputTokens !== undefined ? value.maxOutputTokens : value.completionTokens,
-        maxOutputTokens:
-          value.maxOutputTokens !== undefined ? value.maxOutputTokens : value.completionTokens,
         fallbackLLM: value.fallbackLLM || '', // Provide default empty string for backward compatibility with cached data
         features: value.features,
         credentials: value.credentials, // Include credentials info (apiKey template variable, isUserKey flag)
