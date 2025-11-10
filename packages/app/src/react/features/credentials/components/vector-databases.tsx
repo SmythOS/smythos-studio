@@ -19,9 +19,9 @@ import { errorToast, successToast } from '@src/shared/components/toast';
 import { Tooltip } from 'flowbite-react';
 import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { credentialsClient } from '../clients/credentials.client';
 import credentialsSchema from '../credentials-schema.json';
 import { useCredentials } from '../hooks/use-credentials';
-import { credentialsService } from '../services/credentials.service';
 import {
     CreateCredentialsModal,
     type CredentialConnection,
@@ -122,7 +122,7 @@ export function VectorDatabases() {
 
     setIsProcessing(true);
     try {
-      await credentialsService.deleteCredential(connection.id, 'vector_db_creds');
+      await credentialsClient.deleteCredential(connection.id, 'vector_db_creds');
       
       successToast('Connection deleted successfully.');
       

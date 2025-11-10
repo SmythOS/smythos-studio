@@ -1,6 +1,6 @@
 /**
  * Credentials Service
- * 
+ *
  * Handles API calls for credential management
  */
 
@@ -19,7 +19,7 @@ export interface CredentialFieldValue {
  */
 export type CredentialsWithMetadata = Record<string, CredentialFieldValue>;
 
-export const credentialsService = {
+export const credentialsClient = {
   /**
    * Fetch all credentials for a specific group
    */
@@ -57,7 +57,7 @@ export const credentialsService = {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -85,7 +85,7 @@ export const credentialsService = {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -143,7 +143,7 @@ export const credentialsService = {
       name: string;
       provider: string;
       credentials: CredentialsWithMetadata;
-    }
+    },
   ): Promise<CredentialConnection> => {
     try {
       const response = await fetch(`/api/app/credentials/${encodeURIComponent(id)}`, {
@@ -180,7 +180,7 @@ export const credentialsService = {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -194,4 +194,3 @@ export const credentialsService = {
     }
   },
 };
-

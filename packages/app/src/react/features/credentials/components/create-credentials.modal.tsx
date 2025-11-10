@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import React, { useEffect, useMemo, useState } from 'react';
+import { credentialsClient } from '../clients/credentials.client';
 import credentialsSchema from '../credentials-schema.json';
-import { credentialsService } from '../services/credentials.service';
 import { CredentialFormSkeleton } from './credential-form-skeleton';
 
 /**
@@ -172,7 +172,7 @@ export function CreateCredentialsModal({
           
           try {
             // Fetch credential with resolved vault keys
-            const resolvedCredential = await credentialsService.fetchCredentialForEdit(
+            const resolvedCredential = await credentialsClient.fetchCredentialForEdit(
               editConnection.id,
               group
             );
@@ -342,10 +342,10 @@ export function CreateCredentialsModal({
       let result;
       if (isEditMode && editConnection?.id) {
         // Update existing credential
-        result = await credentialsService.updateCredential(editConnection.id, credentialData);
+        result = await credentialsClient.updateCredential(editConnection.id, credentialData);
       } else {
         // Create new credential
-        result = await credentialsService.createCredential(credentialData);
+        result = await credentialsClient.createCredential(credentialData);
       }
 
       // Call success callback if provided
