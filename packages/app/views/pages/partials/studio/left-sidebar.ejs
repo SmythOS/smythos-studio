@@ -1,11 +1,11 @@
 <div
   x-data="sidebarState()"
   @toggle-sidebar-request.window="toggleSidebar()"
-  class="transition-all duration-300 max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
+  class="max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
-    'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab',
-    'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab',
-    'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab'),
+    'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab' && !sidebarWidth,
+    'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab' && !sidebarWidth,
+    'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab') && !sidebarWidth,
     'w-0 md:w-16': !isSidebarOpen
   }"
   id="left-sidebar"
@@ -474,19 +474,13 @@
 
   <div
     x-show="isSidebarOpen"
-    x-transition:enter="transition-opacity duration-300"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition-opacity duration-300"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
     id="left-sidebar-container"
-    class="inset-y-0 -top-5 md:top-4 md:bottom-4 left-[6px] md:left-[80px] p-3 px-0 flex-shrink-0 rounded-lg w-[100vw] md:w-[calc(100%-4rem)] absolute"
+    class="inset-y-0 -top-5 md:top-4 md:bottom-4 left-[6px] md:left-[80px] p-3 px-0 flex-shrink-0 rounded-lg absolute"
   >
     <div
       aria-label="Main"
       id="left-sidebar-content-sections"
-      class="flex flex-col items-start bg-white rounded-lg border border-solid border-gray-300 h-[calc(100dvh-4rem)] md:h-full w-full max-w-[100vw]"
+      class="flex flex-col items-start bg-white rounded-lg border border-solid border-gray-300 h-[calc(100dvh-4rem)] md:h-full"
     >
       <div class="w-full flex md:hidden justify-between items-center p-2">
         <div class="flex items-center gap-2">
@@ -556,6 +550,7 @@
 
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
+      sidebarWidth: null, // Will be loaded from localStorage in init()
       buildSidebarTabs: [
         'agentBuilderTab',
         'buildTab',
@@ -668,15 +663,77 @@
           localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
         }
 
-        this.$watch('isSidebarOpen', (value) => {
-          localStorage.setItem('sidebarOpen', value);
+        // === SINGLE SOURCE OF TRUTH: Apply width to DOM ===
+        const applyWidth = (width) => {
+          this.$nextTick(() => {
+            const leftSidebar = document.querySelector('#left-sidebar');
+            const contentContainer = document.querySelector('#left-sidebar-content-sections');
+            
+            if (leftSidebar && width) {
+              leftSidebar.style.setProperty('width', width, 'important');
+            }
+            if (contentContainer && width) {
+              contentContainer.style.width = width;
+            }
+          });
+        };
 
-          // Very important: If sidebar is closed, ensure currentSidebarTab is null
-          if (!value && this.currentSidebarTab) {
-            this.previousTab = this.currentSidebarTab;
-            this.currentSidebarTab = null;
-            localStorage.setItem('previousTab', this.previousTab);
-            localStorage.setItem('currentSidebarTab', null);
+        // Load saved width on init
+        const savedWidth = localStorage.getItem('left-sidebar-width');
+        if (savedWidth) {
+          this.sidebarWidth = savedWidth;
+          if (this.isSidebarOpen) {
+            applyWidth(savedWidth);
+          }
+        }
+
+        // Listen for resize events from interact.js
+        window.addEventListener('leftSidebarResized', (event) => {
+          this.sidebarWidth = event.detail.width;
+          applyWidth(event.detail.width);
+        });
+
+        // Watch sidebarWidth changes and apply to DOM
+        this.$watch('sidebarWidth', (newWidth) => {
+          if (newWidth && this.isSidebarOpen) {
+            applyWidth(newWidth);
+          }
+        });
+
+        this.$watch('isSidebarOpen', (value, oldValue) => {
+          localStorage.setItem('sidebarOpen', value);
+          console.log('[isSidebarOpen watcher] Changed from', oldValue, 'to', value);
+
+          if (!value) {
+            // When sidebar closes, clear the inline styles so Tailwind takes over
+            this.$nextTick(() => {
+              const leftSidebar = document.querySelector('#left-sidebar');
+              const contentContainer = document.querySelector('#left-sidebar-content-sections');
+              if (leftSidebar) leftSidebar.style.width = '';
+              if (contentContainer) contentContainer.style.width = '';
+            });
+            
+            // Very important: If sidebar is closed, ensure currentSidebarTab is null
+            if (this.currentSidebarTab) {
+              this.previousTab = this.currentSidebarTab;
+              this.currentSidebarTab = null;
+              localStorage.setItem('previousTab', this.previousTab);
+              localStorage.setItem('currentSidebarTab', null);
+            }
+          } else {
+            // When sidebar opens, apply saved width if it exists
+            console.log('[isSidebarOpen watcher] Sidebar opened, sidebarWidth:', this.sidebarWidth);
+            if (this.sidebarWidth) {
+              applyWidth(this.sidebarWidth);
+            } else {
+              // No custom width, check localStorage
+              const savedWidth = localStorage.getItem('left-sidebar-width');
+              console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
+              if (savedWidth) {
+                this.sidebarWidth = savedWidth;
+                applyWidth(savedWidth);
+              }
+            }
           }
 
           window.dispatchEvent(
@@ -688,6 +745,14 @@
               },
             }),
           );
+        });
+
+        // Watch for tab changes when sidebar is already open
+        this.$watch('currentSidebarTab', (newTab, oldTab) => {
+          // Apply width when switching tabs (sidebar stays open)
+          if (this.isSidebarOpen && this.sidebarWidth) {
+            applyWidth(this.sidebarWidth);
+          }
         });
         window.addEventListener('fixWithAIBtn', (event) => {
           // Only click the tab if sidebar is closed or weaver tab is not active

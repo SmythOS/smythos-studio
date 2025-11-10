@@ -2,6 +2,8 @@
 
 export const BINARY_INPUT_TYPES = ['Image', 'Audio', 'Video', 'Binary'];
 
+export const DEFAULT_RIGHT_SIDEBAR_WIDTH = '520px';
+
 export const JSON_FIELD_CLASS = '_smythos_json_field';
 
 export enum LLM_PROVIDERS {
