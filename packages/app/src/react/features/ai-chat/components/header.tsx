@@ -85,17 +85,17 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   // Check if current agent.id exists in modelAgents list
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
+  // Use override if set, otherwise use agent's default model
+  const currentModel = selectedModelOverride || selectedModel || '';
+
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
   const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
-  const [provider, setProvider] = useState<string>('OpenAI');
+  const [provider, setProvider] = useState<string>(currentModel);
 
   // State for custom dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Use override if set, otherwise use agent's default model
-  const currentModel = selectedModelOverride || selectedModel || '';
 
   /**
    * Initialize LLM models store on component mount
@@ -118,9 +118,9 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
         setLlmModels(models);
         setIsModelsLoading(false);
-        setProvider(models[0].provider);
+        setProvider(models.find((m) => m.value === currentModel)?.provider || 'OpenAI');
       });
-  }, []);
+  }, [currentModel]);
 
   /**
    * Handle click outside dropdown to close it
@@ -271,7 +271,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
                             </div>
                             <IoChevronDown
                               className={cn(
-                                'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none -rotate-90',
+                                'size-4 text-slate-900 flex-shrink-0 transition-transform leading-none -rotate-90',
                                 llmProvider === provider ? 'block' : 'hidden',
                               )}
                             />
