@@ -169,7 +169,7 @@ function toggleSwitch(on: boolean) {
     updateInspectButtonIcon(inspectButton, true);
   } else {
     // Reset the components state before toggling the debug switch
-    resetComponentsState({ resetPinned: true });
+    resetComponentsState({ resetMessages: true, resetPinned: true });
     // debugMenu.classList.add('hidden');
     switcherText.textContent = 'Debug Off';
     debugSwitcher.classList.remove('active');
