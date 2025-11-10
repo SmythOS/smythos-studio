@@ -804,6 +804,132 @@ function setupBuilderMenuDragDrop() {
     },
   });
 
+  // Left sidebar resize setup
+  const leftSidebarInteract = interact('#left-sidebar');
+  interactInstances.push(leftSidebarInteract);
+  leftSidebarInteract
+    .resizable({
+      margin: 5,
+      // Enable resize from right edge
+      edges: { left: false, right: true, bottom: false, top: false },
+
+      // Set min and max width
+      modifiers: [
+        (<any>interact).modifiers!.restrictSize({
+          min: { width: 280 },
+          max: (x, y, element) => {
+            const workspaceRect = document
+              .querySelector('#workspace-container')
+              ?.getBoundingClientRect();
+            const rightSidebarRect = document
+              .querySelector('#right-container')
+              ?.getBoundingClientRect();
+
+            if (!workspaceRect) {
+              return { width: 280 }; // Fallback to min-width
+            }
+
+            const minCanvasSpace = 420;
+            const responsiveBreakpoint = 768;
+            const maxLeftSidebarWidth = 1000;
+
+            // Calculate max width ensuring minimum canvas space is preserved
+            // For left sidebar: calculate from where the right edge would be
+            // Similar to right sidebar but in reverse direction
+            const elementRect = element.element.getBoundingClientRect();
+            const leftSidebarLeft = elementRect.left;
+
+            // Calculate available space from left edge to ensure canvas space
+            let maxWidthForCanvas = workspaceRect.right - leftSidebarLeft - minCanvasSpace;
+
+            // If right sidebar is open, account for its space requirement
+            if (rightSidebarRect && rightSidebarRect.width > 0) {
+              maxWidthForCanvas = rightSidebarRect.left - leftSidebarLeft - minCanvasSpace;
+            }
+
+            // On large screens, sidebar shouldn't be more than half the workspace
+            if (workspaceRect.width >= responsiveBreakpoint) {
+              const halfWorkspace = workspaceRect.width / 2;
+              return { width: Math.min(maxWidthForCanvas, halfWorkspace, maxLeftSidebarWidth) };
+            }
+
+            return { width: maxWidthForCanvas };
+          },
+        }),
+      ],
+
+      inertia: true,
+    })
+    .on('resizestart', function (event) {
+      document.body.classList.add('select-none');
+      event.target.classList.add('no-transition');
+      // Prevent scrollbar interference during resize
+      const contentSections = event.target.querySelectorAll(
+        '#left-sidebar-content-sections, .helpTab, .agentTab, .deployTab',
+      );
+      contentSections.forEach((section: Element) => {
+        (section as HTMLElement).classList.add('overflow-hidden');
+      });
+    })
+    .on('resizemove', function (event) {
+      const newWidth = event.rect.width + 'px';
+      event.target.style.width = newWidth;
+
+      // Update inner content container width to match main sidebar width
+      const contentContainer = event.target.querySelector('#left-sidebar-content-sections');
+      if (contentContainer) {
+        (contentContainer as HTMLElement).style.width = newWidth;
+      }
+
+      // Dispatch resize event for Alpine.js to react to real-time changes
+      window.dispatchEvent(
+        new CustomEvent('leftSidebarResized', {
+          detail: { width: newWidth },
+        }),
+      );
+    })
+    .on('resizeend', function (event) {
+      document.body.classList.remove('select-none');
+      event.target.classList.remove('no-transition');
+      // Restore scrollbars after resize
+      const contentSections = event.target.querySelectorAll(
+        '#left-sidebar-content-sections, .helpTab, .agentTab, .deployTab',
+      );
+      contentSections.forEach((section: Element) => {
+        (section as HTMLElement).classList.remove('overflow-hidden');
+      });
+
+      const finalWidth = event.target.style.width;
+
+      // Get current tab from localStorage and save with per-tab key
+      const currentTab = localStorage.getItem('currentSidebarTab');
+      if (currentTab && currentTab !== 'null') {
+        const storageKey = `leftSidebarWidth-${currentTab}`;
+        localStorage.setItem(storageKey, finalWidth);
+      } else {
+        // Fallback to generic key if no tab is set
+        localStorage.setItem('left-sidebar-width', finalWidth);
+      }
+
+      // Update Alpine.js width property to keep binding in sync
+      try {
+        const alpineComponent = (window as any).Alpine?.$data?.(event.target);
+        if (alpineComponent && typeof alpineComponent.width === 'string') {
+          alpineComponent.width = finalWidth;
+        }
+      } catch (error) {
+        // Alpine might not be available or element might not have Alpine data
+        console.warn('Could not update Alpine width property:', error);
+      }
+
+      // Dispatch final resize event
+      window.dispatchEvent(
+        new CustomEvent('leftSidebarResized', {
+          detail: { width: finalWidth },
+        }),
+      );
+    });
+
   const rightSidebarInteract = interact(
     '#right-sidebar,#embodiment-sidebar,#agent-settings-sidebar',
   );
@@ -858,13 +984,58 @@ function setupBuilderMenuDragDrop() {
       event.target.classList.add('pointer-events-none');
     })
     .on('resizemove', function (event) {
-      event.target.style.width = event.rect.width + 'px';
+      const newWidth = event.rect.width + 'px';
+      event.target.style.width = newWidth;
+
+      // Apply the same width to all right sidebars in real-time
+      const allRightSidebars = [
+        document.querySelector('#right-sidebar'),
+        document.querySelector('#embodiment-sidebar'),
+        document.querySelector('#agent-settings-sidebar'),
+      ];
+
+      allRightSidebars.forEach((sidebar) => {
+        if (sidebar && sidebar !== event.target) {
+          (sidebar as HTMLElement).style.width = newWidth;
+        }
+      });
+
+      // Dispatch resize event for Alpine.js to react to real-time changes
+      window.dispatchEvent(
+        new CustomEvent('rightSidebarResized', {
+          detail: { width: newWidth },
+        }),
+      );
     })
     .on('resizeend', function (event) {
       document.body.classList.remove('select-none');
       event.target.classList.remove('no-transition');
       event.target.classList.remove('pointer-events-none');
-      localStorage.setItem(`${event.target.id}-width`, event.target.style.width);
+
+      const finalWidth = event.target.style.width;
+
+      // Save to common width key for all right sidebars
+      localStorage.setItem('right-sidebar-common-width', finalWidth);
+
+      // Apply the final width to all right sidebars
+      const allRightSidebars = [
+        document.querySelector('#right-sidebar'),
+        document.querySelector('#embodiment-sidebar'),
+        document.querySelector('#agent-settings-sidebar'),
+      ];
+
+      allRightSidebars.forEach((sidebar) => {
+        if (sidebar) {
+          (sidebar as HTMLElement).style.width = finalWidth;
+        }
+      });
+
+      // Dispatch final resize event
+      window.dispatchEvent(
+        new CustomEvent('rightSidebarResized', {
+          detail: { width: finalWidth },
+        }),
+      );
     });
 
   // temporary debug console height: move to a better place

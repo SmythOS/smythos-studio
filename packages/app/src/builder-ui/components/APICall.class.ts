@@ -151,7 +151,7 @@ export class APICall extends Component {
               click: handleKvFieldEditBtn.bind(this, 'headers', {
                 showVault: true,
                 vaultScope: COMP_NAMES.apiCall,
-                dialogClasses: 'overflow-x-hidden', 
+                dialogClasses: 'overflow-x-hidden',
               }),
             },
           },
@@ -1181,7 +1181,11 @@ export class APICall extends Component {
       } else {
         editBtn.style.display = 'none';
         bodyElm.removeAttribute('readonly');
-        bodyElm.focus();
+        // Only focus when user actively changes content type, not when sidebar opens
+        // eventTriggersActually is false on sidebar open, true on actual user interaction
+        if (this.eventTriggersActually) {
+          bodyElm.focus();
+        }
       }
     }
 
@@ -1235,6 +1239,10 @@ export class APICall extends Component {
         this.data.body = '';
       }
       // Don't update this.data.contentType directly - let the form save mechanism handle it
+
+      // Mark that the first change event has been handled
+      // Subsequent content type changes will be recognized as actual user interactions
+      this.eventTriggersActually = true;
     }, 150);
   }
 

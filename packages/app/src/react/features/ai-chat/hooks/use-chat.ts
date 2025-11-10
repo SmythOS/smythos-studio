@@ -308,6 +308,23 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         setIsProcessing(true);
         clearError();
 
+        // Remove any previous error messages and loading messages before sending new message
+        setMessages((prev) => {
+          // Check if there are any error messages (indicates stopped generation)
+          const hasErrorMessages = prev.some((msg) => msg.type === 'error');
+
+          // Remove error messages
+          const filtered = prev.filter((msg) => msg.type !== 'error');
+
+          // If there were error messages and the last message is loading,
+          if (hasErrorMessages && filtered.length > 0) {
+            const lastMessage = filtered[filtered.length - 1];
+            if (lastMessage.type === 'loading') return filtered.slice(0, -1);
+          }
+
+          return filtered;
+        });
+
         // Upload files if present
         let attachments: IFileAttachment[] = [];
         if (files && files.length > 0) {
@@ -359,26 +376,30 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             onThinking: (thinkingMsg: string, type: TThinkingType, conversationTurnId?: string) => {
               if (conversationTurnId && !currentTurnIdRef.current) {
                 currentTurnIdRef.current = conversationTurnId; // Capture turn ID from thinking messages
-
-                // Optimized: Consistent with other state updates
-                setMessages((prev) => {
-                  const lastIndex = prev.length - 1;
-                  if (lastIndex >= 0) {
-                    // Only update last element without copying entire array
-                    const newMessages = prev.slice(0, -1);
-                    newMessages.push({ ...prev[lastIndex], conversationTurnId });
-                    return newMessages;
-                  }
-                  return prev;
-                });
               }
 
               // Mark that we're in thinking state
               isThinkingRef.current = true;
               hasThinkingOccurredRef.current = true;
 
-              // Update thinking message
-              updateThinkingMessage(thinkingMsg);
+              // Update thinking message and change type from 'loading' to 'system' to close loading indicator
+              setMessages((prev) => {
+                const lastIndex = prev.length - 1;
+                if (lastIndex >= 0) {
+                  const lastMsg = prev[lastIndex];
+                  // Only update last element without copying entire array
+                  const newMessages = prev.slice(0, -1);
+                  newMessages.push({
+                    ...lastMsg,
+                    thinkingMessage: thinkingMsg,
+                    conversationTurnId: conversationTurnId || lastMsg.conversationTurnId,
+                    // Change type from 'loading' to 'system' to close loading indicator
+                    type: lastMsg.type === 'loading' ? 'system' : lastMsg.type,
+                  });
+                  return newMessages;
+                }
+                return prev;
+              });
             },
             onToolCall: (
               toolName: string,

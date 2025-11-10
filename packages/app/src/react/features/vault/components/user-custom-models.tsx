@@ -1,7 +1,7 @@
 import { Button } from '@src/react/shared/components/ui/button';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { Tooltip } from 'flowbite-react';
 import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -151,11 +151,16 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
           Custom Models
-          <Tooltip
-            className="w-72 text-center"
-            content="Custom models allow you to connect to your own LLM instances running locally or on your infrastructure"
-          >
-            <Info className="w-4 h-4" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-4 h-4 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="w-72 text-center">
+              <p>
+                Custom models allow you to connect to your own LLM instances running locally or on
+                your infrastructure
+              </p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -189,25 +194,35 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
                       <div className="flex items-center gap-2 ml-2">
                         {pageAccess.write && (
                           <>
-                            <Tooltip content="Edit">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditModel(model)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditModel(model)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit</p>
+                              </TooltipContent>
                             </Tooltip>
-                            <Tooltip content="Delete">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteClick(model)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Trash2 className="h-4 w-4 hover:text-red-500" />
-                              </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteClick(model)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="h-4 w-4 hover:text-red-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete</p>
+                              </TooltipContent>
                             </Tooltip>
                           </>
                         )}

@@ -79,7 +79,24 @@ export const Sidebar: React.FC = () => {
   // }
 
   useEffect(() => {
-    const currentPage = menuItems.find((page) => page.url === location.pathname);
+    const normalizePath = (path: string): string => {
+      return path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+    };
+    const isPathActive = (menuUrl: string, currentPath: string): boolean => {
+      const normalizedMenuUrl = normalizePath(menuUrl);
+      const normalizedCurrentPath = normalizePath(currentPath);
+
+      // Exact match
+      if (normalizedMenuUrl === normalizedCurrentPath) {
+        return true;
+      }
+
+      // Check if current path is a sub-path of menu URL
+      // Ensure we match /data/something but not /data-something
+      return normalizedCurrentPath.startsWith(normalizedMenuUrl + '/');
+    };
+
+    const currentPage = menuItems.find((page) => isPathActive(page.url, location.pathname));
     setActivePage(currentPage?.name || '');
   }, [location, menuItems]);
 

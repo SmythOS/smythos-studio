@@ -126,7 +126,7 @@
 }
 
 .debug-enabled.debugging .component:not(.dbg-active) .btn-debug {
-  opacity: 0.5;
+  filter: grayscale(1) brightness(1.2);
   pointer-events: none;
   cursor: not-allowed;
 }
