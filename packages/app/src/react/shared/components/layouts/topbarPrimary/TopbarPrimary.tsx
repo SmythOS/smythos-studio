@@ -44,7 +44,18 @@ export const TopbarPrimary = () => {
 
     // Special case for agents path - customize with team name
     if (matchingPath === '/agents') {
-      return `${currTeam?.name ? `${currTeam?.name}'s` : 'Your'} ${PAGE_TITLE_MAP[matchingPath]}`;
+      // Handle redundant "Team" text when team name already ends with "Team"
+      if (currTeam?.name) {
+        const teamName = currTeam.name;
+        const endsWithTeam = teamName?.trim()?.toLowerCase()?.endsWith('team');
+        
+        // If team name ends with "Team", just append "Dashboard"
+        // Otherwise, append "Team Dashboard"
+        const suffix = endsWithTeam ? 'Dashboard' : PAGE_TITLE_MAP[matchingPath];
+        return `${teamName}'s ${suffix}`;
+      }
+      
+      return `Your ${PAGE_TITLE_MAP[matchingPath]}`;
     }
 
     if (matchingPath === '/teams/roles') {
