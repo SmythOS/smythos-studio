@@ -1,0 +1,90 @@
+name: Build and Push Alpha Docker Image
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/DEV-Docker-build-and-push.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'packages/**'
+      - 'docker-compose.yml'
+      - 'tsconfig.json'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Comma-separated Docker tags to publish, e.g. alpha,latest,stable'
+        required: false
+        default: 'alpha'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-alpha-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  LOCAL_IMAGE: smythos-studio
+  DOCKERHUB_IMAGE: smythos/smythos-studio
+  IMAGE_TAGS: ${{ github.event.inputs.tags || 'alpha' }}
+
+jobs:
+  docker:
+    name: Build, Tag, and Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Prepare tag list
+        id: prep
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAGS_RAW="${IMAGE_TAGS}"
+          TAGS_CLEAN="${TAGS_RAW// /}"
+          IFS=',' read -r -a TAG_ARRAY <<< "${TAGS_CLEAN}"
+          if [ "${#TAG_ARRAY[@]}" -eq 0 ] || [ -z "${TAG_ARRAY[0]}" ]; then
+            echo "No valid tags provided in IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+            exit 1
+          fi
+          FULL_TAGS=""
+          for TAG in "${TAG_ARRAY[@]}"; do
+            echo "Will publish: ${DOCKERHUB_IMAGE}:${TAG}"
+            if [ -z "${FULL_TAGS}" ]; then
+              FULL_TAGS="${DOCKERHUB_IMAGE}:${TAG}"
+            else
+              FULL_TAGS="${FULL_TAGS}"$'\n'"${DOCKERHUB_IMAGE}:${TAG}"
+            fi
+          done
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${FULL_TAGS}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push (multi-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.prep.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+

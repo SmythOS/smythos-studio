@@ -24,6 +24,7 @@ import { EMBODIMENT_DESCRIPTIONS } from '../../shared/constants/general';
 import config from '../config';
 import { openLLMEmbodiment } from '../pages/builder/llm-embodiment';
 import { smythValidator } from './form/';
+import { DynamicHeaders, HeaderConfig } from './forms/dynamic-headers';
 import { getIconFormEmbTab, rightSidebarTitle } from './right-sidebar-title';
 import { setupTooltipTruncationDetection } from './tooltip-truncation-utils';
 
@@ -32,6 +33,7 @@ const embodimentHandlers = {
   openEmbodimentDialog: null,
   openChatGPTEmbodiment: null,
   openPostmanEmbodiment: null,
+  openVoiceEmbodiment: null,
   openAlexaEmbodiment: null,
   openChatbotEmbodiment: null,
   openAPIEmbodiment: null,
@@ -374,175 +376,149 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
     'Custom GPT': 'Test in ChatGPT',
     'Postman Integration': 'Test in Postman',
     LLM: 'Test as LLM',
-    'Alexa Skill': 'Test with Voice',
+    Voice: 'Test with Voice',
+    'Alexa Skill': 'Test with Alexa',
   };
-  let currentKey = null;
-  // Create tabs from EMBODIMENT_DESCRIPTIONS
-  Object.entries(EMBODIMENT_DESCRIPTIONS).forEach(([key, desc]) => {
-    const sidebarTitleText = convertTitleToKeys[key] || key;
-    // Skip empty descriptions, agent_skill, or agentllm
-    if (
-      !desc.title ||
-      // key === 'agent_skill' ||
-      key.toLowerCase() === 'agentllm' ||
-      desc.title.toLowerCase() === 'agentllm'
-    ) {
-      return;
-    }
 
-    if (desc.title?.toLowerCase() === title?.toLowerCase()) {
-      currentKey = key;
-      embodimentSidebar.setAttribute('openedtab', key?.toLowerCase());
-    }
+  // Build header configs from EMBODIMENT_DESCRIPTIONS
+  const headerConfigs: HeaderConfig[] = Object.entries(EMBODIMENT_DESCRIPTIONS)
+    .filter(
+      ([key, desc]) =>
+        desc.title &&
+        key.toLowerCase() !== 'agentllm' &&
+        desc.title.toLowerCase() !== 'agentllm' &&
+        getDisplayHeading(key, desc.title),
+    )
+    .map(([key, desc], index) => ({
+      id: key,
+      label: getNavText(key, desc.title),
+      order: index,
+      selected: desc.title?.toLowerCase() === title?.toLowerCase(),
+      onClick: async (id: string) => {
+        sidebarTitle.querySelector('.title-icon')?.classList?.remove('hidden');
+        tabContainer?.classList?.remove('hidden');
 
-    const displayHeading = getDisplayHeading(key, desc.title);
-    const navText = getNavText(key, desc.title);
-    if (!displayHeading) {
-      return; // Skip if no display heading (like for agentllm)
-    }
-
-    // Check if a button with this heading or key already exists
-    const existingButton =
-      nav.querySelector(`[data-embodiment-type="${key}"]`) ||
-      Array.from(nav.querySelectorAll('button')).find(
-        (btn) => (btn as HTMLButtonElement).textContent === navText,
-      );
-
-    if (existingButton) {
-      return; // Skip if button already exists
-    }
-
-    const button = document.createElement('button');
-    button.className = `inline-flex items-center first:ml-0 mx-4 pt-2 pb-1 mb-1 text-sm font-medium text-gray-500 hover:text-gray-700 ${
-      key === 'chat' ? 'border-b-2 border-v2-blue' : ''
-    }`;
-    button.setAttribute('aria-current', 'page');
-    button.setAttribute('data-embodiment-type', key);
-    button.textContent = navText;
-
-    // Add click handler
-    button.addEventListener('click', async () => {
-      sidebarTitle.querySelector('.title-icon')?.classList?.remove('hidden');
-      tabContainer?.classList?.remove('hidden');
-      // Remove active state from all tabs
-      nav.querySelectorAll('button').forEach((btn) => {
-        btn.classList.remove('text-gray-900', 'border-b-2', 'border-v2-blue');
-        btn.classList.add('text-gray-500');
-      });
-
-      // Add active state to clicked tab
-      button.classList.remove('text-gray-500');
-      button.classList.add('text-gray-900', 'border-b-2', 'border-v2-blue');
-
-      embodimentSidebar.setAttribute('openedtab', key?.toLowerCase());
-      // Trigger corresponding embodiment action
-      switch (key.toLowerCase()) {
-        case 'llm':
-          if (window.workspace) {
-            Observability.observeInteraction('agentLLM_embodiment_click', {
+        // Trigger corresponding embodiment action
+        switch (id.toLowerCase()) {
+          case 'llm':
+            if (window.workspace) {
+              Observability.observeInteraction('agentLLM_embodiment_click', {
+                position: 'embodiment sidebar tab',
+              });
+              openLLMEmbodiment(window.workspace, embodimentHandlers.openEmbodimentDialog);
+            }
+            break;
+          case 'api':
+            Observability.observeInteraction('api_embodiment_click', {
               position: 'embodiment sidebar tab',
             });
-            openLLMEmbodiment(window.workspace, embodimentHandlers.openEmbodimentDialog);
-          }
-          break;
-        case 'api':
-          Observability.observeInteraction('api_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          embodimentHandlers.openAPIEmbodiment?.();
-          break;
-        case 'chat':
-          const chatContCls = convertTitleToClass(EMBODIMENT_DESCRIPTIONS.chat.title);
-          if (!sidebarContent.querySelector(`.${chatContCls}`)) {
-            Observability.observeInteraction('chatbot_embodiment_click', {
+            embodimentHandlers.openAPIEmbodiment?.();
+            break;
+          case 'chat':
+            const chatContCls = convertTitleToClass(EMBODIMENT_DESCRIPTIONS.chat.title);
+            if (!sidebarContent.querySelector(`.${chatContCls}`)) {
+              Observability.observeInteraction('chatbot_embodiment_click', {
+                position: 'embodiment sidebar tab',
+              });
+              embodimentHandlers.openChatbotEmbodiment?.();
+            } else {
+              hideAllChildrenExcept(sidebarContent, chatContCls);
+
+              // Update the title when showing existing chat content
+              const icon = sidebarTitle.querySelector('.title-icon');
+              const titleEl = sidebarTitle.querySelector('#embodiment-sidebar-title');
+              if (titleEl) {
+                titleEl.innerHTML =
+                  convertTitleToKeys[EMBODIMENT_DESCRIPTIONS.chat.title] ||
+                  EMBODIMENT_DESCRIPTIONS.chat.title;
+              }
+              if (icon) {
+                icon.innerHTML = getIconFormEmbTab(EMBODIMENT_DESCRIPTIONS.chat.title);
+              }
+
+              const allActions = sidebarTitle?.querySelector?.('.actions .action-content');
+              allActions &&
+                toggleChildren(allActions, `action-btn-emb.${chatContCls}-btn`, 'hidden', false);
+            }
+            break;
+          case 'chatgpt':
+            Observability.observeInteraction('chatgpt_embodiment_click', {
               position: 'embodiment sidebar tab',
             });
-            embodimentHandlers.openChatbotEmbodiment?.();
-          } else {
-            hideAllChildrenExcept(sidebarContent, chatContCls);
-
-            // Update the title when showing existing chat content
-            const icon = sidebarTitle.querySelector('.title-icon');
-            const title = sidebarTitle.querySelector('#embodiment-sidebar-title');
-            if (title) {
-              title.innerHTML =
-                convertTitleToKeys[EMBODIMENT_DESCRIPTIONS.chat.title] ||
-                EMBODIMENT_DESCRIPTIONS.chat.title;
+            embodimentHandlers.openChatGPTEmbodiment?.();
+            break;
+          case 'postman':
+            Observability.observeInteraction('postman_embodiment_click', {
+              position: 'embodiment sidebar tab',
+            });
+            embodimentHandlers.openPostmanEmbodiment?.();
+            break;
+          case 'voice':
+            Observability.observeInteraction('voice_embodiment_click', {
+              position: 'embodiment sidebar tab',
+            });
+            embodimentHandlers.openVoiceEmbodiment?.();
+            break;
+          case 'alexa':
+            Observability.observeInteraction('alexa_embodiment_click', {
+              position: 'embodiment sidebar tab',
+            });
+            embodimentHandlers.openAlexaEmbodiment?.();
+            break;
+          case 'agent_skill':
+            const agentSkillContCls = convertTitleToClass(
+              EMBODIMENT_DESCRIPTIONS.agent_skill.title,
+            );
+            Observability.observeInteraction('form_preview_embodiment_click', {
+              position: 'embodiment sidebar tab',
+            });
+            if (!sidebarContent.querySelector(`.${agentSkillContCls}`)) {
+              embodimentHandlers.openFormPreviewEmbodiment?.();
+            } else {
+              hideAllChildrenExcept(sidebarContent, agentSkillContCls);
+              const icon = sidebarTitle.querySelector('.title-icon');
+              const titleEl = sidebarTitle.querySelector('#embodiment-sidebar-title');
+              if (titleEl) {
+                titleEl.innerHTML =
+                  convertTitleToKeys[EMBODIMENT_DESCRIPTIONS.agent_skill.title] ||
+                  EMBODIMENT_DESCRIPTIONS.agent_skill.title;
+              }
+              if (icon) {
+                icon.innerHTML = getIconFormEmbTab(EMBODIMENT_DESCRIPTIONS.agent_skill.title);
+              }
             }
-            if (icon) {
-              icon.innerHTML = getIconFormEmbTab(EMBODIMENT_DESCRIPTIONS.chat.title);
-            }
+            break;
+          case 'mcp':
+            Observability.observeInteraction('mcp_embodiment_click', {
+              position: 'embodiment sidebar tab',
+            });
+            embodimentHandlers.openMCPEmbodiment?.();
+            break;
+        }
+      },
+    }));
 
-            const allActions = sidebarTitle?.querySelector?.('.actions .action-content');
-            allActions &&
-              toggleChildren(allActions, `action-btn-emb.${chatContCls}-btn`, 'hidden', false);
-          }
-          break;
-        case 'chatgpt':
-          Observability.observeInteraction('chatgpt_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          embodimentHandlers.openChatGPTEmbodiment?.();
-          break;
-        case 'postman':
-          Observability.observeInteraction('postman_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          embodimentHandlers.openPostmanEmbodiment?.();
-          break;
-        case 'alexa':
-          Observability.observeInteraction('alexa_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          embodimentHandlers.openAlexaEmbodiment?.();
-          break;
-        case 'agent_skill':
-          const agentSkillContCls = convertTitleToClass(EMBODIMENT_DESCRIPTIONS.agent_skill.title);
-          Observability.observeInteraction('form_preview_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          if (!sidebarContent.querySelector(`.${agentSkillContCls}`)) {
-            embodimentHandlers.openFormPreviewEmbodiment?.();
-          } else {
-            hideAllChildrenExcept(sidebarContent, agentSkillContCls);
-            const icon = sidebarTitle.querySelector('.title-icon');
-            const title = sidebarTitle.querySelector('#embodiment-sidebar-title');
-            if (title) {
-              title.innerHTML =
-                convertTitleToKeys[EMBODIMENT_DESCRIPTIONS.agent_skill.title] ||
-                EMBODIMENT_DESCRIPTIONS.agent_skill.title;
-            }
-            if (icon) {
-              icon.innerHTML = getIconFormEmbTab(EMBODIMENT_DESCRIPTIONS.agent_skill.title);
-            }
-          }
-          break;
-
-        case 'mcp':
-          Observability.observeInteraction('mcp_embodiment_click', {
-            position: 'embodiment sidebar tab',
-          });
-          embodimentHandlers.openMCPEmbodiment?.();
-          break;
-      }
-    });
-
-    nav.appendChild(button);
-  });
-
-  if (currentKey) {
-    const navButtons = nav.querySelectorAll('button');
-    navButtons.forEach((button) => {
-      button.classList.remove('text-gray-900', 'border-b-2', 'border-v2-blue');
-      button.classList.add('text-gray-500');
-      if (button.getAttribute('data-embodiment-type') === currentKey) {
-        button.classList.add('text-gray-900', 'border-b-2', 'border-v2-blue');
-        button.classList.remove('text-gray-500');
-      }
-    });
+  // Set opened tab attribute if current title matches
+  const currentHeader = headerConfigs.find((h) => h.selected);
+  if (currentHeader) {
+    embodimentSidebar.setAttribute('openedtab', currentHeader.id.toLowerCase());
   }
 
-  tabContainer.appendChild(nav);
+  // Initialize dynamic headers
+  const dynamicHeaders = new DynamicHeaders({
+    containerSelector: '#embodiment-sidebar .tab-container',
+    navSelector: 'nav',
+    headers: headerConfigs,
+    onSelectionChange: (selectedId) => {
+      embodimentSidebar.setAttribute('openedtab', selectedId.toLowerCase());
+    },
+    moreButtonId: 'tab-more-button',
+    dropdownId: 'tab-dropdown-menu',
+    headerAttribute: 'data-embodiment-type',
+  });
+
+  // Store dynamic headers instance for cleanup if needed
+  (embodimentSidebar as any).__dynamicHeaders = dynamicHeaders;
 
   const sidebarContent = embodimentSidebar.querySelector('.content');
   const contentCls = convertTitleToClass(title) || 'generic-content';
@@ -2024,7 +2000,8 @@ function getDisplayHeading(key: string, title: string): string {
     postman: 'Test in Postman',
     chatgpt: 'Test in ChatGPT',
     agent_skill: 'Form Preview',
-    alexa: 'Publish as Alexa Skill',
+    voice: 'Test with Voice',
+    alexa: 'Test with Alexa',
     mcp: 'MCP',
   };
 
@@ -2055,7 +2032,8 @@ function getNavText(key: string, title: string): string {
     postman: 'Postman',
     chatgpt: 'GPT',
     agent_skill: 'Form',
-    alexa: 'Voice',
+    voice: 'Voice',
+    alexa: 'Alexa',
     mcp: 'MCP',
   };
 
