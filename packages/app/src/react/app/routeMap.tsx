@@ -1,5 +1,6 @@
 import VaultPage from '@react/features/vault/pages/VaultPage';
 import AgentsPage from '@src/react/features/agents/pages/AgentsPage';
+import DataPoolPage from '@src/react/features/data-pool/pages/DataPoolPage';
 import { IPageRoute } from '@src/react/shared/types/route';
 import AccountDeletedPage from '../features/account/pages/AccountDeletedPage';
 import AgentSettingsPage from '../features/agent-settings/pages/AgentSettingsPage';
@@ -59,6 +60,12 @@ export const routeMap: IPageRoute[] = [
     path: 'vault',
     component: VaultPage,
     layoutOptions: { sidebar: true, topMenu: true },
+  },
+  {
+    title: 'Data Pool',
+    path: 'data-pool',
+    component: DataPoolPage,
+    layoutOptions: { sidebar: true, topMenu: true, background: 'white' },
   },
 ];
 

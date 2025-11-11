@@ -1,0 +1,153 @@
+/**
+ * Data Pool API Client
+ *
+ * Handles API calls for data pool/namespace management
+ */
+
+import type {
+  CreateNamespaceRequest,
+  CreateNamespaceResponse,
+  ListNamespacesResponse,
+  Namespace,
+} from '../types';
+
+/**
+ * Extract error message from nested error structure
+ */
+const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
+  // Type guard to check if error is an object
+  if (typeof error === 'object' && error !== null) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorObj = error as Record<string, any>;
+
+    // Handle nested error: { error: { error: "message" } }
+    if (
+      typeof errorObj.error === 'object' &&
+      errorObj.error !== null &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typeof (errorObj.error as Record<string, any>).error === 'string'
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (errorObj.error as Record<string, any>).error;
+    }
+
+    // Handle single level: { error: "message" }
+    if (typeof errorObj.error === 'string') {
+      return errorObj.error;
+    }
+
+    // Handle error object with message property
+    if (typeof errorObj.message === 'string') {
+      return errorObj.message;
+    }
+  }
+
+  // Handle string error
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return defaultMessage;
+};
+
+export const dataPoolClient = {
+  /**
+   * Fetch all namespaces
+   */
+  listNamespaces: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ListNamespacesResponse> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.limit) queryParams.set('limit', params.limit.toString());
+
+      const url = `/api/page/datapool/namespaces${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = extractErrorMessage(errorData, 'Failed to fetch namespaces');
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to fetch namespaces');
+    }
+  },
+
+  /**
+   * Create a new namespace
+   */
+  createNamespace: async (data: CreateNamespaceRequest): Promise<Namespace> => {
+    try {
+      const response = await fetch('/api/page/datapool/namespaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          throw new Error('Failed to create namespace. Server returned an invalid response.');
+        }
+
+        const errorMessage = extractErrorMessage(errorData, 'Failed to create namespace');
+        throw new Error(errorMessage);
+      }
+
+      const result: CreateNamespaceResponse = await response.json();
+      return result.namespace;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to create namespace');
+    }
+  },
+
+  /**
+   * Delete a namespace
+   */
+  deleteNamespace: async (namespaceId: string): Promise<void> => {
+    try {
+      const response = await fetch(
+        `/api/page/datapool/namespaces/${encodeURIComponent(namespaceId)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = extractErrorMessage(errorData, 'Failed to delete namespace');
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to delete namespace');
+    }
+  },
+};
