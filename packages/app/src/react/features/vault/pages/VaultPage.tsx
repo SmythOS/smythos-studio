@@ -1,5 +1,4 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
-import { VectorDatabases } from '@src/react/features/credentials/components/vector-databases';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { TooltipProvider } from '@src/react/shared/components/ui/tooltip';
@@ -9,6 +8,7 @@ import { errorToast, successToast } from '@src/shared/components/toast';
 import { Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
+import { VectorDatabases } from '../../credentials/components/vector-databases';
 import { ApiKeys } from '../components/api-keys';
 import { OAuthConnections } from '../components/oauth-connections';
 import UserCustomModels from '../components/user-custom-models';
@@ -22,7 +22,7 @@ export default function VaultPage() {
   const hasBuiltinModels = useMemo(() => {
     const flags = userInfo?.subs?.plan?.properties?.flags;
     return (
-      // @ts-expect-error
+      // @ts-ignore
       flags?.hasBuiltinModels || userInfo?.subs?.plan?.isDefaultPlan === true
     );
   }, [userInfo?.subs?.plan]);
@@ -88,6 +88,8 @@ export default function VaultPage() {
         <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
         <OAuthConnections />
 
+        {window.location.hostname === 'localhost' && <VectorDatabases />}
+
         <ErrorBoundarySuspense
           loadingFallback={<div>Loading...</div>}
           errorFallback={() => <div>Error loading API keys</div>}
@@ -95,24 +97,7 @@ export default function VaultPage() {
           <ApiKeys pageAccess={pageAccess} />
         </ErrorBoundarySuspense>
       </div>
-
-      {hasBuiltinModels && (
-        <PluginComponents targetId={PluginTarget.VaultPageSmythOSRecommendedModels} />
-      )}
-
-      <UserModels pageAccess={pageAccess} />
-      <UserCustomModels pageAccess={pageAccess} />
-      <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
-      <OAuthConnections />
-      {window.location.hostname === 'localhost' && <VectorDatabases />}
-      
-
-      <ErrorBoundarySuspense
-        loadingFallback={<div>Loading...</div>}
-        errorFallback={() => <div>Error loading API keys</div>}
-      >
-        <ApiKeys pageAccess={pageAccess} />
-      </ErrorBoundarySuspense>
     </TooltipProvider>
   );
 }
+

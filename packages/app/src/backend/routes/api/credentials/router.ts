@@ -46,14 +46,6 @@ credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Respons
       ...(await authHeaders(req)),
     });
 
-    // Debug: log the response structure
-    console.log(
-      'Middleware response for group',
-      group,
-      ':',
-      JSON.stringify(response.data, null, 2),
-    );
-
     // Parse the settings response - middleware returns array of settings
     const settingsArray = response.data?.data || response.data?.settings || [];
 
@@ -190,7 +182,7 @@ credentialsRouter.post('/', includeTeamDetails, async (req: Request, res: Respon
 
   try {
     // Generate unique ID for the credential
-    const credentialId = `cred_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const credentialId = `${group}@cred_${Math.random().toString(36).substring(2, 9)}`;
 
     // Store sensitive fields in vault and get transformed credentials
     const transformedCredentials = await storeSensitiveFieldsInVault(
