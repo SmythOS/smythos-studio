@@ -1,5 +1,5 @@
-name: Build and Push Alpha Docker Image
-
+name: DEV Build and Push Docker Image
+run-name: DEV Build and Push Docker Image
 on:
   workflow_dispatch:
     inputs:
