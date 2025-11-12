@@ -64,7 +64,7 @@ export class FHash extends FunctionComponent {
     this.drawSettings.displayName = 'F:Hash';
   }
   protected async run() {
-    if (!this.domElement.style.width) this.domElement.style.width = '130px';
+    if (!this.domElement.style.width) this.domElement.style.width = '165px';
     this.addEventListener('settingsSaved', async () => {
       this.title = `${this.data.algorithm.toUpperCase()} :: ${this.data.encoding}`;
       this.domElement.querySelector('.title .text').textContent = this.title;
