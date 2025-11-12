@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
-import { Fragment, Suspense, lazy, useEffect, useState } from 'react';
+import { CSSProperties, Fragment, Suspense, lazy, useEffect, useState } from 'react';
 
 import { saveAgentSettingByKey, saveEmbodiment } from '@react/features/agent-settings/clients';
 import {
@@ -23,8 +23,9 @@ import { Button } from '@react/shared/components/ui/newDesign/button';
 import { TextArea } from '@react/shared/components/ui/newDesign/textarea';
 import { Spinner } from '@react/shared/components/ui/spinner';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
+import { Agent } from '@react/shared/types/agent-data.types';
 import { extractError } from '@react/shared/utils/errors';
-import { validateDomains, validateURL } from '@react/shared/utils/utils';
+import { cn, validateDomains, validateURL } from '@react/shared/utils/utils';
 import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { Observability } from '@src/shared/observability';
@@ -54,10 +55,10 @@ function getTempBadge(tags: string[]) {
 interface IChatBotDialogProps {
   isOpen: boolean;
   closeModal: () => void;
-  currentData: any;
-  refreshEmbodiments: (agentId: string, embodimentId: string) => void;
-  style: any;
-  activeAgent: any;
+  currentData: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  refreshEmbodiments: (agentId: string, embodimentId: string) => void; // eslint-disable-line no-unused-vars
+  style: CSSProperties;
+  activeAgent: Agent;
   agentId: string;
 }
 
@@ -65,7 +66,6 @@ const ChatBotDialog = ({
   isOpen,
   closeModal,
   currentData,
-  refreshEmbodiments,
   style,
   activeAgent,
   agentId,
@@ -117,10 +117,10 @@ const ChatBotDialog = ({
 
   useEffect(() => {
     const properties = currentData?.properties;
-    const _activeData = mapBotEmbodimentProperties(properties, activeAgent);
+    const activeData = mapBotEmbodimentProperties(properties, activeAgent);
 
-    setActiveData(_activeData);
-    setIsChatBotFullScreen(_activeData?.isFullScreen || false);
+    setActiveData(activeData);
+    setIsChatBotFullScreen(activeData?.isFullScreen || false);
   }, [currentData, activeAgent]);
 
   const submitForm = async (data) => {
@@ -188,6 +188,7 @@ const ChatBotDialog = ({
   };
 
   const SyntaxHighlighter = lazy(() => import('react-syntax-highlighter/dist/esm/prism'));
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal} style={style}>
@@ -228,7 +229,6 @@ const ChatBotDialog = ({
                   <Formik
                     initialValues={activeData || defaultFormValues}
                     enableReinitialize={true}
-                    // validate={(values) => validateForm(values)}
                     onSubmit={(values) => {
                       submitForm(values);
                     }}
@@ -743,11 +743,15 @@ const ChatBotDialog = ({
                                       alt="logo"
                                       width={40}
                                       height={40}
-                                      onError={(e: any) => {
-                                        e.target.classList.toggle('opacity-0');
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).classList.toggle(
+                                          'opacity-0',
+                                        );
                                       }}
-                                      onLoad={(e: any) => {
-                                        e.target.classList.toggle('opacity-0');
+                                      onLoad={(e) => {
+                                        (e.target as HTMLImageElement).classList.toggle(
+                                          'opacity-0',
+                                        );
                                       }}
                                       className={`object-contain ${
                                         props.values?.icon && !validateURL(props.values?.icon)
@@ -792,23 +796,18 @@ const ChatBotDialog = ({
                                       className="mb-5 mt-3"
                                     >
                                       <div
-                                        className="chatbot-message relative group cursor-pointer"
+                                        className="chatbot-message relative group cursor-pointer px-4 py-2 rounded-lg"
                                         style={{
                                           backgroundColor:
                                             colors?.botBubbleColors?.backgroundColorStart,
                                           background: `linear-gradient(45deg, ${colors?.botBubbleColors?.backgroundColorStart}, ${colors?.botBubbleColors?.backgroundColorEnd})`,
                                         }}
                                       >
-                                        <p
-                                          style={{
-                                            color: colors?.botBubbleColors?.textColor,
-                                          }}
-                                        >
+                                        <p style={{ color: colors?.botBubbleColors?.textColor }}>
                                           {props.values?.introMessage ||
                                             CHATBOT_DEFAULT_TEXTS.systemMessage}
                                         </p>
                                         {/* GRADIENT START SYSTEM MESSAGE */}
-
                                         <div className="color-picker-wrapper rounded-full p-[3px] bg-white border border-solid border-gray-300 clear-both absolute top-[-10px] left-[-5px]">
                                           <ColorPickerIcon />
                                           <Field
@@ -877,7 +876,7 @@ const ChatBotDialog = ({
                                       className="mb-5"
                                     >
                                       <div
-                                        className="user-message relative group cursor-pointer"
+                                        className="user-message relative group cursor-pointer px-4 py-2 rounded-lg max-w-[80%]"
                                         style={{
                                           backgroundColor:
                                             colors?.humanBubbleColors?.backgroundColorStart,
@@ -956,6 +955,52 @@ const ChatBotDialog = ({
                                         />
                                       </div>
                                     </div>
+                                    {/* Enable Meta Messages */}
+                                    <button
+                                      hidden={props.values?.enableMetaMessages}
+                                      type="button"
+                                      className={cn(
+                                        'opacity-50 w-full p-1 flex items-center justify-between rounded-sm mb-5',
+                                        'text-slate-800 bg-slate-200',
+                                        'transition-colors duration-200',
+                                        'text-left cursor-pointer',
+                                        props.values?.enableMetaMessages ? 'block' : 'hidden',
+                                      )}
+                                    >
+                                      <div className="flex items-center gap-2 flex-1 min-w-0 agent-action-title">
+                                        {/* Expand/Collapse icon */}
+                                        <svg
+                                          className="size-4 transition-transform duration-200 shrink-0"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 5l7 7-7 7"
+                                          />
+                                        </svg>
+
+                                        {/* Title with skill name */}
+                                        <span className="font-medium text-slate-800 text-sm truncate">
+                                          Skill Use: web Search
+                                        </span>
+                                      </div>
+
+                                      {/* Timer / Timestamp */}
+                                      <span
+                                        className={cn(
+                                          'text-xs px-2 py-0.5 rounded-full ml-2 font-mono',
+                                          'bg-green-100 text-green-700 font-semibold',
+                                          'agent-action-timer',
+                                        )}
+                                      >
+                                        15ms
+                                      </span>
+                                    </button>
 
                                     <div className="w-3/4 mb-5">
                                       <Suspense fallback={<div>Loading...</div>}>
@@ -975,6 +1020,7 @@ const ChatBotDialog = ({
                                         </SyntaxHighlighter>
                                       </Suspense>
                                     </div>
+                                    {/* USER MESSAGE  */}
                                     <div
                                       style={{
                                         display: 'flex',
@@ -986,7 +1032,7 @@ const ChatBotDialog = ({
                                       className="mb-5"
                                     >
                                       <div
-                                        className="user-message relative group cursor-pointer"
+                                        className="user-message relative group cursor-pointer px-4 py-2 rounded-lg"
                                         style={{
                                           backgroundColor:
                                             colors?.humanBubbleColors?.backgroundColorStart,
@@ -1117,7 +1163,6 @@ const ChatBotDialog = ({
                                 </div>
                                 {/* Chat Toggle Icon End */}
                               </div>
-                              <div></div>
                             </div>
                           </div>
                           <div className="flex justify-end w-full mt-4">

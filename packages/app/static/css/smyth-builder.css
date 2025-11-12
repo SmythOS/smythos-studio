@@ -1506,11 +1506,19 @@ ul.agents-list-dlg .btn-delete {
 
 /* === Extensions style START === */
 #smyth-dialog-extensions {
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide default Metro UI close button since we use custom one */
+#smyth-dialog-extensions .closer {
+  display: none !important;
 }
 
 .extensions__search-field {
-  width: 285px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .extensions__search-field > .input {
@@ -1522,12 +1530,33 @@ ul.agents-list-dlg .btn-delete {
 }
 
 .extensions__container {
-  margin-top: 16px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+/* Custom scrollbar for extensions container */
+.extensions__container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.extensions__container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.extensions__container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.extensions__container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .extensions__container .grid {
-  width: calc(100% - 6px);
+  width: 100%;
 }
 
 .extensions__container .card {
@@ -1601,7 +1630,8 @@ ul.agents-list-dlg .btn-delete {
 }
 
 .extensions__manual-field-area {
-  margin-bottom: 35px;
+  background-color: #ffffff;
+  margin: 0;
 }
 
 .emf-title {
@@ -1698,7 +1728,7 @@ ul.agents-list-dlg .btn-delete {
   position: relative;
   width: 300px;
   text-align: center;
-  margin: 25px auto 10px;
+  margin: 0 auto 16px;
 }
 
 .extensions__manual-field-area .emf-separator::before,

@@ -85,16 +85,17 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   // Check if current agent.id exists in modelAgents list
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
+  // Use override if set, otherwise use agent's default model
+  const currentModel = selectedModelOverride || selectedModel || '';
+
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
   const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
+  const [provider, setProvider] = useState<string>(currentModel);
 
   // State for custom dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Use override if set, otherwise use agent's default model
-  const currentModel = selectedModelOverride || selectedModel || '';
 
   /**
    * Initialize LLM models store on component mount
@@ -117,8 +118,9 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
         setLlmModels(models);
         setIsModelsLoading(false);
+        setProvider(models.find((m) => m.value === currentModel)?.provider || 'OpenAI');
       });
-  }, []);
+  }, [currentModel]);
 
   /**
    * Handle click outside dropdown to close it
@@ -159,49 +161,10 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   /**
    * Toggle dropdown open/close
    */
-  const toggleDropdown = useCallback(() => {
-    setIsDropdownOpen((prev) => !prev);
-  }, []);
-
-  // Badge priority order for sorting (lower number = higher priority)
-  const BADGE_PRIORITY: Record<string, number> = {
-    enterprise: 1,
-    personal: 2,
-    limited: 3,
-    smythos: 999, // SmythOS models come last
-  };
-
-  /**
-   * Get badge priority for sorting
-   * @param tags - Array of model tags
-   * @returns Priority number (lower = higher priority)
-   */
-  const getBadgePriority = (tags: string[]) => {
-    return BADGE_PRIORITY[getTempBadge(tags).toLowerCase()] || 999;
-  };
+  const toggleDropdown = useCallback(() => setIsDropdownOpen((prev) => !prev), []);
 
   // Get unique providers and group models by provider
   const providers = Array.from(new Set(llmModels.map((model) => model.provider)));
-  const modelsByProvider = providers.map((provider) => {
-    const providerModels = llmModels.filter((model) => model.provider === provider);
-
-    // Sort models with multiple criteria:
-    // 1. Badge priority (Enterprise > Personal > Limited > SmythOS)
-    // 2. Then by default flag (default models first)
-    // 3. Finally alphabetically by label
-    const sortedModels = [...providerModels].sort((a, b) => {
-      // First priority: Badge priority (Enterprise > Personal > Limited > SmythOS)
-      const priorityA = getBadgePriority(a.tags);
-      const priorityB = getBadgePriority(b.tags);
-      if (priorityA !== priorityB) return priorityA - priorityB;
-      // Second priority: Default models come first
-      if (a.default !== b.default) return a.default ? 1 : -1;
-      // Third priority: Alphabetically by label
-      return a.label.localeCompare(b.label);
-    });
-
-    return { name: provider, models: sortedModels };
-  });
 
   return (
     <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10 px-2.5 lg:px-0">
@@ -283,72 +246,103 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
                   {/* Dropdown menu - only show if not a model agent */}
                   {isDropdownOpen && !isModelAgent && (
-                    <div className="absolute top-full -left-3 z-50 mt-1 bg-slate-100 rounded-md shadow-xl border-t border-slate-200 min-w-[250px] max-h-[500px] overflow-y-auto divide-y divide-slate-200">
-                      <div className="py-1">
-                        {modelsByProvider.map((provider, providerIndex) => (
-                          <div key={providerIndex} className="mb-2 last:mb-1">
-                            <div className="px-4 py-1.5 flex items-center gap-2">
+                    <>
+                      <div className="absolute top-full -left-3 z-50 mt-1 bg-slate-100 rounded-md shadow-xl border-t border-slate-200 min-w-[250px] max-h-[500px] overflow-y-auto divide-y divide-slate-200">
+                        {providers.map((llmProvider, index) => (
+                          <div
+                            key={index}
+                            className={cn(
+                              'px-4 py-2 flex items-center justify-between gap-2 cursor-pointer transition-colors duration-300 ease-in-out',
+                              llmProvider === provider
+                                ? 'bg-slate-200/90'
+                                : 'hover:bg-slate-200/90',
+                            )}
+                            onClick={() => setProvider(llmProvider)}
+                          >
+                            <div className="w-full flex items-center gap-2">
+                              <img
+                                src={`/img/provider_${llmProvider.toLowerCase()}.svg`}
+                                alt={`${llmProvider} icon`}
+                                className="size-5"
+                              />
                               <span className="font-semibold text-sm text-slate-900">
-                                {provider.name}
+                                {llmProvider}
                               </span>
                             </div>
-
-                            <div className="pl-2">
-                              {provider.models.map((model, modelIndex) => {
-                                const badge = getTempBadge(model.tags);
-                                const isSelected = model.value === currentModel;
-
-                                return (
-                                  <button
-                                    key={modelIndex}
-                                    type="button"
-                                    onClick={() => handleModelChange(model.value)}
-                                    className={cn(
-                                      'w-full px-4 py-1.5 text-left hover:bg-slate-200 transition-colors flex items-center justify-between gap-2',
-                                      isSelected
-                                        ? 'font-semibold bg-slate-200/90 text-slate-900 border-l-2 border-slate-700'
-                                        : 'text-slate-700',
-                                    )}
-                                  >
-                                    <span className="text-sm flex items-center gap-1">
-                                      {model.label}
-                                      {badge && (
-                                        <span
-                                          className={cn(
-                                            'text-[10px]  rounded-full px-1.5',
-                                            badge === 'SmythOS'
-                                              ? 'bg-primary-100/50 text-slate-700'
-                                              : 'bg-primary-300 text-slate-700',
-                                          )}
-                                        >
-                                          {badge}
-                                        </span>
-                                      )}
-                                    </span>
-
-                                    {isSelected && (
-                                      <svg
-                                        className="w-5 h-5 text-slate-700 shrink-0"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2.5}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                            <IoChevronDown
+                              className={cn(
+                                'size-4 text-slate-900 flex-shrink-0 transition-transform leading-none -rotate-90',
+                                llmProvider === provider ? 'block' : 'hidden',
+                              )}
+                            />
                           </div>
                         ))}
                       </div>
-                    </div>
+                      <div
+                        className={cn(
+                          'absolute left-[240px] z-50 w-[300px] max-h-[500px] overflow-y-auto bg-slate-100 rounded-md shadow-xl',
+                        )}
+                        style={{
+                          top:
+                            providers.indexOf(provider) > 0
+                              ? `${20 + providers.indexOf(provider) * 36}px`
+                              : '20px',
+                        }}
+                      >
+                        {llmModels
+                          .filter((model) => model.provider === provider)
+                          .map((model, modelIndex) => {
+                            const badge = getTempBadge(model.tags);
+                            const isSelected = model.value === currentModel;
+
+                            return (
+                              <button
+                                key={modelIndex}
+                                type="button"
+                                onClick={() => handleModelChange(model.value)}
+                                className={cn(
+                                  'w-full  text-left hover:bg-slate-200 transition-colors flex items-center justify-between gap-2 pr-2.5',
+                                  isSelected
+                                    ? 'font-semibold bg-slate-200/90 text-slate-900 border-l-2 border-slate-700'
+                                    : 'text-slate-700',
+                                )}
+                              >
+                                <span className="text-sm flex items-center gap-2.5 px-4 py-2.5">
+                                  {model.label}
+                                  {badge && (
+                                    <span
+                                      className={cn(
+                                        'text-[10px]  rounded-full px-1.5',
+                                        badge === 'SmythOS'
+                                          ? 'bg-primary-100/50 text-slate-700'
+                                          : 'bg-primary-300 text-slate-700',
+                                      )}
+                                    >
+                                      {badge}
+                                    </span>
+                                  )}
+                                </span>
+
+                                {isSelected && (
+                                  <svg
+                                    className="w-5 h-5 text-slate-700 shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2.5}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                )}
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
