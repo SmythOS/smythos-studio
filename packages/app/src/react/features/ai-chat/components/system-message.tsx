@@ -34,6 +34,8 @@ export const SystemMessage: FC<ISystemMessageProps> = (props) => {
 
   const contentRef = useRef<HTMLDivElement>(null);
 
+  if (!message) return null; // if message is empty, return null
+
   return (
     <div className="system-message-bubble relative">
       {isError ? (

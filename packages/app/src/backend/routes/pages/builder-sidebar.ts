@@ -88,9 +88,10 @@ const baseMenu: Menu = {
     actionLabel: 'Manage Actions',
   },
   Legacy: [
-    { name: 'PromptGenerator', description: 'LLM Prompt', label: 'LLM Prompt', icon: '' },
-    { name: 'MultimodalLLM', description: 'Multimodal LLM', label: 'Multimodal LLM', icon: '' },
-    { name: 'VisionLLM', description: 'Vision LLM', label: 'Vision LLM' },
+    // ! TODO: will be removed these legacy components in future
+    // { name: 'PromptGenerator', description: 'LLM Prompt', label: 'LLM Prompt', icon: '' },
+    // { name: 'MultimodalLLM', description: 'Multimodal LLM', label: 'Multimodal LLM', icon: '' },
+    // { name: 'VisionLLM', description: 'Vision LLM', label: 'Vision LLM' },
   ],
 
   //hide triggers for now

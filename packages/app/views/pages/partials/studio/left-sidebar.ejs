@@ -1,11 +1,11 @@
 <div
   x-data="sidebarState()"
   @toggle-sidebar-request.window="toggleSidebar()"
-  class="transition-all duration-300 max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
+  class="max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
-    'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab',
-    'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab',
-    'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab'),
+    'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab' && !sidebarWidth,
+    'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab' && !sidebarWidth,
+    'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab') && !sidebarWidth,
     'w-0 md:w-16': !isSidebarOpen
   }"
   id="left-sidebar"
@@ -55,7 +55,10 @@
         >
           <div
             class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'buildTab' && isSidebarOpen}"
+            :class="{
+              '!bg-gray-700': currentSidebarTab === 'buildTab' && isSidebarOpen,
+              '!bg-gray-300 !border !border-gray-400': !isSidebarOpen && previousTab === 'buildTab'
+            }"
           >
             <svg
               width="20"
@@ -111,7 +114,10 @@
         >
           <div
             class="w-8 h-8 flex items-center justify-center transition-colors fill-gray-700 rounded-md"
-            :class="{'!bg-gray-700': currentSidebarTab === 'deployTab' && isSidebarOpen}"
+            :class="{
+              '!bg-gray-700': currentSidebarTab === 'deployTab' && isSidebarOpen,
+              '!bg-gray-300 !border !border-gray-400': !isSidebarOpen && previousTab === 'deployTab'
+            }"
           >
             <svg
               width="20"
@@ -385,21 +391,28 @@
         <svg
           width="20"
           height="20"
-          viewBox="0 0 24 24"
+          viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M5.02197 3V21"
+            d="M6.38672 6.6875H11.0176M6.38672 9.86876H8.38573"
             stroke="currentColor"
-            stroke-width="1.5"
+            stroke-width="1.25"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
           <path
-            d="M5.02197 4.14062H11.9377V14.207L5.02197 14.386M11.9398 6.2519H18.9779L16.3943 11.3396L18.9779 16.3183L11.9398 16.4973V12.8496"
+            d="M9.47683 14.4364H7.00674C6.75384 14.4364 6.50688 14.5128 6.2985 14.6557L3.80549 16.3641C3.25258 16.743 2.5 16.3485 2.5 15.6797V5.29627C2.5 3.92021 3.61929 2.80469 5 2.80469H15C16.3807 2.80469 17.5 3.9202 17.5 5.29627V9.45325"
             stroke="currentColor"
-            stroke-width="1.5"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M14.6516 13.3472C15.1236 11.8857 14.8813 11.3036 14.4133 11.2077C14.2345 11.1711 14.1603 11.1729 14.0188 11.3102C13.5612 11.8481 12.7882 12.69 12.3664 13.1458C12.2575 13.2637 12.203 13.3226 12.1644 13.389C12.1284 13.4508 12.1028 13.5165 12.0871 13.5862C12.0703 13.6612 12.0703 13.7408 12.0703 13.9002V15.8511C12.0703 16.3172 12.0703 16.5502 12.1598 16.7288C12.2421 16.8928 12.3755 17.0257 12.54 17.1077C12.7193 17.197 12.9531 17.197 13.4208 17.197H15.4663C15.8429 17.197 16.0313 17.197 16.1892 17.1331C16.3346 17.0742 16.4613 16.9774 16.5562 16.8529C16.6592 16.7176 16.7083 16.5363 16.8063 16.1739L16.9792 15.5352C17.1644 14.8507 17.257 14.5086 17.1796 14.2378C17.1088 13.9902 16.9462 13.7787 16.7248 13.6461C16.4827 13.5011 16.1271 13.5011 15.4158 13.5011H14.7625C14.6403 13.5011 14.6171 13.4541 14.6516 13.3472Z"
+            stroke="currentColor"
+            stroke-width="1.25"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
@@ -474,19 +487,13 @@
 
   <div
     x-show="isSidebarOpen"
-    x-transition:enter="transition-opacity duration-300"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition-opacity duration-300"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
     id="left-sidebar-container"
-    class="inset-y-0 -top-5 md:top-4 md:bottom-4 left-[6px] md:left-[80px] p-3 px-0 flex-shrink-0 rounded-lg w-[100vw] md:w-[calc(100%-4rem)] absolute"
+    class="inset-y-0 -top-5 md:top-4 md:bottom-4 left-[6px] md:left-[80px] p-3 px-0 flex-shrink-0 rounded-lg absolute"
   >
     <div
       aria-label="Main"
       id="left-sidebar-content-sections"
-      class="flex flex-col items-start bg-white rounded-lg border border-solid border-gray-300 h-[calc(100dvh-4rem)] md:h-full w-full max-w-[100vw]"
+      class="flex flex-col items-start bg-white rounded-lg border border-solid border-gray-300 h-[calc(100dvh-4rem)] md:h-full"
     >
       <div class="w-full flex md:hidden justify-between items-center p-2">
         <div class="flex items-center gap-2">
@@ -556,6 +563,7 @@
 
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
+      sidebarWidth: null, // Will be loaded from localStorage in init()
       buildSidebarTabs: [
         'agentBuilderTab',
         'buildTab',
@@ -668,15 +676,77 @@
           localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
         }
 
-        this.$watch('isSidebarOpen', (value) => {
-          localStorage.setItem('sidebarOpen', value);
+        // === SINGLE SOURCE OF TRUTH: Apply width to DOM ===
+        const applyWidth = (width) => {
+          this.$nextTick(() => {
+            const leftSidebar = document.querySelector('#left-sidebar');
+            const contentContainer = document.querySelector('#left-sidebar-content-sections');
+            
+            if (leftSidebar && width) {
+              leftSidebar.style.setProperty('width', width, 'important');
+            }
+            if (contentContainer && width) {
+              contentContainer.style.width = width;
+            }
+          });
+        };
 
-          // Very important: If sidebar is closed, ensure currentSidebarTab is null
-          if (!value && this.currentSidebarTab) {
-            this.previousTab = this.currentSidebarTab;
-            this.currentSidebarTab = null;
-            localStorage.setItem('previousTab', this.previousTab);
-            localStorage.setItem('currentSidebarTab', null);
+        // Load saved width on init
+        const savedWidth = localStorage.getItem('left-sidebar-width');
+        if (savedWidth) {
+          this.sidebarWidth = savedWidth;
+          if (this.isSidebarOpen) {
+            applyWidth(savedWidth);
+          }
+        }
+
+        // Listen for resize events from interact.js
+        window.addEventListener('leftSidebarResized', (event) => {
+          this.sidebarWidth = event.detail.width;
+          applyWidth(event.detail.width);
+        });
+
+        // Watch sidebarWidth changes and apply to DOM
+        this.$watch('sidebarWidth', (newWidth) => {
+          if (newWidth && this.isSidebarOpen) {
+            applyWidth(newWidth);
+          }
+        });
+
+        this.$watch('isSidebarOpen', (value, oldValue) => {
+          localStorage.setItem('sidebarOpen', value);
+          console.log('[isSidebarOpen watcher] Changed from', oldValue, 'to', value);
+
+          if (!value) {
+            // When sidebar closes, clear the inline styles so Tailwind takes over
+            this.$nextTick(() => {
+              const leftSidebar = document.querySelector('#left-sidebar');
+              const contentContainer = document.querySelector('#left-sidebar-content-sections');
+              if (leftSidebar) leftSidebar.style.width = '';
+              if (contentContainer) contentContainer.style.width = '';
+            });
+            
+            // Very important: If sidebar is closed, ensure currentSidebarTab is null
+            if (this.currentSidebarTab) {
+              this.previousTab = this.currentSidebarTab;
+              this.currentSidebarTab = null;
+              localStorage.setItem('previousTab', this.previousTab);
+              localStorage.setItem('currentSidebarTab', null);
+            }
+          } else {
+            // When sidebar opens, apply saved width if it exists
+            console.log('[isSidebarOpen watcher] Sidebar opened, sidebarWidth:', this.sidebarWidth);
+            if (this.sidebarWidth) {
+              applyWidth(this.sidebarWidth);
+            } else {
+              // No custom width, check localStorage
+              const savedWidth = localStorage.getItem('left-sidebar-width');
+              console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
+              if (savedWidth) {
+                this.sidebarWidth = savedWidth;
+                applyWidth(savedWidth);
+              }
+            }
           }
 
           window.dispatchEvent(
@@ -688,6 +758,14 @@
               },
             }),
           );
+        });
+
+        // Watch for tab changes when sidebar is already open
+        this.$watch('currentSidebarTab', (newTab, oldTab) => {
+          // Apply width when switching tabs (sidebar stays open)
+          if (this.isSidebarOpen && this.sidebarWidth) {
+            applyWidth(this.sidebarWidth);
+          }
         });
         window.addEventListener('fixWithAIBtn', (event) => {
           // Only click the tab if sidebar is closed or weaver tab is not active

@@ -68,12 +68,19 @@
             this.checkWidth();
           }
         });
+        // Listen for resize events to update width in real-time
+        window.addEventListener('rightSidebarResized', (event) => {
+          this.width = event.detail.width;
+        });
       },
       checkWidth() {
-        let storedWidth = localStorage.getItem('right-sidebar-width') || '350px';
+        const DEFAULT_WIDTH = '520px';
+        let storedWidth = localStorage.getItem('right-sidebar-common-width') || DEFAULT_WIDTH;
+
+        // Validate width doesn't exceed half screen
         if (parseInt(storedWidth) > window.innerWidth / 2) {
-          storedWidth = '350px';
-          localStorage.setItem('right-sidebar-width', storedWidth);
+          storedWidth = DEFAULT_WIDTH;
+          localStorage.setItem('right-sidebar-common-width', storedWidth);
         }
         this.width = storedWidth;
       },
