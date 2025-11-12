@@ -169,7 +169,7 @@ function toggleSwitch(on: boolean) {
     updateInspectButtonIcon(inspectButton, true);
   } else {
     // Reset the components state before toggling the debug switch
-    resetComponentsState({ resetMessages: true, resetPinned: true });
+    resetComponentsState({ resetDebugMessages: true, resetPinned: true });
     // debugMenu.classList.add('hidden');
     switcherText.textContent = 'Debug Off';
     debugSwitcher.classList.remove('active');
@@ -3217,9 +3217,11 @@ function toggleDebugBarVisibility(componentElement: HTMLElement) {
 
 function resetComponentsState({
   resetMessages = false,
+  resetDebugMessages = false,
   resetPinned = false,
 }: {
   resetMessages?: boolean;
+  resetDebugMessages?: boolean;
   resetPinned?: boolean;
 }) {
   document.querySelectorAll('#workspace-container .component').forEach((component: HTMLElement) => {
@@ -3242,6 +3244,13 @@ function resetComponentsState({
 
     if (resetMessages) {
       component['_control']?.clearComponentMessages();
+    }
+
+    if (resetDebugMessages) {
+      const messagesContainer = component.querySelector('.messages-container');
+      if (messagesContainer) {
+        messagesContainer.querySelectorAll('.message.missing-input').forEach((msg) => msg.remove());
+      }
     }
 
     if (resetPinned) {
