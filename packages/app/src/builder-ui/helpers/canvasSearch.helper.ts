@@ -4,23 +4,23 @@ import {
   SearchConfig,
   SearchEventData,
   SearchEventType,
-  SearchResult
+  SearchResult,
 } from '../types/search.types';
 import { Workspace } from '../workspace/Workspace.class';
 
 /**
  * Canvas Search Helper
- * 
+ *
  * Provides comprehensive search functionality for the canvas builder interface.
  * Handles component searching, recently edited components tracking, and UI interactions.
- * 
+ *
  * Features:
  * - Real-time component search by title and description
  * - Recently edited components tracking
  * - Keyboard navigation support
  * - Type-based search for "Other Results"
  * - Event-driven architecture for extensibility
- * 
+ *
  */
 export class CanvasSearchHelper {
   private static instance: CanvasSearchHelper;
@@ -40,7 +40,7 @@ export class CanvasSearchHelper {
   private readonly config: SearchConfig = {
     maxMainResults: 5,
     maxTotalResults: 5,
-    maxRecentComponents: 3
+    maxRecentComponents: 3,
   };
 
   // Event listeners
@@ -73,7 +73,7 @@ export class CanvasSearchHelper {
   /**
    * Initialize the canvas search functionality
    * Sets up DOM references and event handlers
-   * 
+   *
    * @param workspace - The workspace instance
    * @throws Error if required DOM elements are not found
    */
@@ -88,7 +88,7 @@ export class CanvasSearchHelper {
 
   /**
    * Validate workspace instance
-   * 
+   *
    * @param workspace - The workspace to validate
    * @throws Error if workspace is invalid
    */
@@ -100,7 +100,7 @@ export class CanvasSearchHelper {
 
   /**
    * Setup DOM element references
-   * 
+   *
    * @throws Error if required DOM elements are not found
    */
   private setupDOMReferences(): void {
@@ -116,7 +116,7 @@ export class CanvasSearchHelper {
 
   /**
    * Setup event handlers for search functionality
-   * 
+   *
    * @param workspace - The workspace instance
    */
   private setupEventHandlers(workspace: Workspace): void {
@@ -149,9 +149,11 @@ export class CanvasSearchHelper {
 
     // Click outside to close
     this.boundClickOutside = (e: Event) => {
-      if (this.searchContainer &&
+      if (
+        this.searchContainer &&
         !this.searchContainer.contains(e.target as Node) &&
-        !this.searchContainer.classList.contains('hidden')) {
+        !this.searchContainer.classList.contains('hidden')
+      ) {
         this.closeSearch();
       }
     };
@@ -161,7 +163,7 @@ export class CanvasSearchHelper {
   /**
    * Initialize recently edited components tracking
    * Only track settings saves and endpoint changes
-   * 
+   *
    * @param workspace - The workspace instance
    */
   private initializeRecentComponentsTracking(workspace: Workspace): void {
@@ -195,7 +197,7 @@ export class CanvasSearchHelper {
 
   /**
    * Update recently edited components list
-   * 
+   *
    * @param componentId - The component ID to track
    */
   public updateRecentlyEdited(componentId: string): void {
@@ -208,24 +210,27 @@ export class CanvasSearchHelper {
 
     // Remove existing entry if it exists
     this.recentlyEditedComponents = this.recentlyEditedComponents.filter(
-      item => item.id !== componentId
+      (item) => item.id !== componentId,
     );
 
     // Add to beginning of array with timestamp
     this.recentlyEditedComponents.unshift({
       id: componentId,
-      timestamp: now
+      timestamp: now,
     });
 
     // Keep only the max number of recent components
     if (this.recentlyEditedComponents.length > this.config.maxRecentComponents) {
-      this.recentlyEditedComponents = this.recentlyEditedComponents.slice(0, this.config.maxRecentComponents);
+      this.recentlyEditedComponents = this.recentlyEditedComponents.slice(
+        0,
+        this.config.maxRecentComponents,
+      );
     }
   }
 
   /**
    * Open the canvas search interface
-   * 
+   *
    * @param workspace - The workspace instance
    */
   public openSearch(workspace: Workspace): void {
@@ -280,7 +285,7 @@ export class CanvasSearchHelper {
 
   /**
    * Perform search through canvas components
-   * 
+   *
    * @param workspace - The workspace instance
    * @param query - The search query
    */
@@ -307,7 +312,7 @@ export class CanvasSearchHelper {
 
   /**
    * Search through canvas components by title and description
-   * 
+   *
    * @param workspace - The workspace instance
    * @param query - The search query
    * @returns Array of search results
@@ -322,20 +327,24 @@ export class CanvasSearchHelper {
       if (!control) return;
 
       const title = control.title || '';
-      const description = control.description ||
+      const description =
+        control.description ||
         control.drawSettings?.componentDescription ||
-        control.drawSettings?.shortDescription || '';
+        control.drawSettings?.shortDescription ||
+        '';
 
       // Only match title or description (not type)
-      if (title.toLowerCase().includes(queryLower) ||
-        description.toLowerCase().includes(queryLower)) {
+      if (
+        title.toLowerCase().includes(queryLower) ||
+        description.toLowerCase().includes(queryLower)
+      ) {
         results.push({
           id: element.id,
           name: title || control.drawSettings?.displayName || '',
           type: control.drawSettings?.displayName || '',
           description,
           element: element as HTMLElement,
-          iconHTML: this.getComponentIconHTML(control)
+          iconHTML: this.getComponentIconHTML(control),
         });
       }
     });
@@ -345,13 +354,17 @@ export class CanvasSearchHelper {
 
   /**
    * Search components by type for "Other Results"
-   * 
+   *
    * @param workspace - The workspace instance
    * @param query - The search query
    * @param excludeIds - Component IDs to exclude from results
    * @returns Array of search results
    */
-  private searchComponentsByType(workspace: Workspace, query: string, excludeIds: string[]): SearchResult[] {
+  private searchComponentsByType(
+    workspace: Workspace,
+    query: string,
+    excludeIds: string[],
+  ): SearchResult[] {
     const results: SearchResult[] = [];
     const components = document.querySelectorAll('.component');
     const queryLower = query.toLowerCase();
@@ -362,21 +375,25 @@ export class CanvasSearchHelper {
 
       const title = control.title || '';
       const type = control.drawSettings?.displayName || '';
-      const description = control.description ||
+      const description =
+        control.description ||
         control.drawSettings?.componentDescription ||
-        control.drawSettings?.shortDescription || '';
+        control.drawSettings?.shortDescription ||
+        '';
 
       // Only match type AND ensure it's not already matched by title/description
-      if (type.toLowerCase().includes(queryLower) &&
+      if (
+        type.toLowerCase().includes(queryLower) &&
         !title.toLowerCase().includes(queryLower) &&
-        !description.toLowerCase().includes(queryLower)) {
+        !description.toLowerCase().includes(queryLower)
+      ) {
         results.push({
           id: element.id,
           name: title || type,
           type,
           description,
           element: element as HTMLElement,
-          iconHTML: this.getComponentIconHTML(control)
+          iconHTML: this.getComponentIconHTML(control),
         });
       }
     });
@@ -386,7 +403,7 @@ export class CanvasSearchHelper {
 
   /**
    * Sort search results by relevance
-   * 
+   *
    * @param results - Array of search results
    * @param query - The search query
    * @returns Sorted array of search results
@@ -411,12 +428,16 @@ export class CanvasSearchHelper {
 
   /**
    * Display search results in the UI
-   * 
+   *
    * @param workspace - The workspace instance
    * @param allResults - All search results
    * @param query - The search query
    */
-  private displaySearchResults(workspace: Workspace, allResults: SearchResult[], query: string): void {
+  private displaySearchResults(
+    workspace: Workspace,
+    allResults: SearchResult[],
+    query: string,
+  ): void {
     if (!this.searchResults) return;
 
     const mainResults = allResults.slice(0, this.config.maxMainResults);
@@ -428,7 +449,7 @@ export class CanvasSearchHelper {
       otherResults = this.searchComponentsByType(
         workspace,
         query,
-        mainResults.map(r => r.id)
+        mainResults.map((r) => r.id),
       ).slice(0, remainingSlots);
     }
 
@@ -445,18 +466,24 @@ export class CanvasSearchHelper {
 
   /**
    * Generate HTML for search results
-   * 
+   *
    * @param mainResults - Main search results
    * @param otherResults - Other results (type-based)
    * @param query - The search query
    * @returns HTML string
    */
-  private generateResultsHTML(mainResults: SearchResult[], otherResults: SearchResult[], query: string): string {
+  private generateResultsHTML(
+    mainResults: SearchResult[],
+    otherResults: SearchResult[],
+    query: string,
+  ): string {
     let html = '';
 
     // Main results
     if (mainResults.length > 0) {
-      html += mainResults.map((result, index) => `
+      html += mainResults
+        .map(
+          (result, index) => `
         <div class="search-result self-stretch inline-flex justify-start items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded ${index === 0 ? 'bg-gray-50' : ''}"
              data-component-id="${result.id}">
           <div class="w-4 h-4 min-w-4 relative">
@@ -464,11 +491,13 @@ export class CanvasSearchHelper {
           </div>
           <div class="inline-flex flex-col justify-start items-start overflow-hidden flex-1 min-w-0">
             <div class="justify-center w-full">
-              <span class="text-gray-900 text-xs font-normal font-['Inter'] truncate block">${this.highlightMatch(result.name, query)}</span>
+              <span class="text-gray-900 text-xs font-normal  truncate block">${this.highlightMatch(result.name, query)}</span>
             </div>
           </div>
         </div>
-      `).join('');
+      `,
+        )
+        .join('');
     }
 
     // Other Results section
@@ -476,12 +505,14 @@ export class CanvasSearchHelper {
       html += `
         <div class="self-stretch inline-flex justify-start items-center gap-2 mt-2">
           <div class="inline-flex flex-col justify-start items-start overflow-hidden">
-            <div class="justify-center text-neutral-500 text-xs font-normal font-['Inter']">Other Results</div>
+            <div class="justify-center text-neutral-500 text-xs font-normal ">Other Results</div>
           </div>
         </div>
       `;
 
-      html += otherResults.map((result) => `
+      html += otherResults
+        .map(
+          (result) => `
         <div class="search-result self-stretch inline-flex justify-start items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
              data-component-id="${result.id}">
           <div class="w-4 h-4 min-w-4 relative">
@@ -489,11 +520,13 @@ export class CanvasSearchHelper {
           </div>
           <div class="inline-flex flex-col justify-start items-start overflow-hidden flex-1 min-w-0">
             <div class="justify-center w-full">
-              <span class="text-gray-900 text-xs font-normal font-['Inter'] truncate block">${this.highlightMatch(result.name, query)}</span>
+              <span class="text-gray-900 text-xs font-normal  truncate block">${this.highlightMatch(result.name, query)}</span>
             </div>
           </div>
         </div>
-      `).join('');
+      `,
+        )
+        .join('');
     }
 
     return html;
@@ -501,7 +534,7 @@ export class CanvasSearchHelper {
 
   /**
    * Show recently edited components
-   * 
+   *
    * @param workspace - The workspace instance
    */
   private showRecentlyEditedComponents(workspace: Workspace): void {
@@ -513,7 +546,7 @@ export class CanvasSearchHelper {
       this.searchResults.innerHTML = `
         <div class="self-stretch inline-flex justify-start items-center gap-2">
           <div class="inline-flex flex-col justify-start items-start overflow-hidden">
-            <div class="justify-center text-neutral-500 text-xs font-normal font-['Inter']">No recently edited components</div>
+            <div class="justify-center text-neutral-500 text-xs font-normal ">No recently edited components</div>
           </div>
         </div>
       `;
@@ -531,7 +564,7 @@ export class CanvasSearchHelper {
 
   /**
    * Generate HTML for recently edited components
-   * 
+   *
    * @param components - Array of recently edited components
    * @returns HTML string
    */
@@ -539,10 +572,12 @@ export class CanvasSearchHelper {
     return `
       <div class="self-stretch inline-flex justify-start items-center gap-2">
         <div class="inline-flex flex-col justify-start items-start overflow-hidden">
-          <div class="justify-center text-neutral-500 text-xs font-normal font-['Inter']">Recent Action</div>
+          <div class="justify-center text-neutral-500 text-xs font-normal ">Recent Action</div>
         </div>
       </div>
-      ${components.map((component, index) => `
+      ${components
+        .map(
+          (component, index) => `
         <div class="search-result self-stretch inline-flex justify-start items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
              data-component-id="${component.id}">
           <div class="w-4 h-4 min-w-4 relative">
@@ -550,17 +585,19 @@ export class CanvasSearchHelper {
           </div>
           <div class="inline-flex flex-col justify-start items-start overflow-hidden flex-1 min-w-0">
             <div class="justify-center w-full">
-              <span class="text-gray-900 text-xs font-normal font-['Inter'] truncate block">${this.escapeHtml(component.name)}</span>
+              <span class="text-gray-900 text-xs font-normal  truncate block">${this.escapeHtml(component.name)}</span>
             </div>
           </div>
         </div>
-      `).join('')}
+      `,
+        )
+        .join('')}
     `;
   }
 
   /**
    * Get recently edited components data
-   * 
+   *
    * @param workspace - The workspace instance
    * @returns Array of recently edited components (most recent first)
    */
@@ -568,7 +605,9 @@ export class CanvasSearchHelper {
     const components: SearchResult[] = [];
 
     // Sort by timestamp (most recent first) - though unshift should maintain this order
-    const sortedItems = [...this.recentlyEditedComponents].sort((a, b) => b.timestamp - a.timestamp);
+    const sortedItems = [...this.recentlyEditedComponents].sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
 
     for (const item of sortedItems) {
       const element = document.getElementById(item.id);
@@ -581,7 +620,7 @@ export class CanvasSearchHelper {
             type: control.drawSettings?.displayName || '',
             description: control.description || control.drawSettings?.componentDescription || '',
             element: element as HTMLElement,
-            iconHTML: this.getComponentIconHTML(control)
+            iconHTML: this.getComponentIconHTML(control),
           });
         }
       }
@@ -599,8 +638,8 @@ export class CanvasSearchHelper {
     this.searchResults.innerHTML = `
       <div class="self-stretch inline-flex justify-start items-center gap-2">
         <div class="justify-center">
-          <span class="text-gray-900 text-xs font-normal font-['Inter']">No Results Found. </span>
-          <span class="text-blue-500 text-xs font-normal font-['Inter'] underline cursor-pointer" data-action="add-skill">Click to add a skill</span>
+          <span class="text-gray-900 text-xs font-normal ">No Results Found. </span>
+          <span class="text-blue-500 text-xs font-normal  underline cursor-pointer" data-action="add-skill">Click to add a skill</span>
         </div>
         <div class="w-6 h-4"></div>
       </div>
@@ -615,7 +654,7 @@ export class CanvasSearchHelper {
 
   /**
    * Handle keyboard navigation in search
-   * 
+   *
    * @param e - Keyboard event
    * @param workspace - The workspace instance
    */
@@ -671,7 +710,7 @@ export class CanvasSearchHelper {
 
   /**
    * Add click handlers to search results
-   * 
+   *
    * @param workspace - The workspace instance
    */
   private addResultClickHandlers(workspace: Workspace): void {
@@ -682,7 +721,7 @@ export class CanvasSearchHelper {
       element.addEventListener('click', () => {
         const componentId = element.getAttribute('data-component-id');
         if (componentId) {
-          const result = this.currentResults.find(r => r.id === componentId);
+          const result = this.currentResults.find((r) => r.id === componentId);
           if (result) {
             this.selectComponent(workspace, result);
           }
@@ -707,7 +746,7 @@ export class CanvasSearchHelper {
 
   /**
    * Select and navigate to a component
-   * 
+   *
    * @param workspace - The workspace instance
    * @param result - The search result to select
    */
@@ -727,28 +766,30 @@ export class CanvasSearchHelper {
     // Emit selection event
     this.emitEvent(SearchEventType.COMPONENT_SELECTED, {
       componentId: result.id,
-      result
+      result,
     });
   }
 
   /**
    * Update search content styling based on state
-   * 
+   *
    * @param hasResults - Whether there are search results
    */
   private updateSearchContentStyling(hasResults: boolean): void {
     if (!this.searchContent) return;
 
     if (hasResults) {
-      this.searchContent.className = 'p-3 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex flex-col justify-center items-start gap-3';
+      this.searchContent.className =
+        'p-3 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex flex-col justify-center items-start gap-3';
     } else {
-      this.searchContent.className = 'px-2 py-1 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex flex-col justify-center items-start';
+      this.searchContent.className =
+        'px-2 py-1 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex flex-col justify-center items-start';
     }
   }
 
   /**
    * Get component icon HTML with proper styling
-   * 
+   *
    * @param control - The component control
    * @returns HTML string for the icon
    */
@@ -766,7 +807,9 @@ export class CanvasSearchHelper {
 
     // Handle Font Awesome icons
     if (iconCSSClass.includes('fa-') || iconCSSClass.includes('tpl-fa-icon')) {
-      const faClass = iconCSSClass.includes('tpl-fa-icon') ? iconCSSClass : `tpl-fa-icon ${iconCSSClass}`;
+      const faClass = iconCSSClass.includes('tpl-fa-icon')
+        ? iconCSSClass
+        : `tpl-fa-icon ${iconCSSClass}`;
       return `<div class="w-4 h-4 min-w-4 relative"><i class="${faClass}" style="color: ${color};"></i></div>`;
     }
 
@@ -790,7 +833,7 @@ export class CanvasSearchHelper {
 
   /**
    * Highlight search matches in text
-   * 
+   *
    * @param text - The text to highlight
    * @param query - The search query
    * @returns HTML string with highlighted matches
@@ -807,7 +850,7 @@ export class CanvasSearchHelper {
 
   /**
    * Escape HTML characters
-   * 
+   *
    * @param text - The text to escape
    * @returns Escaped HTML string
    */
@@ -821,18 +864,21 @@ export class CanvasSearchHelper {
    * Initialize event listeners map
    */
   private initializeEventListeners(): void {
-    Object.values(SearchEventType).forEach(eventType => {
+    Object.values(SearchEventType).forEach((eventType) => {
       this.eventListeners.set(eventType, []);
     });
   }
 
   /**
    * Add event listener for search events
-   * 
+   *
    * @param eventType - The event type to listen for
    * @param callback - The callback function
    */
-  public addEventListener(eventType: SearchEventType, callback: (data: SearchEventData) => void): void {
+  public addEventListener(
+    eventType: SearchEventType,
+    callback: (data: SearchEventData) => void,
+  ): void {
     const listeners = this.eventListeners.get(eventType);
     if (listeners) {
       listeners.push(callback);
@@ -841,11 +887,14 @@ export class CanvasSearchHelper {
 
   /**
    * Remove event listener for search events
-   * 
+   *
    * @param eventType - The event type
    * @param callback - The callback function to remove
    */
-  public removeEventListener(eventType: SearchEventType, callback: (data: SearchEventData) => void): void {
+  public removeEventListener(
+    eventType: SearchEventType,
+    callback: (data: SearchEventData) => void,
+  ): void {
     const listeners = this.eventListeners.get(eventType);
     if (listeners) {
       const index = listeners.indexOf(callback);
@@ -857,7 +906,7 @@ export class CanvasSearchHelper {
 
   /**
    * Emit search event
-   * 
+   *
    * @param eventType - The event type
    * @param payload - The event payload
    */
@@ -865,7 +914,7 @@ export class CanvasSearchHelper {
     const listeners = this.eventListeners.get(eventType);
     if (listeners) {
       const eventData: SearchEventData = { type: eventType, payload };
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(eventData);
         } catch (error) {
@@ -877,7 +926,7 @@ export class CanvasSearchHelper {
 
   /**
    * Get current search configuration
-   * 
+   *
    * @returns Current search configuration
    */
   public getConfig(): SearchConfig {
@@ -886,7 +935,7 @@ export class CanvasSearchHelper {
 
   /**
    * Update search configuration
-   * 
+   *
    * @param newConfig - Partial configuration to update
    */
   public updateConfig(newConfig: Partial<SearchConfig>): void {
@@ -895,7 +944,7 @@ export class CanvasSearchHelper {
 
   /**
    * Get current search results
-   * 
+   *
    * @returns Current search results
    */
   public getCurrentResults(): SearchResult[] {
@@ -904,7 +953,7 @@ export class CanvasSearchHelper {
 
   /**
    * Get recently edited components
-   * 
+   *
    * @returns Recently edited components
    */
   public getRecentlyEditedComponentsList(): RecentlyEditedComponent[] {
@@ -965,7 +1014,7 @@ export class CanvasSearchHelper {
 /**
  * Add agent skill (APIEndpoint) to the builder
  * This function is called when user clicks "Click to add a skill" in no results
- * 
+ *
  * @global
  */
 declare global {
@@ -1025,9 +1074,9 @@ declare global {
       inputs: [],
       data: {
         prompt: 'New skill prompt...',
-        advancedModeEnabled: false
+        advancedModeEnabled: false,
       },
-      sender: null
+      sender: null,
     };
 
     const componentElement = await workspace.addComponent('APIEndpoint', componentProperties, true);
@@ -1045,4 +1094,4 @@ declare global {
   } finally {
     (window as any).addingSkill = false;
   }
-}; 
+};

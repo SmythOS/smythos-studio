@@ -234,7 +234,7 @@ module.exports = {
       fontFamily: {
         sans: [
           'var(--font-sans)',
-          'Inter',
+          'Manrope',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -252,7 +252,7 @@ module.exports = {
           ...fontFamily.sans,
         ],
         body: [
-          'Inter',
+          'Manrope',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',

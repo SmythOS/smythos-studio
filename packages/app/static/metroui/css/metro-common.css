@@ -8161,11 +8161,11 @@ html.metro-no-touch-device .d-inline-flex-no-touch {
   }
 }
 html {
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Ubuntu", "Helvetica Neue", sans-serif;
+  font-family: 'Manrope', -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Ubuntu", "Helvetica Neue", sans-serif;
   font-size: 100%;
 }
 body {
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Ubuntu", "Helvetica Neue", sans-serif;
+  font-family: 'Manrope', -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Ubuntu", "Helvetica Neue", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   font-style: normal;
