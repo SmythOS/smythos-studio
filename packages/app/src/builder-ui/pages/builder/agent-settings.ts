@@ -930,16 +930,6 @@ export async function openVoiceEmbodiment() {
   const spinnerId = `voice-spinner-${Date.now()}`;
 
   const content = wrapContent(`<div class="emb-instructions p-4 flex flex-col h-full">
-        <div class="flex items-center justify-end mb-3 flex-shrink-0">
-          <a href="${voiceUrl}" target="_blank" rel="noopener noreferrer">
-            <div class="text-[#3C89F9] text-[13px] font-medium cursor-pointer flex items-center gap-1">Start Voice Chat
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6.74674 2.3335H5.34389C3.49341 2.3335 2.33301 3.64376 2.33301 5.49802V10.5023C2.33301 12.3566 3.48775 13.6668 5.34389 13.6668H10.6542C12.5109 13.6668 13.6663 12.3566 13.6663 10.5023V9.4061" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M13.6668 5.38279V2.3335M13.6668 2.3335H10.6176M13.6668 2.3335L8.91309 7.08723" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </a>
-        </div>
         <div id="talk-to-agent-wrapper" class="flex flex-col flex-1 min-h-0">
           <div id="voice-initial-state" class="flex flex-col items-center justify-center flex-1 min-h-0">
             <label class="block text-sm font-medium text-gray-700 mb-3">Talk to Agent</label>
