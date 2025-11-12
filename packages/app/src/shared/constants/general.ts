@@ -155,11 +155,16 @@ export const EMBODIMENT_DESCRIPTIONS: Record<string, EmbodimentDescription> = {
     description:
       'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.',
   },
+  voice: {
+    title: 'Voice',
+    tooltipTitle: 'Live voice conversation with your agent.',
+    description: 'Start a live voice session with your agent for natural, real-time conversations.',
+  },
   alexa: {
     title: 'Alexa Skill',
-    tooltipTitle: 'Alexa Skill',
+    tooltipTitle: 'Publish as an Alexa Skill or deploy across managed Echo devices.',
     description:
-      'Use your agent as an Alexa Skill for seamless integration with existing Alexa workflows.',
+      'Publish your agent as an Alexa Skill or deploy across managed Echo devices for voice interactions.',
   },
   mcp: {
     title: 'MCP',

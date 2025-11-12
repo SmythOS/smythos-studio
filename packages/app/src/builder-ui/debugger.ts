@@ -169,7 +169,7 @@ function toggleSwitch(on: boolean) {
     updateInspectButtonIcon(inspectButton, true);
   } else {
     // Reset the components state before toggling the debug switch
-    resetComponentsState({ resetPinned: true });
+    resetComponentsState({ resetDebugMessages: true, resetPinned: true });
     // debugMenu.classList.add('hidden');
     switcherText.textContent = 'Debug Off';
     debugSwitcher.classList.remove('active');
@@ -3138,6 +3138,7 @@ export async function registerDbgMonitorUI(monitor: Monitor) {
       const comp = document.querySelector(`#${e.data.id}`);
       if (!comp) return;
       comp.classList.remove('dbg-running');
+      comp.classList.remove('dbg-active');
       // hide overlay
       // if duration was below 500ms, wait for 500ms - duration before hiding to give the visual feedback
       if (e.data.duration < 500) {
@@ -3155,8 +3156,24 @@ export async function registerDbgMonitorUI(monitor: Monitor) {
       if (!comp) return;
       workspace.refreshComponentSelection(comp as HTMLElement);
       comp.classList.add('dbg-running');
+      comp.classList.add('dbg-active');
       // show overlay
       $(comp.querySelector('.cpt-overlay')).show();
+    }
+  });
+
+  // Listen to the agent event
+  monitor.on('agent', (e: any) => {
+    const data = e.data;
+
+    // Session START: when there's startTime but no endTime/duration
+    if (data.startTime && !data.endTime && !data.duration) {
+      workspace.domElement.classList.add('debugging');
+    }
+
+    // Session END: when there's endTime or duration
+    if (data.endTime || data.duration) {
+      workspace.domElement.classList.remove('debugging');
     }
   });
 
@@ -3200,9 +3217,11 @@ function toggleDebugBarVisibility(componentElement: HTMLElement) {
 
 function resetComponentsState({
   resetMessages = false,
+  resetDebugMessages = false,
   resetPinned = false,
 }: {
   resetMessages?: boolean;
+  resetDebugMessages?: boolean;
   resetPinned?: boolean;
 }) {
   document.querySelectorAll('#workspace-container .component').forEach((component: HTMLElement) => {
@@ -3225,6 +3244,13 @@ function resetComponentsState({
 
     if (resetMessages) {
       component['_control']?.clearComponentMessages();
+    }
+
+    if (resetDebugMessages) {
+      const messagesContainer = component.querySelector('.messages-container');
+      if (messagesContainer) {
+        messagesContainer.querySelectorAll('.message.missing-input').forEach((msg) => msg.remove());
+      }
     }
 
     if (resetPinned) {

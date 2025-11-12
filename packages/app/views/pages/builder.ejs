@@ -319,6 +319,7 @@ include('partials/studio/feedback-modal') -%>
     /**
      * @function updateBottomControlsLayout
      * @description Adjusts the width and position of the bottom controls container.
+     * The container is positioned to have equal spacing from both the left sidebar and right sidebar.
      * @param {number} workspaceWidth - The current width of the workspace.
      * @param {number} rightSidebarWidth - The current width of the right sidebar.
      * @param {number} leftSidebarWidth - The current width of the left sidebar.
@@ -332,18 +333,22 @@ include('partials/studio/feedback-modal') -%>
       isRightSidebarOpen,
       isLeftSidebarOpen,
     ) => {
-      const bottomContainerWidth =
-        workspaceWidth -
-        (isRightSidebarOpen ? rightSidebarWidth : 0) -
-        (isLeftSidebarOpen ? leftSidebarWidth : 0) -
-        (isLeftSidebarOpen ? GAP_WIDTH : 0);
+      // Use viewport width to calculate the full available space
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate the left edge position: navigation bar + left sidebar (if open) + gap (if left sidebar open)
+      const leftPosition = SIDEBAR_NAVIGATION_WIDTH + (isLeftSidebarOpen ? leftSidebarWidth + GAP_WIDTH : 0);
+      
+      // Calculate the right edge position: viewport width minus right sidebar (if open) and its right offset
+      // The right sidebar container is positioned with right-4 (16px from right edge)
+      const RIGHT_SIDEBAR_OFFSET = 16; // right-4 class = 1rem = 16px
+      const rightEdge = viewportWidth - (isRightSidebarOpen ? rightSidebarWidth + RIGHT_SIDEBAR_OFFSET : 0);
+      
+      // Calculate the container width: space between left position and right edge
+      const bottomContainerWidth = rightEdge - leftPosition;
 
       bottomControls.style.setProperty('width', `${bottomContainerWidth}px`, 'important');
-      bottomControls.style.setProperty(
-        'left',
-        `${SIDEBAR_NAVIGATION_WIDTH + (isLeftSidebarOpen ? leftSidebarWidth + GAP_WIDTH : 0)}px`,
-        'important',
-      );
+      bottomControls.style.setProperty('left', `${leftPosition}px`, 'important');
       bottomControls.style.setProperty(
         'display',
         bottomContainerWidth < MIN_CANVAS_WIDTH ? 'none' : 'flex',
@@ -417,6 +422,12 @@ include('partials/studio/feedback-modal') -%>
     // --- Initial Layout Update ---
     // Calls updateLayout once on load to set the initial layout.
     updateLayout();
+
+    // --- Window Resize Listener ---
+    // Ensures layout updates when viewport width changes, since ResizeObserver may not catch all viewport changes
+    window.addEventListener('resize', () => {
+      updateLayout();
+    });
 
     // Add cleanup on page unload
     window.addEventListener('beforeunload', () => {
