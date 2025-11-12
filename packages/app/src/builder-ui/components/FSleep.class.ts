@@ -46,7 +46,7 @@ export class FSleep extends FunctionComponent {
     this.drawSettings.displayName = 'F:Sleep';
   }
   protected async run() {
-    if (!this.domElement.style.width) this.domElement.style.width = '130px';
+    if (!this.domElement.style.width) this.domElement.style.width = '165px';
     this.addEventListener('settingsSaved', async () => {
       this.title = `Sleep for ${this.data.delay}s`;
       this.domElement.querySelector('.title .text').textContent = this.title;

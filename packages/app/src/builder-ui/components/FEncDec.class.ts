@@ -49,7 +49,7 @@ export class FEncDec extends FunctionComponent {
     this.drawSettings.displayName = 'F:Encode/Decode';
   }
   protected async run() {
-    if (!this.domElement.style.width) this.domElement.style.width = '130px';
+    if (!this.domElement.style.width) this.domElement.style.width = '165px';
     this.addEventListener('settingsSaved', async () => {
       this.title = `${this.data.encoding} ${this.data.action}`;
       this.domElement.querySelector('.title .text').textContent = this.title;

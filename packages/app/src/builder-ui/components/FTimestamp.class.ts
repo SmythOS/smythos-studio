@@ -1,5 +1,3 @@
-import { Component } from './Component.class';
-import { delay } from '../utils';
 import { FunctionComponent } from './FunctionComponent.class';
 
 const encodings = ['hex', 'base64', 'base64url', 'latin1'];
@@ -37,7 +35,7 @@ export class FTimestamp extends FunctionComponent {
     this.drawSettings.displayName = 'F:Timestamp';
   }
   protected async run() {
-    if (!this.domElement.style.width) this.domElement.style.width = '140px';
+    if (!this.domElement.style.width) this.domElement.style.width = '165px';
     this.addEventListener('settingsSaved', async () => {
       this.title = `Timestamp`;
       this.domElement.querySelector('.title .text').textContent = this.title;
