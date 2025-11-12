@@ -1390,7 +1390,49 @@ body.locked nav #builder-button svg {
   width: 0.5rem !important;
   margin-top: -0.35rem !important;
 }
+/* Sentiment-based emoji button selected states using CSS */
+.emoji-option[data-sentiment='negative'].selected {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
 
+.emoji-option[data-sentiment='neutral'].selected {
+  background-color: rgba(234, 179, 8, 0.15);
+  border-color: #eab308;
+  transform: scale(1.1);
+}
+
+.emoji-option[data-sentiment='positive'].selected {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  transform: scale(1.1);
+}
+
+/* Submit button sentiment colors using data attributes */
+#submitFeedback[data-sentiment='negative']:not(:disabled) {
+  background-color: #ef4444 !important;
+}
+
+#submitFeedback[data-sentiment='negative']:not(:disabled):hover {
+  background-color: #dc2626 !important;
+}
+
+#submitFeedback[data-sentiment='neutral']:not(:disabled) {
+  background-color: #eab308 !important;
+}
+
+#submitFeedback[data-sentiment='neutral']:not(:disabled):hover {
+  background-color: #ca8a04 !important;
+}
+
+#submitFeedback[data-sentiment='positive']:not(:disabled) {
+  background-color: #22c55e !important;
+}
+
+#submitFeedback[data-sentiment='positive']:not(:disabled):hover {
+  background-color: #16a34a !important;
+}
 /* Invalid state for textareas */
 .dlg-form .textarea textarea.invalid,
 .right-sidebar .form-group textarea.invalid,
