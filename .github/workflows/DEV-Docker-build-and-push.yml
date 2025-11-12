@@ -8,6 +8,11 @@ on:
         required: true
         default: ''
         type: string
+      ref:
+        description: 'Git ref (branch or tag) to build (e.g., dev, main, v1.2.3)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -28,6 +33,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
