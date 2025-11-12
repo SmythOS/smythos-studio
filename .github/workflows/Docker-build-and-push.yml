@@ -1,5 +1,5 @@
 name: Build and Push Docker Image
-run-name: Build and Push Docker Image
+run-name: Build and Push Docker Image — ref: ${{ inputs.ref }} — tags: ${{ inputs.tags }}
 on:
   workflow_dispatch:
     inputs:
@@ -9,16 +9,17 @@ on:
         default: ''
         type: string
       ref:
-        description: 'Git ref (branch or tag) to build (e.g., dev, main, v1.2.3)'
-        required: false
-        default: ''
+        # Require the caller to explicitly specify the branch (or tag) to build
+        description: 'Git ref to build (branch preferred, e.g., dev or main)'
+        required: true
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: docker-alpha-${{ github.ref }}
+  # Isolate runs by the requested ref so concurrent runs of the same ref share a group
+  group: docker-alpha-${{ github.event.inputs.ref || github.ref }}
   cancel-in-progress: false
 
 env:
@@ -31,10 +32,22 @@ jobs:
     name: Build, Tag, and Push
     runs-on: ubuntu-latest
     steps:
+      # Validate that a non-empty ref was provided. This guards against empty-string inputs.
+      - name: Validate requested ref input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${{ github.event.inputs.ref }}" ]; then
+            echo "Input 'ref' is required but was not provided or is empty." >&2
+            exit 1
+          fi
+          echo "Requested ref: '${{ github.event.inputs.ref }}'"
+
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.ref || github.ref }}
+          # Check out the explicitly provided ref
+          ref: ${{ github.event.inputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
