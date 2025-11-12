@@ -1,5 +1,5 @@
-name: DEV Build and Push Docker Image
-run-name: DEV Build and Push Docker Image
+name: Build and Push Docker Image
+run-name: Build and Push Docker Image — ref: ${{ inputs.ref }} — tags: ${{ inputs.tags }}
 on:
   workflow_dispatch:
     inputs:
@@ -9,16 +9,17 @@ on:
         default: ''
         type: string
       ref:
-        description: 'Git ref (branch or tag) to build (e.g., dev, main, v1.2.3)'
-        required: false
-        default: ''
+        # Require the caller to explicitly specify the branch (or tag) to build
+        description: 'Git ref to build (branch preferred, e.g., dev or main)'
+        required: true
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: docker-alpha-${{ github.ref }}
+  # Isolate runs by the requested ref so concurrent runs of the same ref share a group
+  group: docker-alpha-${{ github.event.inputs.ref || github.ref }}
   cancel-in-progress: false
 
 env:
@@ -31,10 +32,22 @@ jobs:
     name: Build, Tag, and Push
     runs-on: ubuntu-latest
     steps:
+      # Validate that a non-empty ref was provided. This guards against empty-string inputs.
+      - name: Validate requested ref input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${{ github.event.inputs.ref }}" ]; then
+            echo "Input 'ref' is required but was not provided or is empty." >&2
+            exit 1
+          fi
+          echo "Requested ref: '${{ github.event.inputs.ref }}'"
+
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.ref || github.ref }}
+          # Check out the explicitly provided ref
+          ref: ${{ github.event.inputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -56,12 +69,25 @@ jobs:
           TAGS_RAW="${IMAGE_TAGS}"
           TAGS_CLEAN="${TAGS_RAW// /}"
           IFS=',' read -r -a TAG_ARRAY <<< "${TAGS_CLEAN}"
-          if [ "${#TAG_ARRAY[@]}" -eq 0 ] || [ -z "${TAG_ARRAY[0]}" ]; then
-            echo "No valid tags provided in IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+          # Validate provided tags: 1-128 chars, start alphanumeric, allow [A-Za-z0-9_.-]
+          # This prevents accidental pastes (e.g., base64/HTML) which would break docker/buildx.
+          if [ "${#TAG_ARRAY[@]}" -eq 0 ]; then
+            echo "No tags provided in IMAGE_TAGS='${IMAGE_TAGS}'" >&2
             exit 1
           fi
           FULL_TAGS=""
+          VALID_COUNT=0
           for TAG in "${TAG_ARRAY[@]}"; do
+            # Skip blanks from accidental extra commas
+            if [ -z "${TAG}" ]; then
+              continue
+            fi
+            if ! [[ "${TAG}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+              echo "Invalid Docker tag '${TAG}'. Allowed: letters, digits, '_', '-', '.'; 1-128 chars, start with alphanumeric." >&2
+              echo "Input IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+              exit 1
+            fi
+            VALID_COUNT=$((VALID_COUNT+1))
             echo "Will publish: ${DOCKERHUB_IMAGE}:${TAG}"
             if [ -z "${FULL_TAGS}" ]; then
               FULL_TAGS="${DOCKERHUB_IMAGE}:${TAG}"
@@ -69,6 +95,10 @@ jobs:
               FULL_TAGS="${FULL_TAGS}"$'\n'"${DOCKERHUB_IMAGE}:${TAG}"
             fi
           done
+          if [ "${VALID_COUNT}" -eq 0 ]; then
+            echo "No valid tags found after parsing IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+            exit 1
+          fi
           echo "tags<<EOF" >> "$GITHUB_OUTPUT"
           echo "${FULL_TAGS}" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -82,5 +112,3 @@ jobs:
           tags: ${{ steps.prep.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-
