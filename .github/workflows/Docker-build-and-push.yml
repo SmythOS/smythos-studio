@@ -1,23 +1,17 @@
-name: Build and Push Alpha Docker Image
-
+name: Build and Push Docker Image
+run-name: Build and Push Docker Image
 on:
-  push:
-    branches:
-      - dev
-    paths:
-      - 'Dockerfile'
-      - '.github/workflows/DEV-Docker-build-and-push.yml'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'packages/**'
-      - 'docker-compose.yml'
-      - 'tsconfig.json'
   workflow_dispatch:
     inputs:
       tags:
-        description: 'Comma-separated Docker tags to publish, e.g. alpha,latest,stable'
+        description: 'Comma-separated Docker tags to publish, e.g. latest,v1,stable'
+        required: true
+        default: ''
+        type: string
+      ref:
+        description: 'Git ref (branch or tag) to build (e.g., dev, main, v1.2.3)'
         required: false
-        default: 'alpha'
+        default: ''
         type: string
 
 permissions:
@@ -39,6 +33,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
