@@ -1,23 +1,12 @@
 name: Build and Push Alpha Docker Image
 
 on:
-  push:
-    branches:
-      - dev
-    paths:
-      - 'Dockerfile'
-      - '.github/workflows/DEV-Docker-build-and-push.yml'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'packages/**'
-      - 'docker-compose.yml'
-      - 'tsconfig.json'
   workflow_dispatch:
     inputs:
       tags:
-        description: 'Comma-separated Docker tags to publish, e.g. alpha,latest,stable'
-        required: false
-        default: 'alpha'
+        description: 'Comma-separated Docker tags to publish, e.g. latest,v1,stable'
+        required: true
+        default: ''
         type: string
 
 permissions:
