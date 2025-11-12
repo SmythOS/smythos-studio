@@ -69,12 +69,25 @@ jobs:
           TAGS_RAW="${IMAGE_TAGS}"
           TAGS_CLEAN="${TAGS_RAW// /}"
           IFS=',' read -r -a TAG_ARRAY <<< "${TAGS_CLEAN}"
-          if [ "${#TAG_ARRAY[@]}" -eq 0 ] || [ -z "${TAG_ARRAY[0]}" ]; then
-            echo "No valid tags provided in IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+          # Validate provided tags: 1-128 chars, start alphanumeric, allow [A-Za-z0-9_.-]
+          # This prevents accidental pastes (e.g., base64/HTML) which would break docker/buildx.
+          if [ "${#TAG_ARRAY[@]}" -eq 0 ]; then
+            echo "No tags provided in IMAGE_TAGS='${IMAGE_TAGS}'" >&2
             exit 1
           fi
           FULL_TAGS=""
+          VALID_COUNT=0
           for TAG in "${TAG_ARRAY[@]}"; do
+            # Skip blanks from accidental extra commas
+            if [ -z "${TAG}" ]; then
+              continue
+            fi
+            if ! [[ "${TAG}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+              echo "Invalid Docker tag '${TAG}'. Allowed: letters, digits, '_', '-', '.'; 1-128 chars, start with alphanumeric." >&2
+              echo "Input IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+              exit 1
+            fi
+            VALID_COUNT=$((VALID_COUNT+1))
             echo "Will publish: ${DOCKERHUB_IMAGE}:${TAG}"
             if [ -z "${FULL_TAGS}" ]; then
               FULL_TAGS="${DOCKERHUB_IMAGE}:${TAG}"
@@ -82,6 +95,10 @@ jobs:
               FULL_TAGS="${FULL_TAGS}"$'\n'"${DOCKERHUB_IMAGE}:${TAG}"
             fi
           done
+          if [ "${VALID_COUNT}" -eq 0 ]; then
+            echo "No valid tags found after parsing IMAGE_TAGS='${IMAGE_TAGS}'" >&2
+            exit 1
+          fi
           echo "tags<<EOF" >> "$GITHUB_OUTPUT"
           echo "${FULL_TAGS}" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
