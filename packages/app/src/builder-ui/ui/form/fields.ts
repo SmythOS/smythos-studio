@@ -994,7 +994,7 @@ async function handleExpandTextarea(
   // Create modal textarea
   const modalTextarea = document.createElement('textarea') as TextAreaWithEditor;
   modalTextarea.value = originalTextarea.value;
-  modalTextarea.classList.add('form-control', 'flex-1', 'resize-none');
+  modalTextarea.classList.add('form-control', 'flex-1', 'resize-none', 'overflow-y-auto');
   modalTextarea.id = 'expanded-textarea';
 
 
