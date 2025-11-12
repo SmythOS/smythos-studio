@@ -126,7 +126,7 @@
 }
 
 .debug-enabled.debugging .component:not(.dbg-active) .btn-debug {
-  opacity: 0.5;
+  filter: grayscale(1) brightness(1.2);
   pointer-events: none;
   cursor: not-allowed;
 }
@@ -227,6 +227,49 @@
 .component .input-endpoint .dbg-output .pin {
   left: -6px;
   right: auto;
+}
+
+/* Warning icon for stringified JSON outputs */
+.dbg-output-content {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+}
+
+/* Warning message container */
+.dbg-json-warning-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  background-color: #fff3e0;
+  border-left: 3px solid #ff9800;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+/* Warning icon */
+.dbg-json-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  background-color: #ff9800;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+/* Warning text */
+.dbg-json-warning-text {
+  color: #e65100;
+  font-weight: normal;
+  flex: 1;
 }
 
 .component .endpoint .dbg-output.pinned .pin .icon {
