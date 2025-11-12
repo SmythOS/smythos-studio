@@ -198,6 +198,7 @@
 
 .smyth.endpoint .pin.button {
   background: transparent !important;
+  z-index: 10;
 }
 .smyth.endpoint .pin.button:hover .icon {
   color: #006500;
