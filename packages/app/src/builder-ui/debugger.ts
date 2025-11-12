@@ -1401,7 +1401,7 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
   const hasMapped = hasMappedOutputs(outputEndpoint);
   const shouldShowWarning = isDefault && isStringified && hasMapped;
 
-  // Build the warning message HTML if needed
+  // Build the warning message HTML if needed (positioned after textarea like preview button)
   const warningMessage = shouldShowWarning
     ? `<div class="dbg-json-warning-message">
          <span class="dbg-json-warning-icon">!</span>
@@ -1409,8 +1409,16 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
        </div>`
     : '';
 
-  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${warningMessage}<span class="dbg-output-content">${formattedContent}</span>`;
+  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}${warningMessage}`;
   div.className = 'dbg-element dbg-output';
+
+  // Adjust textarea height if warning is shown
+  if (shouldShowWarning) {
+    const textarea = div.querySelector('.dbg-textarea');
+    if (textarea) {
+      textarea.classList.add('dbg-textarea-with-warning');
+    }
+  }
 
   // keep the pinning state if the debugger window is already pinned
   const isPinned = div.closest('.endpoint')?.classList.contains('pinned');

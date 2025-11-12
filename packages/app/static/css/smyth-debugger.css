@@ -230,20 +230,13 @@
   right: auto;
 }
 
-/* Warning icon for stringified JSON outputs */
-.dbg-output-content {
-  display: inline-block;
-  position: relative;
-  width: 100%;
-}
-
 /* Warning message container */
 .dbg-json-warning-message {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  margin-bottom: 6px;
+  margin-top: 6px;
   background-color: #fff3e0;
   border-left: 3px solid #ff9800;
   border-radius: 3px;
@@ -388,6 +381,9 @@
   overflow-y: auto;
 }
 .dbg-textarea.dbg-textarea-with-footer {
+  height: calc(100% - 60px) !important;
+}
+.dbg-textarea.dbg-textarea-with-warning {
   height: calc(100% - 60px) !important;
 }
 .dbg-log-download-link {
