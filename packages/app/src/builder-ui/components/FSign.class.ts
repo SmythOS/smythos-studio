@@ -98,7 +98,7 @@ export class FSign extends FunctionComponent {
     this.drawSettings.displayName = 'F:Sign';
   }
   protected async run() {
-    if (!this.domElement.style.width) this.domElement.style.width = '130px';
+    if (!this.domElement.style.width) this.domElement.style.width = '165px';
     this.addEventListener('settingsSaved', async () => {
       this.title = `${this.data.signMethod.toUpperCase()}-${this.data.hashType.toUpperCase()} :: ${
         this.data.encoding

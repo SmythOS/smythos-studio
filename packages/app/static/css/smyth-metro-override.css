@@ -52,6 +52,16 @@
   padding: 0 !important;
 }
 
+.form-box .drop-container .input {
+  gap: 4px !important;
+}
+.form-box .drop-container .input .button-group .button.input-clear-button {
+  padding: 6px !important;
+  border-radius: 6px !important;
+}
+.form-box .drop-container .input .button-group .button.input-clear-button:hover {
+  background-color: #f8f8f8 !important;
+}
 .input.invalid:focus,
 .input.invalid.focused {
   -webkit-box-shadow: none !important;
@@ -115,4 +125,7 @@ div.coloris .clr-field {
     flex: 0 0 25.000005% !important;
     max-width: 25.000005% !important;
   }
+}
+.input input {
+  border-radius: 4px !important;
 }

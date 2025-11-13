@@ -11,14 +11,17 @@
         role="group"
       >
         <div
-          class="title text-basic py-1 text-left grow w-full text-v2-gray-darker truncate flex-1 text-2xl"
+          class="title text-basic text-left grow w-full text-v2-gray-darker truncate flex-1 text-2xl flex items-center"
         ></div>
 
-        <div>
+        <div class="flex items-center gap-1">
           <div class="title-left-buttons inline-flex">
             <button
               type="button"
-              class="back-btn h-10 items-center py-1 text-sm font-medium text-[#757575] bg-transparent focus:z-10"
+              class="back-btn tooltip-trigger tooltip-pill h-8 w-8 items-center text-sm font-medium text-[#757575] bg-transparent hover:text-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer focus:z-10"
+              data-tooltip="Help"
+              data-tooltip-position="right"
+              aria-label="Help"
             >
               <span class="svg-icon delete"></span>
             </button>
@@ -27,10 +30,10 @@
           <div class="title-right-buttons inline-flex">
             <button
               type="button"
-              class="close-btn relative h-10 items-center py-1 text-xs text-[#757575] bg-transparent focus:z-10"
+              class="close-btn relative cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2 focus:z-10"
               aria-label="Close"
             >
-              <span class="mt-1 mif-cross"></span>
+              <span class="mif-cross"></span>
             </button>
           </div>
         </div>
@@ -68,12 +71,19 @@
             this.checkWidth();
           }
         });
+        // Listen for resize events to update width in real-time
+        window.addEventListener('rightSidebarResized', (event) => {
+          this.width = event.detail.width;
+        });
       },
       checkWidth() {
-        let storedWidth = localStorage.getItem('right-sidebar-width') || '350px';
+        const DEFAULT_WIDTH = '520px';
+        let storedWidth = localStorage.getItem('right-sidebar-common-width') || DEFAULT_WIDTH;
+
+        // Validate width doesn't exceed half screen
         if (parseInt(storedWidth) > window.innerWidth / 2) {
-          storedWidth = '350px';
-          localStorage.setItem('right-sidebar-width', storedWidth);
+          storedWidth = DEFAULT_WIDTH;
+          localStorage.setItem('right-sidebar-common-width', storedWidth);
         }
         this.width = storedWidth;
       },
