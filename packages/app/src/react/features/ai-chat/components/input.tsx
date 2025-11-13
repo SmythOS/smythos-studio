@@ -247,14 +247,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             // Fallback: let browser handle it normally if file creation fails
             return;
           }
-        } else {
-          // For normal text, let the browser handle it naturally
-          // This preserves all default browser behavior including:
-          // - Natural cursor positioning
-          // - Text selection replacement
-          // - Undo/redo support
-          // - Native textarea behavior
-          return;
         }
       },
       [handleFileDrop],
