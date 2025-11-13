@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
   access['/templates'] = getPageAccess('/templates')?.read;
   access['/domains'] = getPageAccess('/domains')?.read;
   access['/data/'] = getPageAccess('/data')?.read;
-  access['/data-pool'] = getPageAccess('/data-pool')?.read || true; // Default to true for community edition
+  // access['/data-pool'] = getPageAccess('/data-pool')?.read || true; // Default to true for community edition
   access['/analytics'] = getPageAccess('/analytics')?.read;
   access['/teams/settings'] = getPageAccess('/teams/members')?.read;
 
@@ -48,7 +48,7 @@ export const Sidebar: React.FC = () => {
   const showCustomLogo =
     currentTeam?.parentId && companyLogo?.url && getPageAccess('/teams/members')?.read;
 
-  let menuItems = getSidebarMenuItems().filter((item) => {
+  const menuItems = getSidebarMenuItems().filter((item) => {
     const isVisible =
       typeof item.visible === 'boolean'
         ? item.visible

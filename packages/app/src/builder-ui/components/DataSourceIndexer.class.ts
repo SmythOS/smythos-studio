@@ -1,25 +1,46 @@
-import { Component } from '@builder/components/Component.class';
-import { delay } from '@builder/utils';
+import { delay } from '../utils/general.utils';
+import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceIndexer extends Component {
   private namespaces: string[] = [];
+  private isNewComponent: boolean = false;
 
   protected async prepare(): Promise<any> {
+    this.isNewComponent = Object.keys(this.data).length === 0;
+    const componentVersion = this.data.version ?? (this.isNewComponent ? 'v2' : 'v1');
+
+    if (this.isNewComponent) {
+      this.data.version = componentVersion;
+    }
+
     this.updateSettings();
+
+    return new Promise((resolve) => resolve(true));
   }
 
   protected async updateSettings() {
-    const result = await fetch(
-      `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-    );
-    const namespaces = await result.json();
-    this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-    this.settings.namespace.options = this.namespaces;
-    if (this.settingsOpen) this.refreshSettingsSidebar();
+    if (!this.data.version || this.data.version === 'v1') {
+      const result = await fetch(
+        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
+      );
+      const namespaces = await result.json();
+      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
+      this.settings.namespace.options = this.namespaces;
+      if (this.settingsOpen) this.refreshSettingsSidebar();
+    } else if (this.data.version === 'v2') {
+      const result = await fetch(
+        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+      );
+      const namespaces = await result.json();
+      this.namespaces = namespaces.map((item) => ({ value: item.namespaceId, text: item.label }));
+      this.settings.namespace.options = this.namespaces;
+      if (this.settingsOpen) this.refreshSettingsSidebar();
+    }
   }
 
   protected async init() {
+    console.log('data', this.data);
     this.settings = {
       namespace: {
         type: 'select',
@@ -44,16 +65,6 @@ export class DataSourceIndexer extends Component {
         validate: `maxlength=50`,
         validateMessage: 'Enter a non-empty label, not more than 50 characters.',
       },
-
-      // metadata: {
-      //   type: 'textarea',
-      //   expandable: true,
-      //   label: 'Metadata',
-      //   value: '',
-      //   help: 'Optional JSON or text with author, tags, and timestamps to improve search and filtering.',
-      //   validate: `maxlength=10000`,
-      //   attributes: { 'data-template-vars': 'true' },
-      // },
       metadata: {
         type: 'textarea',
         expandable: true,
@@ -68,11 +79,22 @@ export class DataSourceIndexer extends Component {
         attributes: {},
       },
 
-      // isAutoId: {
-      //     type: 'checkbox',
-      //     label: 'Auto generate Id',
-      //     value: false,
-      // },
+      ...(this.data.version === 'v2'
+        ? {
+            chunkSize: {
+              type: 'input',
+              label: 'chunk size',
+              help: 'The size of the chunks to split the data into.',
+              value: 1000,
+            },
+            chunkOverlap: {
+              type: 'input',
+              label: 'chunk overlap',
+              help: 'The overlap of the chunks to split the data into.',
+              value: 100,
+            },
+          }
+        : {}),
     };
 
     const dataEntries = ['namespace'];

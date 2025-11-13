@@ -117,4 +117,32 @@ router.delete('/namespaces/:namespaceId', async (req, res) => {
   }
 });
 
+/**
+ * List all available embedding models
+ * GET /api/page/datapool/embeddings/models
+ */
+router.get('/embeddings/models', async (req, res) => {
+  try {
+    const url = `${config.env.API_SERVER}/user/data-pools/embeddings/models`;
+
+    const result = await axios.get(url, {
+      headers: getAuthHeaders(req),
+    });
+
+    return res.json(result.data);
+  } catch (error) {
+    console.error('Error fetching embedding models:', error?.response?.data || error.message);
+
+    const errorData = error?.response?.data;
+
+    if (errorData && typeof errorData === 'object') {
+      return res.status(error?.response?.status || 500).json(errorData);
+    }
+
+    return res.status(error?.response?.status || 500).json({
+      error: errorData || 'Failed to fetch embedding models',
+    });
+  }
+});
+
 export default router;

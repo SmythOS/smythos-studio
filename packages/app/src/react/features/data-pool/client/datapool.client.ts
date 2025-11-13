@@ -7,6 +7,7 @@
 import type {
   CreateNamespaceRequest,
   CreateNamespaceResponse,
+  EmbeddingModel,
   ListNamespacesResponse,
   Namespace,
 } from '../types';
@@ -105,7 +106,7 @@ export const dataPoolClient = {
         let errorData;
         try {
           errorData = await response.json();
-        } catch (parseError) {
+        } catch {
           throw new Error('Failed to create namespace. Server returned an invalid response.');
         }
 
@@ -120,6 +121,34 @@ export const dataPoolClient = {
         throw error;
       }
       throw new Error('Failed to create namespace');
+    }
+  },
+
+  /**
+   * Fetch all available embedding models
+   */
+  listEmbeddingModels: async (): Promise<EmbeddingModel[]> => {
+    try {
+      const response = await fetch('/api/page/datapool/embeddings/models', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = extractErrorMessage(errorData, 'Failed to fetch embedding models');
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      return result.models || [];
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to fetch embedding models');
     }
   },
 

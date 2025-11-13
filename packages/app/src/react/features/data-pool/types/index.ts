@@ -40,12 +40,24 @@ export interface CreateNamespaceResponse {
 }
 
 /**
+ * Embedding model from API
+ */
+export interface EmbeddingModel {
+  provider: string;
+  model: string;
+  label: string;
+}
+
+/**
  * Request payload for creating a namespace
  */
 export interface CreateNamespaceRequest {
   label: string;
   credentialId: string;
-  embeddings?: any; // Optional embeddings configuration
+  embeddings?: {
+    modelId: string;
+    dimensions?: number;
+  };
 }
 
 /**
