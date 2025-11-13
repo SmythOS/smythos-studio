@@ -1,6 +1,5 @@
 import {
   ChangeEvent,
-  ClipboardEvent,
   forwardRef,
   KeyboardEvent,
   PropsWithoutRef,
@@ -15,13 +14,14 @@ import '../styles/index.css';
 import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/ai-chat/components';
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatContext } from '@react/features/ai-chat/contexts';
+import { useClipboardPaste } from '@react/features/ai-chat/hooks';
 import { createFileFromText } from '@react/features/ai-chat/utils';
 import {
   forceScrollToBottomImmediate,
   scrollManager,
 } from '@react/features/ai-chat/utils/scroll-utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
-import { cn } from '@src/react/shared/utils/general';
+import { cn } from '@react/shared/utils/general';
 
 interface ChatInputProps extends PropsWithoutRef<JSX.IntrinsicElements['textarea']> {
   submitDisabled?: boolean;
@@ -213,44 +213,19 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       }
     }, []);
 
-    /**
-     * Professional paste handler that mimics default browser behavior
-     * with additional large text file attachment feature
-     */
-    const handlePaste = useCallback(
-      (e: ClipboardEvent<HTMLTextAreaElement>) => {
-        // Get pasted text first
-        const pastedText = e.clipboardData?.getData('text/plain') || '';
-
-        // Check if it's large text that should become a file attachment
-        if (pastedText.length >= LARGE_TEXT_THRESHOLD) {
-          e.preventDefault();
-
-          try {
-            const file = createFileFromText(pastedText);
-            handleFileDrop([file.file]);
-            // Don't clear the message - keep existing content
-            // The pasted text will be handled as file attachment
-
-            // Focus and maintain cursor position after file creation
-            requestAnimationFrame(() => {
-              const textarea = inputRef.current;
-              if (textarea) {
-                textarea.focus();
-                // Keep cursor at current position, don't reset to 0
-                const currentPos = textarea.selectionStart || 0;
-                textarea.selectionStart = currentPos;
-                textarea.selectionEnd = currentPos;
-              }
-            });
-          } catch {
-            // Fallback: let browser handle it normally if file creation fails
-            return;
-          }
-        }
+    // useClipboardPaste hook to handle paste events
+    // it will handle file drops and large text paste
+    // it will convert large text to file and drop it
+    // it will handle file drops and large text paste
+    useClipboardPaste({
+      onFilePaste: handleFileDrop,
+      targetRef: inputRef,
+      largeTextThreshold: LARGE_TEXT_THRESHOLD,
+      onLargeTextPaste: (text) => {
+        const file = createFileFromText(text);
+        handleFileDrop([file.file]);
       },
-      [handleFileDrop],
-    );
+    });
 
     const isMaxLengthReached = message.length === maxLength;
     const canSubmit =
@@ -298,7 +273,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             rows={1}
             ref={inputRef}
             value={message}
-            onPaste={handlePaste}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder={inputPlaceholder}
