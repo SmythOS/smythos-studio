@@ -103,9 +103,7 @@ export const Chats: FC<IChatsProps> = (props) => {
         // CRITICAL: Check if user wants auto-scroll
         // If user scrolled up >200px, shouldAutoScroll = false
         // This respects user's intent to read history
-        if (!shouldAutoScroll) {
-          return; // Don't scroll if user is reading above
-        }
+        if (!shouldAutoScroll) return; // Don't scroll if user is reading above
 
         const now = performance.now();
         const timeSinceLastScroll = now - lastScrollTimeRef.current;
