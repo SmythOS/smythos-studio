@@ -567,6 +567,9 @@
 .form-section-content {
   border-width: 0px !important;
   border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.form-section .form-section-content {
   padding: 0 !important;
 }
 
@@ -711,6 +714,21 @@
   border-radius: 8px;
   border: none !important;
   box-shadow: none;
+}
+
+/* OAuth select clear (APICall) — pure CSS, scoped & minimal */
+#right-sidebar select#oauth_con_id ~ .drop-container .input .button-group .input-clear-button {
+  display: none !important;
+}
+
+#right-sidebar
+  select#oauth_con_id
+  ~ .drop-container
+  .input
+  input:not(:placeholder-shown)
+  + .button-group
+  .input-clear-button {
+  display: inline-flex !important;
 }
 
 .right-sidebar .select .drop-container .option-list a {
@@ -1110,6 +1128,7 @@ code.language-plan.done::before {
   max-height: 176px !important; /* 8 row maximum height */
   transition: all 0.15s ease-in-out;
   resize: none !important;
+  overflow: hidden;
 }
 
 .smyth-dialog #expanded-textarea {
@@ -1266,16 +1285,56 @@ body.locked nav #builder-button svg {
 }
 
 .title-right-buttons .mif-cross {
-  background: url(/img/icons/close.svg);
-  height: 20px;
-  width: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z' fill='%230F0F0F' /%3E%3C/svg%3E%0A");
+  height: 16px;
+  width: 16px;
   background-size: contain;
+  top: -6px;
+}
+
+.title-right-buttons {
+  align-items: center;
+  height: 32px;
 }
 
 .title-right-buttons .mif-cross:before {
   content: '';
 }
 
+.title-right-buttons > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-right-buttons .mif-cross {
+  position: relative;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.title-left-buttons {
+  align-items: center;
+  height: 32px;
+}
+
+.title-left-buttons > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-left-buttons .svg-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
 .title-left-buttons .icon-question-mark {
   background: url(/img/icons/question_mark.svg);
   height: 20px;
@@ -1326,13 +1385,54 @@ body.locked nav #builder-button svg {
 #cmp-inspect-btn:hover svg path {
   stroke: white !important;
 }
-
 .dropdown-toggle::before {
   height: 0.5rem !important;
   width: 0.5rem !important;
   margin-top: -0.35rem !important;
 }
+/* Sentiment-based emoji button selected states using CSS */
+.emoji-option[data-sentiment='negative'].selected {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
 
+.emoji-option[data-sentiment='neutral'].selected {
+  background-color: rgba(234, 179, 8, 0.15);
+  border-color: #eab308;
+  transform: scale(1.1);
+}
+
+.emoji-option[data-sentiment='positive'].selected {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  transform: scale(1.1);
+}
+
+/* Submit button sentiment colors using data attributes */
+#submitFeedback[data-sentiment='negative']:not(:disabled) {
+  background-color: #ef4444 !important;
+}
+
+#submitFeedback[data-sentiment='negative']:not(:disabled):hover {
+  background-color: #dc2626 !important;
+}
+
+#submitFeedback[data-sentiment='neutral']:not(:disabled) {
+  background-color: #eab308 !important;
+}
+
+#submitFeedback[data-sentiment='neutral']:not(:disabled):hover {
+  background-color: #ca8a04 !important;
+}
+
+#submitFeedback[data-sentiment='positive']:not(:disabled) {
+  background-color: #22c55e !important;
+}
+
+#submitFeedback[data-sentiment='positive']:not(:disabled):hover {
+  background-color: #16a34a !important;
+}
 /* Invalid state for textareas */
 .dlg-form .textarea textarea.invalid,
 .right-sidebar .form-group textarea.invalid,
@@ -1347,4 +1447,3 @@ body.locked nav #builder-button svg {
   border-bottom-width: 2px !important;
   border-bottom-color: #c50f1f !important;
 }
-

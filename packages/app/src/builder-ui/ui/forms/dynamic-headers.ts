@@ -48,14 +48,14 @@ function getOrCreateUIElements(
     moreButton = document.createElement('button');
     moreButton.id = moreButtonId;
     moreButton.className =
-      'hidden absolute inline-flex items-center justify-center pt-2 pb-1 mb-1 text-lg font-bold text-gray-500 hover:text-gray-700 flex-shrink-0';
+      'hidden absolute inline-flex items-center justify-center pt-2 pb-1 pl-2 pr-3 mb-1 text-lg font-bold text-gray-500 hover:text-gray-700 flex-shrink-0';
     moreButton.setAttribute('aria-label', 'More tabs');
     moreButton.innerHTML = '<span style="letter-spacing: -2px; line-height: 1;">&raquo;</span>';
     nav.appendChild(moreButton);
   }
 
   // Ensure correct positioning
-  Object.assign(moreButton.style, { right: '26px' });
+  Object.assign(moreButton.style, { right: '14px' });
   (moreButton.classList.add('absolute'), moreButton.classList.remove('ml-2'));
 
   let dropdownMenu = tabContainer.querySelector(`#${dropdownId}`) as HTMLElement;
