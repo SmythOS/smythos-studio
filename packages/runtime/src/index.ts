@@ -13,8 +13,8 @@ import { Logger, SmythRuntime, version } from '@smythos/sre';
 
 // Core imports
 import config from '@core/config';
-import { modelsConfig } from '@core/config/models.config';
 import { startServers } from '@core/management-router';
+import { createPubModelsSync, RepoSyncService } from '@core/services/repo-sync.service';
 import { requestContext } from '@core/services/request-context';
 
 import cors from '@core/middlewares/cors.mw';
@@ -100,7 +100,7 @@ const sre = SmythRuntime.Instance.init({
   ModelsProvider: {
     Connector: 'SmythModelsProvider',
     Settings: {
-      models: modelsConfig,
+      models: path.join(process.env.SMYTH_PATH, 'models'),
     },
   },
   AgentData: {
@@ -210,6 +210,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 let server: Server | null = null;
+let pubModelsRepoSync: RepoSyncService | null = null;
 
 (async () => {
   try {
@@ -220,11 +221,17 @@ let server: Server | null = null;
     console.info('⚡ Starting Main Runtime Services...');
     server = startServers();
 
+    // Start the public models repository sync service
+    console.info('⚡ Starting Public Models Repository Sync...');
+    pubModelsRepoSync = createPubModelsSync(config.env.SRE_STORAGE_PATH);
+    pubModelsRepoSync.start();
+
     // Log all running services
     console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.info('🎯 All Services Running:');
     console.info(`   • Management Server: http://localhost:${config.env.ADMIN_PORT || '5054'}`);
     console.info(`   • Runtime Server:    http://localhost:${port}`);
+    console.info(`   • SRE Models Sync:   ${path.join(config.env.SRE_STORAGE_PATH, 'models')}`);
     console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.info('✨ SmythOS Runtime is ready!');
   } catch (error) {
@@ -242,6 +249,11 @@ const gracefulShutdown = async (signal: string) => {
   console.info(`Received ${signal}, shutting down gracefully`);
 
   try {
+    // Stop repository sync service
+    if (pubModelsRepoSync) {
+      pubModelsRepoSync.stop();
+    }
+
     // Close HTTP server if it exists
     if (server) {
       server.close(() => {

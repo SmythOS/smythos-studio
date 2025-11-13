@@ -68,6 +68,7 @@
     "openai": "^4.72.0",
     "openapi-to-postmanv2": "^4.24.0",
     "pkce-challenge": "^5.0.0",
+    "simple-git": "^3.27.0",
     "source-map-support": "^0.5.21",
     "swagger-ui-dist": "^5.18.2",
     "uuid": "^9.0.1",
