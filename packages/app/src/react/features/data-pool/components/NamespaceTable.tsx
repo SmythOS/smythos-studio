@@ -15,7 +15,6 @@ import type { NamespaceWithProvider } from '../types';
 interface NamespaceTableProps {
   namespaces: NamespaceWithProvider[];
   onDelete: (namespace: NamespaceWithProvider) => void;
-  isDeleting: boolean;
 }
 
 interface ProviderSchema {
@@ -27,7 +26,6 @@ interface ProviderSchema {
 export const NamespaceTable: FC<NamespaceTableProps> = ({
   namespaces,
   onDelete,
-  isDeleting,
 }) => {
   const { getCredentialById } = useDataPoolContext();
 
@@ -55,7 +53,7 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
             const providerLogo = credential ? getProviderLogo(credential.provider) : undefined;
 
             return (
-              <tr key={namespace.namespaceId} className="border-b hover:bg-gray-50">
+              <tr key={namespace.label} className="border-b hover:bg-gray-50">
                 {/* Name */}
                 <td className="px-6 py-4 font-medium text-gray-900" title={namespace.label}>
                   {namespace.label}
@@ -83,7 +81,6 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(namespace)}
-                        disabled={isDeleting}
                         className="hover:text-red-500"
                       >
                         <Trash2 className="h-4 w-4" />

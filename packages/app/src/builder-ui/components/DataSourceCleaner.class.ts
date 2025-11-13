@@ -13,6 +13,7 @@ export class DataSourceCleaner extends Component {
     if (this.isNewComponent) {
       this.data.version = componentVersion;
     }
+
     this.updateSettings();
   }
 
@@ -23,15 +24,15 @@ export class DataSourceCleaner extends Component {
       );
       const namespaces = await result.json();
       this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespace.options = this.namespaces;
+      this.settings.namespaceId.options = this.namespaces;
       if (this.settingsOpen) this.refreshSettingsSidebar();
     } else if (this.data.version === 'v2') {
       const result = await fetch(
         `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
       );
       const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.namespaceId, text: item.label }));
-      this.settings.namespace.options = this.namespaces;
+      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
+      this.settings.namespaceId.options = this.namespaces;
       if (this.settingsOpen) this.refreshSettingsSidebar();
     }
   }

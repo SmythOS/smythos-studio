@@ -30,7 +30,7 @@ export class DataSourceLookup extends Component {
         `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
       );
       const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.namespaceId, text: item.label }));
+      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
       this.settings.namespace.options = this.namespaces;
       if (this.settingsOpen) this.refreshSettingsSidebar();
     }

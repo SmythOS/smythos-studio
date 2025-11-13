@@ -13,6 +13,7 @@ import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { dataPoolClient } from '../client/datapool.client';
 import { CreateNamespaceModal } from '../components/CreateNamespaceModal';
+import { DeleteNamespaceDialog } from '../components/DeleteNamespaceDialog';
 import { NamespaceTable } from '../components/NamespaceTable';
 import { DataPoolProvider, useDataPoolContext } from '../contexts/data-pool.context';
 import type { Namespace, NamespaceWithProvider } from '../types';
@@ -25,7 +26,8 @@ const DataPoolPageContent: FC = () => {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [namespaceToDelete, setNamespaceToDelete] = useState<NamespaceWithProvider | null>(null);
 
   const { enrichNamespaceWithProvider, credentials, credentialsLoading } = useDataPoolContext();
   const { isSmallScreen } = useScreenSize();
@@ -88,28 +90,40 @@ const DataPoolPageContent: FC = () => {
   };
 
   /**
-   * Handle delete namespace
+   * Open delete confirmation dialog
    */
-  const handleDelete = async (namespace: NamespaceWithProvider) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${namespace.label}"? This action cannot be undone.`,
-    );
+  const handleDeleteClick = (namespace: NamespaceWithProvider) => {
+    setNamespaceToDelete(namespace);
+    setIsDeleteDialogOpen(true);
+  };
 
-    if (!confirmed) return;
+  /**
+   * Close delete confirmation dialog
+   */
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setNamespaceToDelete(null);
+  };
 
-    setIsDeleting(true);
+  /**
+   * Confirm and execute delete namespace
+   */
+  const handleConfirmDelete = async () => {
+    if (!namespaceToDelete) return;
+
     try {
-      await dataPoolClient.deleteNamespace(namespace.namespaceId);
+      // Call API to delete
+      await dataPoolClient.deleteNamespace(namespaceToDelete.label);
+      
+      // Manually remove from list without refetching
+      setNamespaces((prev) => prev.filter((ns) => ns.label !== namespaceToDelete.label));
+      
       successToast('Data space deleted successfully');
-
-      // Refresh list
-      setPage(1);
-      fetchNamespaces(1);
+      handleCloseDeleteDialog();
     } catch (error: unknown) {
       const errorMessage = (error as Error)?.message || 'Failed to delete data space. Please try again.';
       errorToast(errorMessage);
-    } finally {
-      setIsDeleting(false);
+      throw error; // Re-throw to let dialog handle loading state
     }
   };
 
@@ -166,8 +180,7 @@ const DataPoolPageContent: FC = () => {
         {filteredNamespaces.length > 0 && (
           <NamespaceTable
             namespaces={filteredNamespaces}
-            onDelete={handleDelete}
-            isDeleting={isDeleting}
+            onDelete={handleDeleteClick}
           />
         )}
 
@@ -247,6 +260,16 @@ const DataPoolPageContent: FC = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
       />
+
+      {/* Delete Namespace Confirmation Dialog */}
+      {namespaceToDelete && (
+        <DeleteNamespaceDialog
+          isOpen={isDeleteDialogOpen}
+          namespaceName={namespaceToDelete.label}
+          onClose={handleCloseDeleteDialog}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </div>
   );
 };

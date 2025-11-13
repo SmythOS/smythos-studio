@@ -155,17 +155,14 @@ export const dataPoolClient = {
   /**
    * Delete a namespace
    */
-  deleteNamespace: async (namespaceId: string): Promise<void> => {
+  deleteNamespace: async (label: string): Promise<void> => {
     try {
-      const response = await fetch(
-        `/api/page/datapool/namespaces/${encodeURIComponent(namespaceId)}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      const response = await fetch(`/api/page/datapool/namespaces/${encodeURIComponent(label)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

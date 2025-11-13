@@ -92,10 +92,10 @@ router.post('/namespaces', async (req, res) => {
  * Delete a namespace
  * DELETE /api/page/datapool/namespaces/:namespaceId
  */
-router.delete('/namespaces/:namespaceId', async (req, res) => {
+router.delete('/namespaces/:label', async (req, res) => {
   try {
-    const { namespaceId } = req.params;
-    const url = `${config.env.API_SERVER}/user/data-pools/namespaces/${namespaceId}`;
+    const { label } = req.params;
+    const url = `${config.env.API_SERVER}/user/data-pools/namespaces/${label}`;
 
     const result = await axios.delete(url, {
       headers: getAuthHeaders(req),
