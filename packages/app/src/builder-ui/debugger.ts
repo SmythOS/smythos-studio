@@ -1325,6 +1325,56 @@ async function previewHandler(event: Event) {
   }
 }
 
+/**
+ * Checks if the output content is a stringified JSON
+ * @param outputContent - The output content to check
+ * @returns True if the output is a string that starts with '{' and ends with '}'
+ */
+function isStringifiedJSON(outputContent: any): boolean {
+  if (typeof outputContent !== 'string') {
+    return false;
+  }
+  const trimmed = outputContent.trim();
+  return trimmed.startsWith('{') && trimmed.endsWith('}');
+}
+
+/**
+ * Checks if this is a default output endpoint (not a mapped output like Response.id)
+ * @param outputEndpoint - The output endpoint element to check
+ * @returns True if this is a default output (no dots or brackets in name)
+ */
+function isDefaultOutput(outputEndpoint: HTMLElement): boolean {
+  const outputName = outputEndpoint.getAttribute('smt-name') || '';
+  const outputExpression = outputEndpoint.getAttribute('smt-expression') || '';
+  // A default output has no dots or brackets in its name/expression
+  return !/[.\[\]]/.test(outputName) && !/[.\[\]]/.test(outputExpression);
+}
+
+/**
+ * Checks if the component has mapped outputs (output endpoints with expressions like Response.id)
+ * @param outputEndpoint - The current output endpoint element
+ * @returns True if the component has other output endpoints with mapped expressions
+ */
+function hasMappedOutputs(outputEndpoint: HTMLElement): boolean {
+  const componentElement = outputEndpoint.closest('.component');
+  if (!componentElement) {
+    return false;
+  }
+
+  // Get all output endpoints in the component
+  const allOutputEndpoints = componentElement.querySelectorAll('.smyth.output-endpoint');
+
+  // Check if any output endpoint has an expression (contains dots or brackets)
+  for (const endpoint of allOutputEndpoints) {
+    const expression = endpoint.getAttribute('smt-expression') || endpoint.getAttribute('smt-name');
+    if (expression && /[.\[\]]/.test(expression)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function showOutputInfo(outputEndpoint, outputContent, compName?) {
   //console.log('showOutputInfo', outputContent);
   let div = outputEndpoint.querySelector('.dbg-element.dbg-output');
@@ -1345,8 +1395,30 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
     ? getFormattedContent(outputContent, compName)
     : outputContent + '';
 
-  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
+  // Check if we should show the stringified JSON warning in the output window
+  const isDefault = isDefaultOutput(outputEndpoint);
+  const isStringified = isStringifiedJSON(outputContent);
+  const hasMapped = hasMappedOutputs(outputEndpoint);
+  const shouldShowWarning = isDefault && isStringified && hasMapped;
+
+  // Build the warning message HTML if needed (positioned after textarea like preview button)
+  const warningMessage = shouldShowWarning
+    ? `<div class="dbg-json-warning-message">
+         <span class="dbg-json-warning-icon">!</span>
+         <span class="dbg-json-warning-text">Stringified JSON detected - mapped outputs won't work</span>
+       </div>`
+    : '';
+
+  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}${warningMessage}`;
   div.className = 'dbg-element dbg-output';
+
+  // Adjust textarea height if warning is shown
+  if (shouldShowWarning) {
+    const textarea = div.querySelector('.dbg-textarea');
+    if (textarea) {
+      textarea.classList.add('dbg-textarea-with-warning');
+    }
+  }
 
   // keep the pinning state if the debugger window is already pinned
   const isPinned = div.closest('.endpoint')?.classList.contains('pinned');
@@ -2403,6 +2475,12 @@ function clearDebugUIInfo() {
   const nodes = [...workspace.domElement.querySelectorAll('.dbg-element')];
   nodes.forEach((node) => {
     node.remove();
+  });
+
+  // Also clear warning icons
+  const warningIcons = [...workspace.domElement.querySelectorAll('.dbg-json-warning')];
+  warningIcons.forEach((icon) => {
+    icon.remove();
   });
 }
 export async function stopDebugSession(resetUI = true) {
