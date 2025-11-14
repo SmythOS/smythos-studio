@@ -910,7 +910,8 @@ export async function openVoiceEmbodiment() {
     position: 'top right of builder inside dropdown',
   });
   const { dev: testDomain, scheme } = builderStore.getState().agentDomains;
-  const wrapContent = (content) => `<div id="voice-embodiment-wrapper">${content}</div>`;
+  const wrapContent = (content) =>
+    `<div id="voice-embodiment-wrapper" class="h-full">${content}</div>`;
 
   if (!testDomain) {
     const content = wrapContent(
@@ -926,31 +927,182 @@ export async function openVoiceEmbodiment() {
   }
 
   const voiceUrl = testDomain ? `${scheme}://${testDomain}/emb/voice` : '';
+  const spinnerId = `voice-spinner-${Date.now()}`;
 
-  const content = wrapContent(`<div class="emb-instructions p-4 flex-row">
-        <div id="talk-to-agent-wrapper">
-           <div class="flex items-center justify-between">
-           <label class="block text-sm font-medium text-gray-700 mb-1">Talk to Agent</label>
-           <a href="${voiceUrl}" target="_blank" rel="noopener noreferrer">
-            <div class="text-[#3C89F9] text-[13px] font-medium cursor-pointer flex items-center gap-1">Start Voice Chat
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6.74674 2.3335H5.34389C3.49341 2.3335 2.33301 3.64376 2.33301 5.49802V10.5023C2.33301 12.3566 3.48775 13.6668 5.34389 13.6668H10.6542C12.5109 13.6668 13.6663 12.3566 13.6663 10.5023V9.4061" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M13.6668 5.38279V2.3335M13.6668 2.3335H10.6176M13.6668 2.3335L8.91309 7.08723" stroke="#3C89F9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  const content = wrapContent(`<div class="emb-instructions p-4 flex flex-col h-full">
+        <div id="talk-to-agent-wrapper" class="flex flex-col flex-1 min-h-0">
+          <div id="voice-initial-state" class="flex flex-col items-center justify-center flex-1 min-h-0">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Talk to Agent</label>
+            <button id="load-voice-session-btn" class="flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 leading-none text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none ${PRIMARY_BUTTON_STYLE}">
+              Load Voice Session with the agent
+            </button>
+          </div>
+          <div id="${spinnerId}" class="hidden flex items-center justify-center flex-1 min-h-0">
+            <div role="status">
+              <svg class="w-8 h-8 animate-spin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="#0366d6" stroke-width="4" fill="none"></circle>
+                <path fill="none" stroke="white" stroke-width="4" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
+              <span class="sr-only">Loading...</span>
             </div>
-           </a>
-           </div>
-           <p class="text-gray-700 font-normal">Starts a live voice session with the agent.</p>
+          </div>
+          <iframe id="voice-iframe" src="" frameborder="0" allow="microphone; autoplay" class="hidden flex-1 w-full min-h-0"></iframe>
         </div>
     </div>`);
 
   const actions = {};
-  openEmbodimentDialog(
+  await openEmbodimentDialog(
     content,
     actions,
     EMBODIMENT_DESCRIPTIONS.voice.title,
     EMBODIMENT_DESCRIPTIONS.voice.tooltipTitle,
   );
+
+  // Get references to DOM elements
+  const initialStateDiv = document.getElementById('voice-initial-state') as HTMLDivElement;
+  const loadVoiceBtn = document.getElementById('load-voice-session-btn') as HTMLButtonElement;
+  const spinnerContainer = document.getElementById(spinnerId);
+  const voiceIframe = document.getElementById('voice-iframe') as HTMLIFrameElement;
+  const wrapperDiv = document.getElementById('talk-to-agent-wrapper');
+
+  // State management
+  let isIframeLoaded = false;
+  let isIframeLoading = false;
+
+  /**
+   * Resets the voice session to initial state
+   */
+  const resetVoiceSession = () => {
+    if (voiceIframe) {
+      // Stop any ongoing session by clearing iframe src
+      voiceIframe.src = '';
+      voiceIframe.classList.add('hidden');
+    }
+    if (spinnerContainer) {
+      spinnerContainer.classList.add('hidden');
+    }
+    if (initialStateDiv) {
+      // Show the label and button (Start Voice Chat link stays visible and right-aligned)
+      initialStateDiv.classList.remove('hidden');
+    }
+    isIframeLoaded = false;
+    isIframeLoading = false;
+  };
+
+  /**
+   * Loads the voice session iframe
+   */
+  const loadVoiceSession = () => {
+    if (isIframeLoading || isIframeLoaded) return;
+
+    isIframeLoading = true;
+
+    // Hide label and button, show spinner (Start Voice Chat link stays visible and right-aligned)
+    if (initialStateDiv) {
+      initialStateDiv.classList.add('hidden');
+    }
+    if (spinnerContainer) {
+      spinnerContainer.classList.remove('hidden');
+    }
+
+    // Load iframe
+    if (voiceIframe) {
+      voiceIframe.src = voiceUrl;
+
+      // Handle iframe load complete
+      voiceIframe.addEventListener('load', () => {
+        // Only show iframe if it has a valid src (not empty)
+        if (!voiceIframe.src || voiceIframe.src === window.location.href) {
+          return;
+        }
+
+        isIframeLoading = false;
+        isIframeLoaded = true;
+
+        // Hide spinner and show iframe
+        if (spinnerContainer) {
+          spinnerContainer.classList.add('hidden');
+        }
+        voiceIframe.classList.remove('hidden');
+      });
+
+      // Handle iframe load error
+      voiceIframe.addEventListener('error', () => {
+        isIframeLoading = false;
+        errorToast('Failed to load voice session');
+        resetVoiceSession();
+      });
+    }
+  };
+
+  // Attach button click handler
+  if (loadVoiceBtn) {
+    loadVoiceBtn.onclick = loadVoiceSession;
+  }
+
+  // Monitor for sidebar tab changes and cleanup
+  const embodimentSidebar = document.querySelector('#embodiment-sidebar');
+  if (embodimentSidebar) {
+    // Create a MutationObserver to detect when the sidebar is hidden or content changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const sidebar = mutation.target as HTMLElement;
+          const isHidden =
+            sidebar.classList.contains('hidden') ||
+            !sidebar.closest('.sidebar-container')?.classList.contains('open');
+
+          if (isHidden && (isIframeLoading || isIframeLoaded)) {
+            resetVoiceSession();
+          }
+        }
+      });
+    });
+
+    // Observe the sidebar container for class changes
+    const sidebarContainer = embodimentSidebar.closest('.sidebar-container');
+    if (sidebarContainer) {
+      observer.observe(sidebarContainer, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+
+    // Also observe the wrapper div - if it's removed, cleanup
+    if (wrapperDiv) {
+      const wrapperObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.removedNodes.forEach((node) => {
+            if (node === wrapperDiv || (node as HTMLElement).contains?.(wrapperDiv)) {
+              resetVoiceSession();
+              observer.disconnect();
+              wrapperObserver.disconnect();
+            }
+          });
+        });
+      });
+
+      if (wrapperDiv.parentNode) {
+        wrapperObserver.observe(wrapperDiv.parentNode, {
+          childList: true,
+          subtree: true,
+        });
+      }
+    }
+  }
+
+  // Listen for custom sidebar state changes
+  const handleSidebarStateChange = (event: CustomEvent) => {
+    const { rightSidebarOpen } = event.detail || {};
+    if (rightSidebarOpen === false && (isIframeLoading || isIframeLoaded)) {
+      resetVoiceSession();
+    }
+  };
+
+  window.addEventListener('sidebarStateChanged', handleSidebarStateChange as EventListener);
+
+  // Cleanup on beforeunload
+  window.addEventListener('beforeunload', resetVoiceSession);
 }
 
 export async function openAlexaEmbodiment() {
