@@ -901,15 +901,8 @@ function setupBuilderMenuDragDrop() {
 
       const finalWidth = event.target.style.width;
 
-      // Get current tab from localStorage and save with per-tab key
-      const currentTab = localStorage.getItem('currentSidebarTab');
-      if (currentTab && currentTab !== 'null') {
-        const storageKey = `leftSidebarWidth-${currentTab}`;
-        localStorage.setItem(storageKey, finalWidth);
-      } else {
-        // Fallback to generic key if no tab is set
-        localStorage.setItem('left-sidebar-width', finalWidth);
-      }
+      // Save to common width key for all left sidebar tabs
+      localStorage.setItem('left-sidebar-width', finalWidth);
 
       // Update Alpine.js width property to keep binding in sync
       try {

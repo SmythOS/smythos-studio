@@ -25,13 +25,7 @@
         class="close-btn text-[#757575] hover:bg-gray-100 rounded-lg p-2"
         data-tooltip-target="tooltip-close-help"
         data-tooltip-placement="left"
-        @click="
-      if (previousTab && previousTab !== 'helpTab') {
-        currentSidebarTab = previousTab;
-      } else {
-          toggleSidebar()
-      }
-      "
+        @click="toggleSidebar"
       >
         <%- include('icons/close-icon'); -%>
       </button>
