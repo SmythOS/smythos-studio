@@ -559,6 +559,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const isChatPresent = urlParams.has('chat');
 
+    const getLeftSidebarWidth = () => {
+      const leftSidebarWidth = localStorage.getItem('left-sidebar-width') || '400px';
+      return leftSidebarWidth;
+    };
+
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
       sidebarWidth: null, // Will be loaded from localStorage in init()
@@ -683,7 +688,7 @@
         };
 
         // Load saved width on init
-        const savedWidth = localStorage.getItem('left-sidebar-width');
+        const savedWidth = getLeftSidebarWidth();
         if (savedWidth) {
           this.sidebarWidth = savedWidth;
           if (this.isSidebarOpen) {
@@ -731,7 +736,7 @@
               applyWidth(this.sidebarWidth);
             } else {
               // No custom width, check localStorage
-              const savedWidth = localStorage.getItem('left-sidebar-width');
+              const savedWidth = getLeftSidebarWidth();
               console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
               if (savedWidth) {
                 this.sidebarWidth = savedWidth;
