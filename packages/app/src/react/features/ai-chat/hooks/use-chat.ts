@@ -229,10 +229,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'system') {
         // Optimized: Only update last element without copying entire array
         const newMessages = prev.slice(0, -1);
-        newMessages.push({
-          ...prev[lastMessageIndex],
-          thinkingMessage,
-        });
+        newMessages.push({ ...prev[lastMessageIndex], thinkingMessage });
         return newMessages;
       }
 
