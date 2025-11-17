@@ -24,8 +24,8 @@ export const REASONING_EFFORTS = [
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.1|smythos\/gpt-5\.1)/i,
     options: [
-      { text: 'Low', value: 'low' },
       { text: 'None', value: 'none' },
+      { text: 'Low', value: 'low' },
       { text: 'Medium', value: 'medium' },
       { text: 'High', value: 'high' },
     ],
