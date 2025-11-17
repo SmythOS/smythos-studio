@@ -22,6 +22,17 @@ export const REASONING_EFFORTS = [
     options: [{ text: 'High', value: 'high' }],
   },
   {
+    // GPT-5.1 models support 'none', 'low', 'medium', 'high' (not 'minimal')
+    // 'low' is set as the default (first option)
+    pattern: /^(gpt-5\.1|smythos\/gpt-5\.1)/i,
+    options: [
+      { text: 'None', value: 'none' },
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+    ],
+  },
+  {
     pattern: /^(gpt|smythos\/gpt)/i,
     options: [
       { text: 'Minimal', value: 'minimal' },
