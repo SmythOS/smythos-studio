@@ -76,7 +76,7 @@ const EyeOffIcon = () => (
 interface CreateUserCustomModelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<UserCustomModel, 'id'>) => void;
+  onSubmit: (data: Omit<UserCustomModel, 'id'>) => void; // eslint-disable-line no-unused-vars
   editModel?: UserCustomModel;
   isProcessing: boolean;
 }
@@ -140,6 +140,7 @@ export function CreateUserCustomModelModal({
   const [hasRevealedApiKey, setHasRevealedApiKey] = useState(false);
   const [hasModifiedApiKey, setHasModifiedApiKey] = useState(false);
   const [shouldRemoveApiKey, setShouldRemoveApiKey] = useState(false);
+  const [openAdvanceOption, setOpenAdvanceOption] = useState(false);
 
   // Track if modal was just opened to distinguish from data updates
   const prevIsOpenRef = useRef(isOpen);
@@ -465,8 +466,8 @@ export function CreateUserCustomModelModal({
             </DialogTitle>
           </DialogHeader>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="overflow-y-auto px-6 py-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden rounded-md flex-1">
+          <div className="px-6 pt-4 space-y-4 overflow-y-auto h-[540px]">
             <div className="space-y-2">
               <div className="mb-2">
                 <Label htmlFor="name" className="text-base font-normal mr-2 text-[#1E1E1E]">
@@ -687,136 +688,189 @@ export function CreateUserCustomModelModal({
               )}
             </div>
 
-            <div className="space-y-2">
-              <div className="mb-2">
-                <Label
-                  htmlFor="contextWindow"
-                  className="text-base font-normal mr-2 text-[#1E1E1E]"
-                >
-                  Context Window
-                </Label>
-                <ToolTip
-                  text="The total number of tokens the model can process, including input and output"
-                  classes="w-[200px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
-              </div>
-              <Input
-                id="contextWindow"
-                type="number"
-                min="2048"
-                max="2000000"
-                step="4"
-                value={formData.contextWindow !== undefined ? String(formData.contextWindow) : ''}
-                onChange={(e) => handleNumericInputChange('contextWindow', e.target.value)}
-                placeholder="128000"
-                fullWidth
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="mb-2">
-                <Label
-                  htmlFor="maxOutputTokens"
-                  className="text-base font-normal mr-2 text-[#1E1E1E]"
-                >
-                  Maximum Output Tokens
-                </Label>
-                <ToolTip
-                  text="The maximum number of tokens the model can generate in a single response"
-                  classes="w-[200px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
-              </div>
-              <Input
-                id="maxOutputTokens"
-                type="number"
-                min="1024"
-                max="200000"
-                step="4"
-                value={
-                  formData.maxOutputTokens !== undefined ? String(formData.maxOutputTokens) : ''
-                }
-                onChange={(e) => handleNumericInputChange('maxOutputTokens', e.target.value)}
-                placeholder="4096"
-                fullWidth
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="fallbackLLM" className="text-base font-normal mr-2 text-[#1E1E1E]">
-                  Fallback Model
-                </Label>
-                <ToolTip
-                  text="Select a fallback model from your available models. This model will be used automatically when your custom model is unavailable"
-                  classes="w-[220px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
-              </div>
-              <Select
-                value={formData.fallbackLLM}
-                onValueChange={(value) => handleInputChange('fallbackLLM', value)}
+            {/* Advanced Options - Collapsible Section */}
+            <div className="space-y-2 border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setOpenAdvanceOption(!openAdvanceOption)}
+                className="flex items-center justify-between w-full text-left"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fallbackOptions.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-3">
-              <div className="mb-2">
-                <Label className="text-base font-normal mr-2 text-[#1E1E1E]">Features</Label>
-                <ToolTip
-                  text="Select the capabilities your model supports: Text Completion for generating text, and Function calling/Tool Use for executing functions"
-                  classes="w-[220px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
-              </div>
-              <div className="grid grid-cols-2 gap-4 ml-2">
-                {userCustomModelFeatures.map((feature) => (
-                  <div key={feature.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={feature.value}
-                      checked={formData.features.includes(feature.value)}
-                      onCheckedChange={() => handleFeatureToggle(feature.value)}
-                      className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF] shadow-none"
+                <div className="flex items-center">
+                  <Label className="text-base font-semibold mr-2 text-[#1E1E1E] cursor-pointer">
+                    Advanced Options
+                  </Label>
+                  <ToolTip
+                    text="Configure advanced settings like context window, output limits, fallback models, and supported features"
+                    classes="w-[220px] text-center"
+                    placement="right"
+                  >
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
                     />
-                    <Label htmlFor={feature.value} className="text-sm font-normal cursor-pointer">
-                      {feature.text}
-                    </Label>
+                  </ToolTip>
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-transform duration-200 ${openAdvanceOption ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {openAdvanceOption && (
+                <div className="space-y-4 pt-2 ps-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-2">
+                    <div className="mb-2">
+                      <Label
+                        htmlFor="contextWindow"
+                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                      >
+                        Context Window
+                      </Label>
+                      <ToolTip
+                        text="The total number of tokens the model can process, including input and output"
+                        classes="w-[200px] text-center"
+                        placement="right"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: infoIcon }}
+                          className="w-4 h-4 text-gray-400"
+                        />
+                      </ToolTip>
+                    </div>
+                    <Input
+                      id="contextWindow"
+                      type="number"
+                      min="2048"
+                      max="2000000"
+                      step="4"
+                      value={
+                        formData.contextWindow !== undefined ? String(formData.contextWindow) : ''
+                      }
+                      onChange={(e) => handleNumericInputChange('contextWindow', e.target.value)}
+                      placeholder="128000"
+                      fullWidth
+                      className="w-full"
+                    />
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-2">
+                    <div className="mb-2">
+                      <Label
+                        htmlFor="maxOutputTokens"
+                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                      >
+                        Maximum Output Tokens
+                      </Label>
+                      <ToolTip
+                        text="The maximum number of tokens the model can generate in a single response"
+                        classes="w-[200px] text-center"
+                        placement="right"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: infoIcon }}
+                          className="w-4 h-4 text-gray-400"
+                        />
+                      </ToolTip>
+                    </div>
+                    <Input
+                      id="maxOutputTokens"
+                      type="number"
+                      min="1024"
+                      max="200000"
+                      step="4"
+                      value={
+                        formData.maxOutputTokens !== undefined
+                          ? String(formData.maxOutputTokens)
+                          : ''
+                      }
+                      onChange={(e) => handleNumericInputChange('maxOutputTokens', e.target.value)}
+                      placeholder="4096"
+                      fullWidth
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="mb-2">
+                      <Label
+                        htmlFor="fallbackLLM"
+                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                      >
+                        Fallback Model
+                      </Label>
+                      <ToolTip
+                        text="Select a fallback model from your available models. This model will be used automatically when your custom model is unavailable"
+                        classes="w-[220px] text-center"
+                        placement="right"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: infoIcon }}
+                          className="w-4 h-4 text-gray-400"
+                        />
+                      </ToolTip>
+                    </div>
+                    <Select
+                      value={formData.fallbackLLM}
+                      onValueChange={(value) => handleInputChange('fallbackLLM', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fallbackOptions.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="mb-2">
+                      <Label className="text-base font-normal mr-2 text-[#1E1E1E]">Features</Label>
+                      <ToolTip
+                        text="Select the capabilities your model supports: Text Completion for generating text, and Function calling/Tool Use for executing functions"
+                        classes="w-[220px] text-center"
+                        placement="right"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: infoIcon }}
+                          className="w-4 h-4 text-gray-400"
+                        />
+                      </ToolTip>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 ml-2">
+                      {userCustomModelFeatures.map((feature) => (
+                        <div key={feature.value} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={feature.value}
+                            checked={formData.features.includes(feature.value)}
+                            onCheckedChange={() => handleFeatureToggle(feature.value)}
+                            className="data-[state=checked]:bg-[#3C89F9] data-[state=checked]:border-[#3C89F9] data-[state=checked]:text-[#FFFF] shadow-none"
+                          />
+                          <Label
+                            htmlFor={feature.value}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {feature.text}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -868,11 +922,7 @@ export function DeleteUserCustomModelModal({
   model,
   isProcessing,
 }: DeleteUserCustomModelModalProps) {
-  if (!model) return null;
-
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen || !model) return null;
 
   return (
     <ConfirmModal
