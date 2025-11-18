@@ -30,6 +30,21 @@ export function registerGlobalVars(workspace) {
 
   const agentStatus = document.getElementById('agent-status');
 
+  // Update agent-status position when sidebar changes
+  // Alpine.js reactivity handles the actual positioning via agentStatusLeft getter
+  // This just ensures Alpine re-evaluates when events fire
+  function triggerPositionUpdate() {
+    if (!agentStatus) return;
+    const alpineData = (window as any).Alpine?.$data?.(agentStatus);
+    if (alpineData && alpineData.agentStatusLeft) {
+      // Access getter to trigger Alpine reactivity
+      void alpineData.agentStatusLeft;
+    }
+  }
+
+  window.addEventListener('sidebarStateChanged', triggerPositionUpdate);
+  window.addEventListener('leftSidebarResized', triggerPositionUpdate);
+
   function updateGlobalVars(agent) {
     globalVarsTextarea.value = JSON.stringify(agent.data.variables || {}, null, 2);
 
