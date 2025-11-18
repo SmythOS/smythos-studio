@@ -325,10 +325,112 @@ export class Note extends Component {
       event.stopPropagation();
     });
 
-    // Configure interact.js for both horizontal and vertical resizing
-    const component = this;
-    const workspace = this.workspace;
+    this.handleDrag();
+    this.handleResize();
 
+    return div;
+  }
+
+  private handleDrag() {
+    const div = this.domElement;
+    const workspace = this.workspace;
+    const component = this;
+    // Disable the default drag interaction from parent Component class
+    interact(div).draggable(false);
+
+    /**
+     * Helper function to detect components that are completely inside the note boundaries
+     * Returns array of component elements that are fully contained within the note
+     */
+    const getComponentsInsideNote = (noteElement: HTMLElement): HTMLElement[] => {
+      const noteRect = noteElement.getBoundingClientRect();
+      const allComponents = Array.from(workspace.domElement.querySelectorAll('.component')).filter(
+        (el) => el !== noteElement && !el.classList.contains('Note'),
+      );
+
+      return allComponents.filter((compEl: HTMLElement) => {
+        const compRect = compEl.getBoundingClientRect();
+
+        // Check if component is completely inside the note boundaries
+        return (
+          compRect.left >= noteRect.left &&
+          compRect.right <= noteRect.right &&
+          compRect.top >= noteRect.top &&
+          compRect.bottom <= noteRect.bottom
+        );
+      }) as HTMLElement[];
+    };
+
+    // Store components to drag along with the note (captured at drag start)
+    let componentsToMove: HTMLElement[] = [];
+
+    // Set up custom draggable behavior for Note component
+    interact(div)
+      .draggable({
+        allowFrom: '.component',
+        ignoreFrom: '.dbg-element,.debug-info,.resize-handle',
+        listeners: {
+          start(event) {
+            if (workspace?.locked) return false;
+
+            // Capture all components that are completely inside the note at drag start
+            componentsToMove = getComponentsInsideNote(event.target);
+
+            component.domElement.classList.add('dragging');
+            component.domElement.style.cursor = 'grabbing';
+          },
+          move(event) {
+            if (workspace?.locked) return false;
+            if (!event.target) return;
+
+            // Create array of targets to move (note + captured components)
+            const targets = [event.target, ...componentsToMove];
+
+            for (const target of targets) {
+              // Get the current top and left values, or default to 0
+              const x = (parseFloat(target.style.left) || 0) + event.dx / workspace.scale;
+              const y = (parseFloat(target.style.top) || 0) + event.dy / workspace.scale;
+
+              // Update the top and left values
+              target.style.left = `${x}px`;
+              target.style.top = `${y}px`;
+
+              // Repaint the component if it has a _control
+              if (target._control) {
+                target._control.repaint(false);
+              }
+            }
+          },
+          end(event) {
+            if (workspace?.locked) return false;
+
+            // Repaint all moved components
+            for (const target of [event.target, ...componentsToMove]) {
+              if (target._control) {
+                target._control.repaint(true);
+              }
+            }
+
+            component.domElement.style.cursor = '';
+
+            setTimeout(() => {
+              component.workspace.saveAgent();
+              component.domElement.classList.remove('dragging');
+            }, 200);
+
+            // Clear the components array
+            componentsToMove = [];
+          },
+        },
+        inertia: true,
+      })
+      .styleCursor(false);
+  }
+
+  private handleResize() {
+    const div = this.domElement;
+    const workspace = this.workspace;
+    const component = this;
     interact(div).resizable({
       edges: { left: false, right: true, bottom: true, top: false },
       listeners: {
@@ -388,10 +490,7 @@ export class Note extends Component {
       ],
       inertia: false,
     });
-
-    return div;
   }
-
   /**
    * Override the addDebugButton method to prevent debug icons from appearing on Note components
    * Notes don't need debugging functionality as they are static content

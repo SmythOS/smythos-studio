@@ -229,10 +229,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'system') {
         // Optimized: Only update last element without copying entire array
         const newMessages = prev.slice(0, -1);
-        newMessages.push({
-          ...prev[lastMessageIndex],
-          thinkingMessage,
-        });
+        newMessages.push({ ...prev[lastMessageIndex], thinkingMessage });
         return newMessages;
       }
 
@@ -307,23 +304,6 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       try {
         setIsProcessing(true);
         clearError();
-
-        // Remove any previous error messages and loading messages before sending new message
-        setMessages((prev) => {
-          // Check if there are any error messages (indicates stopped generation)
-          const hasErrorMessages = prev.some((msg) => msg.type === 'error');
-
-          // Remove error messages
-          const filtered = prev.filter((msg) => msg.type !== 'error');
-
-          // If there were error messages and the last message is loading,
-          if (hasErrorMessages && filtered.length > 0) {
-            const lastMessage = filtered[filtered.length - 1];
-            if (lastMessage.type === 'loading') return filtered.slice(0, -1);
-          }
-
-          return filtered;
-        });
 
         // Upload files if present
         let attachments: IFileAttachment[] = [];

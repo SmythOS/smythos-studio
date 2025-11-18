@@ -24,7 +24,6 @@
 
       <a
         href="/"
-        target="_blank"
         rel="noopener noreferrer"
         class="flex items-center justify-center cursor-pointer transition-colors h-10 fill-gray-700 hover:fill-gray-700 hover:outline-none mb-2"
         data-tooltip-target="tooltip-agent"
@@ -342,7 +341,7 @@
       <button
         id="help-button"
         class="w-full h-10 flex items-center text-gray-600 justify-center transition-all duration-300"
-        @click="toggleHelpTab()"
+        @click="setSidebarTab('helpTab')"
         data-tooltip-target="tooltip-help"
         data-tooltip-placement="right"
       >
@@ -541,8 +540,7 @@
 
       <section
         x-show="(currentSidebarTab == 'deployTab')"
-        class="deployTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%] [&>*]:w-[calc(100%+5px)]"
-        style="scrollbar-gutter: stable"
+        class="deployTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%]"
       >
         <%- include('left-sidebar-deploy'); -%>
       </section>
@@ -560,6 +558,11 @@
   document.addEventListener('alpine:init', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isChatPresent = urlParams.has('chat');
+
+    const getLeftSidebarWidth = () => {
+      const leftSidebarWidth = localStorage.getItem('left-sidebar-width') || '400px';
+      return leftSidebarWidth;
+    };
 
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
@@ -581,17 +584,10 @@
       // Add special handler for the help tab
       toggleHelpTab() {
         if (this.currentSidebarTab === 'helpTab') {
-          // If help tab is active, switch to previous tab
-          if (this.previousTab && this.previousTab !== 'helpTab') {
-            const temp = this.currentSidebarTab;
-            this.currentSidebarTab = this.previousTab;
-            this.previousTab = temp;
-          } else {
             // If no valid previous tab, close sidebar
             this.previousTab = this.currentSidebarTab;
             this.currentSidebarTab = null;
             this.isSidebarOpen = false;
-          }
         } else {
           // If help tab is not active, store current tab and switch to help
           this.previousTab = this.currentSidebarTab;
@@ -657,24 +653,24 @@
 
       init() {
         const storedValue = localStorage?.getItem('sidebarOpen');
-        const parts = document.location?.pathname?.split('/');
-        const currentAgentId = parts?.length == 3 ? parts?.pop() : null;
         this.isSidebarOpen =
           (storedValue !== null ? storedValue === 'true' : true) || isChatPresent;
 
-        // Initialize currentSidebarTab properly
-        this.currentSidebarTab = localStorage.getItem(`${currentAgentId}-currentSidebarTab`);
-        this.previousTab = localStorage.getItem('previousTab');
+          // Initialize currentSidebarTab properly
+          this.currentSidebarTab = localStorage.getItem('currentSidebarTab');
+          console.log('currentSidebarTab', this.currentSidebarTab);
+          this.previousTab = localStorage.getItem('previousTab');
+          console.log('previousTab', this.previousTab);
 
-        // Convert "null" strings to actual null values
-        if (this.currentSidebarTab === 'null') this.currentSidebarTab = null;
-        if (this.previousTab === 'null') this.previousTab = null;
+          // Convert "null" strings to actual null values
+          if (this.currentSidebarTab === 'null') this.currentSidebarTab = null;
+          if (this.previousTab === 'null') this.previousTab = null;
 
-        // Set default tab to Agent Weaver if sidebar is open and no tab is selected
-        if (this.isSidebarOpen && !this.currentSidebarTab) {
-          this.currentSidebarTab = 'agentBuilderTab';
-          localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
-        }
+          // Set default tab to Agent Weaver if sidebar is open and no tab is selected
+          if (this.isSidebarOpen && !this.currentSidebarTab) {
+            this.currentSidebarTab = 'agentBuilderTab';
+            localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
+          }
 
         // === SINGLE SOURCE OF TRUTH: Apply width to DOM ===
         const applyWidth = (width) => {
@@ -692,7 +688,7 @@
         };
 
         // Load saved width on init
-        const savedWidth = localStorage.getItem('left-sidebar-width');
+        const savedWidth = getLeftSidebarWidth();
         if (savedWidth) {
           this.sidebarWidth = savedWidth;
           if (this.isSidebarOpen) {
@@ -726,7 +722,7 @@
               if (contentContainer) contentContainer.style.width = '';
             });
             
-            // Very important: If sidebar is closed, ensure currentSidebarTab is null
+              // Very important: If sidebar is closed, ensure currentSidebarTab is null
             if (this.currentSidebarTab) {
               this.previousTab = this.currentSidebarTab;
               this.currentSidebarTab = null;
@@ -740,7 +736,7 @@
               applyWidth(this.sidebarWidth);
             } else {
               // No custom width, check localStorage
-              const savedWidth = localStorage.getItem('left-sidebar-width');
+              const savedWidth = getLeftSidebarWidth();
               console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
               if (savedWidth) {
                 this.sidebarWidth = savedWidth;
@@ -794,12 +790,12 @@
           this.isSidebarOpen = false;
         } else {
           // When reopening sidebar via border
-          this.isSidebarOpen = true;
           // Restore the previous tab if available
           if (this.previousTab) {
             this.currentSidebarTab = this.previousTab;
             localStorage.setItem('currentSidebarTab', this.currentSidebarTab);
           }
+          this.isSidebarOpen = true;
         }
       },
     }));

@@ -2744,7 +2744,7 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 #boarding-popover-item .boarding-popover-title {
-  font-family: 'Inter' !important;
+  font-family: 'Manrope' !important;
   font-weight: 500 !important;
   font-style: Medium !important;
   font-size: 14px !important;
@@ -2754,7 +2754,7 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 #boarding-popover-item .boarding-popover-description {
-  font-family: 'Inter' !important;
+  font-family: 'Manrope' !important;
   font-weight: 400 !important;
   font-style: Regular !important;
   font-size: 13px !important;
