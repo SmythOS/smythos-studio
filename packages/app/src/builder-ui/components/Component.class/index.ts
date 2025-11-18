@@ -3414,7 +3414,7 @@ function getCoreInputTypeField({
 function getColorField(value = '') {
   return {
     type: 'color',
-    class: 'w-44 stg-input stg-color stg-circle-color-picker',
+    class: 'min-w-52 w-52 stg-input stg-color stg-circle-color-picker',
     value,
     section: 'Advanced_Options',
     fieldsGroup: 'additionalOptions',
