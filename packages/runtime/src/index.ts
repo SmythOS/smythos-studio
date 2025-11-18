@@ -97,12 +97,6 @@ const sre = SmythRuntime.Instance.init({
   Component: {
     Connector: 'LocalComponent',
   },
-  ModelsProvider: {
-    Connector: 'SmythModelsProvider',
-    Settings: {
-      models: path.join(process.env.SMYTH_PATH, 'models'),
-    },
-  },
   AgentData: {
     Connector: 'SmythOSSAgentData',
     Settings: {
@@ -231,7 +225,7 @@ let pubModelsRepoSync: RepoSyncService | null = null;
     console.info('🎯 All Services Running:');
     console.info(`   • Management Server: http://localhost:${config.env.ADMIN_PORT || '5054'}`);
     console.info(`   • Runtime Server:    http://localhost:${port}`);
-    console.info(`   • SRE Models Sync:   ${path.join(config.env.SRE_STORAGE_PATH, 'models')}`);
+    console.info(`   • SRE Models Sync:   ${path.join(process.env.SMYTH_PATH, 'models')}`);
     console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.info('✨ SmythOS Runtime is ready!');
   } catch (error) {
