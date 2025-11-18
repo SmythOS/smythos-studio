@@ -68,6 +68,8 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
   const [testTokenEndpoint, setTestTokenEndpoint] = useState<string>('');
   const [prodAuthorizeEndpoint, setProdAuthorizeEndpoint] = useState<string>('');
   const [prodTokenEndpoint, setProdTokenEndpoint] = useState<string>('');
+  const [testRedirectEndpoint, setTestRedirectEndpoint] = useState<string>('');
+  const [prodRedirectEndpoint, setProdRedirectEndpoint] = useState<string>('');
   const [showBearerToken, setShowBearerToken] = useState(false);
   const [showClientSecret, setShowClientSecret] = useState(false);
 
@@ -158,10 +160,12 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
 
     setTestAuthorizeEndpoint(`https://${testDomain}/oauth/authorize`);
     setTestTokenEndpoint(`https://${testDomain}/oauth/token`);
+    setTestRedirectEndpoint(`https://${testDomain}/emb/auth/callback`);
 
     const prodEndpoints = prodDomain ? `https://${prodDomain}` : '...';
     setProdAuthorizeEndpoint(`${prodEndpoints}/oauth/authorize`);
     setProdTokenEndpoint(`${prodEndpoints}/oauth/token`);
+    setProdRedirectEndpoint(`${prodEndpoints}/emb/auth/callback`);
   }, [serverData, agentId, userDomain, selectedAuth]);
 
   const saveWorkSpaceAuth = useCallback(
@@ -362,11 +366,11 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
                 Token <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-              <input
-                id="bearer-token"
-                type={showBearerToken ? 'text' : 'password'}
-                placeholder="Enter your bearer token"
-                value={bearerConfig.token}
+                <input
+                  id="bearer-token"
+                  type={showBearerToken ? 'text' : 'password'}
+                  placeholder="Enter your bearer token"
+                  value={bearerConfig.token}
                   onChange={(e) => setBearerConfig((prev) => ({ ...prev, token: e.target.value }))}
                   className={`w-full p-2 text-sm border rounded-md bg-white ${
                     validationErrors.bearerToken
@@ -416,6 +420,26 @@ const AuthWidget = ({ isWriteAccess }: Props) => {
 
         {selectedAuth === 'oauth-oidc' && (
           <div className="mt-4 space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
+              <p className="text-amber-800 text-xs">
+                <strong>Note:</strong> To use OAuth OIDC, you need to set the redirect URI in the
+                OAuth OIDC settings.
+                <br />
+                <br />
+                <code className="block max-w-full overflow-x-auto break-all whitespace-pre-wrap">
+                  Test Redirect URI:
+                  <br />
+                  {testRedirectEndpoint}
+                </code>
+                <br />
+                <code className="block max-w-full overflow-x-auto break-all whitespace-pre-wrap">
+                  Prod Redirect URI:
+                  <br />
+                  {prodRedirectEndpoint}
+                </code>
+              </p>
+            </div>
+
             <div>
               <label
                 htmlFor="oidc-endpoint"
