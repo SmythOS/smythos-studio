@@ -56,7 +56,7 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   const devUrl = devDomain && scheme ? `${scheme}://${devDomain}/alexa` : '';
   const prodUrl = prodDomain && scheme ? `${scheme}://${prodDomain}/alexa` : '';
 
-  const voicePreviewUrl = devDomain && scheme ? `${scheme}://${devDomain}/emb/voice` : '';
+  const voicePreviewUrl = prodDomain && scheme ? `${scheme}://${prodDomain}/emb/voice` : '';
 
   /**
    * Copies the given text to clipboard.
@@ -88,7 +88,7 @@ const VoiceEmbodimentModal: React.FC<VoiceEmbodimentModalProps> = ({
   </script>
   <script>
         VoiceEmbodiment.init({
-            domain: '${domain}',
+            domain: '${domain}?type=widget',
         });
   </script>`;
 
