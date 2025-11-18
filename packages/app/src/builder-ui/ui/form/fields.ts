@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../utils';
@@ -1371,20 +1371,22 @@ export function createInfoButton(
   root.render(
     React.createElement(
       Tooltip,
-      {
-        content: React.createElement('div', {
+      {},
+      React.createElement(TooltipTrigger, { asChild: true }, iconElement),
+      React.createElement(
+        TooltipContent,
+        {
+          side: position as any,
+          className:
+            clsHint +
+            ' whitespace-normal text-xs ' +
+            (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
+            ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+        },
+        React.createElement('div', {
           dangerouslySetInnerHTML: { __html: sanitizedText },
         }),
-        placement: position as any,
-        className:
-          clsHint +
-          ' whitespace-normal text-xs ' +
-          (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
-          ' [&_a]:whitespace-nowrap [&_a]:inline-block',
-        style: 'dark',
-        arrow: true,
-      },
-      iconElement,
+      ),
     ),
   );
 

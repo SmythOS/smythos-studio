@@ -11,7 +11,6 @@ import { Agent } from '@src/react/shared/types/agent-data.types';
 import { VoiceEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Info } from 'lucide-react';
 import { Fragment, useEffect, useState } from 'react';

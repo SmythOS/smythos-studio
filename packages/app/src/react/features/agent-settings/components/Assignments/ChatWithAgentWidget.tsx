@@ -5,7 +5,6 @@ import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import classNames from 'classnames';
-import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
 import { FC } from 'react';
 import { FaArrowRight } from 'react-icons/fa6';

@@ -18,7 +18,7 @@ import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { FEATURE_FLAGS } from '@src/shared/constants/featureflags';
 import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useEffect, useRef, useState } from 'react';
 import {
   FaCircleNotch,
@@ -152,32 +152,26 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
   return (
     <>
       <Tooltip
-        content={agentData.description}
-        trigger="hover"
-        placement={cardState.tooltipPosition}
-        className={classNames('opacity-100 text-center agent-card-tooltip', {
-          'invisible opacity-0 pointer-events-none':
-            cardState.isButtonTooltipVisible ||
-            cardState.isActionDropdownVisible ||
-            !cardState.showTooltip,
-        })}
-        style="dark"
-        onClick={(e) => e.stopPropagation()}
-        theme={{ target: 'w-full' }}
+        open={
+          !cardState.isButtonTooltipVisible &&
+          !cardState.isActionDropdownVisible &&
+          cardState.showTooltip
+        }
       >
-        <div
-          id={`agent-card-${agent.id}`}
-          onMouseEnter={cardState.handleMouseEnter}
-          onMouseLeave={cardState.handleMouseLeave}
-          onClick={handleAgentClick}
-          className={classNames(
-            'relative flex items-start bg-gray-50 border cursor-pointer h-[120px]',
-            'rounded-lg border-solid transition duration-300 border-gray-300',
-            'hover:border-v2-blue hover:shadow-md',
-            'before:absolute before:inset-0 before:rounded-lg before:pointer-events-none',
-            { 'opacity-50': cardState.isDeleted || cardState.isDeleting },
-          )}
-        >
+        <TooltipTrigger asChild>
+          <div
+            id={`agent-card-${agent.id}`}
+            onMouseEnter={cardState.handleMouseEnter}
+            onMouseLeave={cardState.handleMouseLeave}
+            onClick={handleAgentClick}
+            className={classNames(
+              'relative flex items-start bg-gray-50 border cursor-pointer h-[120px]',
+              'rounded-lg border-solid transition duration-300 border-gray-300',
+              'hover:border-v2-blue hover:shadow-md',
+              'before:absolute before:inset-0 before:rounded-lg before:pointer-events-none',
+              { 'opacity-50': cardState.isDeleted || cardState.isDeleting },
+            )}
+          >
           {/* Avatar Section */}
           <div className="w-[25%] h-[120px] p-1">
             <img
@@ -411,18 +405,51 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
               )}
 
               {/* Chat Button */}
-              <Tooltip
-                content={chatTooltipContent}
-                trigger="hover"
-                placement={cardState.tooltipPosition === 'bottom' ? 'top' : 'bottom'}
-                className={classNames(
-                  agentData.isAvailable ? 'opacity-0 pointer-events-none' : 'opacity-100',
-                  'min-w-[280px] text-center',
-                )}
-                hidden={agentData.isAvailable}
-                style="dark"
-                onClick={(e) => e.stopPropagation()}
-              >
+              {!agentData.isAvailable && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      isLink={agentData.isAvailable}
+                      linkTo={agentData.isAvailable ? `/chat/${agent.id}` : ''}
+                      dataAttributes={{ 'data-test': 'chat-agent-button' }}
+                      handleClick={(e) => e.stopPropagation()}
+                      className={classNames(
+                        'relative h-8 w-20 overflow-hidden border border-solid rounded-lg transition duration-300 justify-center',
+                        {
+                          'border-v2-blue bg-white hover:bg-v2-blue/10': agentData.isAvailable,
+                          'border-[#D1D1D1] bg-gray-100 cursor-not-allowed': !agentData.isAvailable,
+                        },
+                      )}
+                      Icon={
+                        <div className="block">
+                          <ChatIconWithTail
+                            className="mr-1"
+                            stroke={agentData.isAvailable ? '#3C89F9' : '#727272'}
+                            fill={agentData.isAvailable ? '#3C89F9' : '#727272'}
+                          />
+                        </div>
+                      }
+                      addIcon
+                      onMouseEnter={() => cardState.setIsButtonTooltipVisible(true)}
+                      onMouseLeave={() => cardState.setIsButtonTooltipVisible(false)}
+                    >
+                      <span
+                        className={classNames('text-sm font-normal font-body', {
+                          'text-v2-blue': agentData.isAvailable,
+                          'text-[#5a5a5a]': !agentData.isAvailable,
+                        })}
+                      >
+                        Chat
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side={cardState.tooltipPosition === 'bottom' ? 'top' : 'bottom'} className="min-w-[280px] text-center">
+                    {chatTooltipContent}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {agentData.isAvailable && (
                 <Button
                   variant="secondary"
                   isLink={agentData.isAvailable}
@@ -458,10 +485,13 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                     Chat
                   </span>
                 </Button>
-              </Tooltip>
+              )}
             </div>
           </div>
         </div>
+        <TooltipContent side={cardState.tooltipPosition} className="opacity-100 text-center agent-card-tooltip">
+          <p>{agentData.description}</p>
+        </TooltipContent>
       </Tooltip>
 
       {/* Modals */}

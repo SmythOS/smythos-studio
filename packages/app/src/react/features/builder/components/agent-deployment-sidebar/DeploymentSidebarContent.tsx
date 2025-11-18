@@ -1,7 +1,7 @@
 import DeploymentsHistory from '@src/react/features/builder/components/agent-deployment-sidebar/DeploymentsHistory';
 import DeploymentStatus from '@src/react/features/builder/components/agent-deployment-sidebar/DeploymentStatus';
 import { PRIMARY_BUTTON_STYLE } from '@src/react/shared/constants/style';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useState } from 'react';
 
 const DeploymentSidebarContent = () => {
@@ -72,11 +72,12 @@ const DeploymentSidebarContent = () => {
               Deploy
             </button>
 
-            <Tooltip content="Close" placement="left" arrow={false}>
-              <button
-                type="button"
-                className="close-btn text-[#757575] hover:bg-gray-100 rounded-lg p-2"
-                onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar-request'))}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="close-btn text-[#757575] hover:bg-gray-100 rounded-lg p-2"
+                  onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar-request'))}
               >
                 <svg
                   width="16"
@@ -91,6 +92,9 @@ const DeploymentSidebarContent = () => {
                   />
                 </svg>
               </button>
+              <TooltipContent side="left">
+                <p>Close</p>
+              </TooltipContent>
             </Tooltip>
           </div>
         </div>

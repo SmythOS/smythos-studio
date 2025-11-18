@@ -9,7 +9,8 @@ import { CloseIcon } from '@src/react/shared/components/svgs';
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { Observability } from '@src/shared/observability';
 
-import { Badge, Tooltip } from 'flowbite-react';
+import { Badge } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
@@ -34,11 +35,13 @@ const CapabilitiesWidget = ({ isOnPaidPlan: isSubscribedToPlan, isWriteAccess }:
             <div className="w-full">
               <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-1">
                 Agent Skills
-                <Tooltip
-                  className="w-52 text-center"
-                  content="Agent Skills in SmythOS define the capabilities of an agent. Each skill is added through the Agent Skill component"
-                >
-                  <Info className="w-4 h-4" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-52 text-center">
+                    <p>Agent Skills in SmythOS define the capabilities of an agent. Each skill is added through the Agent Skill component</p>
+                  </TooltipContent>
                 </Tooltip>
               </h3>
             </div>
