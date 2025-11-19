@@ -29,7 +29,7 @@ export function extractAgentVerionsAndPath(url) {
 }
 
 export async function getAgentDomainById(agentId: string) {
-  const token = (await getM2MToken('https://api.smyth.ai')) as string;
+  const token = (await getM2MToken(config.env.LOGTO_API_RESOURCE)) as string;
   const agentDataConnector = ConnectorService.getAgentDataConnector();
 
   const Authorization = `Bearer ${token}`;
@@ -93,7 +93,7 @@ export function getAgentIdAndVersion(model: string) {
 
 export async function getAgentEmbodiments(agentID) {
   try {
-    const token = (await getM2MToken('https://api.smyth.ai')) as string;
+    const token = (await getM2MToken(config.env.LOGTO_API_RESOURCE)) as string;
     const response = await axios.get(`${config.env.MIDDLEWARE_API_BASE_URL}/_sysapi/v1/embodiments?aiAgentId=${agentID}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ export async function getAgentIdByDomain(domain = '') {
     if (isStageWildcardDomain) return agentId;
   }
 
-  const token = (await getM2MToken('https://api.smyth.ai')) as string;
+  const token = (await getM2MToken(config.env.LOGTO_API_RESOURCE)) as string;
   const Authorization = `Bearer ${token}`;
   const result: any = await mwSysAPI.get('/domains?verified=true', { headers: { Authorization } }).catch(error => ({ error }));
 
@@ -167,7 +167,7 @@ function migrateAgentData(data) {
 
 export async function getAgentDataById(agentID, version) {
   try {
-    const token = (await getM2MToken('https://api.smyth.ai')) as string;
+    const token = (await getM2MToken(config.env.LOGTO_API_RESOURCE)) as string;
 
     const response = await mwSysAPI.get(`/ai-agent/${agentID}?include=team.subscription`, includeAuth(token));
     const agentObj = response.data.agent;
