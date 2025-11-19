@@ -4,7 +4,6 @@ import { VaultSecret } from '../routes/router.utils';
 import { type OperationResponse } from '../types';
 import { generateKey } from '../utils/general.utils';
 import Cache from './Cache.class';
-import * as teamData from './team-data.service';
 import { uid } from './utils.service';
 import {
   checkIfVaultSecretExists,
@@ -39,7 +38,7 @@ type GetParams = FilterParams & {
 class SmythVault {
   private settingsKey: string = 'vault';
 
-  constructor() {}
+  constructor() { }
 
   public async get(
     {
@@ -304,7 +303,6 @@ class SmythVault {
 
   public async delete(keyId: string, team: string, req: Request): Promise<OperationResponse> {
     const idToken = getUserToken(req);
-    const deleteSetting = await teamData.deleteTeamSettingsObj(req, this.settingsKey, keyId);
 
     try {
       await deleteSpecificVaultSecret({ token: idToken, secretId: keyId, teamId: team });
@@ -320,19 +318,13 @@ class SmythVault {
       console.log(error); // #TODO: Remove this log after QA
     }
 
-    if (!deleteSetting?.success) {
-      return {
-        success: false,
-        error: this.getErrorMsg('delete'),
-      };
-    }
 
     const cacheKey = generateKey(this.settingsKey + team, 'vault');
     cache.delete(cacheKey);
 
     return {
       success: true,
-      data: deleteSetting.data,
+      data: keyId,
     };
   }
 
@@ -346,11 +338,6 @@ class SmythVault {
     team: string;
     entryIds: string[];
   }): Promise<OperationResponse> {
-    const deleteSetting = await teamData.deleteMultipleEntries({
-      req,
-      settingKey: this.settingsKey,
-      entryIds,
-    });
 
     for (const id of entryIds) {
       try {
@@ -362,19 +349,12 @@ class SmythVault {
       }
     }
 
-    if (!deleteSetting?.success) {
-      return {
-        success: false,
-        error: this.getErrorMsg('delete'),
-      };
-    }
-
     const cacheKey = generateKey(this.settingsKey + team, 'vault');
     cache.delete(cacheKey);
 
     return {
       success: true,
-      data: deleteSetting.data,
+      data: entryIds,
     };
   }
 
@@ -391,12 +371,6 @@ class SmythVault {
 
     const keyObj = allKeys[keyId];
     const idToken = getUserToken(req);
-    const saveKey = await teamData.saveTeamSettingsObj({
-      req,
-      settingKey: this.settingsKey,
-      entryId: keyId,
-      data: { ...keyObj, isInvalid: true },
-    });
 
     try {
       await markSecretAsInvalid({ token: idToken, teamId: team, secretId: keyId });
@@ -405,19 +379,15 @@ class SmythVault {
       console.log(error); // #TODO: Remove this log after QA
     }
 
-    if (!saveKey?.success) {
-      return {
-        success: false,
-        error: this.getErrorMsg('make invalid'),
-      };
-    }
-
     const cacheKey = generateKey(this.settingsKey + team, 'vault');
     cache.delete(cacheKey);
 
     return {
       success: true,
-      data: saveKey.data,
+      data: {
+        ...keyObj,
+        isInvalid: true,
+      },
     };
   }
 
