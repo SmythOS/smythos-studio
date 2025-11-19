@@ -1,3 +1,4 @@
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
@@ -9,8 +10,14 @@ export class DataSourceLookup extends Component {
 
   protected async prepare(): Promise<any> {
     this.isNewComponent = Object.keys(this.data).length === 0;
-    const componentVersion = this.data.version ?? (this.isNewComponent ? 'v2' : 'v1');
-    if (this.isNewComponent) {
+    const eligibleForV2 =
+      builderStore.getState().serverStatus.edition === 'enterprise' &&
+      !window.location.hostname.includes('smythos.com');
+
+    const componentVersion =
+      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
+
+    if (this.isNewComponent && eligibleForV2) {
       this.data.version = componentVersion;
     }
     this.updateSettings();
