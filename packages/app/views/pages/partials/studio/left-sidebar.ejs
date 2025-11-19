@@ -3,6 +3,8 @@
   @toggle-sidebar-request.window="toggleSidebar()"
   class="max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
+    // Static widths only apply when sidebarWidth is not set (!sidebarWidth)
+    // When sidebarWidth exists, width is controlled via inline styles
     'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab' && !sidebarWidth,
     'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab' && !sidebarWidth,
     'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab') && !sidebarWidth,
@@ -24,7 +26,6 @@
 
       <a
         href="/"
-        target="_blank"
         rel="noopener noreferrer"
         class="flex items-center justify-center cursor-pointer transition-colors h-10 fill-gray-700 hover:fill-gray-700 hover:outline-none mb-2"
         data-tooltip-target="tooltip-agent"
@@ -560,6 +561,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const isChatPresent = urlParams.has('chat');
 
+    const getLeftSidebarWidth = () => {
+      const leftSidebarWidth = localStorage.getItem('left-sidebar-width') || '400px';
+      return leftSidebarWidth;
+    };
+
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
       sidebarWidth: null, // Will be loaded from localStorage in init()
@@ -575,6 +581,28 @@
 
       get isBuildSidebarOpen() {
         return this.buildSidebarTabs.includes(this.currentSidebarTab);
+      },
+
+      /**
+       * Calculate the left position for the auto-save notifier
+       * Simple formula: sidebar left position + sidebar width + padding
+       * @returns {string} CSS left value in pixels
+       */
+      get agentStatusLeft() {
+        if (!this.isSidebarOpen) {
+          return '84px';
+        }
+        
+        // Sidebar left position: 80px on desktop (64px nav + 16px), 6px on mobile
+        const sidebarLeft = window.innerWidth >= 768 ? 80 : 6;
+        
+        // Get sidebar width from stored value or use default from getLeftSidebarWidth()
+        const sidebarWidth = this.sidebarWidth 
+          ? parseInt(this.sidebarWidth) 
+          : parseInt(getLeftSidebarWidth());
+        
+        // Position = sidebar left + sidebar width + padding
+        return `${sidebarLeft + sidebarWidth + 8}px`;
       },
 
       // Add special handler for the help tab
@@ -684,7 +712,7 @@
         };
 
         // Load saved width on init
-        const savedWidth = localStorage.getItem('left-sidebar-width');
+        const savedWidth = getLeftSidebarWidth();
         if (savedWidth) {
           this.sidebarWidth = savedWidth;
           if (this.isSidebarOpen) {
@@ -696,6 +724,7 @@
         window.addEventListener('leftSidebarResized', (event) => {
           this.sidebarWidth = event.detail.width;
           applyWidth(event.detail.width);
+          // The agentStatusLeft getter will automatically update via Alpine reactivity
         });
 
         // Watch sidebarWidth changes and apply to DOM
@@ -732,7 +761,7 @@
               applyWidth(this.sidebarWidth);
             } else {
               // No custom width, check localStorage
-              const savedWidth = localStorage.getItem('left-sidebar-width');
+              const savedWidth = getLeftSidebarWidth();
               console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
               if (savedWidth) {
                 this.sidebarWidth = savedWidth;

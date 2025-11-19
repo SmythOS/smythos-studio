@@ -463,7 +463,7 @@ const _compMenuMarkup = ({ data, compName, placeholderLogo, compDisplayName }: C
             </span>
 
 
-            <span class="name flex-1 ml-3 whitespace-nowrap overflow-x-hidden max-w-[130px]">${compDisplayName}</span>
+            <span class="name flex-1 ml-3 whitespace-nowrap overflow-x-hidden">${compDisplayName}</span>
             ${deleteBtn}
         </a>
 

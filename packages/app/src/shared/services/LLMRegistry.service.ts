@@ -163,7 +163,8 @@ export class LLMRegistry {
    * 1. Exclusion group: Non-excluded models come first, then Legacy, Deprecated, Retired, Removed
    * 2. Regular tag priority: Enterprise → Custom → Personal → SmythOS → Default (maintained within each exclusion group)
    * 3. Provider order: OpenAI → Anthropic → GoogleAI → Perplexity → TogetherAI → Others
-   * 4. Alphabetically by label (tie-breaker)
+   * 4. 'new' tag priority: Models with 'new' tag come first within each group
+   * 5. Alphabetically by label (tie-breaker)
    *
    * Example order:
    * - Personal GPT-4 (non-excluded)
@@ -232,6 +233,15 @@ export class LLMRegistry {
       return index !== -1 ? index : this.PROVIDER_ORDER.length;
     };
 
+    /**
+     * Checks if a model has the 'new' tag
+     * @param tags - Array of tags for the model
+     * @returns True if the model has the 'new' tag (case-insensitive)
+     */
+    const hasNewTag = (tags: string[]): boolean => {
+      return tags.some((tag) => tag.toLowerCase() === 'new');
+    };
+
     return modelsCopy.sort((a, b) => {
       // First level: Sort by excluded tag priority (non-excluded → legacy → deprecated → retired → removed)
       const aExcludedTagWeight = getLowestPriorityExcludedTag(a.tags);
@@ -266,7 +276,16 @@ export class LLMRegistry {
         return aProviderWeight - bProviderWeight;
       }
 
-      // Fourth level: If same tag and provider, sort alphabetically by label as a tie-breaker
+      // Fourth level: Within the same group (exclusion tag, regular tag, provider),
+      // prioritize models with 'new' tag
+      const aHasNewTag = hasNewTag(a.tags);
+      const bHasNewTag = hasNewTag(b.tags);
+
+      if (aHasNewTag !== bHasNewTag) {
+        return aHasNewTag ? -1 : 1;
+      }
+
+      // Fifth level: If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
   }
