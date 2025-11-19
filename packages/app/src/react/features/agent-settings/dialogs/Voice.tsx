@@ -2,6 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { mapVoiceEmbodimentProperties } from '@react/features/agent-settings/utils';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { Spinner } from '@react/shared/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { TVoiceProperties } from '@react/shared/types/embodiment.types';
 import { extractError } from '@react/shared/utils/errors';
@@ -204,18 +205,18 @@ const VoiceDialog = ({
                                 className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
                               >
                                 Allowed Domains{' '}
-                                <Tooltip
-                                  className="w-60 text-center"
-                                  content={
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-5 h-5 ml-1 cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="w-60 text-center">
                                     <div>
                                       Restrict voice to specific domains.
                                       <br /> Use commas to separate multiple domains (e.g.,
                                       example.com, mysite.org).
                                       <br /> Leave empty for no restrictions.
                                     </div>
-                                  }
-                                >
-                                  <Info className="w-5 h-5 ml-1" />
+                                  </TooltipContent>
                                 </Tooltip>
                               </label>
 
