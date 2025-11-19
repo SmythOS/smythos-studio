@@ -157,6 +157,7 @@ router.get('/status', includeTeamDetails, async (req, res) => {
         team,
         server: 'Online',
         env: config.env.NODE_ENV,
+        smythos_edition: config.env.SMYTHOS_EDITION,
         agent_domain: result?.data?.agent_domain,
         frontUrl: config.env.UI_SERVER,
         url: config.env.PUB_API_SERVER || config.env.API_SERVER,
@@ -168,7 +169,13 @@ router.get('/status', includeTeamDetails, async (req, res) => {
     });
   } catch (error) {
     res.json({
-      status: { user, team, prod_agent_domain: config.env.PROD_AGENT_DOMAIN, server: 'Offline' },
+      status: {
+        user,
+        team,
+        prod_agent_domain: config.env.PROD_AGENT_DOMAIN,
+        server: 'Offline',
+        smythos_edition: config.env.SMYTHOS_EDITION,
+      },
     });
   }
 });

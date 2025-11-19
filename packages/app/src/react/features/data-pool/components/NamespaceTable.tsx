@@ -8,6 +8,7 @@ import { Button } from '@src/react/shared/components/ui/button';
 import { Tooltip } from 'flowbite-react';
 import { Trash2 } from 'lucide-react';
 import { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import credentialsSchema from '../../credentials/credentials-schema.json';
 import { useDataPoolContext } from '../contexts/data-pool.context';
 import type { NamespaceWithProvider } from '../types';
@@ -28,6 +29,7 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
   onDelete,
 }) => {
   const { getCredentialById } = useDataPoolContext();
+  const navigate = useNavigate();
 
   /**
    * Get provider logo URL from schema
@@ -53,9 +55,12 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
             const providerLogo = credential ? getProviderLogo(credential.provider) : undefined;
 
             return (
-              <tr key={namespace.label} className="border-b hover:bg-gray-50">
+              <tr key={namespace.label} className="border-b hover:bg-gray-100 cursor-pointer hover:underline transition-colors text-left"
+              onClick={() => navigate(`/data-pool/${encodeURIComponent(namespace.label)}/datasources`)}
+              >
                 {/* Name */}
-                <td className="px-6 py-4 font-medium text-gray-900" title={namespace.label}>
+                <td className="px-6 py-4 cursor-pointer font-medium text-gray-900" title={namespace.label}
+                >
                   {namespace.label}
                 </td>
 
@@ -74,7 +79,11 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
                 </td>
 
                 {/* Actions */}
-                <td className="px-6 py-4">
+                <td className="px-6 py-4"
+                onClick={(e) =>{
+                  e.stopPropagation();
+                }}
+                >
                   <div className="flex items-center justify-center gap-2">
                     <Tooltip content="Delete">
                       <Button

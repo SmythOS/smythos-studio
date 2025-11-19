@@ -4,11 +4,22 @@
  * Proxies requests to API_SERVER/user/datapools/*
  */
 
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import express from 'express';
+import FormData from 'form-data';
+import multer from 'multer';
 import config from '../../../config';
 
 const router = express.Router();
+
+// Configure multer for file uploads (memory storage)
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+});
 
 /**
  * Get auth headers from request
@@ -41,18 +52,9 @@ router.get('/namespaces', async (req, res) => {
     });
 
     return res.json(result.data);
-  } catch (error) {
-    console.error('Error fetching namespaces:', error?.response?.data || error.message);
-
-    const errorData = error?.response?.data;
-
-    if (errorData && typeof errorData === 'object') {
-      return res.status(error?.response?.status || 500).json(errorData);
-    }
-
-    return res.status(error?.response?.status || 500).json({
-      error: errorData || 'Failed to fetch namespaces',
-    });
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
   }
 });
 
@@ -69,22 +71,9 @@ router.post('/namespaces', async (req, res) => {
     });
 
     return res.json(result.data);
-  } catch (error) {
-    console.error('Error creating namespace:', error?.response?.data || error.message);
-
-    // Forward the error response from the SRE server
-    const errorData = error?.response?.data;
-
-    // If the error data is already an object with an error property, send it as-is
-    // This preserves the nested error structure: { error: { error: "message" } }
-    if (errorData && typeof errorData === 'object') {
-      return res.status(error?.response?.status || 500).json(errorData);
-    }
-
-    // Otherwise, wrap it in an error object
-    return res.status(error?.response?.status || 500).json({
-      error: errorData || 'Failed to create namespace',
-    });
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
   }
 });
 
@@ -102,18 +91,9 @@ router.delete('/namespaces/:label', async (req, res) => {
     });
 
     return res.json(result.data);
-  } catch (error) {
-    console.error('Error deleting namespace:', error?.response?.data || error.message);
-
-    const errorData = error?.response?.data;
-
-    if (errorData && typeof errorData === 'object') {
-      return res.status(error?.response?.status || 500).json(errorData);
-    }
-
-    return res.status(error?.response?.status || 500).json({
-      error: errorData || 'Failed to delete namespace',
-    });
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
   }
 });
 
@@ -130,18 +110,96 @@ router.get('/embeddings/models', async (req, res) => {
     });
 
     return res.json(result.data);
-  } catch (error) {
-    console.error('Error fetching embedding models:', error?.response?.data || error.message);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
+  }
+});
 
-    const errorData = error?.response?.data;
+/**
+ * List all datasources for a namespace
+ * GET /api/page/datapool/namespaces/:namespaceLabel/datasources
+ */
+router.get('/namespaces/:namespaceLabel/datasources', async (req, res) => {
+  try {
+    const { namespaceLabel } = req.params;
+    const url = `${config.env.API_SERVER}/user/data-pools/namespaces/${encodeURIComponent(namespaceLabel)}/datasources`;
 
-    if (errorData && typeof errorData === 'object') {
-      return res.status(error?.response?.status || 500).json(errorData);
+    const result = await axios.get(url, {
+      headers: getAuthHeaders(req),
+    });
+
+    return res.json(result.data);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
+  }
+});
+
+/**
+ * Create a new datasource
+ * POST /api/page/datapool/namespaces/:namespaceLabel/datasources
+ */
+router.post('/namespaces/:namespaceLabel/datasources', upload.single('file'), async (req, res) => {
+  try {
+    const { namespaceLabel } = req.params;
+    const url = `${config.env.API_SERVER}/user/data-pools/namespaces/${encodeURIComponent(namespaceLabel)}/datasources`;
+
+    // Create FormData to forward the file
+    const formData = new FormData();
+    formData.append('datasourceLabel', req.body.datasourceLabel);
+
+    // Add optional chunking parameters
+    if (req.body.chunkSize) {
+      formData.append('chunkSize', req.body.chunkSize);
+    }
+    if (req.body.chunkOverlap) {
+      formData.append('chunkOverlap', req.body.chunkOverlap);
     }
 
-    return res.status(error?.response?.status || 500).json({
-      error: errorData || 'Failed to fetch embedding models',
+    // Add optional metadata
+    if (req.body.metadata) {
+      formData.append('metadata', req.body.metadata);
+    }
+
+    if (req.file) {
+      formData.append('file', req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+      });
+    }
+
+    const result = await axios.post(url, formData, {
+      headers: {
+        ...getAuthHeaders(req),
+        ...formData.getHeaders(),
+      },
     });
+
+    return res.json(result.data);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
+  }
+});
+
+/**
+ * Delete a datasource
+ * DELETE /api/page/datapool/namespaces/:namespaceLabel/datasources/:datasourceId
+ */
+router.delete('/namespaces/:namespaceLabel/datasources/:datasourceId', async (req, res) => {
+  try {
+    const { namespaceLabel, datasourceId } = req.params;
+    const url = `${config.env.API_SERVER}/user/data-pools/namespaces/${encodeURIComponent(namespaceLabel)}/datasources/${encodeURIComponent(datasourceId)}`;
+
+    const result = await axios.delete(url, {
+      headers: getAuthHeaders(req),
+    });
+
+    return res.json(result.data);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    res.status(500).json(axiosError?.response?.data);
   }
 });
 

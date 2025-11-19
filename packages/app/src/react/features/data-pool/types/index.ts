@@ -65,3 +65,13 @@ export interface CreateNamespaceRequest {
  */
 export const DEFAULT_PAGINATION_LIMIT = 10;
 
+/**
+ * Re-export datasource types
+ */
+export type {
+  Datasource,
+  CreateDatasourceRequest,
+  CreateDatasourceResponse,
+  ListDatasourcesResponse,
+} from './datasource.types';
+

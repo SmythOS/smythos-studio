@@ -22,6 +22,7 @@ import {
 } from '@src/react/shared/components/ui/select';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
+import credentialsSchema from '../../credentials/credentials-schema.json';
 import { dataPoolClient } from '../client/datapool.client';
 import { useDataPoolContext } from '../contexts/data-pool.context';
 import type { EmbeddingModel } from '../types';
@@ -32,12 +33,18 @@ interface CreateNamespaceModalProps {
   onSuccess: () => void;
 }
 
+interface ProviderSchema {
+  id: string;
+  name: string;
+  logo_url?: string;
+}
+
 export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
 }) => {
-  const { credentials, credentialsLoading } = useDataPoolContext();
+  const { credentials, credentialsLoading, getCredentialById } = useDataPoolContext();
   const [name, setName] = useState('');
   const [selectedCredentialId, setSelectedCredentialId] = useState('');
   const [embeddingModels, setEmbeddingModels] = useState<EmbeddingModel[]>([]);
@@ -46,6 +53,14 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Get provider logo URL from schema
+   */
+  const getProviderLogo = (providerId: string): string | undefined => {
+    const provider = (credentialsSchema as ProviderSchema[]).find((p) => p.id === providerId);
+    return provider?.logo_url;
+  };
 
   // Fetch embedding models when modal opens
   useEffect(() => {
@@ -172,7 +187,24 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                 disabled={credentialsLoading || isCreating}
               >
                 <SelectTrigger className="w-full" disabled={credentialsLoading || isCreating}>
-                  <SelectValue placeholder="Select a provider" />
+                  <SelectValue placeholder="Select a provider">
+                    {selectedCredentialId && (() => {
+                      const selectedCred = getCredentialById(selectedCredentialId);
+                      const logo = selectedCred ? getProviderLogo(selectedCred.provider) : undefined;
+                      return (
+                        <div className="flex items-center gap-2">
+                          {logo && (
+                            <img
+                              src={logo}
+                              alt={selectedCred?.name || 'Provider'}
+                              className="w-5 h-5 object-contain"
+                            />
+                          )}
+                          <span>{selectedCred?.name}</span>
+                        </div>
+                      );
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {credentials.length === 0 ? (
@@ -180,11 +212,23 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                       No vector database connections found
                     </div>
                   ) : (
-                    credentials.map((cred) => (
-                      <SelectItem key={cred.id} value={cred.id}>
-                        {cred.name}
-                      </SelectItem>
-                    ))
+                    credentials.map((cred) => {
+                      const logo = getProviderLogo(cred.provider);
+                      return (
+                        <SelectItem key={cred.id} value={cred.id}>
+                          <div className="flex items-center gap-2">
+                            {logo && (
+                              <img
+                                src={logo}
+                                alt={cred.name}
+                                className="w-5 h-5 object-contain"
+                              />
+                            )}
+                            <span>{cred.name}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })
                   )}
                 </SelectContent>
               </Select>

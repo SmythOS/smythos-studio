@@ -136,7 +136,7 @@ const DataPoolPageContent: FC = () => {
     if (!searchQuery) return enriched;
     
     return enriched.filter((ns) =>
-      ns.label.toLowerCase().includes(searchQuery.toLowerCase()),
+      ns.label?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false,
     );
   }, [namespaces, searchQuery, enrichNamespaceWithProvider]);
 
