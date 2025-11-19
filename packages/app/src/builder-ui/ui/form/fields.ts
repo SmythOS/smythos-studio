@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../utils';
@@ -1366,26 +1366,30 @@ export function createInfoButton(
   // and blocks dangerous elements like <script>, event handlers, etc.
   const sanitizedText = DOMPurify.sanitize(text);
 
-  // Render the Tooltip component
+  // Render the Tooltip component wrapped in TooltipProvider
   const root = createRoot(tooltipContainer);
   root.render(
     React.createElement(
-      Tooltip,
-      {},
-      React.createElement(TooltipTrigger, { asChild: true }, iconElement),
+      TooltipProvider,
+      { delayDuration: 300, skipDelayDuration: 100 },
       React.createElement(
-        TooltipContent,
-        {
-          side: position as any,
-          className:
-            clsHint +
-            ' whitespace-normal text-xs ' +
-            (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
-            ' [&_a]:whitespace-nowrap [&_a]:inline-block',
-        },
-        React.createElement('div', {
-          dangerouslySetInnerHTML: { __html: sanitizedText },
-        }),
+        Tooltip,
+        {},
+        React.createElement(TooltipTrigger, { asChild: true }, iconElement),
+        React.createElement(
+          TooltipContent,
+          {
+            side: position as any,
+            className:
+              clsHint +
+              ' whitespace-normal text-xs ' +
+              (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
+              ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+          },
+          React.createElement('div', {
+            dangerouslySetInnerHTML: { __html: sanitizedText },
+          }),
+        ),
       ),
     ),
   );

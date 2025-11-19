@@ -14,6 +14,7 @@ import {
   renderExtensionsSkeleton,
   searchExtensions,
 } from '../utils';
+import { attachRadixTooltip, mapMetroPositionToRadix } from '../utils/tooltip-wrapper';
 import { createForm, handleTemplateVars, readFormValidation, readFormValues } from './form/';
 
 import { errorToast } from '@src/shared/components/toast';
@@ -150,7 +151,7 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
         tooltip.id = 'tooltip-help-sidebar';
         tooltip.setAttribute('role', 'tooltip');
         tooltip.className =
-          'tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible';
+          'tooltip absolute z-50 inline-block text-xs w-max bg-gray-900 shadow-lg text-white py-1.5 px-3 rounded-md opacity-0 invisible';
         tooltip.style.fontFamily = 'Inter, sans-serif';
         tooltip.style.transform = 'translate3d(-100%, 0px, 0px)';
         if (action.tooltip) {
@@ -207,9 +208,12 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
       if (action.click) button.addEventListener('click', action.click);
 
       if (action?.hint) {
-        button.setAttribute('data-role', 'hint');
-        button.setAttribute('data-hint-text', action.hint);
-        button.setAttribute('data-hint-position', action?.hintPosition || 'top');
+        // Use Radix Tooltip instead of Metro UI hints
+        attachRadixTooltip(button, {
+          text: action.hint,
+          position: mapMetroPositionToRadix(action?.hintPosition || 'top'),
+          delayDuration: 300,
+        });
       }
 
       sidebarActions.appendChild(button);
@@ -605,7 +609,7 @@ export async function createEmbodimentSidebar(title?, content?, actions?, toolti
           tooltipElement.setAttribute('role', 'tooltip');
           tooltipElement.setAttribute(
             'class',
-            'tooltip absolute z-10 inline-block text-sm w-max bg-black shadow-lg text-white py-2 px-4 rounded-lg opacity-0 invisible transition-opacity duration-300 pointer-events-none', // Added pointer-events-none
+            'tooltip absolute z-50 inline-block text-xs w-max bg-gray-900 shadow-lg text-white py-1.5 px-3 rounded-md opacity-0 invisible transition-opacity duration-150 pointer-events-none', // Match Radix Tooltip styling
           );
           tooltipElement.style.fontFamily = "'Inter', sans-serif";
           tooltipElement.style.position = 'absolute';

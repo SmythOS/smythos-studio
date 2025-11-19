@@ -19,12 +19,12 @@ import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import FormEmbodimentModal from '@src/react/features/embodiments/form-embodiment-modal';
 import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { Observability } from '@src/shared/observability';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useQuery } from '@tanstack/react-query';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useFormik } from 'formik';
 import { Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -596,23 +596,15 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                   </div>
                   <Tabs defaultValue="agent-cloud" className="w-full relative">
                     <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <TabsTrigger
-                            value="agent-cloud"
-                            className="px-10 py-2.5 text-sm rounded-sm w-full"
-                          >
-                            Agent Cloud
-                          </TabsTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <div style={{ whiteSpace: 'normal' }}>
-                            Convenient, easy, and instant. We handle all the hosting of your agent
-                            for you at $2 per 1,000 tasks, only pay for what you use. Unlock chat,
-                            bulk work, schedules, analytics, logs, APIs and more.
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
+                      <TabsTrigger
+                        value="agent-cloud"
+                        className="px-10 py-2.5 text-sm rounded-sm tooltip-trigger relative"
+                        data-tooltip="Convenient, easy, and instant. We handle all the hosting of your agent for you at $2 per 1,000 tasks, only pay for what you use. Unlock chat, bulk work, schedules, analytics, logs, APIs and more."
+                        data-tooltip-position="bottom"
+                        data-tooltip-width="md"
+                      >
+                        Agent Cloud
+                      </TabsTrigger>
                       <TabsTrigger value="enterprise" className="px-10 py-2.5 text-sm rounded-sm">
                         Enterprise
                       </TabsTrigger>

@@ -5,6 +5,7 @@ import {
   handleVaultBtn,
   isValidJson,
 } from '../../utils';
+import { attachRadixTooltip, mapMetroClassesToRadix, mapMetroPositionToRadix } from '../../utils/tooltip-wrapper';
 import { setCodeEditor, toggleMode } from '../dom';
 import {
   createButton,
@@ -380,11 +381,13 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     // the hint will be displayed as a floating tooltip that appears on hover rather than
     // being permanently visible in the form layout
     if (['top', 'right', 'bottom', 'left'].includes(entry?.hintPosition)) {
-      div.setAttribute('data-role', 'hint');
-      div.setAttribute('data-hint-position', entry?.hintPosition);
-      div.setAttribute('data-cls-hint', 'bg-gray-50 shadow-lg');
-      div.setAttribute('data-hint-hide', '500000'); // set to a large number to prevent auto hide
-      div.setAttribute('data-hint-text', entry.hint);
+      // Use Radix Tooltip instead of Metro UI hints
+      attachRadixTooltip(div, {
+        text: entry.hint,
+        position: mapMetroPositionToRadix(entry?.hintPosition),
+        className: mapMetroClassesToRadix('bg-gray-50 shadow-lg'),
+        delayDuration: 300,
+      });
 
       // Additional hint
       if (entry?.additionalHint) {
@@ -1004,10 +1007,11 @@ function applyTooltipConfig(actionBtn, action) {
       ? defaultTooltipConfig
       : { ...defaultTooltipConfig, ...action.tooltip };
 
-  actionBtn.setAttribute('data-role', 'hint');
-  actionBtn.setAttribute('data-hint-position', tooltipConfig.position);
-  actionBtn.setAttribute('data-cls-hint', tooltipConfig.classes);
-  actionBtn.setAttribute('data-hint-hide', tooltipConfig.hideDelay);
-  actionBtn.setAttribute('data-hint-text', tooltipConfig.text);
-  actionBtn.setAttribute('data-hint-offset', tooltipConfig.offset);
+  // Use Radix Tooltip instead of Metro UI hints
+  attachRadixTooltip(actionBtn, {
+    text: tooltipConfig.text,
+    position: mapMetroPositionToRadix(tooltipConfig.position),
+    className: mapMetroClassesToRadix(tooltipConfig.classes),
+    delayDuration: 300,
+  });
 }
