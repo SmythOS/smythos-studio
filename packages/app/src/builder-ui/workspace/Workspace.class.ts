@@ -1599,7 +1599,7 @@ export class Workspace extends EventEmitter {
       .filter((c) => c);
     const debugSessionEnabled = this.domElement.classList.contains('debug-enabled');
     let auth = this.agent.data?.auth;
-    const variables = this.agent.data.variables;
+    const variables = this.agent.data?.variables;
 
     let currentPan;
     let currentZoom;
@@ -1643,12 +1643,12 @@ export class Workspace extends EventEmitter {
       connections,
       description: this.agent.description,
       shortDescription: this.agent.shortDescription,
-      behavior: this.agent.data.behavior,
+      behavior: this.agent.data?.behavior,
       variables,
       debugSessionEnabled,
       auth,
       ui: { panzoom: { currentPan, currentZoom }, agentCard },
-      introMessage: this.agent.data.introMessage || '',
+      introMessage: this.agent.data?.introMessage || '',
     };
 
     // Template Info
@@ -1883,8 +1883,12 @@ export class Workspace extends EventEmitter {
       // it will always be triggered after initialization of the agent card since redraw() is an async operation (next tick)
       this.agentCard.addEventListener('AgentCardCreated', () => {
         this.scrollToAgentCard();
-        // For remixed templates, set a default zoom level to show more of the canvas after the agent card is created
-        setTimeout(() => this.zoomTo(0.5), 100);
+        // For remixed templates only, set a default zoom level to show more of the canvas after the agent card is created
+        if (isRemixedTemplate) {
+          setTimeout(() => {
+            this.zoomTo(0.5);
+          }, 300);
+        }
       });
     }
 
