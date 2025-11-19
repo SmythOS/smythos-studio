@@ -135,7 +135,7 @@ export function setCodeEditor(
     const wrapLine = textArea?.getAttribute('data-wrap-line') === 'true';
     const div: any = document.createElement('div');
     div.id = 'ace-editor-styles';
-    div.className = 'ace-editor ' + textArea?.className;
+    div.className = 'ace-editor ace-editor-sidebar ' + textArea?.className;
     textArea.parentNode.insertBefore(div, textArea?.nextSibling);
     textArea?.classList?.add('hidden');
 
@@ -168,10 +168,15 @@ export function setCodeEditor(
 
     let errorTooltips = {};
 
+    // Generate a unique ID for this editor's tooltips to avoid conflicts with other editors
+    const editorTooltipId = `editor-tooltip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     function createTooltip(message, type) {
       const tooltip = document.createElement('div');
       tooltip.style.position = 'absolute';
       tooltip.style.display = 'none';
+      // Add unique identifier to each tooltip
+      tooltip.setAttribute('data-editor-tooltip-id', editorTooltipId);
 
       switch (type) {
         case 'error':
@@ -225,7 +230,13 @@ export function setCodeEditor(
     });
 
     editor.on('guttermousemove', function (e) {
+      // Hide all tooltips from this editor
       Object.values(errorTooltips).forEach((tooltip: any) => (tooltip.style.display = 'none'));
+
+      // Hide all tooltips from other editors to prevent duplicates
+      document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`).forEach((tooltip: any) => {
+        tooltip.style.display = 'none';
+      });
 
       const row = e.getDocumentPosition().row;
       const gutterRegion = e.domEvent.target.className;
@@ -236,6 +247,11 @@ export function setCodeEditor(
         const pageWidth = window.innerWidth;
         const pageHeight = window.innerHeight;
 
+        // Check if this editor has internal scrolling enabled (maxLines !== Infinity)
+        // Only apply scroll offset for editors with internal scrolling
+        const hasInternalScrolling = editor.getOption('maxLines') === null || editor.getOption('maxLines') === undefined;
+        const scrollTop = hasInternalScrolling ? (editor.renderer.scrollTop || 0) : 0;
+
         // Temporarily display the tooltip to measure its dimensions
         tooltip.style.visibility = 'hidden';
         tooltip.style.display = 'block';
@@ -245,17 +261,18 @@ export function setCodeEditor(
         const tooltipWidth = tooltip.offsetWidth;
 
         // Calculate the top and left positions of the tooltip
-        let tooltipTop = editorCoords.top + lineHeight * row - tooltipHeight - 5; // Adjust 5 pixels above the error line
+        // Subtract scrollTop to account for editor's internal scroll position
+        let tooltipTop = editorCoords.top + lineHeight * row - tooltipHeight - 5 - scrollTop; // Adjust 5 pixels above the error line
         let tooltipLeft = editorCoords.left + 4; // Left align with gutter
 
         // Adjust if tooltip goes above the top of the window
         if (tooltipTop < window.scrollY) {
-          tooltipTop = editorCoords.top + lineHeight * (row + 1) + 5;
+          tooltipTop = editorCoords.top + lineHeight * (row + 1) + 5 - scrollTop;
         }
 
         // Adjust if tooltip goes below the bottom of the window
         if (tooltipTop + tooltipHeight > window.scrollY + pageHeight) {
-          tooltipTop = editorCoords.top + lineHeight * row - tooltipHeight - 5;
+          tooltipTop = editorCoords.top + lineHeight * row - tooltipHeight - 5 - scrollTop;
         }
 
         // Adjust if tooltip goes beyond the right side of the window
@@ -264,7 +281,10 @@ export function setCodeEditor(
         }
 
         // Set the tooltip's top and left positions to keep it on-screen
-        tooltip.style.top = `${tooltipTop + 20}px`;
+        // For expanded mode (modal with internal scrolling), position 5px above the error line
+        // For compact mode (sidebar without scrolling), use default 20px offset
+        const verticalOffset = hasInternalScrolling ? 5 : 20;
+        tooltip.style.top = `${tooltipTop + verticalOffset}px`;
         tooltip.style.left = `${tooltipLeft}px`;
         tooltip.style.visibility = 'visible';
       }
@@ -272,7 +292,11 @@ export function setCodeEditor(
 
     editor.on('mousemove', function (e) {
       if (!e.domEvent.target.className.includes('ace_gutter-cell')) {
-        Object.values(errorTooltips).forEach((tooltip: any) => (tooltip.style.display = 'none'));
+        // Hide all tooltips from this editor and other editors
+        Object.values(errorTooltips)?.forEach((tooltip: any) => (tooltip.style.display = 'none'));
+        document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`).forEach((tooltip: any) => {
+          tooltip.style.display = 'none';
+        });
       }
     });
 
@@ -286,9 +310,13 @@ export function setCodeEditor(
     editorContainer?.addEventListener('mouseout', function (event) {
       // Check if the mouse has actually left the container
       if (!editorContainer.contains(event.relatedTarget)) {
+        // Hide all tooltips from this editor and other editors
         Object?.values(errorTooltips)?.forEach?.(
           (tooltip: any) => (tooltip.style.display = 'none'),
         );
+        document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`)?.forEach((tooltip: any) => {
+          tooltip.style.display = 'none';
+        });
       }
     });
 
