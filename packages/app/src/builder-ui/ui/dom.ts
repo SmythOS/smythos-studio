@@ -136,6 +136,8 @@ export function setCodeEditor(
     const div: any = document.createElement('div');
     div.id = 'ace-editor-styles';
     div.className = 'ace-editor ace-editor-sidebar ' + textArea?.className;
+    // Remove any overflow classes that might cause scrollbars in sidebar mode
+    div.classList.remove('overflow-y-auto', 'overflow-x-auto', 'overflow-auto', 'overflow-scroll');
     textArea.parentNode.insertBefore(div, textArea?.nextSibling);
     textArea?.classList?.add('hidden');
 
@@ -146,6 +148,9 @@ export function setCodeEditor(
       wrap: wrapLine, // enable horizontal scrolling
       showGutter: showLineNumbers,
       showLineNumbers,
+      // Hide scrollbars for sidebar editors since they grow to show all content
+      vScrollBarAlwaysVisible: false,
+      hScrollBarAlwaysVisible: false,
     });
     // Remove fixed height and allow content to determine height
     editor.container.style.height = 'auto';
