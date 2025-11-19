@@ -82,6 +82,7 @@ const config = {
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
     PUB_API_SERVER: process.env.PUB_API_SERVER,
+    IS_AWS_ENVIRONMENT: process.env.IS_AWS_ENVIRONMENT || false,
   },
   api: {
     SMYTH_USER_API_URL: `${MW_BASE_URL}/v1`,
