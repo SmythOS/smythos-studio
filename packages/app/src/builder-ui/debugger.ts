@@ -32,6 +32,7 @@ import {
   updateDebugControls,
   updateDebugControlsOnSelection,
 } from './utils/debugger.utils';
+import { extractWorkflows } from './workspace/ComponentSort';
 import { Monitor } from './workspace/Monitor';
 
 const DEBUG_INJECT_TEXT_EXPERIMENT_VARIANTS = {
@@ -2692,6 +2693,38 @@ export function createDebugInjectDialog(
     dialog,
     actionType: 'step' | 'run',
   ) {
+    const agentData = (await workspace.export(false)) || workspace?.agent?.data;
+    const workflows = await extractWorkflows(agentData);
+
+    const selectedWorkflow = workflows.filter((wf) =>
+      wf.components.some((wc) => wc?.id === component?.uid),
+    );
+
+    // Before moving to the new session
+    // Reset the debug state of the selected workflow
+    selectedWorkflow?.forEach((wf) => {
+      wf?.components?.forEach((wc) => {
+        const compElement = document.querySelector(`#${wc?.id}`);
+        const dbgValues = compElement.querySelectorAll(`.dbg-output`);
+        const dbgBar: HTMLElement = compElement.querySelector(`.debug-bar`);
+        const dbgBox: HTMLElement = document.querySelector(`.debug-box[rel="${wc?.id}"]`);
+
+        if (compElement && dbgValues?.length > 0) {
+          dbgValues.forEach((dbgValue) => {
+            dbgValue?.remove();
+          });
+        }
+
+        if (compElement && dbgBar) {
+          dbgBar.style.display = 'none';
+        }
+
+        if (compElement && dbgBox) {
+          dbgBox?.remove();
+        }
+      });
+    });
+
     // Check if the current component has an error
     const hasError = component.domElement.querySelector('.error');
 
