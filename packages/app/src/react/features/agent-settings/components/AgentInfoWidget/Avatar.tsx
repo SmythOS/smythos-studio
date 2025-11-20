@@ -22,7 +22,7 @@ interface AgentInfoWidgetAvatarProps {
   tooltipText?: string;
 }
 const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, tooltipText }) => {
-  const { agentId, settingsQuery }: any = useAgentSettingsCtx();
+  const { agentId, settingsQuery } = useAgentSettingsCtx();
   const queryClient = useQueryClient();
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -50,7 +50,9 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
       if (event.detail?.agentId === agentId && event.detail?.avatarUrl) {
         setCurrentAvatar(event.detail.avatarUrl);
         // Invalidate the settings query to refresh the data
-        queryClient.invalidateQueries(['agentSettings', agentId]);
+        queryClient.invalidateQueries({
+          queryKey: ['agentSettings', agentId],
+        });
       }
     };
 
