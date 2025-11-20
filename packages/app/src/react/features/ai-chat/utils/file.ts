@@ -15,10 +15,7 @@ export const FILE_LIMITS = {
  * @returns {string | null} Preview URL or null if preview not possible
  */
 export const getLocalPreviewUrl = (file: File): string | null => {
-  if (file.type.startsWith('image/')) {
-    return URL.createObjectURL(file);
-  }
-  return null;
+  return file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
 };
 
 /**
@@ -52,6 +49,10 @@ export const deleteFile = async (key: string): Promise<boolean> => {
   }
 };
 
+// Helper function to generate a unique ID for each file
+export const generateUniqueFileId = (file: File): string => {
+  return `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
 /**
  * Creates file metadata object from a file
  * @param file The file to create metadata for
@@ -59,6 +60,6 @@ export const deleteFile = async (key: string): Promise<boolean> => {
  */
 export const createFileMetadata = (file: File): IMessageFile => ({
   file,
-  id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  id: generateUniqueFileId(file),
   metadata: { fileType: file.type, previewUrl: getLocalPreviewUrl(file), isUploading: true },
 });

@@ -9,6 +9,7 @@ import {
   Footer,
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
+import { ChatContextProvider } from '@react/features/ai-chat/contexts/index.new';
 import { useAgentChatContext, useScrollToBottom } from '@react/features/ai-chat/hooks';
 
 /**
@@ -65,31 +66,33 @@ const AgentChatPage = () => {
   // ============================================================================
 
   return (
-    <ChatProvider value={chatContextValue}>
-      <Container>
-        <ChatHeader agent={agent} isLoading={isLoading} agentSettings={agentSettings?.settings} />
+    <ChatContextProvider>
+      <ChatProvider value={chatContextValue}>
+        <Container>
+          <ChatHeader agent={agent} isLoading={isLoading} agentSettings={agentSettings?.settings} />
 
-        <Chats
-          {...scroll}
-          agent={agent}
-          messages={sharedMessagesHistory}
-          containerRef={chatContainerRef}
-          handleFileDrop={handleFileDrop}
-          smartScrollToBottom={smartScrollToBottom}
-        />
+          <Chats
+            {...scroll}
+            agent={agent}
+            messages={sharedMessagesHistory}
+            containerRef={chatContainerRef}
+            handleFileDrop={handleFileDrop}
+            smartScrollToBottom={smartScrollToBottom}
+          />
 
-        <Footer
-          chatInputRef={chatInputRef}
-          clearError={chatContextValue.clearError}
-          uploadError={chatContextValue.uploadError}
-          scrollToBottom={scrollToBottom}
-          showScrollButton={showScrollButton}
-          submitDisabled={
-            isLoading.chatCreating || isLoading.agent || chatContextValue.uploadingFiles.size > 0
-          }
-        />
-      </Container>
-    </ChatProvider>
+          <Footer
+            chatInputRef={chatInputRef}
+            clearError={chatContextValue.clearError}
+            uploadError={chatContextValue.uploadError}
+            scrollToBottom={scrollToBottom}
+            showScrollButton={showScrollButton}
+            submitDisabled={
+              isLoading.chatCreating || isLoading.agent || chatContextValue.uploadingFiles.size > 0
+            }
+          />
+        </Container>
+      </ChatProvider>
+    </ChatContextProvider>
   );
 };
 

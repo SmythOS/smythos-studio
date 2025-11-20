@@ -132,22 +132,19 @@ export const useAgentChatContext = (
     clearError,
     isUploadInProgress,
     clearFiles,
-  } = useFileUpload({
-    agentId,
-    chatId: agentSettings?.lastConversationId,
-  });
+  } = useFileUpload({ agentId, chatId: agentSettings?.lastConversationId });
 
   // ============================================================================
   // CHAT STATE MANAGEMENT
   // ============================================================================
 
   const {
-    messages: messagesHistory,
     isGenerating,
-    isProcessing: isInputProcessing,
-    sendMessage: sendChatMessage,
-    retryLastMessage,
     stopGenerating,
+    retryLastMessage,
+    messages: messagesHistory,
+    sendMessage: sendChatMessage,
+    isProcessing: isInputProcessing,
     clearMessages: clearChatMessages,
   } = useChat({
     agentId,
@@ -169,7 +166,7 @@ export const useAgentChatContext = (
 
   const inputDisabled = isChatCreating || isAgentLoading || isInputProcessing;
   const queryInputPlaceholder = agent ? `Message ${agent.name}...` : 'Message ...';
-  const isMaxFilesUploaded = files.length >= 10; // FILE_LIMITS.MAX_ATTACHED_FILES
+  const isMaxFilesUploaded = files.length >= 10;
 
   // No conversion needed - using same types now! ✅
   const sharedMessagesHistory: IChatMessage[] = messagesHistory;

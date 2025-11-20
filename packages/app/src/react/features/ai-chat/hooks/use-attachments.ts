@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ChatAPIClient } from '@react/features/ai-chat/clients/chat-api.client';
 import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
@@ -7,43 +6,23 @@ import {
   createFileMetadata,
   deleteFile,
   FILE_LIMITS,
+  generateUniqueFileId,
   validateSingleFile,
 } from '@react/features/ai-chat/utils/file';
 
-interface FileUploadError {
-  show: boolean;
-  message: string;
-}
-
-interface UseFileUploadReturn {
-  files: IMessageFile[];
-  uploadingFiles: Set<string>;
-  uploadError: FileUploadError;
-  handleFileChange: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  handleFileDrop: (droppedFiles: File[]) => Promise<void>;
-  removeFile: (index: number) => Promise<void>;
-  clearError: () => void;
-  isUploadInProgress: boolean;
-  clearFiles: () => void;
-}
-
-// Helper function to generate a unique ID for each file
-const generateUniqueFileId = (file: File): string => {
-  return `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-
-export const useFileUpload = (params?: {
+interface IProps {
   agentId?: string;
   chatId?: string;
-}): UseFileUploadReturn => {
-  const agentId = params?.agentId || '';
-  const chatId = params?.chatId;
+}
+
+export const useAttachments = (props: IProps) => {
+  const { agentId, chatId } = props || {};
+
   const [files, setFiles] = useState<IMessageFile[]>([]);
+  const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
-  const [uploadError, setUploadError] = useState<FileUploadError>({ show: false, message: '' });
-
-  const isUploadInProgress = uploadingFiles.size > 0;
+  const isLoading = uploadingIds.size > 0;
 
   // Create ChatAPIClient instance for file uploads (memoized to avoid recreating)
   const chatClient = useMemo(() => new ChatAPIClient(), []);
@@ -51,28 +30,21 @@ export const useFileUpload = (params?: {
   // Auto-clear upload error after 5 seconds when it becomes visible
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    if (uploadError.show) {
-      timeoutId = setTimeout(() => {
-        setUploadError({ show: false, message: '' });
-      }, 5000);
+    if (errorMessage) {
+      timeoutId = setTimeout(() => setErrorMessage(''), 5000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [uploadError.show]);
+  }, [errorMessage]);
 
-  const clearError = useCallback(() => setUploadError({ show: false, message: '' }), []);
-  const clearFiles = useCallback(() => setFiles([]), []);
-
-  const processFiles = useCallback(
+  const addFiles = useCallback(
     async (newFiles: File[]) => {
+      if (files.length === 0) return;
       const remainingSlots = FILE_LIMITS.MAX_ATTACHED_FILES - files.length;
 
       if (remainingSlots <= 0) {
-        setUploadError({
-          show: true,
-          message: `Maximum ${FILE_LIMITS.MAX_ATTACHED_FILES} files allowed`,
-        });
+        setErrorMessage(`Maximum ${FILE_LIMITS.MAX_ATTACHED_FILES} files allowed`);
         return;
       }
 
@@ -87,25 +59,21 @@ export const useFileUpload = (params?: {
 
       // Always surface an error if any invalid files were included
       if (invalidFiles.length > 0) {
-        setUploadError({
-          show: true,
-          message: invalidFiles[0].error || 'Failed to upload file',
-        });
+        setErrorMessage(invalidFiles[0].error || 'Failed to upload file');
       }
 
       if (validFiles.length > 0) {
         const filesToUpload = validFiles.slice(0, remainingSlots);
 
         if (validFiles.length > remainingSlots) {
-          setUploadError({
-            show: true,
-            message: `You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files. Extra files were ignored.`,
-          });
+          setErrorMessage(
+            `You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files. Extra files were ignored.`,
+          );
         }
 
         // Add files to uploadingFiles set using unique IDs
         const newFileIds = new Set(filesToUpload.map((f) => f.id));
-        setUploadingFiles((prev) => new Set([...prev, ...newFileIds]));
+        setUploadingIds((prev) => new Set([...prev, ...newFileIds]));
 
         // Add files to state with metadata and unique IDs
         setFiles((prevFiles) => [
@@ -139,12 +107,9 @@ export const useFileUpload = (params?: {
             );
           } catch (error) {
             setFiles((prevFiles) => prevFiles.filter((f) => f.id !== id));
-            setUploadError({
-              show: true,
-              message: error instanceof Error ? error.message : 'Failed to upload file',
-            });
+            setErrorMessage(error instanceof Error ? error.message : 'Failed to upload file');
           } finally {
-            setUploadingFiles((prev) => {
+            setUploadingIds((prev) => {
               const next = new Set(prev);
               next.delete(id);
               return next;
@@ -158,21 +123,6 @@ export const useFileUpload = (params?: {
     [files.length, agentId, chatId, chatClient],
   );
 
-  const handleFileChange = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>) => {
-      if (!e.target.files?.length) return;
-      await processFiles(Array.from(e.target.files));
-    },
-    [processFiles],
-  );
-
-  const handleFileDrop = useCallback(
-    async (droppedFiles: File[]) => {
-      if (droppedFiles.length > 0) await processFiles(droppedFiles);
-    },
-    [processFiles],
-  );
-
   const removeFile = useCallback(
     async (index: number) => {
       const fileToRemove = files[index];
@@ -184,13 +134,10 @@ export const useFileUpload = (params?: {
 
   return {
     files,
-    uploadingFiles,
-    uploadError,
-    handleFileChange,
-    handleFileDrop,
+    isLoading,
+    errorMessage,
+
+    addFiles,
     removeFile,
-    clearError,
-    isUploadInProgress,
-    clearFiles,
   };
 };
