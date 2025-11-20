@@ -60,7 +60,7 @@ export async function handleKvFieldEditBtn(
     //dispatch custom event for consistency
     const changeEvent = new Event('change');
     field.dispatchEvent(changeEvent);
-    
+
     // Also dispatch input event for auto-save
     const inputEvent = new Event('input', { bubbles: true });
     field.dispatchEvent(inputEvent);
@@ -463,7 +463,7 @@ const _compMenuMarkup = ({ data, compName, placeholderLogo, compDisplayName }: C
             </span>
 
 
-            <span class="name flex-1 ml-3 whitespace-nowrap overflow-x-hidden max-w-[130px]">${compDisplayName}</span>
+            <span class="name flex-1 ml-3 whitespace-nowrap overflow-x-hidden">${compDisplayName}</span>
             ${deleteBtn}
         </a>
 
@@ -1132,4 +1132,3 @@ export function addTooltipToLockBadge(element, tooltipText) {
 
 export { default as PromptGeneratorUtils } from './PromptGenerator.utils';
 export { default as VisionLLMUtils } from './VisionLLM.utils';
-

@@ -3,6 +3,8 @@
   @toggle-sidebar-request.window="toggleSidebar()"
   class="max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
+    // Static widths only apply when sidebarWidth is not set (!sidebarWidth)
+    // When sidebarWidth exists, width is controlled via inline styles
     'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab' && !sidebarWidth,
     'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab' && !sidebarWidth,
     'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab') && !sidebarWidth,
@@ -100,7 +102,11 @@
         </div>
       </div>
 
-      
+      <!-- Container for dynamically inserted Integrations button -->
+      <div id="sidebar-components-integrations-panel" data-qa="sidebar-components-integrations-panel"></div>
+
+      <!-- Container for dynamically inserted Template button (Internal use only) -->
+      <div id="sidebar-template-panel"></div>
 
       <!-- Deploy -->
       <div class="relative group deploy-btn">
@@ -574,11 +580,34 @@
         'variablesTab',
         'authTab',
         'deployTab',
+        'integrationsTab',
         'templateTab',
       ],
 
       get isBuildSidebarOpen() {
         return this.buildSidebarTabs.includes(this.currentSidebarTab);
+      },
+
+      /**
+       * Calculate the left position for the auto-save notifier
+       * Simple formula: sidebar left position + sidebar width + padding
+       * @returns {string} CSS left value in pixels
+       */
+      get agentStatusLeft() {
+        if (!this.isSidebarOpen) {
+          return '84px';
+        }
+        
+        // Sidebar left position: 80px on desktop (64px nav + 16px), 6px on mobile
+        const sidebarLeft = window.innerWidth >= 768 ? 80 : 6;
+        
+        // Get sidebar width from stored value or use default from getLeftSidebarWidth()
+        const sidebarWidth = this.sidebarWidth 
+          ? parseInt(this.sidebarWidth) 
+          : parseInt(getLeftSidebarWidth());
+        
+        // Position = sidebar left + sidebar width + padding
+        return `${sidebarLeft + sidebarWidth + 8}px`;
       },
 
       // Add special handler for the help tab
@@ -700,6 +729,7 @@
         window.addEventListener('leftSidebarResized', (event) => {
           this.sidebarWidth = event.detail.width;
           applyWidth(event.detail.width);
+          // The agentStatusLeft getter will automatically update via Alpine reactivity
         });
 
         // Watch sidebarWidth changes and apply to DOM
