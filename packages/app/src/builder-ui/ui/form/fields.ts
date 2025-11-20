@@ -292,6 +292,8 @@ interface TextAreaWithEditor extends HTMLTextAreaElement {
     setValue: (value: string) => void;
     focus: () => void;
     container?: HTMLElement;
+    setOption?: (option: string, value: number | boolean | null) => void;
+    resize?: (force: boolean) => void;
   };
 }
 
@@ -700,6 +702,25 @@ async function initializeCodeEditor(
   if (textarea._editor) {
     textarea._editor.setValue(initialValue);
     textarea._editor.focus();
+
+    // For modal context, configure the ace editor to handle scrolling properly
+    // The ace editor is configured with maxLines: Infinity which makes it grow to show all content
+    // We need to enable the ace editor's internal scrolling for long content in modals
+    if (textarea._editor.container && textarea._editor.setOption && textarea._editor.resize) {
+      const editorContainer = textarea._editor.container;
+      // Override maxLines to enable internal scrolling instead of infinite growth
+      textarea._editor.setOption('maxLines', null);
+      // Set a reasonable height that fits within the modal
+      editorContainer.style.height = '100%';
+      editorContainer.style.minHeight = '200px';
+      // Ensure the ace editor's scrollbars are visible
+      textarea._editor.setOption('vScrollBarAlwaysVisible', false);
+      textarea._editor.setOption('hScrollBarAlwaysVisible', false);
+      // Remove the sidebar class to allow scrollbars in modals
+      editorContainer.classList.remove('ace-editor-sidebar');
+      // Trigger resize to apply new dimensions
+      textarea._editor.resize(true);
+    }
 
     // Setup bracket selection for Ace editor content
     const aceContentElement = textarea._editor.container?.querySelector('.ace_content') as HTMLElement | null;
