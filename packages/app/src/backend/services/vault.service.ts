@@ -236,7 +236,7 @@ export async function checkIfVaultSecretExists({
 }
 
 export function getUserToken(req: Request) {
-  if (config.env.SMYTH_VAULT_API_BASE_URL.includes('localhost')) {
+  if (config.env.SMYTH_VAULT_API_BASE_URL.includes('localhost') || !!config.env.IS_AWS_ENVIRONMENT) {
     return req?.user?.accessToken;
   }
   return req?.session?.idToken;
