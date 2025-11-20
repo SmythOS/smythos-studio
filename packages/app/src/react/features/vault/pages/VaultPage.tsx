@@ -6,13 +6,13 @@ import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { Loader2 } from 'lucide-react';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
-import { VectorDatabases } from '../../credentials/components/vector-databases';
 import { ApiKeys } from '../components/api-keys';
 import { OAuthConnections } from '../components/oauth-connections';
 import UserCustomModels from '../components/user-custom-models';
 import { UserModels } from '../components/user-models';
+import { VectorDatabases } from '../components/vector-databases';
 import { useVault } from '../hooks/use-vault';
 
 export default function VaultPage() {
@@ -22,7 +22,7 @@ export default function VaultPage() {
   const hasBuiltinModels = useMemo(() => {
     const flags = userInfo?.subs?.plan?.properties?.flags;
     return (
-      // @ts-ignore
+      // @ts-expect-error - flags is not typed
       flags?.hasBuiltinModels || userInfo?.subs?.plan?.isDefaultPlan === true
     );
   }, [userInfo?.subs?.plan]);
@@ -49,6 +49,20 @@ export default function VaultPage() {
       setIsExporting(false);
     }
   };
+
+  useEffect(() => {
+    if (window.location.hash) {
+      async function scrollToHash() {
+        const id = window.location.hash.replace('#', '');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+      scrollToHash();
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (

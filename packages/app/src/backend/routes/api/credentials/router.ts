@@ -15,6 +15,7 @@ import express, { Request, Response } from 'express';
 import config from '../../../config';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
 import { authHeaders } from '../../../utils/api.utils';
+import { CredentialDependenciesChecker } from './dependencies';
 import {
   deleteVaultKeysFromCredentials,
   resolveVaultKeys,
@@ -325,6 +326,7 @@ credentialsRouter.put('/:id', includeTeamDetails, async (req: Request, res: Resp
 credentialsRouter.delete('/:id', includeTeamDetails, async (req: Request, res: Response) => {
   const { id } = req.params;
   const group = req.query.group as string;
+  const consentedWarnings = req.query.consentedWarnings as string;
 
   if (!group) {
     return res.status(400).json({
@@ -335,22 +337,41 @@ credentialsRouter.delete('/:id', includeTeamDetails, async (req: Request, res: R
 
   try {
     // Fetch existing credential to clean up vault keys
-    try {
-      const existing = await axios.get(`${smythAPIBaseUrl}/teams/settings/${id}`, {
-        params: { group },
-        ...(await authHeaders(req)),
+    const existing = await axios.get(`${smythAPIBaseUrl}/teams/settings/${id}`, {
+      params: { group },
+      ...(await authHeaders(req)),
+    });
+
+    const existingData = JSON.parse(existing.data?.setting?.settingValue || '{}');
+    if (!existingData.credentials) {
+      return res.status(400).json({
+        success: false,
+        error: 'Credential not found',
       });
-
-      const existingData = JSON.parse(existing.data?.setting?.settingValue || '{}');
-
-      // Delete associated vault keys
-      if (existingData.credentials) {
-        await deleteVaultKeysFromCredentials(existingData.credentials, req?._team?.id, req);
-      }
-    } catch (error) {
-      console.warn('[Credentials] Could not fetch credential for vault cleanup:', error);
-      // Continue with deletion even if vault cleanup fails
     }
+
+    // check if there are dependencies on this credential
+    const dependenciesChecker = new CredentialDependenciesChecker(req, id, group);
+    const dependenciesResult = await dependenciesChecker.checkDependencies();
+
+    if (dependenciesResult.errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: dependenciesResult.errors.join('\n'),
+      });
+    } else if (consentedWarnings != 'true' && dependenciesResult.warnings.length > 0) {
+      return res.status(200).json({
+        success: false,
+        warnings: dependenciesResult.warnings,
+      });
+    }
+
+    // Delete associated vault keys
+    await deleteVaultKeysFromCredentials(existingData.credentials, req?._team?.id, req).catch(
+      (error) => {
+        console.warn('[Credentials] Could not delete vault keys:', error);
+      },
+    );
 
     // Delete the credential from team settings
     await axios.delete(`${smythAPIBaseUrl}/teams/settings/${id}`, {

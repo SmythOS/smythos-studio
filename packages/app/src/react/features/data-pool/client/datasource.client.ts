@@ -88,7 +88,7 @@ export const datasourceClient = {
       const formData = new FormData();
       formData.append('datasourceLabel', request.datasourceLabel);
       formData.append('file', request.file);
-      
+
       if (request.chunkSize !== undefined) {
         formData.append('chunkSize', String(request.chunkSize));
       }
@@ -109,8 +109,7 @@ export const datasourceClient = {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = extractErrorMessage(errorData, 'Failed to create datasource');
-        throw new Error(errorMessage);
+        throw errorData;
       }
 
       const result: CreateDatasourceResponse = await response.json();
@@ -119,7 +118,7 @@ export const datasourceClient = {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to create datasource');
+      throw new Error(extractErrorMessage(error, 'Failed to create datasource'));
     }
   },
 
@@ -151,4 +150,3 @@ export const datasourceClient = {
     }
   },
 };
-

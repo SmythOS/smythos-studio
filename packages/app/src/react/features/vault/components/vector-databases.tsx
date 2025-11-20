@@ -15,18 +15,18 @@
 
 import { Button } from '@src/react/shared/components/ui/button';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
-import { errorToast, successToast } from '@src/shared/components/toast';
+import { successToast } from '@src/shared/components/toast';
 import { Tooltip } from 'flowbite-react';
 import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { credentialsClient } from '../clients/credentials.client';
-import credentialsSchema from '../credentials-schema.json';
-import { useCredentials } from '../hooks/use-credentials';
 import {
-    CreateCredentialsModal,
-    type CredentialConnection,
-} from './create-credentials.modal';
-import { CredentialsListSkeleton } from './credentials-list-skeleton';
+  CreateCredentialsModal,
+  type CredentialConnection,
+} from '../../credentials/components/create-credentials.modal';
+import { CredentialsListSkeleton } from '../../credentials/components/credentials-list-skeleton';
+import { DeleteCredentialsModal } from '../../credentials/components/delete-credentials.modal';
+import credentialsSchema from '../../credentials/credentials-schema.json';
+import { useCredentials } from '../../credentials/hooks/use-credentials';
 
 /**
  * Provider schema definition
@@ -56,7 +56,7 @@ export function VectorDatabases() {
   // State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingConnection, setEditingConnection] = useState<CredentialConnection | undefined>();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [deletingConnection, setDeletingConnection] = useState<CredentialConnection | undefined>();
 
   // Fetch credentials using the hook
   const { credentials, isLoading, refetch } = useCredentials('vector_db_creds');
@@ -112,30 +112,23 @@ export function VectorDatabases() {
   /**
    * Handle delete button click
    */
-  const handleDeleteClick = async (connection: CredentialConnection) => {
-    // Simple confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${connection.name}"? This action cannot be undone.`
-    );
+  const handleDeleteClick = (connection: CredentialConnection) => {
+    setDeletingConnection(connection);
+  };
 
-    if (!confirmed) return;
+  /**
+   * Handle successful deletion
+   */
+  const handleDeleteSuccess = () => {
+    setDeletingConnection(undefined);
+    refetch();
+  };
 
-    setIsProcessing(true);
-    try {
-      await credentialsClient.deleteCredential(connection.id, 'vector_db_creds');
-      
-      successToast('Connection deleted successfully.');
-      
-      // Refetch the credentials list
-      refetch();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error deleting connection:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete connection. Please try again.';
-      errorToast(errorMessage);
-    } finally {
-      setIsProcessing(false);
-    }
+  /**
+   * Handle delete modal close
+   */
+  const handleDeleteModalClose = () => {
+    setDeletingConnection(undefined);
   };
 
 
@@ -148,7 +141,9 @@ export function VectorDatabases() {
   };
 
   return (
-    <div className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
+    <div
+    id="vector-databases"
+    className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
@@ -184,61 +179,55 @@ export function VectorDatabases() {
                 </tr>
               </thead>
               <tbody>
-                {credentials.map((connection) => {
-                  const isDisabled = isProcessing;
+                {credentials.map((connection) => (
+                  <tr key={connection.id} className="border-t">
+                    {/* Connection Name */}
+                    <td className="pr-4 py-3 truncate" title={connection.name}>
+                      <span className="font-medium">{connection.name}</span>
+                    </td>
 
-                  return (
-                    <tr key={connection.id} className="border-t">
-                      {/* Connection Name */}
-                      <td className="pr-4 py-3 truncate" title={connection.name}>
-                        <span className="font-medium">{connection.name}</span>
-                      </td>
+                    {/* Provider */}
+                    <td className="px-4 py-3" title={getProviderName(connection.provider)}>
+                      <div className="flex items-center gap-2">
+                        {getProviderLogo(connection.provider) && (
+                          <img
+                            src={getProviderLogo(connection.provider)}
+                            alt={getProviderName(connection.provider)}
+                            className="w-5 h-5 object-contain"
+                          />
+                        )}
+                        <span className="truncate">{getProviderName(connection.provider)}</span>
+                      </div>
+                    </td>
 
-                      {/* Provider */}
-                      <td className="px-4 py-3" title={getProviderName(connection.provider)}>
-                        <div className="flex items-center gap-2">
-                          {getProviderLogo(connection.provider) && (
-                            <img
-                              src={getProviderLogo(connection.provider)}
-                              alt={getProviderName(connection.provider)}
-                              className="w-5 h-5 object-contain"
-                            />
-                          )}
-                          <span className="truncate">{getProviderName(connection.provider)}</span>
-                        </div>
-                      </td>
+                    {/* Actions */}
+                    <td className="pl-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Edit Button */}
+                        <Tooltip content="Edit">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(connection)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Tooltip>
 
-                      {/* Actions */}
-                      <td className="pl-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* Edit Button */}
-                          <Tooltip content="Edit">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditClick(connection)}
-                              disabled={isDisabled}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </Tooltip>
-
-                          {/* Delete Button */}
-                          <Tooltip content="Delete">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteClick(connection)}
-                              disabled={isDisabled}
-                            >
-                              <Trash2 className="h-4 w-4 hover:text-red-500" />
-                            </Button>
-                          </Tooltip>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        {/* Delete Button */}
+                        <Tooltip content="Delete">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(connection)}
+                          >
+                            <Trash2 className="h-4 w-4 hover:text-red-500" />
+                          </Button>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
@@ -255,7 +244,7 @@ export function VectorDatabases() {
               setIsCreateModalOpen(true);
             }}
             label="Add Vector Database"
-            disabled={isLoading || isProcessing}
+            disabled={isLoading}
           />
         </div>
       </div>
@@ -268,6 +257,18 @@ export function VectorDatabases() {
         group="vector_db_creds"
         editConnection={editingConnection}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deletingConnection && (
+        <DeleteCredentialsModal
+          isOpen={!!deletingConnection}
+          credentialId={deletingConnection.id}
+          credentialName={deletingConnection.name}
+          group="vector_db_creds"
+          onClose={handleDeleteModalClose}
+          onSuccess={handleDeleteSuccess}
+        />
+      )}
     </div>
   );
 }

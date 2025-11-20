@@ -152,6 +152,11 @@ const DataPoolPageContent: FC = () => {
   return (
     <div className={`${isSmallScreen ? 'small-screen-sidebar-margin' : ''} container mx-auto py-6`}>
       {/* Header Section */}
+
+      {/* Show a highlighted, beautiful info card if there are no credentials */}
+      {/* {credentials.length === 0 && !credentialsLoading && (
+        <AddCredentialBanner />
+      )} */}
       <div className="flex items-center justify-end flex-wrap md:flex-nowrap pb-6 gap-2">
         {/* Search Input */}
         <div className="relative">
@@ -169,7 +174,7 @@ const DataPoolPageContent: FC = () => {
             handleClick={() => setIsCreateModalOpen(true)}
             addIcon={true}
             label="Add Data Space"
-            disabled={credentialsLoading || credentials.length === 0}
+            disabled={credentialsLoading}
           />
         )}
       </div>
@@ -214,14 +219,17 @@ const DataPoolPageContent: FC = () => {
                       addIcon={true}
                       label="Add Data Space"
                       className="flex-1 w-[190px] md:w-auto"
-                      disabled={credentialsLoading || credentials.length === 0}
+                      disabled={credentialsLoading
+                        //  || credentials.length === 0
+
+                      }
                     />
                   </div>
-                  {credentials.length === 0 && !credentialsLoading && (
+                  {/* {credentials.length === 0 && !credentialsLoading && (
                     <p className="text-xs text-amber-600 mt-4">
                       Please add a vector database connection in the Vault page first.
                     </p>
-                  )}
+                  )} */}
                 </>
               ) : (
                 <div className="text-center">

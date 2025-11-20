@@ -74,7 +74,7 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
                         className="w-5 h-5 object-contain"
                       />
                     )}
-                    <span>{credential?.name || 'Unknown'}</span>
+                    <span>{credential?.name || 'Deleted'}</span>
                   </div>
                 </td>
 

@@ -16,10 +16,15 @@ import type {
  * Extract error message from nested error structure
  */
 const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
+  console.log('error', error);
   // Type guard to check if error is an object
   if (typeof error === 'object' && error !== null) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const errorObj = error as Record<string, any>;
+
+    if (typeof errorObj.error === 'string') {
+      return errorObj.error;
+    }
 
     // Handle nested error: { error: { error: "message" } }
     if (
@@ -75,8 +80,7 @@ export const dataPoolClient = {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = extractErrorMessage(errorData, 'Failed to fetch namespaces');
-        throw new Error(errorMessage);
+        throw errorData;
       }
 
       const result = await response.json();
@@ -85,7 +89,7 @@ export const dataPoolClient = {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to fetch namespaces');
+      throw new Error(extractErrorMessage(error, 'Failed to create namespace'));
     }
   },
 
@@ -120,7 +124,7 @@ export const dataPoolClient = {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to create namespace');
+      throw new Error(extractErrorMessage(error, 'Failed to create namespace'));
     }
   },
 
@@ -138,8 +142,7 @@ export const dataPoolClient = {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = extractErrorMessage(errorData, 'Failed to fetch embedding models');
-        throw new Error(errorMessage);
+        throw errorData;
       }
 
       const result = await response.json();
@@ -148,7 +151,7 @@ export const dataPoolClient = {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to fetch embedding models');
+      throw new Error(extractErrorMessage(error, 'Failed to fetch embedding models'));
     }
   },
 

@@ -16,7 +16,7 @@ export class DataSourceIndexer extends Component {
     const componentVersion =
       this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
 
-    if (this.isNewComponent) {
+    if (this.isNewComponent && eligibleForV2) {
       this.data.version = componentVersion;
     }
 

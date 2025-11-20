@@ -31,6 +31,11 @@ const getAuthHeaders = (req: any) => {
     headers['Authorization'] = `Bearer ${req.user.accessToken}`;
   }
 
+  console.log('headers: x-smyth-team-id', req.headers['x-smyth-team-id']);
+  if (req.headers['x-smyth-team-id']) {
+    headers['x-smyth-team-id'] = req.headers['x-smyth-team-id'];
+  }
+
   // Add debug header for routing through debugger server
   headers['x-smyth-debug'] = 'true';
 

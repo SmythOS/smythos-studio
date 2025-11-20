@@ -171,23 +171,39 @@ export const credentialsClient = {
   /**
    * Delete a credential
    */
-  deleteCredential: async (id: string, group: string): Promise<void> => {
+  deleteCredential: async (
+    id: string,
+    group: string,
+    consentedWarnings: boolean = false,
+  ): Promise<{ success: boolean; warnings?: string[] }> => {
     try {
-      const response = await fetch(
-        `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      const url = `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}${consentedWarnings ? '&consentedWarnings=true' : ''}`;
+      
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to delete credential:', errorData);
-        throw new Error(errorData.error || 'Failed to delete credential');
+      const data = await response.json();
+
+      // Handle warnings response (200 with success: false)
+      if (response.ok && !data.success && data.warnings) {
+        return {
+          success: false,
+          warnings: data.warnings,
+        };
       }
+
+      // Handle error response
+      if (!response.ok) {
+        console.error('Failed to delete credential:', data);
+        throw new Error(data.error || 'Failed to delete credential');
+      }
+
+      // Success
+      return { success: true };
     } catch (error) {
       console.error('Error deleting credential:', error);
       throw new Error(error.message || 'Failed to delete credential');

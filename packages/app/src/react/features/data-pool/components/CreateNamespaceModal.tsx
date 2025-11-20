@@ -21,7 +21,11 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { PlusCircle } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
+import {
+  CreateCredentialsModal
+} from '../../credentials/components/create-credentials.modal';
 import credentialsSchema from '../../credentials/credentials-schema.json';
 import { dataPoolClient } from '../client/datapool.client';
 import { useDataPoolContext } from '../contexts/data-pool.context';
@@ -44,7 +48,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { credentials, credentialsLoading, getCredentialById } = useDataPoolContext();
+  const { credentials, credentialsLoading, getCredentialById, refetchCredentials } = useDataPoolContext();
   const [name, setName] = useState('');
   const [selectedCredentialId, setSelectedCredentialId] = useState('');
   const [embeddingModels, setEmbeddingModels] = useState<EmbeddingModel[]>([]);
@@ -53,6 +57,9 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State for Create Credentials Modal
+  const [isCreateCredModalOpen, setIsCreateCredModalOpen] = useState(false);
 
   /**
    * Get provider logo URL from schema
@@ -143,9 +150,38 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   /**
    * Handle credential selection change
    */
-  const handleCredentialChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCredentialId(e.target.value);
+  const handleCredentialChange = (value: string) => {
+    // If "create_new" is selected, open the create credentials modal
+    if (value === '__create_new__') {
+      setIsCreateCredModalOpen(true);
+      return;
+    }
+    
+    setSelectedCredentialId(value);
     setError(null);
+  };
+
+  /**
+   * Handle successful credential creation
+   */
+  const handleCredentialCreated = (data: {
+    id?: string;
+    name: string;
+    provider: string;
+    credentials: Record<string, string>;
+    isEdit: boolean;
+  }) => {
+    // Close the create credentials modal
+    setIsCreateCredModalOpen(false);
+    
+    // Refetch credentials to get the new one
+    refetchCredentials();
+    
+    // Auto-select the newly created credential
+    if (data.id) {
+      setSelectedCredentialId(data.id);
+      successToast('Connection created successfully. You can now use it.');
+    }
   };
 
   /**
@@ -159,8 +195,10 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   const isFormValid = name.trim() !== '' && selectedCredentialId !== '' && selectedModelId !== '';
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+    <>
+    <Dialog 
+     open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={'sm:max-w-[500px] max-h-[90vh] overflow-y-auto'}>
         <DialogHeader>
           <DialogTitle>Create Data Space</DialogTitle>
           <p className="text-sm text-gray-600 mt-1">
@@ -183,7 +221,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
               </label>
               <Select
                 value={selectedCredentialId}
-                onValueChange={setSelectedCredentialId}
+                onValueChange={handleCredentialChange}
                 disabled={credentialsLoading || isCreating}
               >
                 <SelectTrigger className="w-full" disabled={credentialsLoading || isCreating}>
@@ -207,9 +245,23 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Create New Connection Option */}
+                  <SelectItem value="__create_new__">
+                    <div className="flex items-center gap-2 text-blue-600 font-medium">
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Create New Connection</span>
+                    </div>
+                  </SelectItem>
+                  
+                  {/* Separator */}
+                  {credentials.length > 0 && (
+                    <div className="border-t border-gray-200 my-1" />
+                  )}
+                  
+                  {/* Existing Credentials */}
                   {credentials.length === 0 ? (
                     <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      No vector database connections found
+                      No connections found
                     </div>
                   ) : (
                     credentials.map((cred) => {
@@ -232,11 +284,6 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                   )}
                 </SelectContent>
               </Select>
-              {credentials.length === 0 && !credentialsLoading && (
-                <p className="text-xs text-amber-600">
-                  No vector database connections found. Please add one in the Vault page first.
-                </p>
-              )}
             </div>
 
             {/* Name Input */}
@@ -328,7 +375,18 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      
     </Dialog>
+
+    {/* Create Credentials Modal */}
+    <CreateCredentialsModal
+    isOpen={isCreateCredModalOpen}
+    onClose={() => setIsCreateCredModalOpen(false)}
+    onSuccess={handleCredentialCreated}
+    group="vector_db_creds"
+  />
+  </>
   );
 };
 
