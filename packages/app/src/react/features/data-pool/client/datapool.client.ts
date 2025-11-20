@@ -15,45 +15,42 @@ import type {
 /**
  * Extract error message from nested error structure
  */
-const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
+export const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
   console.log('error', error);
   // Type guard to check if error is an object
+  let extractedMessage = defaultMessage;
+
   if (typeof error === 'object' && error !== null) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const errorObj = error as Record<string, any>;
 
-    if (typeof errorObj.error === 'string') {
-      return errorObj.error;
-    }
-
-    // Handle nested error: { error: { error: "message" } }
-    if (
+    if (typeof error === 'string') {
+      extractedMessage = error;
+    } else if (typeof errorObj.error === 'string') {
+      extractedMessage = errorObj.error;
+    } else if (
       typeof errorObj.error === 'object' &&
       errorObj.error !== null &&
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       typeof (errorObj.error as Record<string, any>).error === 'string'
     ) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (errorObj.error as Record<string, any>).error;
+      extractedMessage = (errorObj.error as Record<string, any>).error;
+    } else if (typeof errorObj.message === 'string') {
+      extractedMessage = errorObj.message;
     }
 
-    // Handle single level: { error: "message" }
-    if (typeof errorObj.error === 'string') {
-      return errorObj.error;
-    }
-
-    // Handle error object with message property
-    if (typeof errorObj.message === 'string') {
-      return errorObj.message;
+    if (extractedMessage.includes('Please provide an API key')) {
+      extractedMessage = extractedMessage.replace(
+        'via credentials or GOOGLE_AI_API_KEY environment variable',
+        'via the Vault page',
+      );
     }
   }
 
   // Handle string error
-  if (typeof error === 'string') {
-    return error;
-  }
 
-  return defaultMessage;
+  return extractedMessage;
 };
 
 export const dataPoolClient = {

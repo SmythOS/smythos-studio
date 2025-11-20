@@ -6,7 +6,7 @@
 
 import { Button } from '@src/react/shared/components/ui/button';
 import { Tooltip } from 'flowbite-react';
-import { Trash2 } from 'lucide-react';
+import { Sparkles, Trash2 } from 'lucide-react';
 import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import credentialsSchema from '../../credentials/credentials-schema.json';
@@ -54,14 +54,54 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
             const credential = getCredentialById(namespace.credentialId);
             const providerLogo = credential ? getProviderLogo(credential.provider) : undefined;
 
+            // Format model name for display (truncate if too long)
+            const getShortModelName = (modelId: string) => {
+              const maxLength = 20;
+              if (modelId.length > maxLength) {
+                return modelId.substring(0, maxLength) + '...';
+              }
+              return modelId;
+            };
+
             return (
-              <tr key={namespace.label} className="border-b hover:bg-gray-100 cursor-pointer hover:underline transition-colors text-left"
+              <tr key={namespace.label} className="border-b hover:bg-gray-100 cursor-pointer transition-colors text-left"
               onClick={() => navigate(`/data-pool/${encodeURIComponent(namespace.label)}/datasources`)}
               >
-                {/* Name */}
-                <td className="px-6 py-4 cursor-pointer font-medium text-gray-900" title={namespace.label}
-                >
-                  {namespace.label}
+                {/* Name with Embeddings Badge */}
+                <td className="px-6 py-4 cursor-pointer" title={namespace.label}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-gray-900 hover:underline">{namespace.label}</span>
+                    {namespace.embeddings && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Tooltip
+                          content={
+                            <div className="space-y-2 p-2 max-w-sm">
+                              <div className="flex items-start gap-2">
+                                <span className="text-purple-300 font-semibold text-xs whitespace-nowrap">Model:</span>
+                                <span className="text-white text-xs break-all">{namespace.embeddings.modelId}</span>
+                              </div>
+                              {namespace.embeddings.dimensions && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-purple-300 font-semibold text-xs whitespace-nowrap">Dimensions:</span>
+                                  <span className="text-white text-xs">{namespace.embeddings.dimensions}</span>
+                                </div>
+                              )}
+                            </div>
+                          }
+                          placement="right"
+                          className="w-auto"
+                        >
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 border border-purple-200 rounded-md text-purple-700 cursor-help hover:bg-purple-100 transition-colors shrink-0">
+                            <Sparkles className="h-3 w-3 shrink-0" />
+                            <span className="text-xs font-medium hidden sm:inline">{getShortModelName(namespace.embeddings.modelId)}</span>
+                            {namespace.embeddings.dimensions && (
+                              <span className="text-xs text-purple-500"><span className="hidden sm:inline">· </span>{namespace.embeddings.dimensions}d</span>
+                            )}
+                          </div>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
                 </td>
 
                 {/* Provider */}

@@ -11,6 +11,10 @@ export interface Namespace {
   namespaceId: string;
   label: string;
   credentialId: string;
+  embeddings?: {
+    modelId: string;
+    dimensions?: number;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

@@ -175,6 +175,7 @@ router.get('/status', includeTeamDetails, async (req, res) => {
         prod_agent_domain: config.env.PROD_AGENT_DOMAIN,
         server: 'Offline',
         smythos_edition: config.env.SMYTHOS_EDITION,
+        env: config.env.NODE_ENV,
       },
     });
   }

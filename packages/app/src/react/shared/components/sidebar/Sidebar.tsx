@@ -39,6 +39,7 @@ export const Sidebar: React.FC = () => {
   access['/templates'] = getPageAccess('/templates')?.read;
   access['/domains'] = getPageAccess('/domains')?.read;
   access['/data/'] = getPageAccess('/data')?.read;
+  access['/data-pool'] = getPageAccess('/data')?.read;
   // access['/data-pool'] = getPageAccess('/data-pool')?.read || true; // Default to true for community edition
   access['/analytics'] = getPageAccess('/analytics')?.read;
   access['/teams/settings'] = getPageAccess('/teams/members')?.read;

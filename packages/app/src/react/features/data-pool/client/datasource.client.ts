@@ -10,40 +10,7 @@ import type {
   Datasource,
   ListDatasourcesResponse,
 } from '../types/datasource.types';
-
-/**
- * Helper to extract error messages from various error structures
- */
-const extractErrorMessage = (error: unknown, defaultMessage: string): string => {
-  if (typeof error === 'object' && error !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const errorObj = error as Record<string, any>;
-
-    if (
-      typeof errorObj.error === 'object' &&
-      errorObj.error !== null &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      typeof (errorObj.error as Record<string, any>).error === 'string'
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (errorObj.error as Record<string, any>).error;
-    }
-
-    if (typeof errorObj.error === 'string') {
-      return errorObj.error;
-    }
-
-    if (typeof errorObj.message === 'string') {
-      return errorObj.message;
-    }
-  }
-
-  if (typeof error === 'string') {
-    return error;
-  }
-
-  return defaultMessage;
-};
+import { extractErrorMessage } from './datapool.client';
 
 export const datasourceClient = {
   /**
