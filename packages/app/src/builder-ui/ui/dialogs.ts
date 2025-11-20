@@ -14,7 +14,7 @@ import {
   renderExtensionsSkeleton,
   searchExtensions,
 } from '../utils';
-import { attachRadixTooltip, mapMetroPositionToRadix } from '../utils/tooltip-wrapper';
+import { attachTooltipV2, mapMetroPositionToTooltipV2 } from '../utils/tooltip-wrapper-v2';
 import { createForm, handleTemplateVars, readFormValidation, readFormValues } from './form/';
 
 import { errorToast } from '@src/shared/components/toast';
@@ -208,10 +208,10 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
       if (action.click) button.addEventListener('click', action.click);
 
       if (action?.hint) {
-        // Use Radix Tooltip instead of Metro UI hints
-        attachRadixTooltip(button, {
+        // Use lightweight TooltipV2 instead of Radix Tooltip for better performance
+        attachTooltipV2(button, {
           text: action.hint,
-          position: mapMetroPositionToRadix(action?.hintPosition || 'top'),
+          position: mapMetroPositionToTooltipV2(action?.hintPosition || 'top'),
           delayDuration: 300,
         });
       }

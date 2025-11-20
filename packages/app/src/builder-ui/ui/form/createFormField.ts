@@ -5,7 +5,11 @@ import {
   handleVaultBtn,
   isValidJson,
 } from '../../utils';
-import { attachRadixTooltip, mapMetroClassesToRadix, mapMetroPositionToRadix } from '../../utils/tooltip-wrapper';
+import {
+  attachTooltipV2,
+  mapMetroClassesToTooltipV2,
+  mapMetroPositionToTooltipV2,
+} from '../../utils/tooltip-wrapper-v2';
 import { setCodeEditor, toggleMode } from '../dom';
 import {
   createButton,
@@ -61,7 +65,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let label = entry?.label === undefined ? entry.name : entry.label;
 
   let additionalFormElement: HTMLElement;
-  
+
   // Store the wrapper container if textarea is expandable
   let textareaWrapper: HTMLDivElement | null = null;
 
@@ -149,7 +153,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
         // The contentType is bound to the body field, while other fields are independent
         let vaultCondition = undefined;
         const isBodyField = entry.name === 'body' || entry.id === 'body';
-        
+
         if (isBodyField) {
           vaultCondition = {
             property: 'contentType',
@@ -162,7 +166,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
                 const currentComponent = (window as any).Component?.curComponentSettings;
                 return currentComponent?.data?.contentType || '';
               }
-            }
+            },
           };
         }
         // For other fields with data-vault attribute, vault button will show by default
@@ -170,9 +174,9 @@ export default function createFormField(entry, displayType = 'block', entryIndex
         const textareaResult = createTextArea({
           ...entry,
           contentType: contentType,
-          vaultCondition: vaultCondition
+          vaultCondition: vaultCondition,
         });
-        
+
         // Handle both return types: direct textarea or object with textarea and container
         if (typeof textareaResult === 'object' && 'container' in textareaResult) {
           formElement = textareaResult.textarea;
@@ -381,11 +385,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     // the hint will be displayed as a floating tooltip that appears on hover rather than
     // being permanently visible in the form layout
     if (['top', 'right', 'bottom', 'left'].includes(entry?.hintPosition)) {
-      // Use Radix Tooltip instead of Metro UI hints
-      attachRadixTooltip(div, {
+      // Use lightweight TooltipV2 instead of Radix Tooltip for better performance
+      attachTooltipV2(div, {
         text: entry.hint,
-        position: mapMetroPositionToRadix(entry?.hintPosition),
-        className: mapMetroClassesToRadix('bg-gray-50 shadow-lg'),
+        position: mapMetroPositionToTooltipV2(entry?.hintPosition),
+        className: mapMetroClassesToTooltipV2('bg-gray-50 shadow-lg'),
         delayDuration: 300,
       });
 
@@ -488,7 +492,10 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
 
   // Real-time validation - only clear error when field becomes valid
-  if ((entry.validate?.includes('custom') || entry.smythValidate?.includes('func=')) && formElement.tagName !== 'SELECT') {
+  if (
+    (entry.validate?.includes('custom') || entry.smythValidate?.includes('func=')) &&
+    formElement.tagName !== 'SELECT'
+  ) {
     formElement.addEventListener('input', async (e: Event) => {
       const input = e.target as HTMLInputElement;
       const formControl = input.closest('.form-control');
@@ -684,7 +691,8 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     // For expandable textareas, append the error message inside the wrapper
     // Position it absolutely below the textarea so it doesn't push the expand button
     if (textareaWrapper) {
-      span.style.cssText = 'display: none; position: absolute; bottom: -24px; left: 0; font-size: 12px; color: #c50f1f; font-weight: 500;';
+      span.style.cssText =
+        'display: none; position: absolute; bottom: -24px; left: 0; font-size: 12px; color: #c50f1f; font-weight: 500;';
       textareaWrapper.style.position = 'relative';
       textareaWrapper.style.marginBottom = '24px';
       textareaWrapper.appendChild(span);
@@ -1007,11 +1015,11 @@ function applyTooltipConfig(actionBtn, action) {
       ? defaultTooltipConfig
       : { ...defaultTooltipConfig, ...action.tooltip };
 
-  // Use Radix Tooltip instead of Metro UI hints
-  attachRadixTooltip(actionBtn, {
+  // Use lightweight TooltipV2 instead of Radix Tooltip for better performance
+  attachTooltipV2(actionBtn, {
     text: tooltipConfig.text,
-    position: mapMetroPositionToRadix(tooltipConfig.position),
-    className: mapMetroClassesToRadix(tooltipConfig.classes),
+    position: mapMetroPositionToTooltipV2(tooltipConfig.position),
+    className: mapMetroClassesToTooltipV2(tooltipConfig.classes),
     delayDuration: 300,
   });
 }

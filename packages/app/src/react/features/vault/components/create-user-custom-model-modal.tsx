@@ -469,8 +469,8 @@ export function CreateUserCustomModelModal({
         <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden rounded-md flex-1">
           <div className="px-6 pt-4 space-y-4 overflow-y-auto h-[540px]">
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="name" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="name" className="text-base font-normal text-[#1E1E1E]">
                   Name <span className="text-red-500">*</span>
                 </Label>
                 <Tooltip>
@@ -497,8 +497,8 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="modelId" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="modelId" className="text-base font-normal text-[#1E1E1E]">
                   Model ID <span className="text-red-500">*</span>
                 </Label>
                 <Tooltip>
@@ -528,8 +528,8 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="baseURL" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="baseURL" className="text-base font-normal text-[#1E1E1E]">
                   Base URL <span className="text-red-500">*</span>
                 </Label>
                 <Tooltip>
@@ -561,8 +561,8 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="provider" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="provider" className="text-base font-normal text-[#1E1E1E]">
                   Provider / Compatible SDK <span className="text-red-500">*</span>
                 </Label>
                 <Tooltip>
@@ -595,8 +595,8 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="apiKey" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="apiKey" className="text-base font-normal text-[#1E1E1E]">
                   API Key {isApiKeyFromVault && '(Stored in Vault)'}
                 </Label>
                 <Tooltip>
@@ -752,10 +752,10 @@ export function CreateUserCustomModelModal({
               {openAdvanceOption && (
                 <div className="space-y-4 pt-2 ps-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="space-y-2">
-                    <div className="mb-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <Label
                         htmlFor="contextWindow"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                        className="text-base font-normal text-[#1E1E1E]"
                       >
                         Context Window
                       </Label>
@@ -791,10 +791,10 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="mb-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <Label
                         htmlFor="maxOutputTokens"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                        className="text-base font-normal text-[#1E1E1E]"
                       >
                         Maximum Output Tokens
                       </Label>
@@ -831,11 +831,8 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="mb-2">
-                      <Label
-                        htmlFor="fallbackLLM"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
-                      >
+                    <div className="mb-2 flex items-center gap-2">
+                      <Label htmlFor="fallbackLLM" className="text-base font-normal text-[#1E1E1E]">
                         Fallback Model
                       </Label>
                       <Tooltip>
@@ -871,8 +868,8 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-3">
-                    <div className="mb-2">
-                      <Label className="text-base font-normal mr-2 text-[#1E1E1E]">Features</Label>
+                    <div className="mb-2 flex items-center gap-2">
+                      <Label className="text-base font-normal text-[#1E1E1E]">Features</Label>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
