@@ -133,7 +133,7 @@ export const useAttachments = (props: IProps) => {
   );
 
   return {
-    files,
+    data: files,
     isLoading,
     errorMessage,
 

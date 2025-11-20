@@ -4,6 +4,7 @@ import { useAgent } from '@src/react/shared/hooks/agent';
 import { FC, ReactNode, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAgentSettings } from '../hooks/agent-settings';
+import { useAttachments } from '../hooks/use-attachments';
 
 interface IProps {
   children: ReactNode;
@@ -31,18 +32,22 @@ export const ChatContextProvider: FC<IProps> = ({ children }) => {
 
   const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId);
   const agentSettings = settingsData?.settings;
+  const agentLoading = isAgentLoading || isAgentSettingsLoading;
+
+  // ============================================================================
+  // FILE UPLOAD MANAGEMENT
+  // ============================================================================
+
+  const files = useAttachments({ agentId, chatId: agentSettings?.lastConversationId });
 
   // Memoize the store to avoid unnecessary re-renders
   const values: IChatContext = useMemo(
     () => ({
       ref: { input: inputRef, container: containerRef },
-      agent: {
-        data: agent,
-        settings: agentSettings,
-        loading: isAgentLoading || isAgentSettingsLoading,
-      },
+      agent: { data: agent, settings: agentSettings, loading: agentLoading },
+      files,
     }),
-    [inputRef, containerRef, agent, agentSettings, isAgentLoading, isAgentSettingsLoading],
+    [inputRef, containerRef, agent, agentSettings, agentLoading, files],
   );
 
   return <ChatContext.Provider value={values}>{children}</ChatContext.Provider>;

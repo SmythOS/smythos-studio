@@ -45,11 +45,11 @@ export interface IMessageFile {
   id: string; // Required ID for React keys and tracking
   file: File; // The actual File object
   metadata: {
-    publicUrl?: string;
-    fileType?: string;
     key?: string;
-    isUploading?: boolean;
+    fileType?: string;
+    publicUrl?: string;
     previewUrl?: string;
+    isUploading?: boolean;
   };
 }
 
