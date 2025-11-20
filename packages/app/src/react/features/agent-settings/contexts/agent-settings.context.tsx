@@ -1,14 +1,14 @@
 import { getAgent } from '@react/features/agent-settings/clients';
 import { getAgentAuthData } from '@react/features/agent-settings/clients/agent-auth';
 import { teamAPI } from '@react/features/teams/clients';
-import { Agent } from '@react/shared/types/agent-data.types';
+import { Agent, AgentSettings } from '@react/shared/types/agent-data.types';
 import {
   Deployment,
   DeploymentWithAgentSnapshot,
   TeamRoleWithMembers,
 } from '@react/shared/types/api-results.types';
 import { useQuery } from '@tanstack/react-query';
-import { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, FC, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { useAgentSettings } from '@react/features/ai-chat/hooks/agent-settings';
@@ -48,7 +48,7 @@ interface AgentSettingsContextType {
     }>
   > | null;
   agentId: string;
-  settingsQuery: ReturnType<typeof useQuery<{ settings: { [key: string]: string } }>> | null;
+  settingsQuery: ReturnType<typeof useQuery<{ settings: AgentSettings }>> | null;
   agentTestDomainQuery: ReturnType<typeof useQuery<string>> | null;
   latestAgentDeploymentQuery: ReturnType<
     typeof useQuery<{ deployment: DeploymentWithAgentSnapshot }>
@@ -69,7 +69,7 @@ const initialState: AgentSettingsContextType = {
   latestAgentDeploymentQuery: null,
   settingsQuery: null,
   allDeploymentsQuery: null,
-  refetchAllData: async () => {},
+  refetchAllData: async () => { },
   serverStatusQuery: null,
   serverStatusData: null,
   agentAuthData: null,
@@ -264,7 +264,7 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
    * Refetches all query data in the context
    * Returns a promise that resolves when all refetch operations are complete
    */
-  const refetchAllData = async (): Promise<void> => {
+  const refetchAllData = useCallback(async (): Promise<void> => {
     const queries = [
       agentQuery,
       settingsQuery,
@@ -276,7 +276,7 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
     ].filter((query): query is NonNullable<typeof query> => query !== null);
 
     await Promise.all(queries.map((query) => query.refetch()));
-  };
+  }, [agentQuery, settingsQuery, teamRolesQuery, agentTestDomainQuery, latestAgentDeploymentQuery, allDeploymentsQuery, serverStatusQuery]);
 
   // Attach the refetch function to window when the component mounts
   useEffect(() => {
