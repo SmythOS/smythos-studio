@@ -29,6 +29,7 @@ export class LLMRegistry {
   // Single source of truth for determining GPT5 models (verbosity + reasoning effort support)
   private static readonly GPT5_MODEL_PATTERN = /gpt-5/i;
   private static readonly O3_AND_O4_MODELS_PATTERN = /o3|o4/i;
+  private static readonly GEMINI3_MODEL_PATTERN = /gemini-3/i;
 
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
@@ -334,5 +335,25 @@ export class LLMRegistry {
    */
   public static isO3andO4Models(modelId: string): boolean {
     return Boolean(modelId && this.O3_AND_O4_MODELS_PATTERN.test(modelId));
+  }
+
+  /**
+   * Get all Gemini 3 models based on model name pattern matching
+   *
+   * @returns Array of model IDs that match the Gemini 3 pattern (case-insensitive)
+   */
+  public static getGemini3Models(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isGemini3Model(modelId));
+  }
+
+  /**
+   * Check if a model is a Gemini 3 model based on its name pattern
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model ID matches the Gemini 3 pattern (case-insensitive), false otherwise
+   */
+  public static isGemini3Model(modelId: string): boolean {
+    return Boolean(modelId && this.GEMINI3_MODEL_PATTERN.test(modelId));
   }
 }
