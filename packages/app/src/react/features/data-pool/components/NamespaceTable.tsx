@@ -40,7 +40,7 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-hidden">
       <table className="w-full min-w-[600px] text-sm text-left">
         <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b">
           <tr>
@@ -69,36 +69,21 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
               >
                 {/* Name with Embeddings Badge */}
                 <td className="px-6 py-4 cursor-pointer" title={namespace.label}>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-gray-900 hover:underline">{namespace.label}</span>
+                  <div className="flex items-center gap-2 flex-wrap min-h-0">
+                    <span className="font-medium text-gray-900 hover:underline truncate">{namespace.label}</span>
                     {namespace.embeddings && (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <Tooltip
-                          content={
-                            <div className="space-y-2 p-2 max-w-sm">
-                              <div className="flex items-start gap-2">
-                                <span className="text-purple-300 font-semibold text-xs whitespace-nowrap">Model:</span>
-                                <span className="text-white text-xs break-all">{namespace.embeddings.modelId}</span>
-                              </div>
-                              {namespace.embeddings.dimensions && (
-                                <div className="flex items-start gap-2">
-                                  <span className="text-purple-300 font-semibold text-xs whitespace-nowrap">Dimensions:</span>
-                                  <span className="text-white text-xs">{namespace.embeddings.dimensions}</span>
-                                </div>
-                              )}
-                            </div>
-                          }
-                          placement="right"
-                          className="w-auto"
-                        >
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 border border-purple-200 rounded-md text-purple-700 cursor-help hover:bg-purple-100 transition-colors shrink-0">
-                            <Sparkles className="h-3 w-3 shrink-0" />
-                            <span className="text-xs font-medium hidden sm:inline">{getShortModelName(namespace.embeddings.modelId)}</span>
-                            {namespace.embeddings.dimensions && (
-                              <span className="text-xs text-purple-500"><span className="hidden sm:inline">· </span>{namespace.embeddings.dimensions}d</span>
-                            )}
-                          </div>
-                        </Tooltip>
+                      <div 
+                        onClick={(e) => e.stopPropagation()} 
+                        className="shrink-0"
+                        title={`${namespace.embeddings.modelId}${namespace.embeddings.dimensions ? ` · ${namespace.embeddings.dimensions} dimensions` : ''}`}
+                      >
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 border border-purple-200 rounded-md text-purple-700 hover:bg-purple-100 transition-colors">
+                          <Sparkles className="h-3 w-3 shrink-0" />
+                          <span className="text-xs font-medium hidden sm:inline">{getShortModelName(namespace.embeddings.modelId)}</span>
+                          {namespace.embeddings.dimensions && (
+                            <span className="text-xs text-purple-500"><span className="hidden sm:inline">· </span>{namespace.embeddings.dimensions}d</span>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
