@@ -15,7 +15,7 @@ const chatClient = new ChatAPIClient();
 export const useCreateChatMutation = () =>
   useMutation<CreateChatsResponse, Error, CreateChatRequest>(
     CHAT_CREATE_MUTATION,
-    (params) => chatClient.createChat(params),
+    (data) => chatClient.createChat(data),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(CHAT_LIST_QUERY); // reset cache, if any, of chat list

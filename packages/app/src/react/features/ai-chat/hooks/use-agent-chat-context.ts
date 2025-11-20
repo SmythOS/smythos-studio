@@ -145,7 +145,7 @@ export const useAgentChatContext = (
     messages: messagesHistory,
     sendMessage: sendChatMessage,
     isProcessing: isInputProcessing,
-    clearMessages: clearChatMessages,
+    clearMessages,
   } = useChat({
     agentId,
     chatId: agentSettings?.lastConversationId || '',
@@ -230,7 +230,7 @@ export const useAgentChatContext = (
   const clearChatSession = useCallback(async () => {
     stopGenerating();
     isFirstMessageSentRef.current = false;
-    clearChatMessages();
+    clearMessages();
     clearFiles();
     await createNewChatSession();
 
@@ -240,7 +240,7 @@ export const useAgentChatContext = (
     // Track observability events
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
-  }, [createNewChatSession, clearChatMessages, clearFiles, stopGenerating, inputRef]);
+  }, [createNewChatSession, clearMessages, clearFiles, stopGenerating, inputRef]);
 
   // ============================================================================
   // LIFECYCLE EFFECTS

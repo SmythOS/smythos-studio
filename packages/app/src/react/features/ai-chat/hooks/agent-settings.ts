@@ -9,7 +9,8 @@ const { data, error, isLoading, refetch, invalidate, setData  } = useAgentSettin
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteAgentSettings, updateAgentSettings } from '@react/features/ai-chat/clients';
-import { AgentSettings } from '@src/react/shared/types/agent-data.types';
+import { TUAgentSettings } from '@react/features/ai-chat/types/chat.types';
+import { AgentSettings } from '@react/shared/types/agent-data.types';
 
 export const useAgentSettings = (agentId: string) => {
   const queryResult = useQuery({
@@ -39,7 +40,7 @@ export const useUpdateAgentSettingsMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation(
-    (params: { agentId: string; settings: { key: string; value: string } }) =>
+    (params: { agentId: string; settings: TUAgentSettings }) =>
       updateAgentSettings(params.agentId, params.settings),
     {
       onSuccess: (_, variables) => {

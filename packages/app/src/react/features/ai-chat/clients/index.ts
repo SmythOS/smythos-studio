@@ -1,3 +1,5 @@
+import { TUAgentSettings } from '@react/features/ai-chat/types/chat.types';
+
 /**
  * Updates agent settings
  *
@@ -14,10 +16,7 @@
  * });
  * ```
  */
-export const updateAgentSettings = async (
-  agentId: string,
-  settings: { key: string; value: string },
-) => {
+export const updateAgentSettings = async (agentId: string, settings: TUAgentSettings) => {
   const response = await fetch(`/api/page/agent_settings/ai-agent/${agentId}/settings`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

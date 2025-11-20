@@ -71,7 +71,7 @@ export const useAttachments = (props: IProps) => {
           );
         }
 
-        // Add files to uploadingFiles set using unique IDs
+        // Add files to uploadingIds set using unique IDs
         const newFileIds = new Set(filesToUpload.map((f) => f.id));
         setUploadingIds((prev) => new Set([...prev, ...newFileIds]));
 
@@ -132,6 +132,14 @@ export const useAttachments = (props: IProps) => {
     [files],
   );
 
+  const clearError = useCallback(() => setErrorMessage(''), []);
+  const clearFiles = useCallback(() => setFiles([]), []);
+  const clearAll = useCallback(() => {
+    setFiles([]);
+    setErrorMessage('');
+    setUploadingIds(new Set());
+  }, []);
+
   return {
     data: files,
     isLoading,
@@ -139,5 +147,8 @@ export const useAttachments = (props: IProps) => {
 
     addFiles,
     removeFile,
+    clearError,
+    clearFiles,
+    clearAll,
   };
 };

@@ -416,7 +416,7 @@ export class ChatAPIClient {
   /**
    * Creates a new chat conversation
    *
-   * @param params - Chat creation parameters
+   * @param data - Chat creation parameters
    * @returns Promise resolving to the created chat data
    * @throws {Error} If the request fails
    *
@@ -433,11 +433,11 @@ export class ChatAPIClient {
    * });
    * ```
    */
-  async createChat(params: CreateChatRequest): Promise<CreateChatsResponse> {
+  async createChat(data: CreateChatRequest): Promise<CreateChatsResponse> {
     const response = await fetch(`${this.config.baseUrl}/new`, {
       method: 'POST',
       headers: this.config.defaultHeaders,
-      body: JSON.stringify(params),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
