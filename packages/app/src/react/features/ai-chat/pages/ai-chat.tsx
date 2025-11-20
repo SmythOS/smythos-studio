@@ -41,11 +41,7 @@ const AgentChatPage = () => {
     chatContextValue,
     sharedMessagesHistory,
     handleFileDrop,
-  } = useAgentChatContext({
-    agentId: agentId || '',
-    onChatReady: () => chatInputRef.current?.focus(), // Focus input when chat is ready
-    onChatCleared: () => chatInputRef.current?.focus(), // Focus input after clearing chat
-  });
+  } = useAgentChatContext({ agentId: agentId || '', inputRef: chatInputRef });
 
   // ============================================================================
   // SCROLL BEHAVIOR

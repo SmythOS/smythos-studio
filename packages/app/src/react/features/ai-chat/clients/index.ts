@@ -1,22 +1,19 @@
-import { CreateChatRequest, FetchChatMessagesRequest } from '@react/shared/types/api-payload.types';
-
-export const createChat = async (params: CreateChatRequest) => {
-  const response = await fetch('/api/page/chat/new', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  return response.json();
-};
-
-export const fetchChatMessages = async (params: FetchChatMessagesRequest) => {
-  const { agentId, chatId, page, limit } = params;
-  const response = await fetch(`/api/page/chat/messages?page=${page}&limit=${limit}`, {
-    headers: { 'x-agent-id': agentId, 'x-conversation-id': chatId },
-  });
-  return response.json();
-};
-
+/**
+ * Updates agent settings
+ *
+ * @param agentId - Agent ID
+ * @param settings - Settings object with key and value
+ * @returns Promise resolving to the updated settings data
+ * @throws {Error} If the request fails
+ *
+ * @example
+ * ```typescript
+ * await updateAgentSettings('agent-123', {
+ *   key: 'chatGptModel',
+ *   value: 'gpt-4',
+ * });
+ * ```
+ */
 export const updateAgentSettings = async (
   agentId: string,
   settings: { key: string; value: string },
@@ -27,16 +24,34 @@ export const updateAgentSettings = async (
     body: JSON.stringify(settings),
   });
 
-  if (!response.ok) throw new Error('Failed to update agent settings');
+  if (!response.ok) {
+    throw new Error(`Failed to update agent settings: ${response.statusText}`);
+  }
 
   return response.json();
 };
 
-// delete agent settings
+/**
+ * Deletes agent settings by key
+ *
+ * @param agentId - Agent ID
+ * @param key - Settings key to delete
+ * @returns Promise resolving to the deletion response
+ * @throws {Error} If the request fails
+ *
+ * @example
+ * ```typescript
+ * await deleteAgentSettings('agent-123', 'chatGptModel');
+ * ```
+ */
 export const deleteAgentSettings = async (agentId: string, key: string) => {
   const response = await fetch(`/api/page/agent_settings/ai-agent/${agentId}/settings/${key}`, {
     method: 'DELETE',
   });
-  if (!response.ok) throw new Error('Failed to delete agent settings');
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete agent settings: ${response.statusText}`);
+  }
+
   return response.json();
 };

@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { ChatAPIClient } from '@react/features/ai-chat/clients/chat-api.client';
 import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import {
   createFileMetadata,
   deleteFile,
   FILE_LIMITS,
-  uploadFile,
   validateSingleFile,
 } from '@react/features/ai-chat/utils/file';
 
@@ -43,6 +43,9 @@ export const useFileUpload = (params?: {
   const [uploadError, setUploadError] = useState<FileUploadError>({ show: false, message: '' });
 
   const isUploadInProgress = uploadingFiles.size > 0;
+
+  // Create ChatAPIClient instance for file uploads (memoized to avoid recreating)
+  const chatClient = useMemo(() => new ChatAPIClient(), []);
 
   // Auto-clear upload error after 5 seconds when it becomes visible
   useEffect(() => {
@@ -112,39 +115,33 @@ export const useFileUpload = (params?: {
           })),
         ]);
 
-        // Upload files concurrently
+        // Upload files concurrently using ChatAPIClient
         const uploadPromises = filesToUpload.map(async ({ file, id }) => {
           try {
-            const result = await uploadFile(file, agentId, chatId);
+            const attachment = await chatClient.uploadFile(file, agentId, chatId);
 
-            if (result.success) {
-              const data = result.data as {
-                files?: Array<{ url?: string; mimetype?: string }>;
-                file?: { url?: string; type?: string };
-              };
-              const runtimeFile = data?.files?.[0];
-              setFiles((prevFiles) =>
-                prevFiles.map((f) =>
-                  f.id === id
-                    ? {
-                        ...f,
-                        metadata: {
-                          ...f.metadata,
-                          // Do not set key for runtime uploads (avoid delete attempts)
-                          publicUrl: runtimeFile?.url || data?.file?.url,
-                          fileType: runtimeFile?.mimetype || data?.file?.type,
-                          isUploading: false,
-                        },
-                      }
-                    : f,
-                ),
-              );
-            } else {
-              throw new Error(result.error);
-            }
-          } catch {
+            setFiles((prevFiles) =>
+              prevFiles.map((f) =>
+                f.id === id
+                  ? {
+                      ...f,
+                      metadata: {
+                        ...f.metadata,
+                        // Do not set key for runtime uploads (avoid delete attempts)
+                        publicUrl: attachment.url,
+                        fileType: attachment.type,
+                        isUploading: false,
+                      },
+                    }
+                  : f,
+              ),
+            );
+          } catch (error) {
             setFiles((prevFiles) => prevFiles.filter((f) => f.id !== id));
-            setUploadError({ show: true, message: 'Failed to upload file' });
+            setUploadError({
+              show: true,
+              message: error instanceof Error ? error.message : 'Failed to upload file',
+            });
           } finally {
             setUploadingFiles((prev) => {
               const next = new Set(prev);
@@ -157,7 +154,7 @@ export const useFileUpload = (params?: {
         await Promise.all(uploadPromises);
       }
     },
-    [files.length, agentId, chatId],
+    [files.length, agentId, chatId, chatClient],
   );
 
   const handleFileChange = useCallback(

@@ -287,19 +287,6 @@ export class ThinkingMessageManager {
   }
 
   /**
-   * Updates status message for status type thinking
-   *
-   * @param newStatusMessage - New status message
-   */
-  updateStatus(newStatusMessage: string): void {
-    if (this.currentType === 'status' && this.callback) {
-      const formattedMessage = formatStatusMessage(newStatusMessage);
-      this.statusMessage = formattedMessage;
-      this.callback(formattedMessage, 'status');
-    }
-  }
-
-  /**
    * Stops thinking messages and clears state
    */
   stop(): void {
@@ -312,15 +299,6 @@ export class ThinkingMessageManager {
     this.functionName = '';
     this.statusMessage = '';
     this.callback = null;
-  }
-
-  /**
-   * Gets current thinking type
-   *
-   * @returns Current thinking type or null
-   */
-  getCurrentType(): TThinkingType | null {
-    return this.currentType;
   }
 
   /**
@@ -365,7 +343,7 @@ export class ThinkingMessageManager {
 export const processStreamChunk = (chunk: IStreamChunk) => {
   // When isError is true, the error message is in the content field
   const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
-  
+
   return {
     hasContent: Boolean(chunk.content && chunk.content.trim() !== ''),
     hasDebug: Boolean(chunk.debug),

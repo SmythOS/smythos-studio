@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -12,14 +12,14 @@ import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.t
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
+import { ChatInputRef } from '../components';
 
 /**
  * Configuration options for useAgentChatContext hook
  */
 export interface IUseAgentChatContextConfig {
   agentId: string; // Agent ID for the chat session
-  onChatReady?: () => void; // Callback when chat is ready
-  onChatCleared?: () => void; // Callback when chat session is cleared
+  inputRef?: MutableRefObject<ChatInputRef>; // Ref to the chat input
 }
 
 /**
@@ -78,7 +78,7 @@ export interface IUseAgentChatContextReturn {
  * ```tsx
  * const { chatContextValue, agent, isLoading } = useAgentChatContext({
  *   agentId: '123',
- *   onChatReady: () => console.log('Chat ready!'),
+ *   inputRef: chatInputRef,
  * });
  *
  * return (
@@ -91,7 +91,7 @@ export interface IUseAgentChatContextReturn {
 export const useAgentChatContext = (
   config: IUseAgentChatContextConfig,
 ): IUseAgentChatContextReturn => {
-  const { agentId, onChatReady, onChatCleared } = config;
+  const { agentId, inputRef } = config;
   const navigate = useNavigate();
 
   // Internal refs for tracking state
@@ -238,12 +238,12 @@ export const useAgentChatContext = (
     await createNewChatSession();
 
     // Trigger callback
-    onChatCleared?.();
+    inputRef?.current?.focus();
 
     // Track observability events
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
-  }, [createNewChatSession, clearChatMessages, clearFiles, stopGenerating, onChatCleared]);
+  }, [createNewChatSession, clearChatMessages, clearFiles, stopGenerating, inputRef]);
 
   // ============================================================================
   // LIFECYCLE EFFECTS
@@ -260,7 +260,7 @@ export const useAgentChatContext = (
 
       // This ensures fresh conversation every time user loads the page
       hasInitializedChatRef.current = true;
-      createNewChatSession().then(() => onChatReady?.());
+      createNewChatSession().then(() => inputRef?.current?.focus());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentSettings, agent, agentId]); // Only depend on core values, not callbacks

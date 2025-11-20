@@ -20,20 +20,15 @@ import {
   processStreamChunk,
   splitJSONStream,
 } from '@react/features/ai-chat/utils/stream.utils';
+import { CreateChatRequest } from '@react/shared/types/api-payload.types';
+import { CreateChatsResponse } from '@react/shared/types/api-results.types';
 
 /**
  * Default configuration for the Chat API Client
  */
 const DEFAULT_CONFIG: IAPIConfig = {
   baseUrl: '/api/page/chat',
-  defaultHeaders: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 300000, // 5 minutes
-  retry: {
-    attempts: 0, // No retry by default for streaming
-    delay: 1000,
-  },
+  defaultHeaders: { 'Content-Type': 'application/json' },
 };
 
 /**
@@ -102,7 +97,7 @@ export class ChatAPIClient {
     }
 
     // State management for stream processing
-    const accumulatedData = '';
+    let accumulatedData = ''; // eslint-disable-line prefer-const
     let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
     try {
@@ -419,10 +414,46 @@ export class ChatAPIClient {
   }
 
   /**
+   * Creates a new chat conversation
+   *
+   * @param params - Chat creation parameters
+   * @returns Promise resolving to the created chat data
+   * @throws {Error} If the request fails
+   *
+   * @example
+   * ```typescript
+   * const chat = await client.createChat({
+   *   conversation: {
+   *     summary: '',
+   *     chunkSize: 100,
+   *     lastChunkID: '0',
+   *     label: 'New Chat',
+   *     aiAgentId: 'agent-123',
+   *   },
+   * });
+   * ```
+   */
+  async createChat(params: CreateChatRequest): Promise<CreateChatsResponse> {
+    const response = await fetch(`${this.config.baseUrl}/new`, {
+      method: 'POST',
+      headers: this.config.defaultHeaders,
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorData = await this.parseErrorResponse(response);
+      throw new Error(errorData.message || `Failed to create chat: ${response.statusText}`);
+    }
+
+    return response.json() as Promise<CreateChatsResponse>;
+  }
+
+  /**
    * Uploads a file for chat attachment
    *
    * @param file - File to upload
    * @param agentId - Agent ID
+   * @param chatId - Optional conversation ID
    * @returns File attachment metadata
    *
    * @example
@@ -431,27 +462,36 @@ export class ChatAPIClient {
    * // Use attachment.url in chat message
    * ```
    */
-  async uploadFile(file: File, agentId: string): Promise<IFileAttachment> {
+  async uploadFile(file: File, agentId: string, chatId?: string): Promise<IFileAttachment> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('agentId', agentId);
+
+    const headers: Record<string, string> = {
+      'X-AGENT-ID': agentId,
+      ...(chatId ? { 'x-conversation-id': chatId } : {}),
+    };
 
     try {
-      const response = await fetch(`${this.config.baseUrl}/upload`, {
+      const url = `${this.config.baseUrl}/upload`;
+      const response = await fetch(url, {
         method: 'POST',
+        headers,
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
 
       const data = await response.json();
 
+      // Handle different response structures (same as utils/file.ts pattern)
+      const runtimeFile = data?.files?.[0];
+      const fileUrl = runtimeFile?.url || data?.file?.url || data.url || data.publicUrl;
+      const fileType = runtimeFile?.mimetype || data?.file?.type || file.type;
+
       return {
-        url: data.url || data.publicUrl,
+        url: fileUrl || '',
         name: file.name,
-        type: file.type,
+        type: fileType,
         size: file.size,
       };
     } catch (error) {
@@ -460,49 +500,4 @@ export class ChatAPIClient {
       );
     }
   }
-
-  /**
-   * Updates the API configuration
-   *
-   * @param config - Partial configuration to update
-   *
-   * @example
-   * ```typescript
-   * client.updateConfig({ timeout: 60000 });
-   * ```
-   */
-  updateConfig(config: Partial<IAPIConfig>): void {
-    this.config = { ...this.config, ...config };
-  }
-
-  /**
-   * Gets current API configuration
-   *
-   * @returns Current configuration
-   */
-  getConfig(): IAPIConfig {
-    return { ...this.config };
-  }
 }
-
-/**
- * Default singleton instance for convenience
- */
-export const chatAPI = new ChatAPIClient();
-
-/**
- * Factory function to create a new ChatAPIClient instance
- *
- * @param config - Optional configuration
- * @returns New ChatAPIClient instance
- *
- * @example
- * ```typescript
- * const customClient = createChatClient({
- *   baseUrl: '/custom/endpoint',
- * });
- * ```
- */
-export const createChatClient = (config?: Partial<IAPIConfig>) => {
-  return new ChatAPIClient(config);
-};

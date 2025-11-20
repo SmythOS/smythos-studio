@@ -5,7 +5,6 @@
  * PRODUCTION-SAFE monitoring tool that helps identify bottlenecks in:
  * - Network latency (server response time)
  * - Chunk processing time
- * - UI render time
  *
  * Features:
  * - Zero performance impact when disabled
@@ -35,7 +34,6 @@ interface ChunkMetric {
   chunkIndex: number; // Sequential index of this chunk in the stream
   networkTime?: number; // Time elapsed since previous chunk (milliseconds)
   processingTime?: number; // Time spent processing/parsing the chunk (milliseconds)
-  renderTime?: number; // Time spent rendering the chunk in UI (milliseconds)
   chunkSize: number; // Size of chunk data in bytes
   type: 'content' | 'thinking' | 'tool' | 'debug'; // Type of content in this chunk
 }
@@ -47,7 +45,6 @@ interface PerformanceMetrics {
   totalChunks: number; // Total number of chunks received
   averageNetworkTime: number; // Average time between chunks (milliseconds)
   averageProcessingTime: number; // Average processing time per chunk (milliseconds)
-  averageRenderTime: number; // Average render time per chunk (milliseconds)
   totalDuration: number; // Total stream duration (milliseconds)
   slowestChunk: ChunkMetric | null; // Chunk with highest total latency
   chunksPerSecond: number; // Throughput in chunks per second
@@ -190,26 +187,6 @@ class PerformanceMonitor {
   }
 
   /**
-   * Records UI render time
-   * @param renderTime - Time taken to render in milliseconds
-   */
-  recordRenderTime(renderTime: number): void {
-    if (!this.enabled) return;
-
-    const lastMetric = this.metrics[this.metrics.length - 1];
-    if (lastMetric) {
-      lastMetric.renderTime = renderTime;
-
-      if (renderTime > 16.67) {
-        // More than 1 frame at 60fps
-        this.warn(
-          `⚠️  SLOW RENDER #${lastMetric.chunkIndex}: ${renderTime.toFixed(2)}ms (dropped frames!)`,
-        );
-      }
-    }
-  }
-
-  /**
    * Ends stream and shows summary
    * Displays comprehensive performance report in console
    */
@@ -226,14 +203,12 @@ class PerformanceMonitor {
     this.log('\n📊 PERFORMANCE BREAKDOWN:');
     this.log(`  🌐 Network (avg): ${metrics.averageNetworkTime.toFixed(2)}ms`);
     this.log(`  ⚙️  Processing (avg): ${metrics.averageProcessingTime.toFixed(2)}ms`);
-    this.log(`  🎨 Rendering (avg): ${metrics.averageRenderTime.toFixed(2)}ms`);
 
     if (metrics.slowestChunk) {
       this.log('\n🐌 SLOWEST CHUNK:');
       this.log(`  Index: #${metrics.slowestChunk.chunkIndex}`);
       this.log(`  Network: ${metrics.slowestChunk.networkTime?.toFixed(2)}ms`);
       this.log(`  Processing: ${metrics.slowestChunk.processingTime?.toFixed(2)}ms`);
-      this.log(`  Render: ${metrics.slowestChunk.renderTime?.toFixed(2)}ms`);
       this.log(`  Size: ${metrics.slowestChunk.chunkSize} bytes`);
     }
 
@@ -246,7 +221,7 @@ class PerformanceMonitor {
    * @param metrics - Performance metrics to analyze
    */
   private identifyBottleneck(metrics: PerformanceMetrics): void {
-    const { averageNetworkTime, averageProcessingTime, averageRenderTime } = metrics;
+    const { averageNetworkTime, averageProcessingTime } = metrics;
 
     this.log('\n🎯 BOTTLENECK ANALYSIS:');
 
@@ -268,16 +243,7 @@ class PerformanceMonitor {
       );
     }
 
-    if (averageRenderTime > 16.67) {
-      this.error(
-        '❌ UI RENDERING BOTTLENECK DETECTED!',
-        `\n   Average render time: ${averageRenderTime.toFixed(2)}ms`,
-        '\n   ➡️  Issue: UI updates are slow (dropping frames)',
-        '\n   ➡️  Check: Component re-renders, DOM operations, React memoization',
-      );
-    }
-
-    if (averageNetworkTime <= 50 && averageProcessingTime <= 30 && averageRenderTime <= 16.67) {
+    if (averageNetworkTime <= 50 && averageProcessingTime <= 30) {
       this.log('✅ NO BOTTLENECKS DETECTED! Performance is optimal.');
     }
   }
@@ -293,7 +259,6 @@ class PerformanceMonitor {
         totalChunks: 0,
         averageNetworkTime: 0,
         averageProcessingTime: 0,
-        averageRenderTime: 0,
         totalDuration: 0,
         slowestChunk: null,
         chunksPerSecond: 0,
@@ -305,7 +270,6 @@ class PerformanceMonitor {
     // Calculate averages
     const networkTimes = this.metrics.map((m) => m.networkTime || 0).filter((t) => t > 0);
     const processingTimes = this.metrics.map((m) => m.processingTime || 0).filter((t) => t > 0);
-    const renderTimes = this.metrics.map((m) => m.renderTime || 0).filter((t) => t > 0);
 
     const averageNetworkTime =
       networkTimes.length > 0 ? networkTimes.reduce((a, b) => a + b, 0) / networkTimes.length : 0;
@@ -313,15 +277,11 @@ class PerformanceMonitor {
       processingTimes.length > 0
         ? processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length
         : 0;
-    const averageRenderTime =
-      renderTimes.length > 0 ? renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length : 0;
 
     // Find slowest chunk (by total time)
     const slowestChunk = this.metrics.reduce((slowest, current) => {
-      const currentTotal =
-        (current.networkTime || 0) + (current.processingTime || 0) + (current.renderTime || 0);
-      const slowestTotal =
-        (slowest.networkTime || 0) + (slowest.processingTime || 0) + (slowest.renderTime || 0);
+      const currentTotal = (current.networkTime || 0) + (current.processingTime || 0);
+      const slowestTotal = (slowest.networkTime || 0) + (slowest.processingTime || 0);
 
       return currentTotal > slowestTotal ? current : slowest;
     }, this.metrics[0]);
@@ -330,7 +290,6 @@ class PerformanceMonitor {
       totalChunks,
       averageNetworkTime,
       averageProcessingTime,
-      averageRenderTime,
       totalDuration,
       slowestChunk,
       chunksPerSecond: (totalChunks / totalDuration) * 1000,
