@@ -12,14 +12,7 @@ import {
   IStreamConfig,
 } from '@react/features/ai-chat/types/chat.types';
 import { performanceMonitor } from '@react/features/ai-chat/utils/chat-performance-monitor';
-import {
-  createThinkingManager,
-  extractFunctionName,
-  formatFunctionName,
-  formatStatusMessage,
-  processStreamChunk,
-  splitJSONStream,
-} from '@react/features/ai-chat/utils/stream.utils';
+import { processStreamChunk, splitJSONStream } from '@react/features/ai-chat/utils/stream.utils';
 import { CreateChatRequest } from '@react/shared/types/api-payload.types';
 import { CreateChatsResponse } from '@react/shared/types/api-results.types';
 
@@ -37,7 +30,7 @@ const DEFAULT_CONFIG: IAPIConfig = {
  */
 export class ChatAPIClient {
   private config: IAPIConfig;
-  private thinkingManager = createThinkingManager();
+  // private thinkingManager = createThinkingManager();
 
   /**
    * Creates a new ChatAPIClient instance
@@ -83,7 +76,7 @@ export class ChatAPIClient {
    */
   async streamChat(streamConfig: IStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
     const { agentId, chatId, message, modelId, attachments, signal, headers = {} } = streamConfig;
-    const { onContent, onThinking, onToolCall, onDebug, onError, onStart, onComplete } = callbacks;
+    const { onContent, onMetaMessages, onError, onStart, onComplete } = callbacks;
 
     // Validate required parameters
     // Message can be empty if attachments are provided
@@ -98,16 +91,14 @@ export class ChatAPIClient {
 
     // State management for stream processing
     let accumulatedData = ''; // eslint-disable-line prefer-const
-    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
 
     try {
       // Start performance monitoring
       performanceMonitor.startStream();
 
       // Notify stream start
-      if (onStart) {
-        onStart();
-      }
+      if (onStart) onStart();
 
       // Prepare request headers with optional model override
       const requestHeaders = {
@@ -119,10 +110,7 @@ export class ChatAPIClient {
         ...headers,
       };
 
-      const requestBody = {
-        message,
-        attachments: attachments || [],
-      };
+      const requestBody = { message, attachments };
 
       // Make streaming request
       const response = await fetch(`${this.config.baseUrl}/stream`, {
@@ -157,14 +145,9 @@ export class ChatAPIClient {
       // Process stream
       await this.processStream(reader, signal, accumulatedData, {
         onContent,
-        onThinking,
-        onToolCall,
-        onDebug,
+        onMetaMessages,
         onError,
       });
-
-      // Stream completed successfully
-      this.thinkingManager.stop();
 
       // End performance monitoring
       performanceMonitor.endStream();
@@ -173,9 +156,6 @@ export class ChatAPIClient {
     } catch (error) {
       // Handle different error types
       const chatError = this.handleStreamError(error, signal);
-
-      // Stop thinking messages on error
-      this.thinkingManager.stop();
 
       // End performance monitoring on error
       performanceMonitor.endStream();
@@ -208,12 +188,9 @@ export class ChatAPIClient {
     reader: ReadableStreamDefaultReader<Uint8Array>,
     signal: AbortSignal,
     accumulatedData: string,
-    callbacks: Pick<
-      IStreamCallbacks,
-      'onContent' | 'onThinking' | 'onToolCall' | 'onDebug' | 'onError'
-    >,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
   ): Promise<void> {
-    const { onContent, onThinking, onToolCall, onDebug, onError } = callbacks;
+    const { onContent, onMetaMessages, onError } = callbacks;
     const decoder = new TextDecoder();
 
     while (true) {
@@ -247,13 +224,11 @@ export class ChatAPIClient {
         performanceMonitor.recordProcessingTime(0, processingTime);
       }
 
-      if (chunks.length === 0) {
-        continue; // Wait for more complete data
-      }
+      if (chunks.length === 0) continue; // Wait for more complete data
 
       // Process each chunk
       for (const chunk of chunks) {
-        await this.processChunk(chunk, { onContent, onThinking, onToolCall, onDebug, onError });
+        await this.processChunk(chunk, { onContent, onMetaMessages, onError });
       }
 
       // Clear accumulated data after successful processing
@@ -269,12 +244,9 @@ export class ChatAPIClient {
    */
   private async processChunk(
     chunk: IStreamChunk,
-    callbacks: Pick<
-      IStreamCallbacks,
-      'onContent' | 'onThinking' | 'onToolCall' | 'onDebug' | 'onError'
-    >,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
   ): Promise<void> {
-    const { onContent, onThinking, onToolCall, onDebug, onError } = callbacks;
+    const { onContent, onMetaMessages, onError } = callbacks;
     const processed = processStreamChunk(chunk);
 
     // Extract conversation turn ID from chunk
@@ -283,8 +255,8 @@ export class ChatAPIClient {
     // Handle errors
     if (processed.hasError) {
       const error: IChatError = {
-        message: processed.error || 'Unknown error occurred',
         type: 'stream',
+        message: processed.error || 'Unknown error occurred',
         conversationTurnId, // Include turn ID in error
       };
       onError(error);
@@ -292,58 +264,13 @@ export class ChatAPIClient {
     }
 
     // Handle status messages (highest priority)
-    if (processed.hasStatusMessage && onThinking) {
-      const formattedStatus = formatStatusMessage(processed.statusMessage || '');
-      this.thinkingManager.start(
-        'status',
-        (msg, type) => onThinking(msg, type, conversationTurnId), // Pass turn ID
-        undefined,
-        formattedStatus,
-      );
+    if (processed.hasMetaMessages && onMetaMessages) {
+      onMetaMessages(processed.metaMessages);
       return;
-    }
-
-    // Handle function calls
-    if (processed.hasFunctionCall) {
-      const functionName = processed.functionName || 'Unknown';
-      const formattedName = formatFunctionName(functionName);
-
-      // Notify tool call callback
-      if (onToolCall && chunk.function_call?.arguments) {
-        onToolCall(functionName, chunk.function_call.arguments, conversationTurnId); // Pass turn ID
-      }
-
-      // Start function thinking
-      if (onThinking) {
-        this.thinkingManager.start(
-          'function',
-          (msg, type) => onThinking(msg, type, conversationTurnId), // Pass turn ID
-          formattedName,
-        );
-      }
-    }
-
-    // Handle debug messages
-    if (processed.hasDebug && onDebug) {
-      onDebug(chunk);
-
-      // Try to extract function name from debug
-      const functionName = extractFunctionName(chunk.debug || '');
-      if (functionName && onThinking) {
-        const formattedName = formatFunctionName(functionName);
-        this.thinkingManager.start(
-          'function',
-          (msg, type) => onThinking(msg, type, conversationTurnId), // Pass turn ID
-          formattedName,
-        );
-      }
     }
 
     // Handle content (final response)
     if (processed.hasContent) {
-      // Stop thinking when content arrives
-      this.thinkingManager.stop();
-
       // Deliver content with turn ID
       onContent(processed.content, conversationTurnId);
     }

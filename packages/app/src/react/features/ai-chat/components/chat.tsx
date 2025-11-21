@@ -25,7 +25,7 @@ interface IChatProps extends IChatMessage {
  * @returns Appropriate message component
  */
 const ChatComponent: FC<IChatProps> = (props) => {
-  const { type, files, avatar, message, onRetryClick, thinkingMessage, scrollToBottom } = props;
+  const { type, files, avatar, message, onRetryClick, scrollToBottom } = props;
 
   switch (type) {
     case 'loading':
@@ -37,10 +37,8 @@ const ChatComponent: FC<IChatProps> = (props) => {
     case 'system':
       return (
         <SystemMessage
-          avatar={avatar}
-          message={message}
           typingAnimation
-          thinkingMessage={thinkingMessage}
+          message={message}
           onTypingComplete={() => scrollToBottom?.()}
           onTypingProgress={() => scrollToBottom?.()}
         />

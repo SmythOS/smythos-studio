@@ -28,7 +28,6 @@ export interface IChatMessage {
   message: string; // Message content
   type: TMessageType; // Message type - single source of truth for state
   conversationTurnId?: string; // Conversation Turn ID
-  messageId?: string; // Message ID (future)
   files?: IMessageFile[]; // Attached files (user messages only)
   avatar?: string; // Avatar URL for system/AI messages
   thinkingMessage?: string; // Inline thinking/status message during generation
@@ -44,6 +43,10 @@ export interface IChatMessage {
 export interface IMessageFile {
   id: string; // Required ID for React keys and tracking
   file: File; // The actual File object
+  url?: string; // Public URL (stored after upload)
+  name?: string; // File name (stored after upload)
+  type?: string; // File type/MIME type (stored after upload)
+  size?: number; // File size in bytes (stored after upload)
   metadata: {
     key?: string;
     fileType?: string;
@@ -63,20 +66,38 @@ export type TUAgentSettings = { key: string; value: string };
 // STREAMING TYPES
 // ============================================================================
 
+export interface IFunctionCall {
+  name?: string;
+  arguments?: Record<string, unknown>;
+  topic?: string;
+}
+
+export interface IMetaMessages {
+  debug: string;
+  title: string;
+  statusMessage: string;
+  function: string;
+  callParams: string;
+  parameters: Record<string, unknown>;
+  functionCall: IFunctionCall;
+}
+
 /**
  * Stream chunk from backend
  * Only includes actually used properties
  */
 export interface IStreamChunk {
   conversationTurnId?: string; // Conversation Turn ID
-  messageId?: string; // Message ID (future)
   content?: string; // Content chunk for streaming responses
-  status_message?: string; // Status/thinking message
-  function?: string; // Function/tool name
-  function_call?: { name?: string; arguments?: Record<string, unknown> };
-  debug?: string; // Debug information
-  hashId?: string; // Debug tracking hash
   debugOn?: boolean; // Debug session indicator
+  title?: string; // Title of the message
+  debug?: string; // Debug information
+  status_message?: string; // Status/thinking message
+  callParams?: string; // Call parameters
+  parameters?: Record<string, unknown>; // Parameters
+  function?: string; // Function/tool name
+  function_call?: IFunctionCall; // Function call information
+  hashId?: string; // Debug tracking hash
   error?: string; // Error message
   isError?: boolean; // Error indicator
 }
@@ -88,7 +109,7 @@ export interface IStreamConfig {
   chatId: string; // Conversation ID
   message: string; // User message content
   modelId?: string; // Model ID to override backend model selection
-  attachments?: IFileAttachment[]; // File attachments
+  attachments?: IMessageFile[]; // File attachments
   signal: AbortSignal; // Abort signal for cancellation
   headers?: Record<string, string>; // Custom headers
 }
@@ -106,13 +127,7 @@ export interface IFileAttachment {
 /* eslint-disable no-unused-vars */
 export interface IStreamCallbacks {
   onContent: (content: string, conversationTurnId?: string) => void;
-  onThinking?: (message: string, type: TThinkingType, conversationTurnId?: string) => void;
-  onToolCall?: (
-    toolName: string,
-    args: Record<string, unknown>,
-    conversationTurnId?: string,
-  ) => void;
-  onDebug?: (debug: IStreamChunk) => void; // Debug information received
+  onMetaMessages?: (metaMessages: IMetaMessages, conversationTurnId?: string) => void;
   onError: (error: IChatError) => void; // Error occurred - error object now includes conversationTurnId
   onStart?: () => void; // Stream started
   onComplete: () => void; // Stream completed

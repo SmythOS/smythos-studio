@@ -5,7 +5,11 @@
  * Updated: callback signatures now include TThinkingType parameter
  */
 
-import { IStreamChunk, TThinkingType } from '@react/features/ai-chat/types/chat.types';
+import {
+  IMetaMessages,
+  IStreamChunk,
+  TThinkingType,
+} from '@react/features/ai-chat/types/chat.types';
 
 /**
  * Function-specific thinking messages that cycle during function execution
@@ -157,9 +161,7 @@ export const extractFunctionName = (debugContent: string): string | null => {
  * ```
  */
 export const formatFunctionName = (functionName: string): string => {
-  if (!functionName) {
-    return '';
-  }
+  if (!functionName) return '';
 
   // Convert snake_case to Title Case
   return functionName
@@ -182,9 +184,7 @@ export const formatFunctionName = (functionName: string): string => {
  * ```
  */
 export const formatStatusMessage = (statusMessage: string): string => {
-  if (!statusMessage) {
-    return '';
-  }
+  if (!statusMessage) return '';
 
   let formatted = statusMessage;
 
@@ -226,9 +226,9 @@ export class ThinkingMessageManager {
   private currentType: TThinkingType | null = null;
   private currentIndex: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
-  private functionName: string = '';
+  private toolName: string = '';
   private statusMessage: string = '';
-  private callback: ((message: string, type: TThinkingType) => void) | null = null;
+  private callback: ((metaMessages: IMetaMessages) => void) | null = null;
 
   /**
    * Starts thinking messages with priority system
@@ -236,13 +236,13 @@ export class ThinkingMessageManager {
    *
    * @param type - Type of thinking message
    * @param callback - Callback to invoke with updated messages
-   * @param functionName - Function name for function type
+   * @param toolName - Function name for function type
    * @param statusMessage - Status message for status type
    */
   start(
     type: TThinkingType,
-    callback: (message: string, type: TThinkingType) => void,
-    functionName?: string,
+    callback: (metaMessages: IMetaMessages) => void,
+    toolName?: string,
     statusMessage?: string,
   ): void {
     // Priority system: status > function > general
@@ -262,8 +262,8 @@ export class ThinkingMessageManager {
     this.callback = callback;
     this.currentIndex = 0;
 
-    if (type === 'function' && functionName) {
-      this.functionName = functionName;
+    if (type === 'function' && toolName) {
+      this.toolName = toolName;
     }
     if (type === 'status' && statusMessage) {
       this.statusMessage = formatStatusMessage(statusMessage);
@@ -271,7 +271,15 @@ export class ThinkingMessageManager {
 
     // Show first message immediately
     const initialMessage = this.getCurrentMessage();
-    callback(initialMessage, type);
+    callback({
+      debug: null,
+      title: null,
+      statusMessage: initialMessage,
+      function: this.toolName,
+      callParams: null,
+      parameters: null,
+      functionCall: this.toolName ? { name: this.toolName } : null,
+    });
 
     // Start interval only for general and function types
     if (type !== 'status') {
@@ -280,7 +288,15 @@ export class ThinkingMessageManager {
         this.currentIndex = (this.currentIndex + 1) % this.getMessagesArray().length;
         const message = this.getCurrentMessage();
         if (this.callback && this.currentType) {
-          this.callback(message, this.currentType);
+          this.callback({
+            debug: null,
+            title: null,
+            statusMessage: message,
+            function: this.toolName,
+            callParams: null,
+            parameters: null,
+            functionCall: this.toolName ? { name: this.toolName } : null,
+          });
         }
       }, intervalTime);
     }
@@ -296,7 +312,7 @@ export class ThinkingMessageManager {
     }
     this.currentType = null;
     this.currentIndex = 0;
-    this.functionName = '';
+    this.toolName = '';
     this.statusMessage = '';
     this.callback = null;
   }
@@ -313,7 +329,7 @@ export class ThinkingMessageManager {
     const messageTemplate = messages[this.currentIndex];
 
     if (this.currentType === 'function') {
-      return messageTemplate.replace('{functionName}', this.functionName);
+      return messageTemplate.replace('{functionName}', this.toolName);
     }
 
     return messageTemplate;
@@ -346,13 +362,27 @@ export const processStreamChunk = (chunk: IStreamChunk) => {
 
   return {
     hasContent: Boolean(chunk.content && chunk.content.trim() !== ''),
-    hasDebug: Boolean(chunk.debug),
-    hasError: Boolean(chunk.error || chunk.isError),
-    hasFunctionCall: Boolean(chunk.function_call || chunk.function),
-    hasStatusMessage: Boolean(chunk.status_message),
-    functionName: chunk.function || chunk.function_call?.name || null,
-    statusMessage: chunk.status_message || null,
     content: chunk.content || '',
+    hasMetaMessages: Boolean(
+      chunk.debugOn ||
+        chunk.debug ||
+        chunk.title ||
+        chunk.callParams ||
+        chunk.parameters ||
+        chunk.function ||
+        chunk.function_call ||
+        chunk.status_message,
+    ),
+    metaMessages: {
+      debug: chunk.debug || null,
+      title: chunk.title || chunk.function_call?.name || null,
+      callParams: chunk.callParams || null,
+      parameters: chunk.parameters || null,
+      function: chunk.function || null,
+      functionCall: chunk.function_call || null,
+      statusMessage: chunk.status_message || null,
+    },
+    hasError: Boolean(chunk.isError || (errorMessage && errorMessage.trim() !== '')),
     error: errorMessage || null,
   };
 };

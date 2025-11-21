@@ -15,7 +15,6 @@ import { useCallback, useRef, useState } from 'react';
  * Hook configuration interface
  */
 interface IUseChatStreamConfig {
-  client?: ChatAPIClient; // Chat API client instance
   onStreamStart?: () => void; // Called when stream starts
   onStreamEnd?: () => void; // Called when stream completes
 }
@@ -65,7 +64,7 @@ interface IUseChatStreamReturn {
  * ```
  */
 export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStreamReturn => {
-  const { client, onStreamStart, onStreamEnd } = config;
+  const { onStreamStart, onStreamEnd } = config;
 
   // State management
   const [isStreaming, setIsStreaming] = useState(false);
@@ -73,7 +72,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
 
   // Refs for lifecycle management
   const abortControllerRef = useRef<AbortController | null>(null);
-  const clientRef = useRef<ChatAPIClient>(client || new ChatAPIClient());
+  const apiClient = new ChatAPIClient();
 
   /**
    * Starts a new chat stream
@@ -97,9 +96,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
       setIsStreaming(true);
 
       // Notify start
-      if (onStreamStart) {
-        onStreamStart();
-      }
+      if (onStreamStart) onStreamStart();
 
       try {
         // Wrap callbacks to manage lifecycle
@@ -120,7 +117,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
         };
 
         // Start streaming with abort signal
-        await clientRef.current.streamChat(
+        await apiClient.streamChat(
           { ...streamConfig, signal: abortController.signal },
           wrappedCallbacks,
         );
@@ -136,7 +133,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
         throw chatError;
       }
     },
-    [onStreamStart, onStreamEnd],
+    [onStreamStart, onStreamEnd], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   /**

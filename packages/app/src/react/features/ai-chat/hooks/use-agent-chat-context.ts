@@ -151,7 +151,7 @@ export const useAgentChatContext = (
     chatId: agentSettings?.lastConversationId || '',
     // Use override if set, otherwise fall back to agent's default model
     modelId: selectedModelOverride || agentSettings?.chatGptModel,
-    avatar: agent?.aiAgentSettings?.avatar,
+    // avatar: agent?.aiAgentSettings?.avatar,
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
         isFirstMessageSentRef.current = true;

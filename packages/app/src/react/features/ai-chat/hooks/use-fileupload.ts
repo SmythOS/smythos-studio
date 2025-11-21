@@ -126,6 +126,10 @@ export const useFileUpload = (params?: {
                 f.id === id
                   ? {
                       ...f,
+                      url: attachment.url,
+                      name: attachment.name,
+                      type: attachment.type,
+                      size: attachment.size,
                       metadata: {
                         ...f.metadata,
                         // Do not set key for runtime uploads (avoid delete attempts)
