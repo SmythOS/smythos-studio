@@ -172,7 +172,7 @@ export const formatStatusMessage = (statusMessage: string): string => {
  * Unified thinking message manager
  * Manages cycling through thinking messages with priority system
  */
-export class ThinkingMessageManager {
+class ThinkingMessageManager {
   private currentType: TThinkingType | null = null;
   private currentIndex: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
@@ -256,6 +256,10 @@ export class ThinkingMessageManager {
     }
   }
 }
+/**
+ * Creates a singleton instance of ThinkingMessageManager
+ */
+export const createThinkingManager = (): ThinkingMessageManager => new ThinkingMessageManager();
 
 /**
  * Processes a chunk from the stream and extracts relevant information
@@ -293,8 +297,3 @@ export const processStreamChunk = (chunk: IStreamChunk) => {
     error: errorMessage || null,
   };
 };
-
-/**
- * Creates a singleton instance of ThinkingMessageManager
- */
-export const createThinkingManager = (): ThinkingMessageManager => new ThinkingMessageManager();

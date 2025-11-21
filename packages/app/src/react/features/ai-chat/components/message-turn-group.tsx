@@ -24,7 +24,7 @@ interface IMessageTurnGroupProps {
  * Groups messages from a single conversation turn
  * Displays all messages and provides a single copy button for the entire group
  */
-const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
+export const MessageTurnGroup: FC<IMessageTurnGroupProps> = memo((props) => {
   const { messages, avatar, onRetryClick, scrollToBottom } = props;
   const [copied, setCopied] = useState(false);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -37,10 +37,7 @@ const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
   // Check if the last message is complete (not loading or thinking)
   const lastMessage = messages[messages.length - 1];
   const isComplete =
-    lastMessage &&
-    lastMessage.type !== 'loading' &&
-    lastMessage.type !== 'thinking' &&
-    !lastMessage.metaMessages;
+    lastMessage && lastMessage.type !== 'loading' && lastMessage.type !== 'thinking';
 
   /**
    * Copies all system message content from this group
@@ -121,15 +118,4 @@ const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
       )}
     </div>
   );
-};
-
-/**
- * Memoized export of MessageTurnGroup
- * Only re-renders when messages array actually changes
- *
- * Performance Impact:
- * - Completed turns never re-render (massive savings!)
- * - Only active turn re-renders during streaming
- * - 50+ turns: Reduces re-renders by 98%
- */
-export const MessageTurnGroup = memo(MessageTurnGroupComponent);
+});

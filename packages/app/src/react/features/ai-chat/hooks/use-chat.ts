@@ -163,7 +163,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
     // Schedule batched update
     updateThrottleRef.current = setTimeout(() => {
       if (pendingUpdateRef.current) {
-        const { content: pendingContent, turnId: pendingTurnId } = pendingUpdateRef.current;
+        const { content: pendingContent, turnId } = pendingUpdateRef.current;
 
         setMessages((prev) => {
           const lastMessageIndex = prev.length - 1;
@@ -173,7 +173,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             const needsUpdate =
               lastMsg.type === 'system' ||
               lastMsg.type === 'loading' ||
-              (pendingTurnId && !lastMsg.conversationTurnId);
+              (turnId && !lastMsg.conversationTurnId);
 
             if (needsUpdate) {
               // Optimized: Only update last element
@@ -181,7 +181,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
               newMessages.push({
                 ...lastMsg,
                 message: pendingContent,
-                conversationTurnId: pendingTurnId || lastMsg.conversationTurnId,
+                conversationTurnId: turnId || lastMsg.conversationTurnId,
                 type: 'system',
               });
               return newMessages;

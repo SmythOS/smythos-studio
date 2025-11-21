@@ -166,9 +166,7 @@ export const Chats: FC<IChatsProps> = (props) => {
     }> = [];
 
     // Optimized: Early return for empty messages
-    if (messages.length === 0) {
-      return groups;
-    }
+    if (messages.length === 0) return groups;
 
     // Optimized: Process messages in a single pass
     for (let i = 0; i < messages.length; i++) {
