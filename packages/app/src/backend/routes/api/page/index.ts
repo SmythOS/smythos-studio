@@ -4,6 +4,7 @@ import agents from './agents';
 import builder from './builder';
 import { chatRouter } from './chat';
 import collection from './collection';
+import datapool from './datapool';
 import { onboardRouter } from './onboard';
 import teams from './teams';
 import user from './user';
@@ -20,6 +21,7 @@ const routers = {
   chat: chatRouter,
   onboard: onboardRouter,
   collection,
+  datapool,
 };
 
 export default routers;

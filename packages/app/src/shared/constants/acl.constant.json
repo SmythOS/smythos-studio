@@ -23,6 +23,7 @@
     "/templates": { "access": "", "name": "Templates" },
     "/domains": { "access": "", "name": "Domains" },
     "/data": { "access": "", "name": "Data Pool" },
+    "/data-pool": { "access": "", "name": "Data Pool" },
     "/vault": { "access": "", "name": "Vault" },
     "/analytics": { "access": "", "name": "Analytics" },
     "/my-plan": { "access": "", "name": "My Plan" },
