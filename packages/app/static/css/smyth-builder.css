@@ -2841,3 +2841,11 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 /* In-App Tutorial styles END */
+div#left-sidebar-container:after {
+  content: ' ';
+  position: absolute;
+  right: -12px;
+  top: 16px;
+  width: 12px;
+  height: calc(100% - 32px);
+}
