@@ -2069,7 +2069,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
                 typeof output['_error'] == 'string'
                   ? output['_error']
                   : JSON.stringify(output['_error']);
-              aiFixBtn.setAttribute('data-error', dataError);
+              aiFixBtn?.setAttribute('data-error', dataError);
             }
           } else {
             componentElement.classList.remove('state-error');
@@ -2088,7 +2088,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
 
           if (output['_debug_time']) {
             const debugBar = componentElement.querySelector('.debug-bar');
-            debugBar.setAttribute('debug-time', output['_debug_time'] + 'ms');
+            debugBar?.setAttribute('debug-time', output['_debug_time'] + 'ms');
           }
 
           //dettach from component and attach it to workspace.domElement while preserving the initial position
@@ -3321,7 +3321,7 @@ function toggleDebugBarVisibility(componentElement: HTMLElement) {
   if (debugBar) {
     const isAnyButtonVisible =
       (debugLogBtn && !debugLogBtn.classList.contains('hidden')) ||
-      (aiFixBtn && !aiFixBtn.classList.contains('hidden'));
+      (aiFixBtn && !aiFixBtn?.classList.contains('hidden'));
     (debugBar as HTMLElement).style.display = isAnyButtonVisible ? '' : 'none';
   }
 }
