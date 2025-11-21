@@ -6,12 +6,13 @@
 
 import { Button } from '@src/react/shared/components/ui/button';
 import { Tooltip } from 'flowbite-react';
-import { Sparkles, Trash2 } from 'lucide-react';
-import { FC } from 'react';
+import { FilePlus, Sparkles, Trash2 } from 'lucide-react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import credentialsSchema from '../../credentials/credentials-schema.json';
 import { useDataPoolContext } from '../contexts/data-pool.context';
 import type { NamespaceWithProvider } from '../types';
+import { UploadDatasourceDialog } from './UploadDatasourceDialog';
 
 interface NamespaceTableProps {
   namespaces: NamespaceWithProvider[];
@@ -24,12 +25,10 @@ interface ProviderSchema {
   logo_url?: string;
 }
 
-export const NamespaceTable: FC<NamespaceTableProps> = ({
-  namespaces,
-  onDelete,
-}) => {
+export const NamespaceTable: FC<NamespaceTableProps> = ({ namespaces, onDelete }) => {
   const { getCredentialById } = useDataPoolContext();
   const navigate = useNavigate();
+  const [uploadDialogNamespace, setUploadDialogNamespace] = useState<string | null>(null);
 
   /**
    * Get provider logo URL from schema
@@ -64,24 +63,35 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
             };
 
             return (
-              <tr key={namespace.label} className="border-b hover:bg-gray-100 cursor-pointer transition-colors text-left"
-              onClick={() => navigate(`/data-pool/${encodeURIComponent(namespace.label)}/datasources`)}
+              <tr
+                key={namespace.label}
+                className="border-b hover:bg-gray-100 cursor-pointer transition-colors text-left"
+                onClick={() =>
+                  navigate(`/data-pool/${encodeURIComponent(namespace.label)}/datasources`)
+                }
               >
                 {/* Name with Embeddings Badge */}
                 <td className="px-6 py-4 cursor-pointer" title={namespace.label}>
                   <div className="flex items-center gap-2 flex-wrap min-h-0">
-                    <span className="font-medium text-gray-900 hover:underline truncate">{namespace.label}</span>
+                    <span className="font-medium text-gray-900 hover:underline truncate">
+                      {namespace.label}
+                    </span>
                     {namespace.embeddings && (
-                      <div 
-                        onClick={(e) => e.stopPropagation()} 
+                      <div
+                        onClick={(e) => e.stopPropagation()}
                         className="shrink-0"
                         title={`${namespace.embeddings.modelId}${namespace.embeddings.dimensions ? ` · ${namespace.embeddings.dimensions} dimensions` : ''}`}
                       >
                         <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 border border-purple-200 rounded-md text-purple-700 hover:bg-purple-100 transition-colors">
                           <Sparkles className="h-3 w-3 shrink-0" />
-                          <span className="text-xs font-medium hidden sm:inline">{getShortModelName(namespace.embeddings.modelId)}</span>
+                          <span className="text-xs font-medium hidden sm:inline">
+                            {getShortModelName(namespace.embeddings.modelId)}
+                          </span>
                           {namespace.embeddings.dimensions && (
-                            <span className="text-xs text-purple-500"><span className="hidden sm:inline">· </span>{namespace.embeddings.dimensions}d</span>
+                            <span className="text-xs text-purple-500">
+                              <span className="hidden sm:inline">· </span>
+                              {namespace.embeddings.dimensions}d
+                            </span>
                           )}
                         </div>
                       </div>
@@ -104,12 +114,23 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
                 </td>
 
                 {/* Actions */}
-                <td className="px-6 py-4"
-                onClick={(e) =>{
-                  e.stopPropagation();
-                }}
+                <td
+                  className="px-6 py-4"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center">
+                    <Tooltip content="Add Datasource">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setUploadDialogNamespace(namespace.label)}
+                        className="hover:text-blue-500"
+                      >
+                        <FilePlus className="h-4 w-4 text-[#242424] cursor-pointer hover:text-blue-600" />
+                      </Button>
+                    </Tooltip>
                     <Tooltip content="Delete">
                       <Button
                         variant="ghost"
@@ -127,7 +148,19 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({
           })}
         </tbody>
       </table>
+
+      {/* Upload Datasource Dialog */}
+      {uploadDialogNamespace && (
+        <UploadDatasourceDialog
+          isOpen={!!uploadDialogNamespace}
+          namespaceLabel={uploadDialogNamespace}
+          onClose={() => setUploadDialogNamespace(null)}
+          onSuccess={() => {
+            setUploadDialogNamespace(null);
+            // Optionally show success message
+          }}
+        />
+      )}
     </div>
   );
 };
-
