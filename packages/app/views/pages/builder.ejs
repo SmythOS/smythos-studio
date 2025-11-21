@@ -209,9 +209,9 @@
       localStorage.setItem('sidebarOpen', true);
     }
 
-    const storedTab = localStorage.getItem(`${agentId}-currentSidebarTab`);
+    // Always use default tab (weaver or component) instead of restoring from localStorage
     const defaultTab = isWeaverEnabled ? 'agentBuilderTab' : 'buildTab';
-    const currentTab = hasAgentId ? storedTab || defaultTab : defaultTab;
+    const currentTab = defaultTab;
     const storedMenuItem = currentTab ? menuItems.find((item) => item.tab === currentTab) : null;
 
     return {
