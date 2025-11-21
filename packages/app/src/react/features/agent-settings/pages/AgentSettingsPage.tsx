@@ -11,6 +11,7 @@ import {
   useAgentSettingsCtx,
 } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { Button as CustomButton } from '@react/shared/components/ui/newDesign/button';
+import { TooltipProvider } from '@react/shared/components/ui/tooltip';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import config from '@src/builder-ui/config';
@@ -29,9 +30,11 @@ type Props = {};
 
 export const AgentSettingsPage = (props: Props) => {
   return (
-    <AgentSettingsProvider>
-      <AgentSettingsPageBody />
-    </AgentSettingsProvider>
+    <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+      <AgentSettingsProvider>
+        <AgentSettingsPageBody />
+      </AgentSettingsProvider>
+    </TooltipProvider>
   );
 };
 

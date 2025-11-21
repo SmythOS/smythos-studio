@@ -1,4 +1,3 @@
-import ToolTip from '@react/shared/components/_legacy/ui/tooltip/tooltip';
 import { Checkbox } from '@src/react/shared/components/ui/checkbox';
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
   SelectValue,
 } from '@src/react/shared/components/ui/select';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { CUSTOM_LLM_FEATURES } from '@src/shared/constants/custom-llm.constants';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import { generateKeyTemplateVar } from '@src/shared/utils';
@@ -469,20 +469,21 @@ export function CreateUserCustomModelModal({
         <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden rounded-md flex-1">
           <div className="px-6 pt-4 space-y-4 overflow-y-auto h-[540px]">
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="name" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="name" className="text-base font-normal text-[#1E1E1E]">
                   Name <span className="text-red-500">*</span>
                 </Label>
-                <ToolTip
-                  text="The name that will appear in the model dropdown list"
-                  classes="w-[182px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="w-[182px] text-center">
+                    <p>The name that will appear in the model dropdown list</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <Input
                 id="name"
@@ -496,20 +497,24 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="modelId" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="modelId" className="text-base font-normal text-[#1E1E1E]">
                   Model ID <span className="text-red-500">*</span>
                 </Label>
-                <ToolTip
-                  text="The exact model identifier used by your LLM provider (e.g., llama-3.1-8b-instant, qwen2.5-7b-instruct-1m)"
-                  classes="w-[220px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="w-[220px] text-center">
+                    <p>
+                      The exact model identifier used by your LLM provider (e.g.,
+                      llama-3.1-8b-instant, qwen2.5-7b-instruct-1m)
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <Input
                 id="modelId"
@@ -523,20 +528,26 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="baseURL" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="baseURL" className="text-base font-normal text-[#1E1E1E]">
                   Base URL <span className="text-red-500">*</span>
                 </Label>
-                <ToolTip
-                  text="The API endpoint URL for your LLM service. For OpenAI compatible APIs, include `/v1` in the URL (e.g., http://127.0.0.1:1234/v1, https://openai.example.com/v1). For Ollama, use the base URL without `/v1` (e.g., http://127.0.0.1:11434)"
-                  classes="w-[280px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="w-[280px] text-center">
+                    <p>
+                      The API endpoint URL for your LLM service. For OpenAI compatible APIs, include
+                      `/v1` in the URL (e.g., http://127.0.0.1:1234/v1,
+                      https://openai.example.com/v1). For Ollama, use the base URL without `/v1`
+                      (e.g., http://127.0.0.1:11434)
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <Input
                 id="baseURL"
@@ -550,20 +561,24 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="provider" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="provider" className="text-base font-normal text-[#1E1E1E]">
                   Provider / Compatible SDK <span className="text-red-500">*</span>
                 </Label>
-                <ToolTip
-                  text="The SDK/API format your model uses. Select OpenAI for OpenAI-compatible APIs or Ollama for Ollama-compatible APIs"
-                  classes="w-[220px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="w-[220px] text-center">
+                    <p>
+                      The SDK/API format your model uses. Select OpenAI for OpenAI-compatible APIs
+                      or Ollama for Ollama-compatible APIs
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <Select
                 value={formData.provider}
@@ -580,20 +595,24 @@ export function CreateUserCustomModelModal({
             </div>
 
             <div className="space-y-2">
-              <div className="mb-2">
-                <Label htmlFor="apiKey" className="text-base font-normal mr-2 text-[#1E1E1E]">
+              <div className="mb-2 flex items-center gap-2">
+                <Label htmlFor="apiKey" className="text-base font-normal text-[#1E1E1E]">
                   API Key {isApiKeyFromVault && '(Stored in Vault)'}
                 </Label>
-                <ToolTip
-                  text="Optional API key for your custom model. The key will be securely stored in your team vault. Leave empty if your model does not require authentication."
-                  classes="w-[240px] text-center"
-                  placement="right"
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: infoIcon }}
-                    className="w-4 h-4 text-gray-400"
-                  />
-                </ToolTip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: infoIcon }}
+                      className="w-4 h-4 text-gray-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="w-[240px] text-center">
+                    <p>
+                      Optional API key for your custom model. The key will be securely stored in
+                      your team vault. Leave empty if your model does not require authentication.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               {shouldRemoveApiKey ? (
                 <div className="space-y-2">
@@ -699,16 +718,20 @@ export function CreateUserCustomModelModal({
                   <Label className="text-base font-semibold mr-2 text-[#1E1E1E] cursor-pointer">
                     Advanced Options
                   </Label>
-                  <ToolTip
-                    text="Configure advanced settings like context window, output limits, fallback models, and supported features"
-                    classes="w-[220px] text-center"
-                    placement="right"
-                  >
-                    <div
-                      dangerouslySetInnerHTML={{ __html: infoIcon }}
-                      className="w-4 h-4 text-gray-400"
-                    />
-                  </ToolTip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: infoIcon }}
+                        className="w-4 h-4 text-gray-400"
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="w-[220px] text-center">
+                      <p>
+                        Configure advanced settings like context window, output limits, fallback
+                        models, and supported features
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -729,23 +752,27 @@ export function CreateUserCustomModelModal({
               {openAdvanceOption && (
                 <div className="space-y-4 pt-2 ps-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="space-y-2">
-                    <div className="mb-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <Label
                         htmlFor="contextWindow"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                        className="text-base font-normal text-[#1E1E1E]"
                       >
                         Context Window
                       </Label>
-                      <ToolTip
-                        text="The total number of tokens the model can process, including input and output"
-                        classes="w-[200px] text-center"
-                        placement="right"
-                      >
-                        <div
-                          dangerouslySetInnerHTML={{ __html: infoIcon }}
-                          className="w-4 h-4 text-gray-400"
-                        />
-                      </ToolTip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            dangerouslySetInnerHTML={{ __html: infoIcon }}
+                            className="w-4 h-4 text-gray-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="w-[200px] text-center">
+                          <p>
+                            The total number of tokens the model can process, including input and
+                            output
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     <Input
                       id="contextWindow"
@@ -764,23 +791,26 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="mb-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <Label
                         htmlFor="maxOutputTokens"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
+                        className="text-base font-normal text-[#1E1E1E]"
                       >
                         Maximum Output Tokens
                       </Label>
-                      <ToolTip
-                        text="The maximum number of tokens the model can generate in a single response"
-                        classes="w-[200px] text-center"
-                        placement="right"
-                      >
-                        <div
-                          dangerouslySetInnerHTML={{ __html: infoIcon }}
-                          className="w-4 h-4 text-gray-400"
-                        />
-                      </ToolTip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            dangerouslySetInnerHTML={{ __html: infoIcon }}
+                            className="w-4 h-4 text-gray-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="w-[200px] text-center">
+                          <p>
+                            The maximum number of tokens the model can generate in a single response
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     <Input
                       id="maxOutputTokens"
@@ -801,23 +831,24 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="mb-2">
-                      <Label
-                        htmlFor="fallbackLLM"
-                        className="text-base font-normal mr-2 text-[#1E1E1E]"
-                      >
+                    <div className="mb-2 flex items-center gap-2">
+                      <Label htmlFor="fallbackLLM" className="text-base font-normal text-[#1E1E1E]">
                         Fallback Model
                       </Label>
-                      <ToolTip
-                        text="Select a fallback model from your available models. This model will be used automatically when your custom model is unavailable"
-                        classes="w-[220px] text-center"
-                        placement="right"
-                      >
-                        <div
-                          dangerouslySetInnerHTML={{ __html: infoIcon }}
-                          className="w-4 h-4 text-gray-400"
-                        />
-                      </ToolTip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            dangerouslySetInnerHTML={{ __html: infoIcon }}
+                            className="w-4 h-4 text-gray-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="w-[220px] text-center">
+                          <p>
+                            Select a fallback model from your available models. This model will be
+                            used automatically when your custom model is unavailable
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     <Select
                       value={formData.fallbackLLM}
@@ -837,18 +868,22 @@ export function CreateUserCustomModelModal({
                   </div>
 
                   <div className="space-y-3">
-                    <div className="mb-2">
-                      <Label className="text-base font-normal mr-2 text-[#1E1E1E]">Features</Label>
-                      <ToolTip
-                        text="Select the capabilities your model supports: Text Completion for generating text, and Function calling/Tool Use for executing functions"
-                        classes="w-[220px] text-center"
-                        placement="right"
-                      >
-                        <div
-                          dangerouslySetInnerHTML={{ __html: infoIcon }}
-                          className="w-4 h-4 text-gray-400"
-                        />
-                      </ToolTip>
+                    <div className="mb-2 flex items-center gap-2">
+                      <Label className="text-base font-normal text-[#1E1E1E]">Features</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            dangerouslySetInnerHTML={{ __html: infoIcon }}
+                            className="w-4 h-4 text-gray-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="w-[220px] text-center">
+                          <p>
+                            Select the capabilities your model supports: Text Completion for
+                            generating text, and Function calling/Tool Use for executing functions
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     <div className="grid grid-cols-2 gap-4 ml-2">
                       {userCustomModelFeatures.map((feature) => (

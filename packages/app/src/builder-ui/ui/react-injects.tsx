@@ -22,6 +22,7 @@ import ComponentInputEditor from '@src/react/features/builder/modals/ComponentIn
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
+import { TooltipProvider } from '@src/react/shared/components/ui/tooltip';
 import { AppStateProvider, useAppState } from '@src/react/shared/contexts/AppStateContext';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { queryClient } from '@src/react/shared/query-client';
@@ -49,19 +50,37 @@ const createOneTimeRoot = (id?: string) => {
 };
 
 export function renderDebugLogContainer({ rootID }: { rootID: string }) {
-  const root = createRoot(document.getElementById(rootID));
+  const rootElement = document.getElementById(rootID);
+  if (!rootElement) {
+    console.error(`Root element with ID "${rootID}" not found`);
+    return;
+  }
+  const root = createRoot(rootElement);
   const workspace: Workspace = window['workspace'];
-  root.render(<DebugLogMenu workspace={workspace} />);
+  root.render(
+    <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+      <DebugLogMenu workspace={workspace} />
+    </TooltipProvider>,
+  );
 }
 
 export function renderAgentDeploymentSidebar({ rootID }: { rootID: string }) {
   const workspace: Workspace = window['workspace'];
-  const sidebarRoot = createRoot(document.getElementById(rootID));
+  const rootElement = document.getElementById(rootID);
+
+  if (!rootElement) {
+    console.error(`Root element with ID "${rootID}" not found`);
+    return;
+  }
+
+  const sidebarRoot = createRoot(rootElement);
   sidebarRoot.render(
     <QueryClientProvider client={queryClient}>
       <AppStateProvider>
         <Router>
-          <AgentDeploymentSidebar workspace={workspace} />
+          <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+            <AgentDeploymentSidebar workspace={workspace} />
+          </TooltipProvider>
         </Router>
       </AppStateProvider>
     </QueryClientProvider>,
@@ -119,49 +138,79 @@ export function renderEndpointFormPreviewSidebar({
     };
   };
 }) {
-  const root = createRoot(document.getElementById(rootID));
+  const rootElement = document.getElementById(rootID);
+  if (!rootElement) {
+    console.error(`Root element with ID "${rootID}" not found`);
+    return;
+  }
+  const root = createRoot(rootElement);
   const workspace: Workspace = window['workspace'];
 
   root.render(
     <QueryClientProvider client={queryClient}>
-      <EndpointFormPreviewSidebar
-        mode={{
-          name: 'in-builder',
-          props: {
-            defaultSkill: skill,
-            workspace: workspace,
-            agentId: workspace.agent.id,
-            dbg_url: workspace.serverData.dbgUrl,
-            getAvailableSkills: () =>
-              workspace.agent?.data?.components
-                ?.filter((c) => c.name === 'APIEndpoint' && c.inputs?.length > 0)
-                ?.map((skill) => ({
-                  skillId: skill.id,
-                  details: {
-                    name: skill.title || '',
-                  },
-                })) || [],
-          },
-        }}
-      />
+      <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+        <EndpointFormPreviewSidebar
+          mode={{
+            name: 'in-builder',
+            props: {
+              defaultSkill: skill,
+              workspace: workspace,
+              agentId: workspace.agent.id,
+              dbg_url: workspace.serverData.dbgUrl,
+              getAvailableSkills: () =>
+                workspace.agent?.data?.components
+                  ?.filter((c) => c.name === 'APIEndpoint' && c.inputs?.length > 0)
+                  ?.map((skill) => ({
+                    skillId: skill.id,
+                    details: {
+                      name: skill.title || '',
+                    },
+                  })) || [],
+            },
+          }}
+        />
+      </TooltipProvider>
     </QueryClientProvider>,
   );
 }
 
 export function renderAgentSettingsSidebar({ rootID }: { rootID: string }) {
-  const workspace: Workspace = window['workspace'];
-  const sidebarRoot = createRoot(document.getElementById(rootID));
-  sidebarRoot.render(
-    <QueryClientProvider client={queryClient}>
-      <AppStateProvider>
-        <Router>
-          <AgentSettingsProvider workspace={workspace} workspaceAgentId={workspace.agent.id}>
-            <AgentSettingTabs />
-          </AgentSettingsProvider>
-        </Router>
-      </AppStateProvider>
-    </QueryClientProvider>,
-  );
+  try {
+    const workspace: Workspace = window['workspace'];
+    const rootElement = document.getElementById(rootID);
+
+    if (!rootElement) {
+      console.error(`Root element with ID "${rootID}" not found`);
+      return;
+    }
+
+    if (!workspace?.agent?.id) {
+      console.error('Workspace agent ID is not available');
+      return;
+    }
+
+    const sidebarRoot = createRoot(rootElement);
+    sidebarRoot.render(
+      <QueryClientProvider client={queryClient}>
+        <AppStateProvider>
+          <Router>
+            <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+              <AgentSettingsProvider workspace={workspace} workspaceAgentId={workspace.agent.id}>
+                <AgentSettingTabs />
+              </AgentSettingsProvider>
+            </TooltipProvider>
+          </Router>
+        </AppStateProvider>
+      </QueryClientProvider>,
+    );
+  } catch (error) {
+    console.error('Error rendering agent settings sidebar:', error);
+    const rootElement = document.getElementById(rootID);
+    if (rootElement) {
+      rootElement.innerHTML =
+        '<div style="padding: 20px; color: red;">Error loading agent settings. Please refresh the page.</div>';
+    }
+  }
 }
 /*
 These modals are self contained and do not need to be inside providers
@@ -278,7 +327,9 @@ export function renderAgentModals({ rootID }: { rootID: string }): void {
       <QueryClientProvider client={queryClient}>
         <AppStateProvider>
           <DeploymentSidebarProvider workspace={workspace}>
-            <ModalsContent />
+            <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+              <ModalsContent />
+            </TooltipProvider>
           </DeploymentSidebarProvider>
         </AppStateProvider>
       </QueryClientProvider>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
@@ -206,42 +206,44 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
               ) : (
                 <div ref={dropdownRef} className="relative leading-none w-full">
                   {/* Selected value display - clickable trigger */}
-                  <Tooltip
-                    content={isModelAgent ? 'Default agents have a fixed model' : 'Select model'}
-                    placement="bottom"
-                  >
-                    <button
-                      type="button"
-                      onClick={toggleDropdown}
-                      disabled={
-                        isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
-                      }
-                      className={cn(
-                        'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                        !isModelAgent && 'cursor-pointer hover:text-slate-900',
-                      )}
-                    >
-                      {/* Display selected model label */}
-                      <span>
-                        {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
-                        {(() => {
-                          const selectedModelData = llmModels.find((m) => m.value === currentModel);
-                          if (selectedModelData) {
-                            const badge = getTempBadge(selectedModelData.tags);
-                            return badge ? ` (${badge})` : '';
-                          }
-                          return '';
-                        })()}
-                      </span>
-                      {/* Dropdown icon */}
-                      <IoChevronDown
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={toggleDropdown}
+                        disabled={
+                          isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
+                        }
                         className={cn(
-                          'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
-                          !isModelAgent && 'group-hover:text-slate-900',
-                          isDropdownOpen && 'rotate-180',
+                          'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                          !isModelAgent && 'cursor-pointer hover:text-slate-900',
                         )}
-                      />
-                    </button>
+                      >
+                        {/* Display selected model label */}
+                        <span>
+                          {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
+                          {(() => {
+                            const selectedModelData = llmModels.find((m) => m.value === currentModel);
+                            if (selectedModelData) {
+                              const badge = getTempBadge(selectedModelData.tags);
+                              return badge ? ` (${badge})` : '';
+                            }
+                            return '';
+                          })()}
+                        </span>
+                        {/* Dropdown icon */}
+                        <IoChevronDown
+                          className={cn(
+                            'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
+                            !isModelAgent && 'group-hover:text-slate-900',
+                            isDropdownOpen && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{isModelAgent ? 'Default agents have a fixed model' : 'Select model'}</p>
+                    </TooltipContent>
                   </Tooltip>
 
                   {/* Dropdown menu - only show if not a model agent */}
@@ -352,18 +354,28 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
         {/* Right side - Action buttons */}
         <div className=" flex items-center justify-center gap-2">
-          <Tooltip content={<>New&nbsp;Chat</>} placement="bottom">
-            <button
-              className="cursor-pointer w-6 h-6 flex items-center justify-center"
-              onClick={clearChatSession}
-            >
-              <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="cursor-pointer w-6 h-6 flex items-center justify-center"
+                onClick={clearChatSession}
+              >
+                <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>New Chat</p>
+            </TooltipContent>
           </Tooltip>
-          <Tooltip content="Exit" placement="bottom">
-            <Link to="/agents">
-              <CloseIcon className="text-slate-500 w-6 h-6" />
-            </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/agents">
+                <CloseIcon className="text-slate-500 w-6 h-6" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Exit</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

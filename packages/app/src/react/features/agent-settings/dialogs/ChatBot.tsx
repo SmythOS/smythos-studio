@@ -30,7 +30,7 @@ import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
 
 // const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
@@ -425,18 +425,18 @@ const ChatBotDialog = ({
                                   className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
                                 >
                                   Allowed Domains{' '}
-                                  <Tooltip
-                                    className="w-52 text-center"
-                                    content={
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="w-5 h-5 ml-1" />
+                                    </TooltipTrigger>
+                                    <TooltipContent className="w-52 text-center">
                                       <div>
                                         Restrict chatbot to specific domains.
                                         <br /> Use commas to separate multiple domains (e.g.,
                                         example.com, mysite.org).
                                         <br /> Leave empty for no restrictions.
                                       </div>
-                                    }
-                                  >
-                                    <Info className="w-5 h-5 ml-1" />
+                                    </TooltipContent>
                                   </Tooltip>
                                 </label>
 

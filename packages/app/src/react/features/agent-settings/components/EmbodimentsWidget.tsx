@@ -11,7 +11,7 @@ import {
   getEmbodimentTitle,
 } from '@src/react/features/embodiments/embodiment-configs';
 import { useAgentEmbodimentSettings } from '@src/react/features/embodiments/embodiment-settings';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { FaCode, FaLock, FaSliders } from 'react-icons/fa6';
@@ -126,8 +126,13 @@ const EmbodimentsWidget = ({ agent, agentId, isWriteAccess }: IProps) => {
                 )}
               </div>
             ) : (
-              <Tooltip content="Premium Embodiment. Upgrade your plan" placement="top">
-                <FaLock cursor={'pointer'} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <FaLock cursor={'pointer'} />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Premium Embodiment. Upgrade your plan</p>
+                </TooltipContent>
               </Tooltip>
             )}
           </div>

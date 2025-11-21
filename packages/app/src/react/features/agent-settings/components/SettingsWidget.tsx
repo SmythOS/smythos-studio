@@ -2,7 +2,8 @@ import { useWidgetsContext } from '@react/features/agent-settings/components/Ove
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { TextArea as CustomTextarea } from '@react/shared/components/ui/newDesign/textarea';
 import { SkeletonLoader } from '@src/react/shared/components/ui/skeleton-loader';
-import { Modal, Tooltip } from 'flowbite-react';
+import { Modal } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -78,9 +79,11 @@ const SettingsWidget = () => {
               className="flex items-center gap-2 text-gray-700 text-sm font-semibold mt-4"
             >
               Default LLM
-              <Tooltip
-                className="w-52 text-center"
-                content={
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 mt-[-2px]" />
+                </TooltipTrigger>
+                <TooltipContent className="w-52 text-center">
                   <div>
                     Primary language model
                     <br />
@@ -88,9 +91,7 @@ const SettingsWidget = () => {
                     <br />
                     Affects response quality and capabilities
                   </div>
-                }
-              >
-                <Info className="w-4 h-4 mt-[-2px]" />
+                </TooltipContent>
               </Tooltip>
             </label>
             <p className="text-sm text-gray-500 mb-2 mt-0.5">Select your preferred default LLM.</p>

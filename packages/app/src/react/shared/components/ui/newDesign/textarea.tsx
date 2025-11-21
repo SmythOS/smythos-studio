@@ -1,5 +1,5 @@
 import { cn } from '@react/shared/utils/general';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { BiExpandAlt } from 'react-icons/bi';
@@ -169,8 +169,13 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, CustomTextAreaProp
             {label} {required && <span className="text-red-500 mr-1">*</span>}{' '}
             <span className="italic text-sm text-gray-500">{labelExample}</span>
             {!!infoTooltip && (
-              <Tooltip className="w-52 text-center" content={infoTooltip}>
-                <Info className="w-4 h-4 ml-2" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 ml-2" />
+                </TooltipTrigger>
+                <TooltipContent className="w-52 text-center">
+                  {infoTooltip}
+                </TooltipContent>
               </Tooltip>
             )}
           </div>

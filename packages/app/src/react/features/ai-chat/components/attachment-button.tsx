@@ -1,4 +1,4 @@
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { FC } from 'react';
 
 import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
@@ -43,11 +43,13 @@ export const AttachmentButton: FC<AttachmentButtonProps> = ({
   );
 
   return isMaxFilesUploaded ? (
-    <Tooltip
-      content={`You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files`}
-      placement="top"
-    >
-      {button}
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {button}
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <p>{`You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files`}</p>
+      </TooltipContent>
     </Tooltip>
   ) : (
     button

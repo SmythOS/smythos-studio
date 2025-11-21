@@ -1,5 +1,5 @@
 import { useDebugLogMenuCtx } from '@src/react/features/builder/contexts/debug-log-menu.context';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegCopy } from 'react-icons/fa6';
 import { HiOutlineDownload } from 'react-icons/hi';
@@ -139,29 +139,44 @@ export const LogsContent: FC = () => {
     <div className="flex flex-col h-full relative">
       <div className="absolute top-2 right-2 z-[2]">
         <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
-          <Tooltip content={copied ? 'Copied!' : 'Copy'} className="text-xs">
-            <button
-              onClick={handleCopyLogs}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-            >
-              <FaRegCopy size={14} />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleCopyLogs}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <FaRegCopy size={14} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="text-xs">
+              <p>{copied ? 'Copied!' : 'Copy'}</p>
+            </TooltipContent>
           </Tooltip>
-          <Tooltip content="Download" className="text-xs">
-            <button
-              onClick={handleDownloadLogs}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-            >
-              <HiOutlineDownload size={15} />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleDownloadLogs}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <HiOutlineDownload size={15} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="text-xs">
+              <p>Download</p>
+            </TooltipContent>
           </Tooltip>
-          <Tooltip content="Clear" className="text-xs">
-            <button
-              onClick={handleClearLogs}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-            >
-              <IoMdTrash size={15} />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleClearLogs}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <IoMdTrash size={15} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="text-xs">
+              <p>Clear</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

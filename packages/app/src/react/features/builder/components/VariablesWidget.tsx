@@ -12,7 +12,7 @@ import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { MANAGED_VAULT_SCOPES } from '@src/shared/constants/general';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Component, useEffect, useRef, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { IoKeyOutline } from 'react-icons/io5';
@@ -462,27 +462,32 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
             id="variables-widget-actions"
             className={`flex gap-3  ${writeAccess ? 'opacity-100' : 'opacity-0'}`}
           >
-            <Tooltip
-              content={
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <LuInfo size={20} />
+              </TooltipTrigger>
+              <TooltipContent side="top">
                 <div style={{ minWidth: '300px' }}>
                   The Agent Variables you declare here can be accessed and used across all
                   components. These variables act like global variables throughout your AI agent.
                 </div>
-              }
-              placement="top"
-            >
-              <LuInfo size={20} />
+              </TooltipContent>
             </Tooltip>
-            <Tooltip content="Close" placement="top">
-              <div
-                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2"
-                onClick={(e) => {
-                  e?.stopPropagation();
-                  handleClose();
-                }}
-              >
-                <CloseIcon width={16} height={16} />
-              </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2"
+                  onClick={(e) => {
+                    e?.stopPropagation();
+                    handleClose();
+                  }}
+                >
+                  <CloseIcon width={16} height={16} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Close</p>
+              </TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -509,11 +514,13 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     type="button"
                     aria-label="Delete variable"
                   >
-                    <Tooltip
-                      content={<div style={{ width: '120px' }}>Delete Variable</div>}
-                      placement="top"
-                    >
-                      <FiTrash2 className="text-red-500" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <FiTrash2 className="text-red-500" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <div style={{ width: '120px' }}>Delete Variable</div>
+                      </TooltipContent>
                     </Tooltip>
                   </button>
                 )}

@@ -1,11 +1,11 @@
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@react/shared/constants/style';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import classNames from 'classnames';
-import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
 import { FC } from 'react';
 import { FaArrowRight } from 'react-icons/fa6';
@@ -71,61 +71,77 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
             <div className="flex items-center">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 Chat with Agent
-                <Tooltip
-                  className="w-52 text-center"
-                  content="Interact directly with your agent through a conversational interface."
-                >
-                  <Info className="w-4 h-4" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-52 text-center">
+                    <p>Interact directly with your agent through a conversational interface.</p>
+                  </TooltipContent>
                 </Tooltip>
               </label>
             </div>
             <p className="text-sm text-gray-500">Message your agent, assign a task via chat.</p>
           </div>
 
-          <Tooltip
-            content={
-              <>
-                To chat with your agent, please deploy to production.{' '}
-                <>
+          {!isAgentDeployed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Link
+                    to={isAgentDeployed ? `/chat/${agentId}` : ''}
+                    className={classNames(
+                      'flex items-center justify-center font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none',
+                      `${isAgentDeployed ? PRIMARY_BUTTON_STYLE : SECONDARY_BUTTON_STYLE}`,
+                    )}
+                    onClick={(e) => {
+                      Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent, {
+                        source: 'agent settings',
+                      });
+                      !isAgentDeployed && e.preventDefault();
+                    }}
+                    target="_blank"
+                  >
+                    <ChatIcon className="w-6 h-6 mr-1" />
+                    Chat <FaArrowRight className="ml-1" />
+                  </Link>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="min-w-[280px] text-center">
+                <div>
+                  To chat with your agent, please deploy to production.{' '}
                   <Link
                     to={`/builder/${agentId}`}
                     target="_blank"
                     className="underline"
                     reloadDocument
+                    onClick={(e) => e.stopPropagation()}
                   >
                     Deploy
                   </Link>{' '}
                   your agent now.
-                </>
-              </>
-            }
-            trigger="hover"
-            placement="top"
-            className={classNames(
-              isAgentDeployed ? 'opacity-0 pointer-events-none' : 'opacity-100',
-              'min-w-[280px] text-center',
-            )}
-            hidden={isAgentDeployed}
-            style="dark"
-          >
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {isAgentDeployed && (
             <Link
-              to={isAgentDeployed ? `/chat/${agentId}` : ''}
+              to={`/chat/${agentId}`}
               className={classNames(
                 'flex items-center justify-center font-normal border border-solid text-base px-4 py-2 text-center rounded transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none',
-                `${isAgentDeployed ? PRIMARY_BUTTON_STYLE : SECONDARY_BUTTON_STYLE}`,
+                PRIMARY_BUTTON_STYLE,
               )}
-              onClick={(e) => {
+              onClick={() => {
                 Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent, {
                   source: 'agent settings',
                 });
-                !isAgentDeployed && e.preventDefault();
               }}
               target="_blank"
             >
               <ChatIcon className="w-6 h-6 mr-1" />
               Chat <FaArrowRight className="ml-1" />
             </Link>
-          </Tooltip>
+          )}
         </div>
       </div>
     </WidgetCard>
