@@ -24,14 +24,14 @@ interface IChatProps extends IChatMessage {
  * @param props - Chat message properties
  * @returns Appropriate message component
  */
-const ChatComponent: FC<IChatProps> = (props) => {
-  const { type, files, avatar, message, onRetryClick, scrollToBottom } = props;
+export const Chat: FC<IChatProps> = memo((props) => {
+  const { type, files, avatar, message, metaMessages, onRetryClick, scrollToBottom } = props;
 
   switch (type) {
     case 'loading':
       return <ReplyLoader />;
     case 'thinking':
-      return <ThinkingMessage message={message} avatar={avatar} />;
+      return <ThinkingMessage avatar={avatar} message={message} metaMessages={metaMessages} />;
     case 'user':
       return <UserMessage message={message} files={files} />;
     case 'system':
@@ -48,14 +48,4 @@ const ChatComponent: FC<IChatProps> = (props) => {
     default:
       return <SystemMessage isError message="Something went wrong!" onRetryClick={onRetryClick} />;
   }
-};
-
-/**
- * Memoized Chat component export
- * Only re-renders when message content actually changes
- *
- * Performance Impact:
- * - 100 message conversation: Reduces re-renders from 20,000 to ~200 (99% improvement!)
- * - Smooth streaming even with 500+ messages
- */
-export const Chat = memo(ChatComponent);
+});

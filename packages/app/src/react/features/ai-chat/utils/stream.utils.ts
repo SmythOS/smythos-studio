@@ -5,11 +5,7 @@
  * Updated: callback signatures now include TThinkingType parameter
  */
 
-import {
-  IMetaMessages,
-  IStreamChunk,
-  TThinkingType,
-} from '@react/features/ai-chat/types/chat.types';
+import { IStreamChunk, TThinkingType } from '@react/features/ai-chat/types/chat.types';
 
 /**
  * Function-specific thinking messages that cycle during function execution
@@ -51,14 +47,10 @@ const GENERAL_THINKING_MESSAGES = [
  */
 export const splitJSONStream = (data: string): IStreamChunk[] => {
   // Handle empty or invalid data
-  if (!data || typeof data !== 'string') {
-    return [];
-  }
+  if (!data || typeof data !== 'string') return [];
 
   const cleanData = data.trim();
-  if (!cleanData) {
-    return [];
-  }
+  if (!cleanData) return [];
 
   // Split by '}{' pattern - common in streaming JSON
   const jsonStrings = cleanData
@@ -67,9 +59,7 @@ export const splitJSONStream = (data: string): IStreamChunk[] => {
       let cleanStr = str.trim();
 
       // Skip empty strings
-      if (!cleanStr) {
-        return null;
-      }
+      if (!cleanStr) return null;
 
       // Add opening brace if not first element
       if (index !== 0 && !cleanStr.startsWith('{')) {
@@ -103,46 +93,6 @@ export const splitJSONStream = (data: string): IStreamChunk[] => {
     .filter((chunk): chunk is IStreamChunk => chunk !== null);
 
   return parsedChunks;
-};
-
-/**
- * Extracts function name from debug message content
- * Supports multiple debug message formats
- *
- * @param debugContent - Raw debug message content
- * @returns Extracted function name or null
- *
- * @example
- * ```typescript
- * extractFunctionName('[ABC123] Function Call : getUserData');
- * // Returns: 'getUserData'
- *
- * extractFunctionName('Call Response : processPayment');
- * // Returns: 'processPayment'
- * ```
- */
-export const extractFunctionName = (debugContent: string): string | null => {
-  if (!debugContent) {
-    return null;
-  }
-
-  // Multiple patterns to extract function name from debug messages
-  const patterns = [
-    /(?:\[\w+\]\s+Function Call\s*:\s*)([a-zA-Z_][a-zA-Z0-9_]*)/,
-    /(?:\[\w+\]\s+Call Response\s*:\s*)([a-zA-Z_][a-zA-Z0-9_]*)/,
-    /(?:Function Call\s*:\s*)([a-zA-Z_][a-zA-Z0-9_]*)/,
-    /(?:Call Response\s*:\s*)([a-zA-Z_][a-zA-Z0-9_]*)/,
-    /^([a-zA-Z_][a-zA-Z0-9_]*)$/, // Just function name alone
-  ];
-
-  for (const pattern of patterns) {
-    const match = debugContent.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-
-  return null;
 };
 
 /**
@@ -227,8 +177,7 @@ export class ThinkingMessageManager {
   private currentIndex: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
   private toolName: string = '';
-  private statusMessage: string = '';
-  private callback: ((metaMessages: IMetaMessages) => void) | null = null;
+  private callback: (message: string) => void;
 
   /**
    * Starts thinking messages with priority system
@@ -239,67 +188,30 @@ export class ThinkingMessageManager {
    * @param toolName - Function name for function type
    * @param statusMessage - Status message for status type
    */
-  start(
-    type: TThinkingType,
-    callback: (metaMessages: IMetaMessages) => void,
-    toolName?: string,
-    statusMessage?: string,
-  ): void {
-    // Priority system: status > function > general
-    const priorityOrder: Record<TThinkingType, number> = { status: 3, function: 2, general: 1 };
-    const currentPriority = this.currentType ? priorityOrder[this.currentType] : 0;
-    const newPriority = priorityOrder[type];
-
-    // Only start new thinking if it has higher or equal priority
-    if (newPriority < currentPriority) {
-      return; // Don't override higher priority thinking
-    }
-
-    // Stop any existing thinking
+  start(callback: (message: string) => void, toolName?: string): void {
+    // Stop any existing thinking before starting new one
     this.stop();
 
-    this.currentType = type;
+    this.currentType = toolName ? 'tools' : 'general';
     this.callback = callback;
     this.currentIndex = 0;
 
-    if (type === 'function' && toolName) {
-      this.toolName = toolName;
-    }
-    if (type === 'status' && statusMessage) {
-      this.statusMessage = formatStatusMessage(statusMessage);
+    if (this.currentType === 'tools' && toolName) {
+      this.toolName = formatFunctionName(toolName);
     }
 
     // Show first message immediately
     const initialMessage = this.getCurrentMessage();
-    callback({
-      debug: null,
-      title: null,
-      statusMessage: initialMessage,
-      function: this.toolName,
-      callParams: null,
-      parameters: null,
-      functionCall: this.toolName ? { name: this.toolName } : null,
-    });
+    callback(initialMessage);
 
     // Start interval only for general and function types
-    if (type !== 'status') {
-      const intervalTime = type === 'function' ? 5000 : 3000;
-      this.intervalId = setInterval(() => {
-        this.currentIndex = (this.currentIndex + 1) % this.getMessagesArray().length;
-        const message = this.getCurrentMessage();
-        if (this.callback && this.currentType) {
-          this.callback({
-            debug: null,
-            title: null,
-            statusMessage: message,
-            function: this.toolName,
-            callParams: null,
-            parameters: null,
-            functionCall: this.toolName ? { name: this.toolName } : null,
-          });
-        }
-      }, intervalTime);
-    }
+
+    const intervalTime = this.currentType === 'tools' ? 5000 : 3000;
+    this.intervalId = setInterval(() => {
+      this.currentIndex = (this.currentIndex + 1) % this.getMessagesArray().length;
+      const message = this.getCurrentMessage();
+      if (this.callback) this.callback(message);
+    }, intervalTime);
   }
 
   /**
@@ -313,22 +225,17 @@ export class ThinkingMessageManager {
     this.currentType = null;
     this.currentIndex = 0;
     this.toolName = '';
-    this.statusMessage = '';
-    this.callback = null;
+    this.callback = () => {};
   }
 
   /**
    * Gets current message with placeholders replaced
    */
   private getCurrentMessage(): string {
-    if (this.currentType === 'status') {
-      return this.statusMessage;
-    }
-
     const messages = this.getMessagesArray();
     const messageTemplate = messages[this.currentIndex];
 
-    if (this.currentType === 'function') {
+    if (this.currentType === 'tools') {
       return messageTemplate.replace('{functionName}', this.toolName);
     }
 
@@ -340,7 +247,7 @@ export class ThinkingMessageManager {
    */
   private getMessagesArray(): string[] {
     switch (this.currentType) {
-      case 'function':
+      case 'tools':
         return FUNCTION_THINKING_MESSAGES;
       case 'general':
         return GENERAL_THINKING_MESSAGES;

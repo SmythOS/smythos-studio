@@ -10,7 +10,7 @@ import { Tooltip } from 'flowbite-react';
 import { FC, memo, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 
-import { IChatMessage } from '../types/chat.types';
+import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
 import { Chat } from './chat';
 
 interface IMessageTurnGroupProps {
@@ -40,7 +40,7 @@ const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
     lastMessage &&
     lastMessage.type !== 'loading' &&
     lastMessage.type !== 'thinking' &&
-    !lastMessage.thinkingMessage;
+    !lastMessage.metaMessages;
 
   /**
    * Copies all system message content from this group

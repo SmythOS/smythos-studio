@@ -30,7 +30,6 @@ const DEFAULT_CONFIG: IAPIConfig = {
  */
 export class ChatAPIClient {
   private config: IAPIConfig;
-  // private thinkingManager = createThinkingManager();
 
   /**
    * Creates a new ChatAPIClient instance

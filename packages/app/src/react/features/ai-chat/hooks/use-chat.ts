@@ -13,7 +13,6 @@ import {
 } from '@react/features/ai-chat/types/chat.types';
 import { useCallback, useRef, useState } from 'react';
 import { USER_STOPPED_MESSAGE } from '../constants';
-import { formatStatusMessage } from '../utils/stream.utils';
 import { useChatStream } from './use-chat-stream';
 
 /**
@@ -23,7 +22,6 @@ interface IUseChatConfig {
   agentId: string;
   chatId: string; // Chat/Conversation ID
   modelId?: string; // Model ID to override backend model selection
-  // client?: ChatAPIClient; // Custom chat API client
   headers?: Record<string, string>; // Custom headers for requests
   onChatComplete?: (message: string) => void; // Called when chat completes successfully
   onError?: (error: Error) => void; // Called when error occurs
@@ -203,11 +201,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
    * Add and update meta messages for current AI response
    */
   const addMetaMessage = useCallback((metaMessages: IMetaMessages) => {
-    const formattedStatusMessage = formatStatusMessage(
-      metaMessages.statusMessage || metaMessages.title,
-    );
-
-    if (!formattedStatusMessage) return;
+    if (!metaMessages || !metaMessages.title) return;
 
     setMessages((prev) => {
       const lastMessage = prev[prev.length - 1];
@@ -219,8 +213,8 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             ? {
                 ...msg,
                 type: 'thinking',
-                message: formattedStatusMessage,
-                thinkingMessage: formattedStatusMessage,
+                message: metaMessages.title,
+                metaMessages, // Store full metaMessages object for component
                 timestamp: Date.now(),
               }
             : msg,
@@ -230,10 +224,10 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       // Otherwise, add new loading message
       const metaMessage: IChatMessage = {
         id: Date.now() + 2,
-        message: formattedStatusMessage,
-        thinkingMessage: formattedStatusMessage,
         type: 'thinking',
+        message: metaMessages.title,
         timestamp: Date.now(),
+        metaMessages, // Store full metaMessages object for component
         conversationTurnId: currentTurnIdRef.current || undefined,
       };
 
@@ -277,10 +271,10 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             onStart: () => {
               currentTurnIdRef.current = null; // Reset turn ID for new conversation turn
             },
-            onContent: (content: string, conversationTurnId?: string) => {
+            onContent: (content: string, turnId?: string) => {
               // Capture turn ID only once
-              if (conversationTurnId && !currentTurnIdRef.current) {
-                currentTurnIdRef.current = conversationTurnId;
+              if (turnId && !currentTurnIdRef.current) {
+                currentTurnIdRef.current = turnId;
               }
 
               // If content comes after thinking, replace thinking message with loading message
@@ -294,7 +288,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                       ...prev[lastMessageIndex],
                       type: 'loading',
                       message: '',
-                      thinkingMessage: undefined,
+                      conversationTurnId: turnId || prev[lastMessageIndex].conversationTurnId,
                     });
                     return newMessages;
                   }
@@ -309,11 +303,11 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
               // Use throttled update for better performance during streaming
               // This batches rapid chunk updates to reduce re-renders
-              updateStreamingMessage(currentAIMessageRef.current, conversationTurnId);
+              updateStreamingMessage(currentAIMessageRef.current, turnId);
             },
-            onMetaMessages: (metaMessages: IMetaMessages, conversationTurnId?: string) => {
-              if (conversationTurnId && !currentTurnIdRef.current) {
-                currentTurnIdRef.current = conversationTurnId; // Capture turn ID from thinking messages
+            onMetaMessages: (metaMessages: IMetaMessages, turnId?: string) => {
+              if (turnId && !currentTurnIdRef.current) {
+                currentTurnIdRef.current = turnId; // Capture turn ID from thinking messages
               }
 
               // Mark that we're in thinking state
@@ -340,7 +334,6 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                         ...lastMsg,
                         message: currentContent || lastMsg.message,
                         type: 'system',
-                        thinkingMessage: undefined,
                       };
                     }
                   }

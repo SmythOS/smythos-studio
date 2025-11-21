@@ -22,7 +22,7 @@ export interface IChatMessage {
   isFirstMessage?: boolean;
   files?: FileWithMetadata[];
   hideMessage?: boolean;
-  thinkingMessage?: string; // Inline thinking message to show with system messages
+  statusMessage?: string; // Inline thinking message to show with system messages
   isLast?: boolean; // Whether this is the last message in the chat
   isRetrying?: boolean; // Whether this message is being retried
   onRetryClick?: () => void; // Function to call when retry is clicked

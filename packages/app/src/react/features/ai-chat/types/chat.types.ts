@@ -30,7 +30,7 @@ export interface IChatMessage {
   conversationTurnId?: string; // Conversation Turn ID
   files?: IMessageFile[]; // Attached files (user messages only)
   avatar?: string; // Avatar URL for system/AI messages
-  thinkingMessage?: string; // Inline thinking/status message during generation
+  metaMessages?: IMetaMessages; // Full meta messages object for thinking component
   onRetryClick?: () => void; // Retry callback for error messages
   timestamp?: number; // Message timestamp (optional, for future use)
 }
@@ -102,7 +102,7 @@ export interface IStreamChunk {
   isError?: boolean; // Error indicator
 }
 
-export type TThinkingType = 'general' | 'function' | 'status'; // Thinking message type discriminator
+export type TThinkingType = 'tools' | 'general'; // Thinking message type discriminator
 
 export interface IStreamConfig {
   agentId: string; // Target agent ID

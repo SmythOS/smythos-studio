@@ -1,8 +1,14 @@
-import React from 'react';
+import { IMetaMessages } from '@react/features/ai-chat/types/chat.types';
+import {
+  createThinkingManager,
+  formatStatusMessage,
+} from '@react/features/ai-chat/utils/stream.utils';
+import { FC, useEffect, useRef, useState } from 'react';
 
-interface ThinkingMessageProps {
+interface IProps {
   message: string;
   avatar?: string;
+  metaMessages?: IMetaMessages;
 }
 
 // Custom CSS for smooth blinking animation (like the image)
@@ -19,7 +25,42 @@ const blinkAnimation = `
   }
 `;
 
-const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, avatar }) => {
+/**
+ * ThinkingMessage Component
+ * Manages thinking message cycling internally using ThinkingMessageManager
+ * Receives metaMessages from parent and handles the cycling logic
+ */
+export const ThinkingMessage: FC<IProps> = ({ avatar, metaMessages }) => {
+  const [thinkingMessage, setThinkingMessage] = useState<string>('');
+  const thinkingManagerRef = useRef(createThinkingManager());
+
+  /**
+   * Effect to manage thinking message lifecycle
+   * Starts/updates cycling when metaMessages are received
+   * The ThinkingMessageManager handles priority internally (status > tools > general)
+   * Stops when component unmounts
+   */
+  useEffect(() => {
+    const manager = thinkingManagerRef.current;
+
+    // Check if statusMessage exists - if yes, just display formatted, no cycling
+    if (metaMessages?.statusMessage) {
+      // Format and display statusMessage directly, no thinkingManager needed
+      const formatted = formatStatusMessage(metaMessages.statusMessage);
+      setThinkingMessage(formatted);
+      manager.stop(); // Stop any existing cycling
+      return;
+    }
+
+    // No statusMessage, check for toolName
+    const toolName = metaMessages?.title || metaMessages?.functionCall?.name;
+
+    manager.start(setThinkingMessage, toolName || '');
+
+    // Cleanup: stop thinking manager when component unmounts
+    return () => manager.stop();
+  }, [metaMessages]);
+
   return (
     <>
       <style>{blinkAnimation}</style>
@@ -41,11 +82,11 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, avatar }) =>
 
         {/* Message text inside the bubble */}
         <div className="flex-1">
-          <span className="text-sm text-gray-500 font-medium smooth-blink-text">{message}</span>
+          <span className="text-sm text-gray-500 font-medium smooth-blink-text">
+            {thinkingMessage}
+          </span>
         </div>
       </div>
     </>
   );
 };
-
-export { ThinkingMessage };
