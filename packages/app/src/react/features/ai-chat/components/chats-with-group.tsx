@@ -1,6 +1,6 @@
 /**
  * MessageTurnGroup Component (Memoized for Performance)
- * Groups messages by conversationTurnId and provides a single copy button for the entire group
+ * Groups messages by turnId and provides a single copy button for the entire group
  *
  * Memoization prevents re-rendering of completed conversation turns
  * Critical for long conversations with multiple turns
@@ -13,8 +13,8 @@ import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
 import { Chat } from './chat';
 
-interface IMessageTurnGroupProps {
-  messages: IChatMessage[]; // Messages in this conversation turn (all share same conversationTurnId)
+interface IProps {
+  messages: IChatMessage[]; // Messages in this conversation turn (all share same turnId)
   avatar?: string; // Agent avatar URL
   onRetryClick?: () => void; // Retry callback for error messages
   scrollToBottom: (smooth?: boolean) => void; // eslint-disable-line no-unused-vars
@@ -24,7 +24,7 @@ interface IMessageTurnGroupProps {
  * Groups messages from a single conversation turn
  * Displays all messages and provides a single copy button for the entire group
  */
-export const MessageTurnGroup: FC<IMessageTurnGroupProps> = memo((props) => {
+export const ChatsTurnGroup: FC<IProps> = memo((props) => {
   const { messages, avatar, onRetryClick, scrollToBottom } = props;
   const [copied, setCopied] = useState(false);
   const groupRef = useRef<HTMLDivElement>(null);

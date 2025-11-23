@@ -24,10 +24,8 @@ interface IUseChatStreamConfig {
  */
 interface IUseChatStreamReturn {
   isStreaming: boolean; // Whether a stream is currently active
-  error: IChatError | null; // Current error if any
   startStream: (config: IStreamConfig, callbacks: IStreamCallbacks) => Promise<void>; //  eslint-disable-line no-unused-vars
   abortStream: () => void; // Abort the current stream
-  clearError: () => void; // Clear error state
 }
 
 /**
@@ -68,7 +66,6 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
 
   // State management
   const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<IChatError | null>(null);
 
   // Refs for lifecycle management
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -89,9 +86,6 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Clear previous error
-      setError(null);
-
       // Set streaming state
       setIsStreaming(true);
 
@@ -102,10 +96,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
         // Wrap callbacks to manage lifecycle
         const wrappedCallbacks: IStreamCallbacks = {
           ...callbacks,
-          onError: (streamError: IChatError) => {
-            setError(streamError);
-            callbacks.onError(streamError);
-          },
+          onError: (streamError) => callbacks.onError(streamError),
           onComplete: () => {
             setIsStreaming(false);
             abortControllerRef.current = null;
@@ -124,7 +115,6 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
       } catch (streamError) {
         // Handle errors
         const chatError = streamError as IChatError;
-        setError(chatError);
         setIsStreaming(false);
         abortControllerRef.current = null;
 
@@ -150,12 +140,5 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
     }
   }, [onStreamEnd]);
 
-  /**
-   * Clears error state
-   */
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  return { isStreaming, error, startStream, abortStream, clearError };
+  return { isStreaming, startStream, abortStream };
 };

@@ -249,14 +249,14 @@ export class ChatAPIClient {
     const processed = processStreamChunk(chunk);
 
     // Extract conversation turn ID from chunk
-    const conversationTurnId = chunk.conversationTurnId;
+    const turnId = chunk.conversationTurnId;
 
     // Handle errors
     if (processed.hasError) {
       const error: IChatError = {
         type: 'stream',
+        turnId, // Include turn ID in error
         message: processed.error || 'Unknown error occurred',
-        conversationTurnId, // Include turn ID in error
       };
       onError(error);
       return;
@@ -271,7 +271,7 @@ export class ChatAPIClient {
     // Handle content (final response)
     if (processed.hasContent) {
       // Deliver content with turn ID
-      onContent(processed.content, conversationTurnId);
+      onContent(processed.content, turnId);
     }
   }
 

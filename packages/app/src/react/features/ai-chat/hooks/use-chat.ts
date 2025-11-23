@@ -40,7 +40,7 @@ interface IUseChatConfig {
  *   messages,
  *   isGenerating,
  *   sendMessage,
- *   retryLastMessage,
+ *   retryMessage,
  *   stopGenerating,
  *   clearMessages,
  * } = useChat({
@@ -56,7 +56,7 @@ interface IUseChatConfig {
  * await sendMessage('Analyze these files', [file1, file2]);
  *
  * // Retry last message
- * await retryLastMessage();
+ * await retryMessage();
  *
  * // Stop generation
  * stopGenerating();
@@ -85,7 +85,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
   const pendingUpdateRef = useRef<{ content: string; turnId?: string } | null>(null);
 
   // Stream management
-  const { isStreaming, error, startStream, abortStream, clearError } = useChatStream({
+  const { isStreaming, startStream, abortStream } = useChatStream({
     onStreamStart: () => {
       currentAIMessageRef.current = '';
       isThinkingRef.current = false;
@@ -126,7 +126,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         newMessages.push({
           ...lastMessage,
           message: content,
-          conversationTurnId: turnId || lastMessage.conversationTurnId,
+          turnId: turnId || lastMessage.turnId,
           type: content ? 'system' : 'loading',
         });
         return newMessages;
@@ -138,7 +138,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         message: content,
         type: content ? 'system' : 'loading',
         timestamp: Date.now(),
-        conversationTurnId: turnId || currentTurnIdRef.current || undefined,
+        turnId: turnId || currentTurnIdRef.current || undefined,
       };
 
       return [...prev, aiMessage];
@@ -173,7 +173,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             const needsUpdate =
               lastMsg.type === 'system' ||
               lastMsg.type === 'loading' ||
-              (turnId && !lastMsg.conversationTurnId);
+              (turnId && !lastMsg.turnId);
 
             if (needsUpdate) {
               // Optimized: Only update last element
@@ -181,7 +181,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
               newMessages.push({
                 ...lastMsg,
                 message: pendingContent,
-                conversationTurnId: turnId || lastMsg.conversationTurnId,
+                turnId: turnId || lastMsg.turnId,
                 type: 'system',
               });
               return newMessages;
@@ -228,7 +228,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         message: metaMessages.title,
         timestamp: Date.now(),
         metaMessages, // Store full metaMessages object for component
-        conversationTurnId: currentTurnIdRef.current || undefined,
+        turnId: currentTurnIdRef.current || undefined,
       };
 
       return [...prev, metaMessage];
@@ -288,7 +288,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                       ...prev[lastMessageIndex],
                       type: 'loading',
                       message: '',
-                      conversationTurnId: turnId || prev[lastMessageIndex].conversationTurnId,
+                      turnId: turnId || prev[lastMessageIndex].turnId,
                     });
                     return newMessages;
                   }
@@ -344,6 +344,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                     message: USER_STOPPED_MESSAGE,
                     type: 'error', // Show as error/warning style but not an actual error
                     timestamp: Date.now(),
+                    turnId: currentTurnIdRef.current || undefined,
                   };
 
                   updated.push(stopMessage);
@@ -400,7 +401,6 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       addMetaMessage,
       updateStreamingMessage,
       startStream,
-      clearError,
       onChatComplete,
       onError,
     ],
@@ -414,15 +414,24 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
     const { message, files } = lastUserMessageRef.current;
 
-    // Smart removal: check last message type
+    // Smart removal: find last user message index and remove everything from that point
     setMessages((prev) => {
-      const lastMsg = prev[prev.length - 1];
+      // Find the index of the last user message
+      let lastUserMessageIndex = -1;
+      for (let i = prev.length - 1; i >= 0; i--) {
+        if (prev[i].type === 'user') {
+          lastUserMessageIndex = i;
+          break;
+        }
+      }
 
-      // If last message is error (user stopped), remove 3 messages: user + AI + error
-      // Otherwise remove 2 messages: user + failed AI response
-      const messagesToRemove = lastMsg && lastMsg.type === 'error' ? 3 : 2;
+      // If no user message found, don't remove anything
+      if (lastUserMessageIndex === -1) {
+        return prev;
+      }
 
-      return prev.slice(0, -messagesToRemove);
+      // Remove everything from the last user message onwards
+      return prev.slice(0, lastUserMessageIndex);
     });
 
     // Resend the message
@@ -471,25 +480,16 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
     currentTurnIdRef.current = null;
   }, []);
 
-  /**
-   * Clears error state
-   */
-  const clearErrorState = useCallback(() => {
-    clearError();
-  }, [clearError]);
-
   return {
     // State
-    messages,
-    isGenerating: isStreaming,
-    isProcessing,
-    error,
+    messages, // ✅
+    isStreaming, // ✅
+    isProcessing, // ✅
 
     // Actions
-    sendMessage,
-    retryLastMessage,
+    sendMessage, // ✅
+    clearMessages, // ✅
+    retryMessage: retryLastMessage,
     stopGenerating,
-    clearMessages,
-    clearError: clearErrorState,
   };
 };

@@ -22,10 +22,10 @@ interface ChatContextType {
   messagesHistory: IChatMessage[];
 
   sendMessage: (query: string, files?: IMessageFile[]) => void;
-  retryLastMessage: () => void;
+  retryMessage: () => void;
   stopGenerating: () => void;
   clearChatSession: () => Promise<void>;
-  
+
   // Model override (temporary, not saved to agent config)
   selectedModelOverride: string | null;
   setSelectedModelOverride: (model: string | null) => void;

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Chat, MessageTurnGroup } from '@react/features/ai-chat/components';
+import { Chat, ChatsTurnGroup } from '@react/features/ai-chat/components';
 import { useChatContext } from '@react/features/ai-chat/contexts';
 import { useDragAndDrop } from '@react/features/ai-chat/hooks';
 import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
@@ -44,7 +44,7 @@ export const Chats: FC<IChatsProps> = (props) => {
   const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll;
 
   const ref = useRef<HTMLDivElement>(null);
-  const { retryLastMessage } = useChatContext();
+  const { retryMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
   /**
@@ -153,7 +153,7 @@ export const Chats: FC<IChatsProps> = (props) => {
   const avatar = agent?.aiAgentSettings?.avatar;
 
   /**
-   * Group messages by conversationTurnId (Optimized)
+   * Group messages by turnId (Optimized)
    * Uses incremental grouping for better performance with long conversations
    * Messages with same turnId are grouped together
    * Messages without turnId are treated as individual groups
@@ -171,16 +171,12 @@ export const Chats: FC<IChatsProps> = (props) => {
     // Optimized: Process messages in a single pass
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
-      const turnId = message.conversationTurnId || null;
+      const turnId = message.turnId || null;
       const isUser = message.type === 'user';
 
       // User messages are always individual (not grouped)
       if (isUser) {
-        groups.push({
-          turnId,
-          messages: [message],
-          isUserMessage: true,
-        });
+        groups.push({ turnId, messages: [message], isUserMessage: true });
         continue;
       }
 
@@ -192,11 +188,7 @@ export const Chats: FC<IChatsProps> = (props) => {
         lastGroup.messages.push(message);
       } else {
         // Otherwise create new group
-        groups.push({
-          turnId,
-          messages: [message],
-          isUserMessage: false,
-        });
+        groups.push({ turnId, messages: [message], isUserMessage: false });
       }
     }
 
@@ -219,11 +211,12 @@ export const Chats: FC<IChatsProps> = (props) => {
           const isLastGroup = groupIndex === groupedMessages.length - 1;
           const lastMessageInGroup = group.messages[group.messages.length - 1];
           const canRetry = lastMessageInGroup.type === 'error' && isLastGroup;
-          const onRetryClick = canRetry ? retryLastMessage : undefined;
+          const onRetryClick = canRetry ? retryMessage : undefined;
 
           // User messages render individually (no grouping)
           if (group.isUserMessage) {
             const message = group.messages[0];
+
             return (
               <Chat
                 key={message.id || groupIndex}
@@ -238,7 +231,7 @@ export const Chats: FC<IChatsProps> = (props) => {
           // AI messages with turnId render as a group
           if (group.turnId && group.messages.length > 0) {
             return (
-              <MessageTurnGroup
+              <ChatsTurnGroup
                 key={group.turnId}
                 messages={group.messages}
                 avatar={avatar}

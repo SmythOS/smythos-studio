@@ -47,7 +47,7 @@ export interface IUseAgentChatContextReturn {
     inputDisabled: boolean;
     // Chat actions
     sendMessage: (message: string) => Promise<void>;
-    retryLastMessage: () => void;
+    retryMessage: () => void;
     stopGenerating: () => void;
     clearChatSession: () => Promise<void>;
     // Model override (temporary, not saved to agent config)
@@ -139,9 +139,9 @@ export const useAgentChatContext = (
   // ============================================================================
 
   const {
-    isGenerating,
+    isStreaming,
     stopGenerating,
-    retryLastMessage,
+    retryMessage,
     messages: messagesHistory,
     sendMessage: sendChatMessage,
     isProcessing: isInputProcessing,
@@ -149,9 +149,7 @@ export const useAgentChatContext = (
   } = useChat({
     agentId,
     chatId: agentSettings?.lastConversationId || '',
-    // Use override if set, otherwise fall back to agent's default model
-    modelId: selectedModelOverride || agentSettings?.chatGptModel,
-    // avatar: agent?.aiAgentSettings?.avatar,
+    modelId: selectedModelOverride || agentSettings?.chatGptModel, // Use override if set, otherwise fall back to agent's default model
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
         isFirstMessageSentRef.current = true;
@@ -294,7 +292,7 @@ export const useAgentChatContext = (
       clearError,
 
       // Chat state
-      isGenerating,
+      isGenerating: isStreaming,
       isInputProcessing,
       isRetrying: false, // Not implemented in new hook yet
       messagesHistory: sharedMessagesHistory,
@@ -303,7 +301,7 @@ export const useAgentChatContext = (
 
       // Chat actions
       sendMessage,
-      retryLastMessage,
+      retryMessage,
       stopGenerating,
       clearChatSession,
 
@@ -324,14 +322,14 @@ export const useAgentChatContext = (
       uploadError,
       clearError,
       // Chat state dependencies
-      isGenerating,
+      isStreaming,
       isInputProcessing,
       sharedMessagesHistory,
       queryInputPlaceholder,
       inputDisabled,
       // Chat action dependencies
       sendMessage,
-      retryLastMessage,
+      retryMessage,
       stopGenerating,
       clearChatSession,
       // Model override dependencies

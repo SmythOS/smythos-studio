@@ -25,9 +25,9 @@ export type TMessageType = 'user' | 'system' | 'thinking' | 'loading' | 'error';
  */
 export interface IChatMessage {
   id?: string | number; // Unique identifier
+  turnId?: string; // Conversation Turn ID
   message: string; // Message content
   type: TMessageType; // Message type - single source of truth for state
-  conversationTurnId?: string; // Conversation Turn ID
   files?: IMessageFile[]; // Attached files (user messages only)
   avatar?: string; // Avatar URL for system/AI messages
   metaMessages?: IMetaMessages; // Full meta messages object for thinking component
@@ -126,9 +126,9 @@ export interface IFileAttachment {
  */
 /* eslint-disable no-unused-vars */
 export interface IStreamCallbacks {
-  onContent: (content: string, conversationTurnId?: string) => void;
-  onMetaMessages?: (metaMessages: IMetaMessages, conversationTurnId?: string) => void;
-  onError: (error: IChatError) => void; // Error occurred - error object now includes conversationTurnId
+  onContent: (content: string, turnId?: string) => void;
+  onMetaMessages?: (metaMessages: IMetaMessages, turnId?: string) => void;
+  onError: (error: IChatError) => void; // Error occurred - error object now includes turnId
   onStart?: () => void; // Stream started
   onComplete: () => void; // Stream completed
 }
@@ -142,7 +142,7 @@ export type TErrorType = 'stream' | 'network' | 'abort' | 'system';
 export interface IChatError {
   message: string; // Error message
   type: TErrorType; // Error type
-  conversationTurnId?: string; // Conversation turn ID for grouping
+  turnId?: string; // Conversation turn ID for grouping
   originalError?: Error | unknown; // Original error object
   isAborted?: boolean; // User-initiated abort flag
 }
@@ -157,16 +157,14 @@ export interface IChatError {
 export interface IUseChatReturn {
   // State
   messages: IChatMessage[];
-  isGenerating: boolean;
+  isStreaming: boolean;
   isProcessing: boolean;
-  error: IChatError | null;
 
   // Actions
   sendMessage: (message: string, files?: File[] | IMessageFile[]) => Promise<void>;
-  retryLastMessage: () => Promise<void>;
+  retryMessage: () => Promise<void>;
   stopGenerating: () => void;
   clearMessages: () => void;
-  clearError: () => void;
 }
 
 // ============================================================================
