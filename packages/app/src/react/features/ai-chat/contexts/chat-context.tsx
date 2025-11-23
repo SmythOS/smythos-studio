@@ -6,7 +6,11 @@ import { createContext, MutableRefObject } from 'react';
 
 export interface IChatContext {
   ref: { input?: MutableRefObject<ChatInputRef>; container?: MutableRefObject<HTMLDivElement> };
-  agent: { data?: AgentDetails; settings?: AgentSettings; loading: boolean };
+  agent: {
+    data?: AgentDetails;
+    settings?: AgentSettings;
+    isLoading: { agent: boolean; settings: boolean };
+  };
   files: {
     isLoading: boolean;
     errorMessage: string;
@@ -16,15 +20,18 @@ export interface IChatContext {
   };
   chat: {
     // State
+    isChatCreating: boolean;
     messages: IChatMessage[];
     isStreaming: boolean;
     isProcessing: boolean;
 
     // Actions
+    createSession: () => Promise<void>;
     sendMessage: (message: string, files?: File[] | IMessageFile[]) => Promise<void>;
     retryMessage: () => Promise<void>;
     stopGenerating: () => void;
     clearMessages: () => void;
+    resetSession: () => Promise<void>;
   };
   // Model override (temporary, not saved to agent config)
   modelOverride: string | null;
@@ -33,7 +40,7 @@ export interface IChatContext {
 
 export const ChatContext = createContext<IChatContext>({
   ref: { input: undefined, container: undefined },
-  agent: { data: undefined, settings: undefined, loading: false },
+  agent: { data: undefined, settings: undefined, isLoading: { agent: false, settings: false } },
   files: {
     data: [],
     isLoading: false,
@@ -42,13 +49,16 @@ export const ChatContext = createContext<IChatContext>({
     removeFile: async () => {},
   },
   chat: {
+    isChatCreating: false,
     messages: [],
     isStreaming: false,
     isProcessing: false,
+    createSession: async () => {},
     sendMessage: async () => {},
     retryMessage: async () => {},
     stopGenerating: () => {},
     clearMessages: () => {},
+    resetSession: async () => {},
   },
   modelOverride: null,
   setModelOverride: () => {},

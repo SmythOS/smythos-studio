@@ -71,6 +71,8 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
 export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const { agent, isLoading, agentSettings } = props;
 
+  // const {} = useChatStores() || {};
+
   const avatar = agentSettings?.avatar;
   const selectedModel = agentSettings?.chatGptModel;
 

@@ -1,5 +1,6 @@
 export * from './agent-settings';
 export * from './use-agent-chat-context';
+export * from './use-attachments';
 export * from './use-chat';
 export * from './use-chat-stream';
 export * from './use-clipboard-paste';
@@ -7,3 +8,4 @@ export * from './use-create-chat';
 export * from './use-drag-and-drop';
 export * from './use-fileupload';
 export * from './use-scroll-to-bottom';
+export * from './use-store';
