@@ -74,7 +74,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const avatar = agentSettings?.avatar;
   const selectedModel = agentSettings?.chatGptModel;
 
-  const { clearChatSession, selectedModelOverride, setSelectedModelOverride } = useChatContext();
+  const { clearChatSession, modelOverride, setModelOverride } = useChatContext();
 
   // Fetch model agents to check if current agent is a model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
@@ -86,7 +86,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // Use override if set, otherwise use agent's default model
-  const currentModel = selectedModelOverride || selectedModel || '';
+  const currentModel = modelOverride || selectedModel || '';
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
@@ -145,7 +145,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const handleModelChange = useCallback(
     (newModel: string) => {
       // Set temporary model override (not saved to agent config)
-      setSelectedModelOverride(newModel);
+      setModelOverride(newModel);
 
       // Close dropdown after selection
       setIsDropdownOpen(false);
@@ -155,7 +155,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
         model: newModel,
       });
     },
-    [setSelectedModelOverride],
+    [setModelOverride],
   );
 
   /**

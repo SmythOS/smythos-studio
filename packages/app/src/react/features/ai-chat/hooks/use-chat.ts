@@ -426,9 +426,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       }
 
       // If no user message found, don't remove anything
-      if (lastUserMessageIndex === -1) {
-        return prev;
-      }
+      if (lastUserMessageIndex === -1) return prev;
 
       // Remove everything from the last user message onwards
       return prev.slice(0, lastUserMessageIndex);
@@ -482,13 +480,13 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
   return {
     // State
-    messages, // ✅
-    isStreaming, // ✅
-    isProcessing, // ✅
+    messages,
+    isStreaming,
+    isProcessing,
 
     // Actions
-    sendMessage, // ✅
-    clearMessages, // ✅
+    sendMessage,
+    clearMessages,
     retryMessage: retryLastMessage,
     stopGenerating,
   };

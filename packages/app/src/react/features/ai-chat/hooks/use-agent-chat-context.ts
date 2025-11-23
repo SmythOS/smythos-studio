@@ -51,8 +51,8 @@ export interface IUseAgentChatContextReturn {
     stopGenerating: () => void;
     clearChatSession: () => Promise<void>;
     // Model override (temporary, not saved to agent config)
-    selectedModelOverride: string | null;
-    setSelectedModelOverride: (model: string | null) => void;
+    modelOverride: string | null;
+    setModelOverride: (model: string | null) => void;
   };
   agent: ReturnType<typeof useAgent>['data'];
   agentSettings: ReturnType<typeof useAgentSettings>['data'];
@@ -99,7 +99,7 @@ export const useAgentChatContext = (
   const hasInitializedChatRef = useRef(false);
 
   // Model override state (temporary, not saved to agent config)
-  const [selectedModelOverride, setSelectedModelOverride] = useState<string | null>(null);
+  const [modelOverride, setModelOverride] = useState<string | null>(null);
 
   // ============================================================================
   // API HOOKS
@@ -149,7 +149,7 @@ export const useAgentChatContext = (
   } = useChat({
     agentId,
     chatId: agentSettings?.lastConversationId || '',
-    modelId: selectedModelOverride || agentSettings?.chatGptModel, // Use override if set, otherwise fall back to agent's default model
+    modelId: modelOverride || agentSettings?.chatGptModel, // Use override if set, otherwise fall back to agent's default model
     onChatComplete: () => {
       if (!isFirstMessageSentRef.current) {
         isFirstMessageSentRef.current = true;
@@ -165,9 +165,6 @@ export const useAgentChatContext = (
   const inputDisabled = isChatCreating || isAgentLoading || isInputProcessing;
   const queryInputPlaceholder = agent ? `Message ${agent.name}...` : 'Message ...';
   const isMaxFilesUploaded = files.length >= 10;
-
-  // No conversion needed - using same types now! ✅
-  const sharedMessagesHistory: IChatMessage[] = messagesHistory;
 
   // ============================================================================
   // CHAT ACTIONS
@@ -295,7 +292,7 @@ export const useAgentChatContext = (
       isGenerating: isStreaming,
       isInputProcessing,
       isRetrying: false, // Not implemented in new hook yet
-      messagesHistory: sharedMessagesHistory,
+      messagesHistory,
       inputPlaceholder: queryInputPlaceholder,
       inputDisabled,
 
@@ -306,8 +303,8 @@ export const useAgentChatContext = (
       clearChatSession,
 
       // Model override (temporary, not saved to agent config)
-      selectedModelOverride,
-      setSelectedModelOverride,
+      modelOverride,
+      setModelOverride,
     }),
     [
       // File handling dependencies
@@ -324,7 +321,7 @@ export const useAgentChatContext = (
       // Chat state dependencies
       isStreaming,
       isInputProcessing,
-      sharedMessagesHistory,
+      messagesHistory,
       queryInputPlaceholder,
       inputDisabled,
       // Chat action dependencies
@@ -333,8 +330,8 @@ export const useAgentChatContext = (
       stopGenerating,
       clearChatSession,
       // Model override dependencies
-      selectedModelOverride,
-      setSelectedModelOverride,
+      modelOverride,
+      setModelOverride,
     ],
   );
 
@@ -351,7 +348,7 @@ export const useAgentChatContext = (
       settings: isAgentSettingsLoading,
       chatCreating: isChatCreating,
     },
-    sharedMessagesHistory,
+    sharedMessagesHistory: messagesHistory,
     handleFileDrop,
   };
 };
