@@ -2,6 +2,8 @@
 // CORE MESSAGE TYPES
 // ============================================================================
 
+export type IChildren = { children: React.ReactNode };
+
 /**
  * Message type discriminator
  * Complete state representation through type alone

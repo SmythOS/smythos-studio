@@ -1,4 +1,4 @@
-import { ChatContext, IChatContext } from '@react/features/ai-chat/contexts/chat-context';
+import { ChatContext, IChatContext } from '@src/react/features/ai-chat/contexts/chat';
 import { useContext } from 'react';
 
 export const useChatStores = () => useContext(ChatContext);

@@ -8,12 +8,12 @@ import { Link } from 'react-router-dom';
 import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
+import { useChatStores } from '@react/features/ai-chat/hooks';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
-import { useChatStores } from '../hooks';
 
 // #region Temporary Badges
 const TEMP_BADGES: Record<string, boolean> = {
@@ -68,6 +68,7 @@ export const ChatHeader: FC = () => {
   const { data: modelAgents } = useQuery<ModelAgent[]>({
     queryKey: ['modelAgents'],
     queryFn: fetchModelAgents,
+    refetchOnWindowFocus: false,
   });
 
   // Check if current agent.id exists in modelAgents list

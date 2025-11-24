@@ -5,6 +5,8 @@
  * Combines streaming, message history, file uploads, and error handling
  */
 
+import { USER_STOPPED_MESSAGE } from '@react/features/ai-chat/constants';
+import { useChatStream } from '@react/features/ai-chat/hooks';
 import {
   IChatMessage,
   IMessageFile,
@@ -12,8 +14,6 @@ import {
   IUseChatReturn,
 } from '@react/features/ai-chat/types/chat.types';
 import { useCallback, useRef, useState } from 'react';
-import { USER_STOPPED_MESSAGE } from '../constants';
-import { useChatStream } from './use-chat-stream';
 
 /**
  * Hook configuration interface
