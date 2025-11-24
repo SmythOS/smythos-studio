@@ -1,6 +1,6 @@
 import { JSON_TREE_THEME } from '@src/react/features/builder/constants/debug-log';
 import { useDebugLogMenuCtx } from '@src/react/features/builder/contexts/debug-log-menu.context';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { FC, useEffect, useState } from 'react';
 import { FaRegCopy } from 'react-icons/fa6';
 import { HiOutlineDownload } from 'react-icons/hi';
@@ -38,24 +38,34 @@ export const SourceContent: FC = () => {
     <div className="relative h-full overflow-hidden text-sm">
       <div className="absolute top-2 right-2 z-[2]">
         <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
-          <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="top" className="text-xs">
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(formattedJson);
-                setCopied(true);
-              }}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors z-[2]"
-            >
-              <FaRegCopy size={14} />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(formattedJson);
+                  setCopied(true);
+                }}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors z-[2]"
+              >
+                <FaRegCopy size={14} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              <p>{copied ? 'Copied!' : 'Copy'}</p>
+            </TooltipContent>
           </Tooltip>
-          <Tooltip content="Download JSON" placement="top" className="text-xs">
-            <button
-              onClick={handleDownload}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors z-[2]"
-            >
-              <HiOutlineDownload size={15} />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleDownload}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors z-[2]"
+              >
+                <HiOutlineDownload size={15} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              <p>Download JSON</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { mapFormPreviewEmbodimentProperties } from '@react/features/agent-settings/utils';
 import { Button } from '@react/shared/components/ui/newDesign/button';
 import { Spinner } from '@react/shared/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { extractError } from '@react/shared/utils/errors';
 import { validateDomains, validateURL } from '@react/shared/utils/utils';
@@ -10,7 +11,6 @@ import { Switch } from '@src/react/shared/components/ui/switch';
 import { FormPreviewEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import { ErrorMessage, Field, Form, Formik, FormikProps } from 'formik';
 import { Info } from 'lucide-react';
 import { Fragment, useEffect, useState } from 'react';
@@ -208,18 +208,18 @@ const FormPreviewDialog = ({
                                 className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
                               >
                                 Allowed Domains{' '}
-                                <Tooltip
-                                  className="w-60 text-center"
-                                  content={
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-5 h-5 ml-1 cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="w-60 text-center">
                                     <div>
                                       Restrict form preview to specific domains.
                                       <br /> Use commas to separate multiple domains (e.g.,
                                       example.com, mysite.org).
                                       <br /> Leave empty for no restrictions.
                                     </div>
-                                  }
-                                >
-                                  <Info className="w-5 h-5 ml-1" />
+                                  </TooltipContent>
                                 </Tooltip>
                               </label>
 
@@ -287,16 +287,16 @@ const FormPreviewDialog = ({
                                 className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
                               >
                                 Output Preview
-                                <Tooltip
-                                  className="w-60 text-center"
-                                  content={
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-5 h-5 ml-1 cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="w-60 text-center">
                                     <div>
                                       Enabling output preview will hide the download and copy
                                       options for the output.
                                     </div>
-                                  }
-                                >
-                                  <Info className="w-5 h-5 ml-1" />
+                                  </TooltipContent>
                                 </Tooltip>
                               </label>
                               <Switch

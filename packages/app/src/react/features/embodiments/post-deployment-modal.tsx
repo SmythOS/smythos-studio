@@ -9,10 +9,10 @@ import { useAgentEmbodimentSettings } from '@src/react/features/embodiments/embo
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { Switch } from '@src/react/shared/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/react/shared/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { EMBODIMENT_TYPE } from '@src/react/shared/enums';
 import type { Embodiment } from '@src/react/shared/types/api-results.types';
-import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
 import { ComponentType, Fragment, useMemo, useState } from 'react';
 import { FaLock, FaSliders } from 'react-icons/fa6';
@@ -495,12 +495,13 @@ function PostDeploymentModal({
                           {embodimentName}
                         </span>
                         {setting.embDescription && (
-                          <Tooltip
-                            content={setting.embDescription}
-                            placement="top"
-                            className="w-56 text-center"
-                          >
-                            <Info className="w-4 h-4 text-[#515151]" />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-4 h-4 text-[#515151] cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="w-56 text-center">
+                              {setting.embDescription}
+                            </TooltipContent>
                           </Tooltip>
                         )}
                       </div>
@@ -510,8 +511,13 @@ function PostDeploymentModal({
                         <div className="circular-loader-blue w-4 h-4"></div>
                       </div>
                     ) : !state.canUseEmbodiments ? (
-                      <Tooltip content="Premium Embodiment. Upgrade your plan" placement="top">
-                        <FaLock cursor={'pointer'} className="text-gray-400" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <FaLock className="text-gray-400 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Premium Embodiment. Upgrade your plan</p>
+                        </TooltipContent>
                       </Tooltip>
                     ) : isSettingEnabled ? (
                       <div className="flex items-center gap-2">{buttons}</div>

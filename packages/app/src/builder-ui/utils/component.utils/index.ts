@@ -1117,7 +1117,7 @@ export function addTooltipToLockBadge(element, tooltipText) {
 
   const tooltipId = `tooltip-${Math.random().toString(36).substr(2, 9)}`;
   const tooltipHTML = `
-        <div id="${tooltipId}" role="tooltip" class="absolute cursor-default z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+        <div id="${tooltipId}" role="tooltip" class="absolute cursor-default z-50 invisible inline-block px-3 py-1.5 text-xs font-medium text-white transition-opacity duration-150 bg-gray-900 rounded-md shadow-sm opacity-0 tooltip dark:bg-gray-700">
             ${tooltipText}
         </div>`;
   element?.setAttribute('data-tooltip-target', tooltipId);
