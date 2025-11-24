@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import { useQuery } from '@tanstack/react-query';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
