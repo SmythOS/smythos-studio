@@ -1164,6 +1164,38 @@ html {
   max-width: 300px;
 }
 
+/* HTML Tooltip Element (for actual DOM-based tooltips with HTML content) */
+.tooltip-html-element {
+  position: absolute;
+  background: #111827;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  width: max-content;
+  max-width: 400px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Visible state for HTML tooltip */
+.tooltip-html-element.tooltip-html-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
 .tooltip-trigger::before {
   content: attr(data-tooltip);
   position: absolute;

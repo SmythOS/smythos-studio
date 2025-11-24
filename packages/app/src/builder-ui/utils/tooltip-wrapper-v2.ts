@@ -14,6 +14,7 @@ import {
   TooltipV2,
   type TooltipPosition,
 } from '@src/react/shared/components/_legacy/ui/tooltip/tooltipV2';
+import DOMPurify from 'dompurify';
 
 /**
  * Configuration options for attaching a tooltip to a DOM element
@@ -46,6 +47,17 @@ export interface AttachTooltipConfig {
    * @default 100
    */
   skipDelayDuration?: number;
+  /**
+   * Whether to sanitize HTML content using DOMPurify
+   * Only applies when using attachTooltipV2WithHTML with HTML content
+   * @default true
+   */
+  sanitizeHTML?: boolean;
+  /**
+   * Maximum width for the tooltip (in pixels)
+   * @default 400
+   */
+  maxWidth?: number;
 }
 
 /**
@@ -110,8 +122,44 @@ export function attachTooltipV2(element: HTMLElement, config: AttachTooltipConfi
 }
 
 /**
- * Enhanced version that supports HTML content
- * Uses a hidden element approach to render HTML in tooltips
+ * Enhanced version that supports HTML content in tooltips
+ * 
+ * Creates an actual DOM element to render HTML, unlike the standard TooltipV2
+ * which uses CSS pseudo-elements and can only display plain text.
+ * 
+ * Features:
+ * - ✅ Full HTML support (links, formatting, images, etc.)
+ * - ✅ Automatic HTML sanitization using DOMPurify (prevents XSS attacks)
+ * - ✅ 12 positioning options (top, bottom, left, right + variants)
+ * - ✅ Viewport boundary detection (keeps tooltip on screen)
+ * - ✅ Responsive repositioning on scroll/resize
+ * - ✅ Smooth animations matching TooltipV2 style
+ * - ✅ Automatic cleanup on destruction
+ * 
+ * Performance considerations:
+ * - Creates a real DOM element (small overhead vs CSS pseudo-elements)
+ * - Auto-detects HTML; falls back to TooltipV2 for plain text (better performance)
+ * - Event listeners are properly cleaned up to prevent memory leaks
+ * 
+ * @param element - The DOM element to attach the tooltip to
+ * @param config - Tooltip configuration options
+ * @returns Cleanup function to remove the tooltip and all event listeners
+ * 
+ * @example
+ * ```typescript
+ * const button = document.createElement('button');
+ * button.textContent = 'Click me';
+ * 
+ * const cleanup = attachTooltipV2WithHTML(button, {
+ *   text: '<strong>Important:</strong> <a href="#">Learn more</a>',
+ *   position: 'top',
+ *   maxWidth: 300,
+ *   sanitizeHTML: true // Default, can be set to false if content is trusted
+ * });
+ * 
+ * // Later, when the element is removed or tooltip is no longer needed:
+ * cleanup();
+ * ```
  */
 export function attachTooltipV2WithHTML(
   element: HTMLElement,
@@ -127,48 +175,150 @@ export function attachTooltipV2WithHTML(
   const hasHTML = /<[a-z][\s\S]*>/i.test(config.text);
 
   if (!hasHTML) {
-    // No HTML, use simple version
+    // No HTML, use simple version for better performance
     return attachTooltipV2(element, config);
   }
 
-  // For HTML content, create a hidden element and use it for tooltip
-  // This approach uses CSS to show the hidden element's content
-  const hiddenTooltip = document.createElement('div');
-  hiddenTooltip.style.display = 'none';
-  hiddenTooltip.innerHTML = config.text;
-  hiddenTooltip.className = 'tooltip-html-content';
+  // Sanitize HTML content by default to prevent XSS attacks
+  const shouldSanitize = config.sanitizeHTML !== false; // Default to true
+  const htmlContent = shouldSanitize ? DOMPurify.sanitize(config.text) : config.text;
 
-  // Insert hidden element near the target element
-  const parent = element.parentNode;
-  if (parent) {
-    parent.insertBefore(hiddenTooltip, element.nextSibling);
+  // Create the tooltip DOM element
+  const tooltipElement = document.createElement('div');
+  tooltipElement.className = `tooltip-html-element ${config.className ?? ''}`;
+  tooltipElement.innerHTML = htmlContent;
+  
+  // Only set custom max-width if provided (otherwise use CSS default of 400px)
+  const maxWidth = config.maxWidth;
+  if (maxWidth !== undefined) {
+    tooltipElement.style.maxWidth = `${maxWidth}px`;
   }
 
-  // Use data attribute to reference the HTML content
-  // We'll need to enhance the CSS to support this
-  element.setAttribute('data-tooltip-html-id', `tooltip-html-${Date.now()}`);
-  element.setAttribute('data-tooltip-position', config.position ?? 'top');
-  element.classList.add('tooltip-trigger', 'tooltip-html-trigger');
+  // Append tooltip to body
+  document.body.appendChild(tooltipElement);
 
-  if (config.className) {
-    element.classList.add(config.className);
-  }
+  // Position calculation function
+  const positionTooltip = () => {
+    const rect = element.getBoundingClientRect();
+    const tooltipRect = tooltipElement.getBoundingClientRect();
+    const position = config.position ?? 'top';
+    const gap = 8; // Space between element and tooltip
 
-  // For now, fall back to simple text version
-  // TODO: Enhance CSS to support HTML tooltips via hidden elements
-  const tooltipText = config.text.replace(/<[^>]*>/g, '').trim();
-  const tooltip = new TooltipV2(element, {
-    text: tooltipText,
-    position: mapPositionToTooltipV2(config.position),
-    showWhen: 'hover',
-    tooltipClass: config.className,
-  });
+    let top = 0;
+    let left = 0;
+
+    switch (position) {
+      case 'top':
+        top = rect.top - tooltipRect.height - gap;
+        left = rect.left + (rect.width - tooltipRect.width) / 2;
+        break;
+      case 'bottom':
+        top = rect.bottom + gap;
+        left = rect.left + (rect.width - tooltipRect.width) / 2;
+        break;
+      case 'left':
+        top = rect.top + (rect.height - tooltipRect.height) / 2;
+        left = rect.left - tooltipRect.width - gap;
+        break;
+      case 'right':
+        top = rect.top + (rect.height - tooltipRect.height) / 2;
+        left = rect.right + gap;
+        break;
+      case 'top-left':
+        top = rect.top - tooltipRect.height - gap;
+        left = rect.left;
+        break;
+      case 'top-right':
+        top = rect.top - tooltipRect.height - gap;
+        left = rect.right - tooltipRect.width;
+        break;
+      case 'bottom-left':
+        top = rect.bottom + gap;
+        left = rect.left;
+        break;
+      case 'bottom-right':
+        top = rect.bottom + gap;
+        left = rect.right - tooltipRect.width;
+        break;
+      case 'left-top':
+        top = rect.top;
+        left = rect.left - tooltipRect.width - gap;
+        break;
+      case 'left-bottom':
+        top = rect.bottom - tooltipRect.height;
+        left = rect.left - tooltipRect.width - gap;
+        break;
+      case 'right-top':
+        top = rect.top;
+        left = rect.right + gap;
+        break;
+      case 'right-bottom':
+        top = rect.bottom - tooltipRect.height;
+        left = rect.right + gap;
+        break;
+    }
+
+    // Keep tooltip within viewport bounds
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    // Adjust horizontal position if tooltip goes off-screen
+    if (left < scrollX) {
+      left = scrollX + gap;
+    } else if (left + tooltipRect.width > scrollX + viewportWidth) {
+      left = scrollX + viewportWidth - tooltipRect.width - gap;
+    }
+
+    // Adjust vertical position if tooltip goes off-screen
+    if (top < scrollY) {
+      top = scrollY + gap;
+    } else if (top + tooltipRect.height > scrollY + viewportHeight) {
+      top = scrollY + viewportHeight - tooltipRect.height - gap;
+    }
+
+    tooltipElement.style.top = `${top}px`;
+    tooltipElement.style.left = `${left}px`;
+  };
+
+  // Show tooltip handler
+  const showTooltip = () => {
+    positionTooltip();
+    tooltipElement.classList.add('tooltip-html-visible');
+  };
+
+  // Hide tooltip handler
+  const hideTooltip = () => {
+    tooltipElement.classList.remove('tooltip-html-visible');
+  };
+
+  // Reposition on scroll or resize
+  const updatePosition = () => {
+    if (tooltipElement.classList.contains('tooltip-html-visible')) {
+      positionTooltip();
+    }
+  };
+
+  // Add event listeners
+  element.addEventListener('mouseenter', showTooltip);
+  element.addEventListener('mouseleave', hideTooltip);
+  window.addEventListener('scroll', updatePosition, true);
+  window.addEventListener('resize', updatePosition);
+
+  // Mark element as having a tooltip for debugging
+  element.setAttribute('data-has-html-tooltip', 'true');
 
   // Cleanup function
   return () => {
-    tooltip.destroy();
-    if (hiddenTooltip.parentNode) {
-      hiddenTooltip.remove();
+    element.removeEventListener('mouseenter', showTooltip);
+    element.removeEventListener('mouseleave', hideTooltip);
+    window.removeEventListener('scroll', updatePosition, true);
+    window.removeEventListener('resize', updatePosition);
+    element.removeAttribute('data-has-html-tooltip');
+    
+    if (tooltipElement.parentNode) {
+      tooltipElement.remove();
     }
   };
 }
