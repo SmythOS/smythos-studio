@@ -37,9 +37,12 @@ import { VisionLLM } from './VisionLLM.class';
 import { ZapierAction } from './ZapierAction.class';
 
 import { AgentCard } from './AgentCard.class';
+import { DataSourceCleaner } from './DataSourceCleaner.class';
+import { DataSourceIndexer } from './DataSourceIndexer.class';
+import { DataSourceLookup } from './DataSourceLookup.class';
 import { GmailTrigger } from './Triggers/Gmail.trigger';
-import { WhatsAppTrigger } from './Triggers/WhatsApp.trigger';
 import { JobSchedulerTrigger } from './Triggers/JobScheduler.trigger';
+import { WhatsAppTrigger } from './Triggers/WhatsApp.trigger';
 
 const baseComponents = {
   Component,
@@ -82,6 +85,9 @@ const baseComponents = {
   WhatsAppTrigger,
   AgentCard,
   JobSchedulerTrigger,
+  DataSourceCleaner,
+  DataSourceIndexer,
+  DataSourceLookup,
 };
 
 export const getBuilderComponents = () => {
