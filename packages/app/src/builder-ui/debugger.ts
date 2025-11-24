@@ -1608,41 +1608,10 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
         let hasEmptyRequiredInput = false;
         let inputEndpoints = [];
 
-        // First, collect all input endpoints from the DOM
-        const allInputEndpointElements = componentElement.querySelectorAll('.smyth.input-endpoint');
+        const inputsInfo = getInputInfo(componentElement, input);
 
-        // Check each input endpoint
-        allInputEndpointElements.forEach((inputElement: HTMLElement) => {
-          const inputName = inputElement.getAttribute('smt-name');
-          const isOptional = inputElement.getAttribute('smt-optional') === 'true';
-          if (!inputName) return; // Skip if no name attribute
-
-          let isEmpty = true; // Default to empty
-
-          // Check if this input exists in the input object
-          if (input[inputName] !== undefined) {
-            const inputValue = input[inputName];
-            isEmpty = false; // Start with assumption it's not empty
-
-            if (inputValue === null || inputValue === undefined) {
-              isEmpty = true;
-            } else if (typeof inputValue === 'string' && inputValue.trim() === '') {
-              isEmpty = true;
-            }
-          }
-
-          // Add to our collection
-          inputEndpoints.push({
-            element: inputElement,
-            name: inputName,
-            isEmpty: isEmpty,
-            isOptional: isOptional,
-          });
-          // Only count empty required inputs for warning status
-          if (isEmpty && !isOptional) {
-            hasEmptyRequiredInput = true;
-          }
-        });
+        inputEndpoints = inputsInfo?.inputEndpoints;
+        hasEmptyRequiredInput = inputsInfo?.hasEmptyRequiredInput;
 
         const isFunctionalComponent = componentElement?.['_control']?.isFunctionalComponent();
 
@@ -2846,11 +2815,17 @@ export function createDebugInjectDialog(
       ).some((message) => message.id !== 'component-button');
 
       if (!hasNonButtonMessages) {
+        const inputsInfo = getInputInfo(component.domElement, input);
+        
+        // Build a tooltip listing the names of required inputs that are currently empty.
+        const missingRequiredInputNames = inputsInfo?.inputEndpoints
+          .filter((endpoint) => endpoint.isEmpty && !endpoint.isOptional)
+          .map((endpoint) => endpoint.name);
+
         // When all inputs are empty, collect the names so we can expose them in a tooltip.
-        const missingInputNames = Object.keys(input);
         const tooltipText =
-          missingInputNames.length > 0
-            ? `Missing input(s):<br>${missingInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
+          missingRequiredInputNames.length > 0
+            ? `Missing input(s):<br>${missingRequiredInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
             : undefined;
 
         component.addComponentMessage(
@@ -3482,3 +3457,49 @@ function repaintDebugComponentsAfter(ms = 300) {
     });
   }, ms);
 }
+
+const getInputInfo = (componentElement: HTMLElement, input: any) => {
+  const inputEndpoints = [];
+  let hasEmptyRequiredInput = false;
+
+  // First, collect all input endpoints from the DOM
+  const allInputEndpointElements = componentElement.querySelectorAll('.smyth.input-endpoint');
+
+  // Check each input endpoint
+  allInputEndpointElements.forEach((inputElement: HTMLElement) => {
+    const inputName = inputElement.getAttribute('smt-name');
+    const isOptional = inputElement.getAttribute('smt-optional') === 'true';
+    if (!inputName) return; // Skip if no name attribute
+
+    let isEmpty = true; // Default to empty
+
+    // Check if this input exists in the input object
+    if (input[inputName] !== undefined) {
+      const inputValue = input[inputName];
+      isEmpty = false; // Start with assumption it's not empty
+
+      if (inputValue === null || inputValue === undefined) {
+        isEmpty = true;
+      } else if (typeof inputValue === 'string' && inputValue.trim() === '') {
+        isEmpty = true;
+      }
+    }
+
+    // Add to our collection
+    inputEndpoints.push({
+      element: inputElement,
+      name: inputName,
+      isEmpty: isEmpty,
+      isOptional: isOptional,
+    });
+    // Only count empty required inputs for warning status
+    if (isEmpty && !isOptional) {
+      hasEmptyRequiredInput = true;
+    }
+  });
+
+  return {
+    inputEndpoints,
+    hasEmptyRequiredInput,
+  };
+};
