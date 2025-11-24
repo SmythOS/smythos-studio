@@ -58,6 +58,12 @@ export const ChatContextProvider: FC<IProps> = ({ children }) => {
   const files = useAttachments({ agentId, chatId: agentSettings?.lastConversationId });
 
   // ============================================================================
+  // SCROLL BEHAVIOR
+  // ============================================================================
+
+  const scroll = useScrollToBottom(containerRef);
+
+  // ============================================================================
   // CHAT STATE MANAGEMENT
   // ============================================================================
 
@@ -154,11 +160,6 @@ export const ChatContextProvider: FC<IProps> = ({ children }) => {
   }, [createSession, clearMessages, files, stopGenerating, inputRef]);
 
   // ============================================================================
-  // SCROLL BEHAVIOR
-  // ============================================================================
-  const scroll = useScrollToBottom(containerRef);
-
-  // ============================================================================
   // LIFECYCLE EFFECTS
   // ============================================================================
 
@@ -185,6 +186,14 @@ export const ChatContextProvider: FC<IProps> = ({ children }) => {
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
     return () => Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
   }, []);
+
+  /**
+   * Auto-focus input when agent is loaded and not disabled
+   */
+  useEffect(() => {
+    const inputDisabled = isChatCreating || isAgentLoading || isProcessing;
+    if (!isAgentLoading && !inputDisabled) inputRef.current?.focus();
+  }, [isAgentLoading, isChatCreating, isProcessing]);
 
   // Memoize the store to avoid unnecessary re-renders
   const values: IChatContext = useMemo(
