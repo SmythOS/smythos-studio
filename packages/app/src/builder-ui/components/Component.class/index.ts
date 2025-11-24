@@ -9,6 +9,7 @@ import { Workspace, WorkspaceDefaults } from '../../workspace/Workspace.class';
 import { readFormValues, syncCompositeValues } from '../../ui/form';
 
 import { ComponentDocLinks } from '@src/builder-ui/enums/doc-links.enum';
+import { attachTooltipV2WithHTML } from '@src/builder-ui/utils/tooltip-wrapper-v2';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { Observability } from '@src/shared/observability';
@@ -1895,26 +1896,38 @@ export class Component extends EventEmitter {
     this.domElement.querySelector('.messages-container').innerHTML = '';
   }
   /**
-   * Adds a message to the component's message container
-   * @param message - The message content to display
-   * @param type - The type/style of message (default: 'info')
-   * @param onClick - Optional click handler for the message
-   * @returns The created message element
+   * Adds a message to the component's message container.
+   *
+   * @param message - The message content to display (string or object with id and text).
+   * @param type - The type/style of message (default: 'info').
+   * @param onClick - Optional click handler for the message.
+   * @param classes - Optional additional CSS classes to apply to the message element.
+   * @param tooltipText - Optional tooltip text describing the message in more detail.
+   * @returns The created message element.
    */
   public addComponentMessage(
     message: string | { id: string; text: string },
     type = 'info',
     onClick?: (event: MouseEvent) => void,
     classes?: string,
+    tooltipText?: string,
   ): HTMLDivElement {
     const msg = document.createElement('div');
-    msg.className = `message ${type} ${classes}`;
+    msg.className = `message ${type} ${classes || ''}`;
     msg.innerHTML = typeof message === 'string' ? message : message.text;
+    msg.style.borderRadius = '0px 0px 5px 5px';
 
     if (onClick) {
       msg.style.cursor = 'pointer';
       msg.addEventListener('click', onClick);
     }
+
+    attachTooltipV2WithHTML(msg, {
+      text: tooltipText || '',
+      position: 'bottom',
+      delayDuration: 300,
+      className: 'text-left text-xs',
+    });
 
     this.domElement.querySelector('.messages-container').appendChild(msg);
     return msg;

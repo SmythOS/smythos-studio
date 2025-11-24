@@ -1658,7 +1658,23 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
           if (!hasNonButtonMessages) {
             const component = componentElement['_control'] as Component;
             if (component) {
-              component.addComponentMessage('Missing Required Inputs', 'missing-input');
+              // Build a tooltip listing the names of required inputs that are currently empty.
+              const missingRequiredInputNames = inputEndpoints
+                .filter((endpoint) => endpoint.isEmpty && !endpoint.isOptional)
+                .map((endpoint) => endpoint.name);
+
+              const tooltipText =
+                missingRequiredInputNames.length > 0
+                  ? `Missing input(s):<br>${missingRequiredInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
+                  : undefined;
+
+              component.addComponentMessage(
+                'Missing Required Inputs',
+                'missing-input',
+                undefined,
+                undefined,
+                tooltipText,
+              );
             }
           }
           // Add icons to all input endpoints
@@ -1686,7 +1702,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
             endpoint.element.appendChild(icon);
           }
         }
-        
+
         // Add icons to all input endpoints regardless of component warning status
         // for (let endpoint of inputEndpoints) {
         //   // Create the icon
@@ -2830,7 +2846,20 @@ export function createDebugInjectDialog(
       ).some((message) => message.id !== 'component-button');
 
       if (!hasNonButtonMessages) {
-        component.addComponentMessage(`Missing Required Inputs`, 'missing-input');
+        // When all inputs are empty, collect the names so we can expose them in a tooltip.
+        const missingInputNames = Object.keys(input);
+        const tooltipText =
+          missingInputNames.length > 0
+            ? `Missing input(s):<br>${missingInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
+            : undefined;
+
+        component.addComponentMessage(
+          `Missing Required Inputs`,
+          'missing-input',
+          undefined,
+          undefined,
+          tooltipText,
+        );
       }
       warningToast('Cannot run with empty inputs', 'Please provide input values.');
       component.domElement.classList.add('has-empty-inputs');
