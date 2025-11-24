@@ -10,7 +10,7 @@ import {
 } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
 import { ChatContextProvider } from '@react/features/ai-chat/contexts/index.new';
-import { useAgentChatContext, useScrollToBottom } from '@react/features/ai-chat/hooks';
+import { useAgentChatContext } from '@react/features/ai-chat/hooks';
 
 /**
  * Agent Chat Page Component
@@ -29,20 +29,15 @@ const AgentChatPage = () => {
 
   // UI refs for input focus and scroll management
   const chatInputRef = useRef<ChatInputRef>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // ============================================================================
   // CHAT CONTEXT SETUP
   // ============================================================================
   // All chat logic is now encapsulated in this single hook
-  const { agent, isLoading, chatContextValue, sharedMessagesHistory, handleFileDrop } =
-    useAgentChatContext({ agentId: agentId || '', inputRef: chatInputRef });
-
-  // ============================================================================
-  // SCROLL BEHAVIOR
-  // ============================================================================
-  const { smartScrollToBottom, scrollToBottom, showScrollButton, ...scroll } =
-    useScrollToBottom(chatContainerRef);
+  const { isLoading, chatContextValue } = useAgentChatContext({
+    agentId: agentId || '',
+    inputRef: chatInputRef,
+  });
 
   // ============================================================================
   // UI EFFECTS
@@ -64,26 +59,8 @@ const AgentChatPage = () => {
       <ChatProvider value={chatContextValue}>
         <Container>
           <ChatHeader />
-
-          <Chats
-            {...scroll}
-            agent={agent}
-            messages={sharedMessagesHistory}
-            containerRef={chatContainerRef}
-            handleFileDrop={handleFileDrop}
-            smartScrollToBottom={smartScrollToBottom}
-          />
-
-          <Footer
-            chatInputRef={chatInputRef}
-            clearError={chatContextValue.clearError}
-            uploadError={chatContextValue.uploadError}
-            scrollToBottom={scrollToBottom}
-            showScrollButton={showScrollButton}
-            submitDisabled={
-              isLoading.chatCreating || isLoading.agent || chatContextValue.uploadingFiles.size > 0
-            }
-          />
+          <Chats />
+          <Footer />
         </Container>
       </ChatProvider>
     </ChatContextProvider>

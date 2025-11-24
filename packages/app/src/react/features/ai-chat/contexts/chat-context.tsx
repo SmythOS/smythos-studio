@@ -2,7 +2,7 @@
 import { ChatInputRef } from '@react/features/ai-chat/components/input';
 import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
-import { createContext, MutableRefObject } from 'react';
+import { createContext, Dispatch, MutableRefObject, SetStateAction } from 'react';
 
 export interface IChatContext {
   ref: { input?: MutableRefObject<ChatInputRef>; container?: MutableRefObject<HTMLDivElement> };
@@ -17,6 +17,9 @@ export interface IChatContext {
     data: IMessageFile[];
     addFiles: (newFiles: File[]) => Promise<void>;
     removeFile: (index: number) => Promise<void>;
+    clearError: () => void;
+    clearFiles: () => void;
+    clearAll: () => void;
   };
   chat: {
     // State
@@ -33,6 +36,15 @@ export interface IChatContext {
     clearMessages: () => void;
     resetSession: () => Promise<void>;
   };
+  scroll: {
+    showScrollButton: boolean;
+    shouldAutoScroll: boolean;
+    handleScroll: () => void;
+    scrollToBottom: (smooth?: boolean) => void;
+    smartScrollToBottom: (smooth?: boolean) => void;
+    setShowScrollButton: Dispatch<SetStateAction<boolean>>;
+    setShouldAutoScroll: Dispatch<SetStateAction<boolean>>;
+  };
   // Model override (temporary, not saved to agent config)
   modelOverride: string | null;
   setModelOverride: (model: string | null) => void;
@@ -47,6 +59,9 @@ export const ChatContext = createContext<IChatContext>({
     errorMessage: '',
     addFiles: async () => {},
     removeFile: async () => {},
+    clearError: () => {},
+    clearFiles: () => {},
+    clearAll: () => {},
   },
   chat: {
     isChatCreating: false,
@@ -59,6 +74,15 @@ export const ChatContext = createContext<IChatContext>({
     stopGenerating: () => {},
     clearMessages: () => {},
     resetSession: async () => {},
+  },
+  scroll: {
+    showScrollButton: false,
+    shouldAutoScroll: true,
+    handleScroll: () => {},
+    scrollToBottom: () => {},
+    smartScrollToBottom: () => {},
+    setShowScrollButton: () => {},
+    setShouldAutoScroll: () => {},
   },
   modelOverride: null,
   setModelOverride: () => {},

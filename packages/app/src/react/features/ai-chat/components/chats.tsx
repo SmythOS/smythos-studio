@@ -1,20 +1,7 @@
-/* eslint-disable no-unused-vars */
 import { Chat, ChatsTurnGroup } from '@react/features/ai-chat/components';
-import { useChatContext } from '@react/features/ai-chat/contexts';
-import { useDragAndDrop } from '@react/features/ai-chat/hooks';
+import { useChatStores, useDragAndDrop } from '@react/features/ai-chat/hooks';
 import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
-import { AgentDetails } from '@src/react/shared/types/agent-data.types';
 import { FC, MutableRefObject, RefObject, useEffect, useMemo, useRef } from 'react';
-
-interface IChatsProps {
-  agent: AgentDetails;
-  messages: IChatMessage[];
-  handleScroll: () => void;
-  containerRef: RefObject<HTMLElement>;
-  smartScrollToBottom: (smooth?: boolean) => void;
-  handleFileDrop: (droppedFiles: File[]) => Promise<void>;
-  shouldAutoScroll: boolean;
-}
 
 /**
  * Combines multiple refs into a single ref callback
@@ -36,19 +23,26 @@ const combineRefs =
  * Chats Component
  * Renders chat messages with smart auto-scroll and drag-and-drop support
  */
-export const Chats: FC<IChatsProps> = (props) => {
-  const { agent, messages, containerRef, handleFileDrop, ...scroll } = props;
-  const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll;
+export const Chats: FC = () => {
+  const { ref: allRefs, agent: agentData, chat, files, scroll } = useChatStores() || {};
+
+  const agent = agentData?.data;
+  const containerRef = allRefs?.container;
+  const handleFileDrop = files.addFiles;
+  const { messages, isStreaming, retryMessage } = chat || {};
+
+  // ============================================================================
+  // SCROLL BEHAVIOR
+  // ============================================================================
+  const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll || {};
 
   const ref = useRef<HTMLDivElement>(null);
-  const { retryMessage } = useChatContext();
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
 
   const lastScrolledIdRef = useRef<string | number | undefined>();
   const lastMessageLengthRef = useRef<number>(0);
   const lastScrollTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  const { isGenerating } = useChatContext();
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -82,7 +76,7 @@ export const Chats: FC<IChatsProps> = (props) => {
           if (containerRef?.current) {
             containerRef.current.scrollTo({
               top: containerRef.current.scrollHeight,
-              behavior: isGenerating ? 'auto' : 'smooth',
+              behavior: isStreaming ? 'auto' : 'smooth',
             });
           }
         };
@@ -104,7 +98,7 @@ export const Chats: FC<IChatsProps> = (props) => {
         rafRef.current = null;
       }
     };
-  }, [messages, isGenerating, containerRef, shouldAutoScroll]);
+  }, [messages, isStreaming, containerRef, shouldAutoScroll]);
 
   const avatar = agent?.aiAgentSettings?.avatar;
 
@@ -178,9 +172,9 @@ export const Chats: FC<IChatsProps> = (props) => {
           if (group.turnId && group.messages.length > 0) {
             return (
               <ChatsTurnGroup
+                avatar={avatar}
                 key={group.turnId}
                 messages={group.messages}
-                avatar={avatar}
                 onRetryClick={onRetryClick}
                 scrollToBottom={smartScrollToBottom}
               />
@@ -192,8 +186,8 @@ export const Chats: FC<IChatsProps> = (props) => {
               key={message.id || `${groupIndex}-${messageIndex}`}
               {...message}
               avatar={avatar}
-              onRetryClick={messageIndex === group.messages.length - 1 ? onRetryClick : undefined}
               scrollToBottom={smartScrollToBottom}
+              onRetryClick={messageIndex === group.messages.length - 1 ? onRetryClick : undefined}
             />
           ));
         })}
