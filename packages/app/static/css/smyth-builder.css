@@ -1109,13 +1109,13 @@ body.locked #agent-sidebar-root .restore-button {
 .component .button-container {
   width: 100%;
   line-height: 25px;
-  overflow: hidden;
+  border-radius: 0px 0px 5px 5px;
 }
 
 .component .messages-container {
   width: 100%;
   line-height: 25px;
-  overflow: hidden;
+  border-radius: 0px 0px 5px 5px;
 }
 
 .component .messages-container .message {
@@ -1974,7 +1974,6 @@ ul.agents-list-dlg .btn-delete {
 .ace-editor-sidebar .ace_scroller {
   overflow: visible !important;
 }
-
 
 /* css for tooltip in ace editor, to show error, warning, info */
 .ace_tooltip {
