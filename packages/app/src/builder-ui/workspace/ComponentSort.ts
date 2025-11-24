@@ -160,46 +160,6 @@ export async function extractWorkflows(data) {
   return workflows;
 }
 
-/**
- * Checks if a component is completely inside a note element
- */
-function isComponentInsideNote(compEl: HTMLElement, noteEl: HTMLElement): boolean {
-  const compRect = compEl.getBoundingClientRect();
-  const noteRect = noteEl.getBoundingClientRect();
-  return (
-    compRect.left >= noteRect.left &&
-    compRect.right <= noteRect.right &&
-    compRect.top >= noteRect.top &&
-    compRect.bottom <= noteRect.bottom
-  );
-}
-
-/**
- * Filters workflows to exclude those containing components inside notes
- */
-function filterWorkflowsWithoutNoteGrouping(workflows, allNoteComponents): typeof workflows {
-  // Get all note DOM elements once
-  const noteElements = allNoteComponents
-    .map((note) => document.getElementById(note.id))
-    .filter((el) => el !== null);
-
-  if (noteElements.length === 0) return workflows;
-
-  return workflows.filter((wf) => {
-    for (const comp of wf.components) {
-      const compEl = document.getElementById(comp.id);
-      if (!compEl) continue;
-
-      for (const noteEl of noteElements) {
-        if (isComponentInsideNote(compEl, noteEl)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  });
-}
-
 async function moveFlow(wf, x, y) {
   for (let c of wf.components) {
     const dom = document.getElementById(c.id);
@@ -338,17 +298,14 @@ async function sortAll() {
     const workflows = await extractWorkflows(agentData);
     await delay(50);
 
-    const allNotes = agentData.components.filter((c) => c.name === 'Note');
-    const workflowsToSort = filterWorkflowsWithoutNoteGrouping(workflows, allNotes);
-
     await workspace.export();
     await delay(200);
     workspace.lock();
 
     // Process workflows in smaller batches if there are many components
     const BATCH_SIZE = 10;
-    for (let i = 0; i < workflowsToSort.length; i += BATCH_SIZE) {
-      const batch = workflowsToSort.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < workflows.length; i += BATCH_SIZE) {
+      const batch = workflows.slice(i, i + BATCH_SIZE);
       for (let wf of batch) {
         await organizeComponents(wf.components, wf.box.x, wf.box.y);
       }
@@ -356,9 +313,9 @@ async function sortAll() {
     }
 
     await delay(100);
-    updateWFBoundingBox(workflowsToSort);
+    updateWFBoundingBox(workflows);
     await delay(100);
-    await alignBoxes(workflowsToSort);
+    await alignBoxes(workflows);
     await delay(200); // Increased delay to ensure DOM updates are complete
     //workspace.jsPlumbInstance.repaintEverything();
   } catch (error) {
@@ -396,11 +353,10 @@ async function sortSelection() {
       return;
     }
 
-    const allNotes = agentData.components.filter((c) => c.name === 'Note');
-    const workflowsWithSelection = workflows.filter((wf) =>
+    //find workflows containing selected components
+    const selectedWorkflows = workflows.filter((wf) =>
       selectedComponents.some((c) => wf.components.some((wc) => wc.id === c.id)),
     );
-    const selectedWorkflows = filterWorkflowsWithoutNoteGrouping(workflowsWithSelection, allNotes);
 
     workspace.lock();
     //sort selected workflows

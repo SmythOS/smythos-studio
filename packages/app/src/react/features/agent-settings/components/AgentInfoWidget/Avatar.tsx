@@ -9,7 +9,7 @@ import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/age
 import AgentAvatar from '@react/features/agents/components/agentCard/AgentAvatar';
 import { EAgentSettings } from '@react/features/agents/types/agents.types';
 import { processAvatar } from '@react/features/agents/utils';
-import ToolTip from '@react/shared/components/_legacy/ui/tooltip/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface AgentInfoWidgetAvatarProps {
@@ -143,17 +143,16 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
             border={classNames('border-4', currentAvatar && 'border-solid border-v2-blue')}
             children={
               <>
-                <ToolTip
-                  text={tooltipText}
-                  classes="opacity-100 visible w-48"
-                  placement="right"
-                  tooltipWrapperClasses={
-                    'absolute inset-0 w-3 h-3 left-[calc(14.6447%_-_6.5px)] top-[calc(14.6447%_-_6.5px)] z-30 opacity-100'
-                  }
-                  showTooltip={!!tooltipText}
-                >
-                  <div></div>
-                </ToolTip>
+                {tooltipText && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="absolute inset-0 w-3 h-3 left-[calc(14.6447%_-_6.5px)] top-[calc(14.6447%_-_6.5px)] z-30 opacity-100"></div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="opacity-100 visible w-48">
+                      <p>{tooltipText}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 {!currentAvatar ? (
                   <div className="absolute inset-0 w-full h-full rounded-full bg-gray-200 flex items-center justify-center group hover:shadow-md z-10">

@@ -6,7 +6,7 @@
  * Critical for long conversations with multiple turns
  */
 
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { FC, memo, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 
@@ -105,14 +105,19 @@ export const ChatsTurnGroup: FC<IProps> = memo((props) => {
       {/* Single copy button for the entire group */}
       {hasSystemMessages && isComplete && (
         <div className="ps-2.5 pb-2.5">
-          <Tooltip content={copied ? 'Copied!' : 'Copy all'} placement="bottom">
-            <button
-              onClick={handleCopyGroup}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-              aria-label="Copy all messages"
-            >
-              {copied ? <FaCheck /> : <FaRegCopy />}
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleCopyGroup}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Copy all messages"
+              >
+                {copied ? <FaCheck /> : <FaRegCopy />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{copied ? 'Copied!' : 'Copy all'}</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       )}

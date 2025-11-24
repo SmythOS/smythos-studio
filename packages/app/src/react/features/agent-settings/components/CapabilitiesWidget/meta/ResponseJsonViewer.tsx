@@ -1,4 +1,4 @@
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Suspense, useEffect, useState } from 'react';
 import { FaRegCopy } from 'react-icons/fa6';
 
@@ -24,14 +24,19 @@ const ResponseJsonViewer = ({ response, SyntaxHighlighter }: Props) => {
   return (
     <div className="relative">
       <div className="absolute top-3 right-3">
-        <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="top">
-          <FaRegCopy
-            cursor={'pointer'}
-            onClick={() => {
-              navigator.clipboard.writeText(isText ? response : JSON.stringify(response, null, 2));
-              setCopied(true);
-            }}
-          />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <FaRegCopy
+              cursor={'pointer'}
+              onClick={() => {
+                navigator.clipboard.writeText(isText ? response : JSON.stringify(response, null, 2));
+                setCopied(true);
+              }}
+            />
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{copied ? 'Copied!' : 'Copy'}</p>
+          </TooltipContent>
         </Tooltip>
       </div>
       <Suspense fallback={<div>Loading...</div>}>
