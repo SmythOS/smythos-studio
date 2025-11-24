@@ -211,8 +211,7 @@ export const ChatInput = () => {
   });
 
   const isMaxLengthReached = message.length === maxLength;
-  const canSubmit =
-    !isDisabled && isFilesLoading && (message.trim().length > 0 || isStreaming || files.length > 0);
+  const canSubmit = !isDisabled && (message.trim().length > 0 || isStreaming || files.length > 0);
 
   const handleContainerClick = () => inputRef.current?.focus();
 

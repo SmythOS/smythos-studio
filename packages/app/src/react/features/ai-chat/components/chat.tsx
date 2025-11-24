@@ -1,6 +1,7 @@
 import { FC, memo } from 'react';
 
 import {
+  ErrorMessage,
   ReplyLoader,
   SystemMessage,
   ThinkingMessage,
@@ -31,21 +32,14 @@ export const Chat: FC<IChatProps> = memo((props) => {
     case 'loading':
       return <ReplyLoader />;
     case 'thinking':
-      return <ThinkingMessage avatar={avatar} message={message} metaMessages={metaMessages} />;
+      return <ThinkingMessage avatar={avatar} metaMessages={metaMessages} />;
     case 'user':
       return <UserMessage message={message} files={files} />;
     case 'system':
-      return (
-        <SystemMessage
-          typingAnimation
-          message={message}
-          onTypingComplete={() => scrollToBottom?.()}
-          onTypingProgress={() => scrollToBottom?.()}
-        />
-      );
+      return <SystemMessage message={message} scrollToBottom={scrollToBottom} />;
     case 'error':
-      return <SystemMessage isError message={message} onRetryClick={onRetryClick} />;
+      return <ErrorMessage message={message} onRetryClick={onRetryClick} />;
     default:
-      return <SystemMessage isError message="Something went wrong!" onRetryClick={onRetryClick} />;
+      return <ErrorMessage message="Something went wrong!" onRetryClick={onRetryClick} />;
   }
 });

@@ -6,7 +6,6 @@ import {
 import { FC, useEffect, useRef, useState } from 'react';
 
 interface IProps {
-  message: string;
   avatar?: string;
   metaMessages?: IMetaMessages;
 }
