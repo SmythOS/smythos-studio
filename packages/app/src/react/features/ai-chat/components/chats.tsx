@@ -26,15 +26,12 @@ const combineRefs =
 export const Chats: FC = () => {
   const { ref: allRefs, agent: agentData, chat, files, scroll } = useChatStores() || {};
 
+  const { messages, isStreaming, retryMessage } = chat || {};
+  const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll || {};
+
   const agent = agentData?.data;
   const containerRef = allRefs?.container;
   const handleFileDrop = files.addFiles;
-  const { messages, isStreaming, retryMessage } = chat || {};
-
-  // ============================================================================
-  // SCROLL BEHAVIOR
-  // ============================================================================
-  const { handleScroll, smartScrollToBottom, shouldAutoScroll } = scroll || {};
 
   const ref = useRef<HTMLDivElement>(null);
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });

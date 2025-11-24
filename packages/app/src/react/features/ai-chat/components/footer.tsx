@@ -6,9 +6,10 @@ const CHAT_WARNING_INFO =
   "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
 
 export const Footer: FC = () => {
-  const { files, scroll } = useChatStores();
-  const { errorMessage, clearError } = files || {};
-  const { showScrollButton, scrollToBottom } = scroll || {};
+  const {
+    files: { errorMessage, clearError },
+    scroll: { showScrollButton, scrollToBottom },
+  } = useChatStores();
 
   return (
     <div className="w-full max-w-4xl pt-2.5">
