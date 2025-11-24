@@ -1686,34 +1686,47 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
             endpoint.element.appendChild(icon);
           }
         }
+        
         // Add icons to all input endpoints regardless of component warning status
-        for (let endpoint of inputEndpoints) {
-          // Create the icon
-          const icon = document.createElement('img');
-          icon.className = 'input-status-icon';
-          icon.src = endpoint.isOptional
-            ? '/img/builder/empty-input.svg'
-            : '/img/builder/fill-input.svg';
-          icon.style.width = isFunctionalComponent ? '12px' : '16px';
-          icon.style.height = isFunctionalComponent ? '12px' : '16px';
-          icon.style.position = 'absolute';
-          icon.style.left = isFunctionalComponent ? '-7px' : '-8px';
-          icon.style.top = isFunctionalComponent ? '1px' : '6px';
-          icon.style.zIndex = '100'; // Ensure it's above other elements
+        // for (let endpoint of inputEndpoints) {
+        //   // Create the icon
+        //   const icon = document.createElement('img');
+        //   icon.className = 'input-status-icon';
+        //   icon.src = endpoint.isOptional
+        //     ? '/img/builder/empty-input.svg'
+        //     : '/img/builder/fill-input.svg';
+        //   icon.style.width = isFunctionalComponent ? '12px' : '16px';
+        //   icon.style.height = isFunctionalComponent ? '12px' : '16px';
+        //   icon.style.position = 'absolute';
+        //   icon.style.left = isFunctionalComponent ? '-7px' : '-8px';
+        //   icon.style.top = isFunctionalComponent ? '1px' : '6px';
+        //   icon.style.zIndex = '100'; // Ensure it's above other elements
 
-          // Remove any existing icon first
-          const existingIcon = endpoint.element.querySelector('.input-status-icon');
-          if (existingIcon) {
-            existingIcon.remove();
-          }
+        //   // Remove any existing icon first
+        //   const existingIcon = endpoint.element.querySelector('.input-status-icon');
+        //   if (existingIcon) {
+        //     existingIcon.remove();
+        //   }
 
-          // Append the icon to the endpoint element
-          endpoint.element.appendChild(icon);
-        }
+        //   // Append the icon to the endpoint element
+        //   endpoint.element.appendChild(icon);
+        // }
 
         // Only add this class if we actually need styling changes
         if (hasEmptyRequiredInput) {
           componentElement.classList.add('empty-inputs-style');
+        }
+        // Remove the empty inputs style if there are no longer any empty required inputs
+        else {
+          const missingInput = componentElement?.querySelector('.message.missing-input');
+          if (missingInput) {
+            componentElement?.classList?.remove('empty-inputs-style');
+            componentElement?.classList?.remove('has-empty-inputs');
+            missingInput?.remove();
+            componentElement
+              ?.querySelectorAll('.input-status-icon')
+              ?.forEach((icon: HTMLElement) => icon?.remove());
+          }
         }
       }
       // --- End of Input Emptiness Check ---
@@ -3345,7 +3358,7 @@ function resetComponentsState({
     component.classList.remove('dbg-active-in_progress');
     component.classList.remove('dbg-active-error');
     component.classList.remove('has-empty-inputs'); // Remove the class that marks components with empty inputs
-    component.classList.remove('empty-input-style');
+    component.classList.remove('empty-inputs-style');
     $(component.querySelector('.cpt-overlay')).hide();
 
     const debugBtn = component.querySelector('.btn-debug');
