@@ -8,11 +8,10 @@ import {
   useUpdateAgentSettingsMutation,
 } from '@react/features/ai-chat/hooks';
 import { useChat } from '@react/features/ai-chat/hooks/use-chat';
-import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
+import { ChatInputRef, IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
-import { ChatInputRef } from '../components';
 
 /**
  * Configuration options for useAgentChatContext hook

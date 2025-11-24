@@ -1,18 +1,18 @@
-import { ChatInputRef } from '@react/features/ai-chat/components/input';
 import { ChatContext, IChatContext } from '@react/features/ai-chat/contexts/chat-context';
 import {
   useAgentSettings,
   useAttachments,
+  useChat,
   useCreateChatMutation,
   useScrollToBottom,
   useUpdateAgentSettingsMutation,
 } from '@react/features/ai-chat/hooks';
+import { ChatInputRef } from '@react/features/ai-chat/types/chat.types';
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
 import { FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useChat } from '../hooks/use-chat';
 
 interface IProps {
   children: ReactNode;

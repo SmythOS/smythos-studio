@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ChatInputRef } from '@react/features/ai-chat/components/input';
-import { IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
+import { ChatInputRef, IChatMessage, IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
 import { createContext, Dispatch, MutableRefObject, SetStateAction } from 'react';
 

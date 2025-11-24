@@ -180,3 +180,9 @@ export interface IAPIConfig {
   timeout?: number; // Request timeout
   retry?: { attempts: number; delay: number }; // Retry configuration
 }
+
+export interface ChatInputRef {
+  focus: () => void;
+  getValue: () => string;
+  setValue: (content: string) => void;
+}

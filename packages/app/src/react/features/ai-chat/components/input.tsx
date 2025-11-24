@@ -20,28 +20,22 @@ import {
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@react/shared/utils/general';
 
-export interface ChatInputRef {
-  focus: () => void;
-  getValue: () => string;
-  setValue: (content: string) => void; // eslint-disable-line no-unused-vars
-}
-
 const TEXTAREA_MAX_HEIGHT = 160;
 const LARGE_TEXT_THRESHOLD = 4000;
 
 export const ChatInput = () => {
   const { ref: allRefs, files: filesData, chat, agent } = useChatStores();
+  const [message, setMessage] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const chatInputRef = allRefs?.input;
   const { isStreaming, isChatCreating, isProcessing, sendMessage, stopGenerating } = chat || {};
   const { data: files, addFiles, removeFile, clearFiles } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
   const isFilesLoading = filesData?.isLoading;
   const isMaxFilesUploaded = files.length >= 10;
-  const inputDisabled = isChatCreating || agent.isLoading.agent || isProcessing;
-  const inputPlaceholder = agent.data?.name ? `Message ${agent.data.name}...` : 'Message ...';
-  const submitDisabled = chat.isChatCreating || agent.isLoading.agent || isFilesLoading;
+  const isDisabled = isChatCreating || agent.isLoading.agent;
 
   const handleFileChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,10 +44,6 @@ export const ChatInput = () => {
     },
     [addFiles],
   );
-
-  const [message, setMessage] = useState('');
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce ref for textarea height adjustment
   const heightAdjustmentTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,7 +81,7 @@ export const ChatInput = () => {
   }, [adjustTextareaHeight]);
 
   useImperativeHandle(
-    chatInputRef,
+    allRefs?.input,
     () => ({
       focus: () => inputRef.current?.focus(),
       getValue: () => message,
@@ -177,7 +167,7 @@ export const ChatInput = () => {
         forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
       }, 150); // 150ms delay to ensure DOM is updated
     }
-  }, [message, files, isStreaming, inputDisabled, adjustTextareaHeight]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [message, files, isStreaming, isDisabled, adjustTextareaHeight]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -222,7 +212,7 @@ export const ChatInput = () => {
 
   const isMaxLengthReached = message.length === maxLength;
   const canSubmit =
-    !submitDisabled && (message.trim().length > 0 || isStreaming || files.length > 0);
+    !isDisabled && isFilesLoading && (message.trim().length > 0 || isStreaming || files.length > 0);
 
   const handleContainerClick = () => inputRef.current?.focus();
 
@@ -268,8 +258,8 @@ export const ChatInput = () => {
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={inputPlaceholder}
           maxLength={maxLength}
+          placeholder={`Message ${agent.data?.name || ''}...`}
           className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
           aria-label="Message input"
           onClick={(e) => e.stopPropagation()}
@@ -289,9 +279,7 @@ export const ChatInput = () => {
         <div onClick={(e) => e.stopPropagation()}>
           <AttachmentButton
             onClick={handleAttachmentClick}
-            fileAttachmentDisabled={
-              isMaxFilesUploaded || inputDisabled || isProcessing || isStreaming
-            }
+            fileAttachmentDisabled={isMaxFilesUploaded || isDisabled || isProcessing || isStreaming}
             isMaxFilesUploaded={isMaxFilesUploaded}
           />
         </div>

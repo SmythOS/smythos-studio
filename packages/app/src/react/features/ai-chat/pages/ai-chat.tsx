@@ -1,16 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
-import {
-  ChatHeader,
-  ChatInputRef,
-  Chats,
-  Container,
-  Footer,
-} from '@react/features/ai-chat/components';
+import { ChatHeader, Chats, Container, Footer } from '@react/features/ai-chat/components';
 import { ChatProvider } from '@react/features/ai-chat/contexts';
 import { ChatContextProvider } from '@react/features/ai-chat/contexts/index.new';
 import { useAgentChatContext } from '@react/features/ai-chat/hooks';
+import { ChatInputRef } from '@react/features/ai-chat/types/chat.types';
 
 /**
  * Agent Chat Page Component
