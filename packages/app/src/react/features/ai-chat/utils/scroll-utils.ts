@@ -83,17 +83,6 @@ export class ScrollManager {
   }
 
   /**
-   * Check if user is at the very bottom
-   */
-  isAtBottom(threshold: number = 10): boolean {
-    const container = this.getContainer();
-    if (!container) return true;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    return scrollHeight - scrollTop <= clientHeight + threshold;
-  }
-
-  /**
    * Professional scroll to bottom with multiple strategies
    */
   scrollToBottom(options: ScrollToBottomOptions = {}): Promise<void> {
@@ -176,13 +165,6 @@ export class ScrollManager {
   }
 
   /**
-   * Force scroll to bottom (ignores user scroll position)
-   */
-  forceScrollToBottom(options: ScrollToBottomOptions = {}): Promise<void> {
-    return this.scrollToBottom({ ...options, force: true });
-  }
-
-  /**
    * Force scroll to bottom bypassing cooldown (for user-initiated scrolls)
    */
   forceScrollToBottomImmediate(options: ScrollToBottomOptions = {}): Promise<void> {
@@ -208,57 +190,10 @@ export class ScrollManager {
   }
 
   /**
-   * Scroll to specific element
-   */
-  scrollToElement(element: HTMLElement, options: ScrollOptions = {}): Promise<void> {
-    return new Promise((resolve) => {
-      const container = this.getContainer();
-      if (!container) {
-        resolve();
-        return;
-      }
-
-      const { behavior = 'smooth', block = 'end', inline = 'nearest' } = options;
-
-      element.scrollIntoView({
-        behavior,
-        block,
-        inline,
-      });
-
-      // Resolve after scroll animation
-      if (behavior === 'smooth') {
-        setTimeout(resolve, 300);
-      } else {
-        resolve();
-      }
-    });
-  }
-
-  /**
-   * Check if currently scrolling
-   */
-  isCurrentlyScrolling(): boolean {
-    return this.isScrolling;
-  }
-
-  /**
    * Reset force scroll cooldown (useful for user-initiated scrolls)
    */
   resetForceScrollCooldown(): void {
     this.lastForceScrollTime = 0;
-  }
-
-  /**
-   * Clean up resources
-   */
-  destroy(): void {
-    if (this.scrollTimeout) {
-      clearTimeout(this.scrollTimeout);
-      this.scrollTimeout = null;
-    }
-    this.scrollContainer = null;
-    this.isScrolling = false;
   }
 }
 
@@ -269,15 +204,8 @@ export const scrollManager = ScrollManager.getInstance();
 export const scrollToBottom = (options?: ScrollToBottomOptions) =>
   scrollManager.scrollToBottom(options);
 
-export const forceScrollToBottom = (options?: ScrollToBottomOptions) =>
-  scrollManager.forceScrollToBottom(options);
-
 export const forceScrollToBottomImmediate = (options?: ScrollToBottomOptions) =>
   scrollManager.forceScrollToBottomImmediate(options);
 
 export const smartScrollToBottom = (options?: ScrollToBottomOptions) =>
   scrollManager.smartScrollToBottom(options);
-
-export const isNearBottom = (threshold?: number) => scrollManager.isNearBottom(threshold);
-
-export const isAtBottom = (threshold?: number) => scrollManager.isAtBottom(threshold);

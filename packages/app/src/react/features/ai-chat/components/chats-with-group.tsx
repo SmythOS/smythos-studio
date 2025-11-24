@@ -1,6 +1,6 @@
 /**
  * MessageTurnGroup Component (Memoized for Performance)
- * Groups messages by conversationTurnId and provides a single copy button for the entire group
+ * Groups messages by turnId and provides a single copy button for the entire group
  *
  * Memoization prevents re-rendering of completed conversation turns
  * Critical for long conversations with multiple turns
@@ -10,11 +10,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/compo
 import { FC, memo, useRef, useState } from 'react';
 import { FaCheck, FaRegCopy } from 'react-icons/fa6';
 
-import { IChatMessage } from '../types/chat.types';
+import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
 import { Chat } from './chat';
 
-interface IMessageTurnGroupProps {
-  messages: IChatMessage[]; // Messages in this conversation turn (all share same conversationTurnId)
+interface IProps {
+  messages: IChatMessage[]; // Messages in this conversation turn (all share same turnId)
   avatar?: string; // Agent avatar URL
   onRetryClick?: () => void; // Retry callback for error messages
   scrollToBottom: (smooth?: boolean) => void; // eslint-disable-line no-unused-vars
@@ -24,7 +24,7 @@ interface IMessageTurnGroupProps {
  * Groups messages from a single conversation turn
  * Displays all messages and provides a single copy button for the entire group
  */
-const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
+export const ChatsTurnGroup: FC<IProps> = memo((props) => {
   const { messages, avatar, onRetryClick, scrollToBottom } = props;
   const [copied, setCopied] = useState(false);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -37,10 +37,7 @@ const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
   // Check if the last message is complete (not loading or thinking)
   const lastMessage = messages[messages.length - 1];
   const isComplete =
-    lastMessage &&
-    lastMessage.type !== 'loading' &&
-    lastMessage.type !== 'thinking' &&
-    !lastMessage.thinkingMessage;
+    lastMessage && lastMessage.type !== 'loading' && lastMessage.type !== 'thinking';
 
   /**
    * Copies all system message content from this group
@@ -126,15 +123,4 @@ const MessageTurnGroupComponent: FC<IMessageTurnGroupProps> = (props) => {
       )}
     </div>
   );
-};
-
-/**
- * Memoized export of MessageTurnGroup
- * Only re-renders when messages array actually changes
- *
- * Performance Impact:
- * - Completed turns never re-render (massive savings!)
- * - Only active turn re-renders during streaming
- * - 50+ turns: Reduces re-renders by 98%
- */
-export const MessageTurnGroup = memo(MessageTurnGroupComponent);
+});

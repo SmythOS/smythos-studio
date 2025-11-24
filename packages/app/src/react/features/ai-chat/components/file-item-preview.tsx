@@ -1,3 +1,4 @@
+import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import classNames from 'classnames';
 import { FC, useEffect, useMemo, useState } from 'react';
@@ -10,7 +11,6 @@ import {
   FaRegFileVideo,
   FaRegFileWord,
 } from 'react-icons/fa6';
-import { CloseIcon } from './icons';
 
 interface FileItemPreviewProps {
   file: IMessageFile;

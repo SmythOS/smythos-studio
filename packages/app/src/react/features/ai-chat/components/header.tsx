@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import { useQuery } from '@tanstack/react-query';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
@@ -8,8 +8,7 @@ import { Link } from 'react-router-dom';
 import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
-import { useChatContext } from '@react/features/ai-chat/contexts';
-import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
+import { useChatStores } from '@react/features/ai-chat/hooks';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
@@ -33,15 +32,6 @@ function getTempBadge(tags: string[]): string {
   return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
 }
 // #endregion Temporary Badges
-
-interface ChatHeaderProps {
-  agentSettings?: AgentSettings;
-  agent?: AgentDetails;
-  isLoading: {
-    agent: boolean;
-    settings: boolean;
-  };
-}
 
 interface ILLMModels {
   label: string;
@@ -68,25 +58,24 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   return data.agents;
 };
 
-export const ChatHeader: FC<ChatHeaderProps> = (props) => {
-  const { agent, isLoading, agentSettings } = props;
+export const ChatHeader: FC = () => {
+  const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
-  const avatar = agentSettings?.avatar;
-  const selectedModel = agentSettings?.chatGptModel;
-
-  const { clearChatSession, selectedModelOverride, setSelectedModelOverride } = useChatContext();
+  const { data: agent, settings, isLoading } = agentData || {};
+  const avatar = settings?.avatar;
 
   // Fetch model agents to check if current agent is a model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
     queryKey: ['modelAgents'],
     queryFn: fetchModelAgents,
+    refetchOnWindowFocus: false,
   });
 
   // Check if current agent.id exists in modelAgents list
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // Use override if set, otherwise use agent's default model
-  const currentModel = selectedModelOverride || selectedModel || '';
+  const currentModel = modelOverride || settings?.chatGptModel || '';
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
@@ -145,7 +134,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const handleModelChange = useCallback(
     (newModel: string) => {
       // Set temporary model override (not saved to agent config)
-      setSelectedModelOverride(newModel);
+      setModelOverride(newModel);
 
       // Close dropdown after selection
       setIsDropdownOpen(false);
@@ -155,7 +144,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
         model: newModel,
       });
     },
-    [setSelectedModelOverride],
+    [setModelOverride],
   );
 
   /**
@@ -223,7 +212,9 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
                         <span>
                           {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
                           {(() => {
-                            const selectedModelData = llmModels.find((m) => m.value === currentModel);
+                            const selectedModelData = llmModels.find(
+                              (m) => m.value === currentModel,
+                            );
                             if (selectedModelData) {
                               const badge = getTempBadge(selectedModelData.tags);
                               return badge ? ` (${badge})` : '';
@@ -358,7 +349,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
             <TooltipTrigger asChild>
               <button
                 className="cursor-pointer w-6 h-6 flex items-center justify-center"
-                onClick={clearChatSession}
+                onClick={() => chat.resetSession()}
               >
                 <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
               </button>
