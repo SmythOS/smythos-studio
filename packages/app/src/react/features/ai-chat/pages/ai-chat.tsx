@@ -35,14 +35,8 @@ const AgentChatPage = () => {
   // CHAT CONTEXT SETUP
   // ============================================================================
   // All chat logic is now encapsulated in this single hook
-  const {
-    agent,
-    isLoading,
-    agentSettings,
-    chatContextValue,
-    sharedMessagesHistory,
-    handleFileDrop,
-  } = useAgentChatContext({ agentId: agentId || '', inputRef: chatInputRef });
+  const { agent, isLoading, chatContextValue, sharedMessagesHistory, handleFileDrop } =
+    useAgentChatContext({ agentId: agentId || '', inputRef: chatInputRef });
 
   // ============================================================================
   // SCROLL BEHAVIOR
@@ -69,7 +63,7 @@ const AgentChatPage = () => {
     <ChatContextProvider>
       <ChatProvider value={chatContextValue}>
         <Container>
-          <ChatHeader agent={agent} isLoading={isLoading} agentSettings={agentSettings?.settings} />
+          <ChatHeader />
 
           <Chats
             {...scroll}

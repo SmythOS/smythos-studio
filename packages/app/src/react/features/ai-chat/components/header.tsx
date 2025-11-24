@@ -8,13 +8,12 @@ import { Link } from 'react-router-dom';
 import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
-import { useChatContext } from '@react/features/ai-chat/contexts';
-import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
+import { useChatStores } from '../hooks';
 
 // #region Temporary Badges
 const TEMP_BADGES: Record<string, boolean> = {
@@ -33,15 +32,6 @@ function getTempBadge(tags: string[]): string {
   return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
 }
 // #endregion Temporary Badges
-
-interface ChatHeaderProps {
-  agentSettings?: AgentSettings;
-  agent?: AgentDetails;
-  isLoading: {
-    agent: boolean;
-    settings: boolean;
-  };
-}
 
 interface ILLMModels {
   label: string;
@@ -68,15 +58,11 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   return data.agents;
 };
 
-export const ChatHeader: FC<ChatHeaderProps> = (props) => {
-  const { agent, isLoading, agentSettings } = props;
+export const ChatHeader: FC = () => {
+  const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
-  // const {} = useChatStores() || {};
-
-  const avatar = agentSettings?.avatar;
-  const selectedModel = agentSettings?.chatGptModel;
-
-  const { clearChatSession, modelOverride, setModelOverride } = useChatContext();
+  const { data: agent, settings, isLoading } = agentData || {};
+  const avatar = settings?.avatar;
 
   // Fetch model agents to check if current agent is a model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
@@ -88,7 +74,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // Use override if set, otherwise use agent's default model
-  const currentModel = modelOverride || selectedModel || '';
+  const currentModel = modelOverride || settings?.chatGptModel || '';
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
@@ -357,7 +343,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
           <Tooltip content={<>New&nbsp;Chat</>} placement="bottom">
             <button
               className="cursor-pointer w-6 h-6 flex items-center justify-center"
-              onClick={clearChatSession}
+              onClick={() => chat.resetSession()}
             >
               <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
             </button>
