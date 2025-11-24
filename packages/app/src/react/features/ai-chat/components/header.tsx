@@ -345,13 +345,18 @@ export const ChatHeader: FC = () => {
 
         {/* Right side - Action buttons */}
         <div className=" flex items-center justify-center gap-2">
-          <Tooltip content={<>New&nbsp;Chat</>} placement="bottom">
-            <button
-              className="cursor-pointer w-6 h-6 flex items-center justify-center"
-              onClick={() => chat.resetSession()}
-            >
-              <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="cursor-pointer w-6 h-6 flex items-center justify-center"
+                onClick={() => chat.resetSession()}
+              >
+                <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>New Chat</p>
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
