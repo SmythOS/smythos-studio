@@ -1,6 +1,7 @@
 import { FC, memo } from 'react';
 
 import {
+  ErrorMessage,
   ReplyLoader,
   SystemMessage,
   ThinkingMessage,
@@ -24,40 +25,21 @@ interface IChatProps extends IChatMessage {
  * @param props - Chat message properties
  * @returns Appropriate message component
  */
-const ChatComponent: FC<IChatProps> = (props) => {
-  const { type, files, avatar, message, onRetryClick, thinkingMessage, scrollToBottom } = props;
+export const Chat: FC<IChatProps> = memo((props) => {
+  const { type, files, avatar, message, metaMessages, onRetryClick, scrollToBottom } = props;
 
   switch (type) {
     case 'loading':
       return <ReplyLoader />;
     case 'thinking':
-      return <ThinkingMessage message={message} avatar={avatar} />;
+      return <ThinkingMessage avatar={avatar} metaMessages={metaMessages} />;
     case 'user':
       return <UserMessage message={message} files={files} />;
     case 'system':
-      return (
-        <SystemMessage
-          avatar={avatar}
-          message={message}
-          typingAnimation
-          thinkingMessage={thinkingMessage}
-          onTypingComplete={() => scrollToBottom?.()}
-          onTypingProgress={() => scrollToBottom?.()}
-        />
-      );
+      return <SystemMessage message={message} scrollToBottom={scrollToBottom} />;
     case 'error':
-      return <SystemMessage isError message={message} onRetryClick={onRetryClick} />;
+      return <ErrorMessage message={message} onRetryClick={onRetryClick} />;
     default:
-      return <SystemMessage isError message="Something went wrong!" onRetryClick={onRetryClick} />;
+      return <ErrorMessage message="Something went wrong!" onRetryClick={onRetryClick} />;
   }
-};
-
-/**
- * Memoized Chat component export
- * Only re-renders when message content actually changes
- *
- * Performance Impact:
- * - 100 message conversation: Reduces re-renders from 20,000 to ~200 (99% improvement!)
- * - Smooth streaming even with 500+ messages
- */
-export const Chat = memo(ChatComponent);
+});

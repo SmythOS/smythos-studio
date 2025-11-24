@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createContext, FC, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { useAgentSettings } from '@react/features/ai-chat/hooks/agent-settings';
+import { useAgentSettings } from '@react/features/ai-chat/hooks';
 import { Workspace } from '@src/builder-ui/workspace/Workspace.class';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { PageACL } from '@src/shared/state_stores/auth';
@@ -69,7 +69,7 @@ const initialState: AgentSettingsContextType = {
   latestAgentDeploymentQuery: null,
   settingsQuery: null,
   allDeploymentsQuery: null,
-  refetchAllData: async () => { },
+  refetchAllData: async () => {},
   serverStatusQuery: null,
   serverStatusData: null,
   agentAuthData: null,
@@ -276,7 +276,15 @@ export const AgentSettingsProvider: FC<AgentSettingsProviderProps> = ({
     ].filter((query): query is NonNullable<typeof query> => query !== null);
 
     await Promise.all(queries.map((query) => query.refetch()));
-  }, [agentQuery, settingsQuery, teamRolesQuery, agentTestDomainQuery, latestAgentDeploymentQuery, allDeploymentsQuery, serverStatusQuery]);
+  }, [
+    agentQuery,
+    settingsQuery,
+    teamRolesQuery,
+    agentTestDomainQuery,
+    latestAgentDeploymentQuery,
+    allDeploymentsQuery,
+    serverStatusQuery,
+  ]);
 
   // Attach the refetch function to window when the component mounts
   useEffect(() => {

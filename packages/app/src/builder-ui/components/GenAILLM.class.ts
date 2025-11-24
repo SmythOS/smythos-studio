@@ -1476,10 +1476,17 @@ export class GenAILLM extends Component {
     ) as HTMLElement;
     const reasoningOptions = this.getReasoningEffortOptions(currentModel);
 
-    // Handle reasoning effort field visibility for both GPT-5 and Groq models
+    // Handle reasoning effort field visibility for GPT-5, Groq, and Gemini 3 models
     if (reasoningOptions.length > 0) {
       if (this.gpt5ReasoningModels.includes(currentModel)) {
         // For GPT-5 models: Always show reasoningEffort regardless of useReasoning state
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.remove('hidden');
+        }
+        // Update reasoning effort options
+        this.updateReasoningEffortOptions(currentModel);
+      } else if (LLMRegistry.isGemini3Model(currentModel)) {
+        // For Gemini 3 models: Always show reasoningEffort regardless of useReasoning state
         if (reasoningEffortField) {
           reasoningEffortField.classList.remove('hidden');
         }

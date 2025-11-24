@@ -15,7 +15,6 @@ import { useCallback, useRef, useState } from 'react';
  * Hook configuration interface
  */
 interface IUseChatStreamConfig {
-  client?: ChatAPIClient; // Chat API client instance
   onStreamStart?: () => void; // Called when stream starts
   onStreamEnd?: () => void; // Called when stream completes
 }
@@ -25,10 +24,8 @@ interface IUseChatStreamConfig {
  */
 interface IUseChatStreamReturn {
   isStreaming: boolean; // Whether a stream is currently active
-  error: IChatError | null; // Current error if any
   startStream: (config: IStreamConfig, callbacks: IStreamCallbacks) => Promise<void>; //  eslint-disable-line no-unused-vars
   abortStream: () => void; // Abort the current stream
-  clearError: () => void; // Clear error state
 }
 
 /**
@@ -65,15 +62,14 @@ interface IUseChatStreamReturn {
  * ```
  */
 export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStreamReturn => {
-  const { client, onStreamStart, onStreamEnd } = config;
+  const { onStreamStart, onStreamEnd } = config;
 
   // State management
   const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<IChatError | null>(null);
 
   // Refs for lifecycle management
   const abortControllerRef = useRef<AbortController | null>(null);
-  const clientRef = useRef<ChatAPIClient>(client || new ChatAPIClient());
+  const apiClient = new ChatAPIClient();
 
   /**
    * Starts a new chat stream
@@ -90,25 +86,17 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Clear previous error
-      setError(null);
-
       // Set streaming state
       setIsStreaming(true);
 
       // Notify start
-      if (onStreamStart) {
-        onStreamStart();
-      }
+      if (onStreamStart) onStreamStart();
 
       try {
         // Wrap callbacks to manage lifecycle
         const wrappedCallbacks: IStreamCallbacks = {
           ...callbacks,
-          onError: (streamError: IChatError) => {
-            setError(streamError);
-            callbacks.onError(streamError);
-          },
+          onError: (streamError) => callbacks.onError(streamError),
           onComplete: () => {
             setIsStreaming(false);
             abortControllerRef.current = null;
@@ -120,14 +108,13 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
         };
 
         // Start streaming with abort signal
-        await clientRef.current.streamChat(
+        await apiClient.streamChat(
           { ...streamConfig, signal: abortController.signal },
           wrappedCallbacks,
         );
       } catch (streamError) {
         // Handle errors
         const chatError = streamError as IChatError;
-        setError(chatError);
         setIsStreaming(false);
         abortControllerRef.current = null;
 
@@ -136,7 +123,7 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
         throw chatError;
       }
     },
-    [onStreamStart, onStreamEnd],
+    [onStreamStart, onStreamEnd], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   /**
@@ -153,12 +140,5 @@ export const useChatStream = (config: IUseChatStreamConfig = {}): IUseChatStream
     }
   }, [onStreamEnd]);
 
-  /**
-   * Clears error state
-   */
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  return { isStreaming, error, startStream, abortStream, clearError };
+  return { isStreaming, startStream, abortStream };
 };
