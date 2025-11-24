@@ -19,12 +19,12 @@ import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
 import FormEmbodimentModal from '@src/react/features/embodiments/form-embodiment-modal';
 import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
 import { Observability } from '@src/shared/observability';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useQuery } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import { useFormik } from 'formik';
 import { Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -565,10 +565,13 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl font-semibold text-[#1E1E1E] flex items-center gap-1">
                         Deploy Agent
-                        <Tooltip
-                          className="w-60"
-                          theme={toolTipTheme}
-                          content={
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="">
+                              <Info className="w-4 h-4 text-gray-500 text-lg" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="w-60">
                             <div style={{ whiteSpace: 'normal' }}>
                               Deploy your agent to make it live and ready to integrate into your
                               workflow. Use SmythOS's default subdomain or configure a custom one.{' '}
@@ -580,11 +583,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                                 Learn more
                               </a>
                             </div>
-                          }
-                        >
-                          <span className="">
-                            <Info className="w-4 h-4 text-gray-500 text-lg" />
-                          </span>
+                          </TooltipContent>
                         </Tooltip>
                       </h2>
                     </div>
@@ -597,25 +596,15 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                   </div>
                   <Tabs defaultValue="agent-cloud" className="w-full relative">
                     <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
-                      <Tooltip
-                        content={
-                          <div style={{ whiteSpace: 'normal' }}>
-                            Convenient, easy, and instant. We handle all the hosting of your agent
-                            for you at $2 per 1,000 tasks, only pay for what you use. Unlock chat,
-                            bulk work, schedules, analytics, logs, APIs and more.
-                          </div>
-                        }
-                        placement="top"
-                        theme={toolTipWithDelay}
-                        trigger="hover"
+                      <TabsTrigger
+                        value="agent-cloud"
+                        className="px-10 py-2.5 text-sm rounded-sm tooltip-trigger relative"
+                        data-tooltip="Convenient, easy, and instant. We handle all the hosting of your agent for you at $2 per 1,000 tasks, only pay for what you use. Unlock chat, bulk work, schedules, analytics, logs, APIs and more."
+                        data-tooltip-position="bottom"
+                        data-tooltip-width="md"
                       >
-                        <TabsTrigger
-                          value="agent-cloud"
-                          className="px-10 py-2.5 text-sm rounded-sm w-full"
-                        >
-                          Agent Cloud
-                        </TabsTrigger>
-                      </Tooltip>
+                        Agent Cloud
+                      </TabsTrigger>
                       <TabsTrigger value="enterprise" className="px-10 py-2.5 text-sm rounded-sm">
                         Enterprise
                       </TabsTrigger>
