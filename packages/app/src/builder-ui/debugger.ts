@@ -1672,31 +1672,6 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
           }
         }
 
-        // Add icons to all input endpoints regardless of component warning status
-        // for (let endpoint of inputEndpoints) {
-        //   // Create the icon
-        //   const icon = document.createElement('img');
-        //   icon.className = 'input-status-icon';
-        //   icon.src = endpoint.isOptional
-        //     ? '/img/builder/empty-input.svg'
-        //     : '/img/builder/fill-input.svg';
-        //   icon.style.width = isFunctionalComponent ? '12px' : '16px';
-        //   icon.style.height = isFunctionalComponent ? '12px' : '16px';
-        //   icon.style.position = 'absolute';
-        //   icon.style.left = isFunctionalComponent ? '-7px' : '-8px';
-        //   icon.style.top = isFunctionalComponent ? '1px' : '6px';
-        //   icon.style.zIndex = '100'; // Ensure it's above other elements
-
-        //   // Remove any existing icon first
-        //   const existingIcon = endpoint.element.querySelector('.input-status-icon');
-        //   if (existingIcon) {
-        //     existingIcon.remove();
-        //   }
-
-        //   // Append the icon to the endpoint element
-        //   endpoint.element.appendChild(icon);
-        // }
-
         // Only add this class if we actually need styling changes
         if (hasEmptyRequiredInput) {
           componentElement.classList.add('empty-inputs-style');
@@ -2816,7 +2791,7 @@ export function createDebugInjectDialog(
 
       if (!hasNonButtonMessages) {
         const inputsInfo = getInputInfo(component.domElement, input);
-        
+
         // Build a tooltip listing the names of required inputs that are currently empty.
         const missingRequiredInputNames = inputsInfo?.inputEndpoints
           .filter((endpoint) => endpoint.isEmpty && !endpoint.isOptional)
