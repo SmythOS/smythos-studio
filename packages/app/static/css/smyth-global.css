@@ -1056,15 +1056,16 @@ html {
 .sidebar-tooltip {
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1); /* Match Radix animation timing */
   position: fixed;
-  z-index: 999;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  z-index: 50; /* Match Radix z-50 */
+  padding: 6px 12px; /* py-1.5 px-3 to match Radix Tooltip (0.375rem 0.75rem) */
+  font-size: 12px; /* text-xs to match Radix Tooltip (0.75rem) */
+  line-height: 1.5; /* Match Radix Tooltip line-height */
   font-weight: 500;
   color: white;
-  background-color: #111827;
-  border-radius: 0.5rem;
+  background-color: #111827; /* bg-gray-900 to match Radix Tooltip */
+  border-radius: 6px; /* rounded-md to match Radix Tooltip (0.375rem) */
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   white-space: nowrap;
   pointer-events: none;
@@ -1150,21 +1151,74 @@ html {
   cursor: pointer;
 }
 
+.tooltip-trigger[data-tooltip-width='xs']::before {
+  max-width: 50px;
+}
+.tooltip-trigger[data-tooltip-width='sm']::before {
+  max-width: 100px;
+}
+.tooltip-trigger[data-tooltip-width='md']::before {
+  max-width: 200px;
+}
+.tooltip-trigger[data-tooltip-width='lg']::before {
+  max-width: 300px;
+}
+
+/* HTML Tooltip Element (for actual DOM-based tooltips with HTML content) */
+.tooltip-html-element {
+  position: absolute;
+  background: #111827;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  width: max-content;
+  max-width: 400px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 150ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Visible state for HTML tooltip */
+.tooltip-html-element.tooltip-html-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
 .tooltip-trigger::before {
   content: attr(data-tooltip);
   position: absolute;
-  background: #333;
+  background: #111827; /* bg-gray-900 to match Radix Tooltip */
   color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  white-space: nowrap;
+  padding: 6px 12px; /* py-1.5 px-3 to match Radix Tooltip (0.375rem 0.75rem) */
+  border-radius: 6px; /* rounded-md to match Radix Tooltip (0.375rem) */
+  font-size: 12px; /* text-xs to match Radix Tooltip (0.75rem) */
+  line-height: 1.5; /* Match Radix Tooltip line-height */
+  white-space: normal; /* Allow text wrapping */
+  width: max-content; /* Use content width up to max-width */
+  max-width: 400px;
+  word-wrap: break-word; /* Break long words if needed */
+  overflow-wrap: break-word; /* Modern property for word breaking */
+  text-align: center; /* Center align text content */
   opacity: 0;
   visibility: hidden;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
   transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease;
-  z-index: 1000 !important;
+    opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 150ms cubic-bezier(0.16, 1, 0.3, 1); /* Match Radix animation timing */
+  z-index: 50 !important; /* Match Radix z-50 */
   pointer-events: none !important; /* Prevents tooltip from intercepting mouse events and breaking hover behavior */
 }
 
@@ -1175,9 +1229,9 @@ html {
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease;
-  z-index: 1000 !important;
+    opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 150ms cubic-bezier(0.16, 1, 0.3, 1); /* Match Radix animation timing */
+  z-index: 50 !important; /* Match Radix z-50 */
   pointer-events: none !important; /* Prevents tooltip from intercepting mouse events and breaking hover behavior */
 }
 
@@ -1187,6 +1241,43 @@ html {
 .tooltip-trigger:focus-visible::after {
   opacity: 1;
   visibility: visible;
+  /* Scale transform will be combined with position-specific transforms via CSS specificity */
+}
+
+/* Combine scale with position-specific transforms for top/bottom positions */
+.tooltip-trigger[data-tooltip-position='top']:hover::before,
+.tooltip-trigger[data-tooltip-position='top']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='bottom']:hover::before,
+.tooltip-trigger[data-tooltip-position='bottom']:focus-visible::before {
+  transform: translateX(-50%) scale(1); /* Combine translateX with scale */
+}
+
+/* Combine scale with position-specific transforms for left/right positions */
+.tooltip-trigger[data-tooltip-position='left']:hover::before,
+.tooltip-trigger[data-tooltip-position='left']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='right']:hover::before,
+.tooltip-trigger[data-tooltip-position='right']:focus-visible::before {
+  transform: translateY(-50%) scale(1); /* Combine translateY with scale */
+}
+
+/* For positions without translate, just use scale */
+.tooltip-trigger[data-tooltip-position='top-left']:hover::before,
+.tooltip-trigger[data-tooltip-position='top-left']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='top-right']:hover::before,
+.tooltip-trigger[data-tooltip-position='top-right']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='bottom-left']:hover::before,
+.tooltip-trigger[data-tooltip-position='bottom-left']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='bottom-right']:hover::before,
+.tooltip-trigger[data-tooltip-position='bottom-right']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='left-top']:hover::before,
+.tooltip-trigger[data-tooltip-position='left-top']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='left-bottom']:hover::before,
+.tooltip-trigger[data-tooltip-position='left-bottom']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='right-top']:hover::before,
+.tooltip-trigger[data-tooltip-position='right-top']:focus-visible::before,
+.tooltip-trigger[data-tooltip-position='right-bottom']:hover::before,
+.tooltip-trigger[data-tooltip-position='right-bottom']:focus-visible::before {
+  transform: scale(1); /* Final zoom state to match Radix zoom-in-95 animation */
 }
 
 /* Modifier: pill-style dark tooltip with soft shadow */
@@ -1254,32 +1345,55 @@ html {
 .tooltip-trigger.tooltip-active::after {
   opacity: 1;
   visibility: visible;
+  /* Scale transform will be combined with position-specific transforms via CSS specificity */
+}
+
+/* Combine scale with position-specific transforms for tooltip-active state */
+.tooltip-trigger[data-tooltip-position='top'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='bottom'].tooltip-active::before {
+  transform: translateX(-50%) scale(1); /* Combine translateX with scale */
+}
+
+.tooltip-trigger[data-tooltip-position='left'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='right'].tooltip-active::before {
+  transform: translateY(-50%) scale(1); /* Combine translateY with scale */
+}
+
+.tooltip-trigger[data-tooltip-position='top-left'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='top-right'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='bottom-left'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='bottom-right'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='left-top'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='left-bottom'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='right-top'].tooltip-active::before,
+.tooltip-trigger[data-tooltip-position='right-bottom'].tooltip-active::before {
+  transform: scale(1); /* Final zoom state to match Radix zoom-in-95 animation */
 }
 
 /* Top position */
 .tooltip-trigger[data-tooltip-position='top']::before {
   bottom: calc(100% + 10px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='top']::after {
   bottom: calc(100%);
   left: 50%;
   transform: translateX(-50%);
-  border-top-color: #333;
+  border-top-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Top-left position */
 .tooltip-trigger[data-tooltip-position='top-left']::before {
   bottom: calc(100% + 10px);
   right: 0;
-  transform: none;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='top-left']::after {
   bottom: calc(100%);
   right: 10px;
   transform: none;
-  border-top-color: #333;
+  border-top-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Top-right position */
@@ -1292,20 +1406,20 @@ html {
   bottom: calc(100%);
   left: 10px;
   transform: none;
-  border-top-color: #333;
+  border-top-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Bottom position */
 .tooltip-trigger[data-tooltip-position='bottom']::before {
   top: calc(100% + 10px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='bottom']::after {
   top: calc(100%);
   left: 50%;
   transform: translateX(-50%);
-  border-bottom-color: #333;
+  border-bottom-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Bottom-left position */
@@ -1318,7 +1432,7 @@ html {
   top: calc(100%);
   right: 10px;
   transform: none;
-  border-bottom-color: #333;
+  border-bottom-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Bottom-right position */
@@ -1331,85 +1445,85 @@ html {
   top: calc(100%);
   left: 10px;
   transform: none;
-  border-bottom-color: #333;
+  border-bottom-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Left position */
 .tooltip-trigger[data-tooltip-position='left']::before {
   right: calc(100% + 10px);
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='left']::after {
   right: calc(100%);
   top: 50%;
   transform: translateY(-50%);
-  border-left-color: #333;
+  border-left-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Left-top position */
 .tooltip-trigger[data-tooltip-position='left-top']::before {
   right: calc(100% + 10px);
   top: 0;
-  transform: none;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='left-top']::after {
   right: calc(100%);
   top: 10px;
   transform: none;
-  border-left-color: #333;
+  border-left-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Left-bottom position */
 .tooltip-trigger[data-tooltip-position='left-bottom']::before {
   right: calc(100% + 10px);
   bottom: 0;
-  transform: none;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='left-bottom']::after {
   right: calc(100%);
   bottom: 10px;
   transform: none;
-  border-left-color: #333;
+  border-left-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Right position */
 .tooltip-trigger[data-tooltip-position='right']::before {
   left: calc(100% + 10px);
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='right']::after {
   left: calc(100%);
   top: 50%;
   transform: translateY(-50%);
-  border-right-color: #333;
+  border-right-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Right-top position */
 .tooltip-trigger[data-tooltip-position='right-top']::before {
   left: calc(100% + 10px);
   top: 0;
-  transform: none;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='right-top']::after {
   left: calc(100%);
   top: 10px;
   transform: none;
-  border-right-color: #333;
+  border-right-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Right-bottom position */
 .tooltip-trigger[data-tooltip-position='right-bottom']::before {
   left: calc(100% + 10px);
   bottom: 0;
-  transform: none;
+  transform: scale(0.95); /* Initial zoom state to match Radix zoom-in-95 */
 }
 .tooltip-trigger[data-tooltip-position='right-bottom']::after {
   left: calc(100%);
   bottom: 10px;
   transform: none;
-  border-right-color: #333;
+  border-right-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Top-right position */
@@ -1422,7 +1536,7 @@ html {
   bottom: calc(100%);
   left: 10px;
   transform: none;
-  border-top-color: #333;
+  border-top-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Bottom-left position */
@@ -1435,7 +1549,7 @@ html {
   top: calc(100%);
   right: 10px;
   transform: none;
-  border-bottom-color: #333;
+  border-bottom-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 /* Bottom-right position */
@@ -1448,7 +1562,7 @@ html {
   top: calc(100%);
   left: 10px;
   transform: none;
-  border-bottom-color: #333;
+  border-bottom-color: #111827; /* bg-gray-900 to match Radix Tooltip */
 }
 
 @media (max-width: 768px) {

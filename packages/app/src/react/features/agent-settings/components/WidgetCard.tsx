@@ -1,5 +1,5 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import classNames from 'classnames';
-import { CustomFlowbiteTheme, Tooltip } from 'flowbite-react';
 import { isNil } from 'lodash-es';
 import React from 'react';
 
@@ -10,10 +10,6 @@ type Props = {
   showOverflow?: boolean;
   isWriteAccess?: boolean;
   hasBorder?: boolean;
-};
-
-const customTheme: CustomFlowbiteTheme['tooltip'] = {
-  target: 'w-full',
 };
 
 const WidgetCardChild = ({ hasBorder = true, ...props }: Props) => {
@@ -38,12 +34,13 @@ const WidgetCard = ({ hasBorder = true, ...props }: Props) => {
   return !props.isWriteAccess &&
     props.isWriteAccess !== undefined &&
     props.isWriteAccess !== null ? (
-    <Tooltip
-      content={'You do not have permission to make changes to this widget'}
-      placement="top"
-      theme={customTheme}
-    >
-      <WidgetCardChild hasBorder={hasBorder} {...props} />
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <WidgetCardChild hasBorder={hasBorder} {...props} />
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <p>You do not have permission to make changes to this widget</p>
+      </TooltipContent>
     </Tooltip>
   ) : (
     <WidgetCardChild hasBorder={hasBorder} {...props} />

@@ -16,6 +16,7 @@ export interface ServerStatus {
   prod_agent_domain: string;
   user: any;
   userData: any;
+  edition: string;
 }
 
 export interface ServerStatusSlice extends Slice {
@@ -57,6 +58,7 @@ export const serverStatusSlice: StateCreator<BuilderStore, [], [], ServerStatusS
           prod_agent_domain: data.prod_agent_domain,
           user: data.user,
           userData: data.user,
+          edition: data.smythos_edition,
         },
       });
     } catch (err) {

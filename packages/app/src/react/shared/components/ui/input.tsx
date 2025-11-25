@@ -1,10 +1,9 @@
 import * as React from 'react';
 
 import { cn } from '@react/shared/utils/general';
-import { Tooltip } from 'flowbite-react';
 import { Info } from 'lucide-react';
 import { FaCircleExclamation } from 'react-icons/fa6';
-import ToolTip from '../_legacy/ui/tooltip/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
@@ -56,8 +55,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label} {required && <span className="text-red-500 mr-1">*</span>}{' '}
             <span className="italic text-sm text-gray-500">{labelExample}</span>
             {!!infoTooltip && (
-              <Tooltip className="w-52 text-center" content={infoTooltip}>
-                <Info className="w-4 h-4 ml-2" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 ml-2" />
+                </TooltipTrigger>
+                <TooltipContent className="w-52 text-center">
+                  {infoTooltip}
+                </TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -94,16 +98,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             {...props}
           />
-          {icon && (
+          {icon && iconTooltip?.length > 0 && (
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <ToolTip
-                showTooltip={iconTooltip?.length > 0}
-                text={iconTooltip}
-                placement={tooltipPlacement}
-                classes={tooltipClasses}
-              >
-                {icon}
-              </ToolTip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {icon}
+                </TooltipTrigger>
+                <TooltipContent side={tooltipPlacement === 'top-right' ? 'top' : tooltipPlacement === 'bottom-right' ? 'bottom' : tooltipPlacement} className={tooltipClasses}>
+                  <p>{iconTooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+          {icon && !iconTooltip && (
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              {icon}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
@@ -8,8 +8,7 @@ import { Link } from 'react-router-dom';
 import { Skeleton } from '@react/features/ai-chat/components';
 import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
-import { useChatContext } from '@react/features/ai-chat/contexts';
-import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
+import { useChatStores } from '@react/features/ai-chat/hooks';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
@@ -33,15 +32,6 @@ function getTempBadge(tags: string[]): string {
   return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
 }
 // #endregion Temporary Badges
-
-interface ChatHeaderProps {
-  agentSettings?: AgentSettings;
-  agent?: AgentDetails;
-  isLoading: {
-    agent: boolean;
-    settings: boolean;
-  };
-}
 
 interface ILLMModels {
   label: string;
@@ -68,25 +58,24 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   return data.agents;
 };
 
-export const ChatHeader: FC<ChatHeaderProps> = (props) => {
-  const { agent, isLoading, agentSettings } = props;
+export const ChatHeader: FC = () => {
+  const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
-  const avatar = agentSettings?.avatar;
-  const selectedModel = agentSettings?.chatGptModel;
-
-  const { clearChatSession, selectedModelOverride, setSelectedModelOverride } = useChatContext();
+  const { data: agent, settings, isLoading } = agentData || {};
+  const avatar = settings?.avatar;
 
   // Fetch model agents to check if current agent is a model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
     queryKey: ['modelAgents'],
     queryFn: fetchModelAgents,
+    refetchOnWindowFocus: false,
   });
 
   // Check if current agent.id exists in modelAgents list
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // Use override if set, otherwise use agent's default model
-  const currentModel = selectedModelOverride || selectedModel || '';
+  const currentModel = modelOverride || settings?.chatGptModel || '';
 
   // State for LLM models
   const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
@@ -145,7 +134,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
   const handleModelChange = useCallback(
     (newModel: string) => {
       // Set temporary model override (not saved to agent config)
-      setSelectedModelOverride(newModel);
+      setModelOverride(newModel);
 
       // Close dropdown after selection
       setIsDropdownOpen(false);
@@ -155,7 +144,7 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
         model: newModel,
       });
     },
-    [setSelectedModelOverride],
+    [setModelOverride],
   );
 
   /**
@@ -206,42 +195,46 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
               ) : (
                 <div ref={dropdownRef} className="relative leading-none w-full">
                   {/* Selected value display - clickable trigger */}
-                  <Tooltip
-                    content={isModelAgent ? 'Default agents have a fixed model' : 'Select model'}
-                    placement="bottom"
-                  >
-                    <button
-                      type="button"
-                      onClick={toggleDropdown}
-                      disabled={
-                        isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
-                      }
-                      className={cn(
-                        'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                        !isModelAgent && 'cursor-pointer hover:text-slate-900',
-                      )}
-                    >
-                      {/* Display selected model label */}
-                      <span>
-                        {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
-                        {(() => {
-                          const selectedModelData = llmModels.find((m) => m.value === currentModel);
-                          if (selectedModelData) {
-                            const badge = getTempBadge(selectedModelData.tags);
-                            return badge ? ` (${badge})` : '';
-                          }
-                          return '';
-                        })()}
-                      </span>
-                      {/* Dropdown icon */}
-                      <IoChevronDown
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={toggleDropdown}
+                        disabled={
+                          isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
+                        }
                         className={cn(
-                          'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
-                          !isModelAgent && 'group-hover:text-slate-900',
-                          isDropdownOpen && 'rotate-180',
+                          'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                          !isModelAgent && 'cursor-pointer hover:text-slate-900',
                         )}
-                      />
-                    </button>
+                      >
+                        {/* Display selected model label */}
+                        <span>
+                          {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
+                          {(() => {
+                            const selectedModelData = llmModels.find(
+                              (m) => m.value === currentModel,
+                            );
+                            if (selectedModelData) {
+                              const badge = getTempBadge(selectedModelData.tags);
+                              return badge ? ` (${badge})` : '';
+                            }
+                            return '';
+                          })()}
+                        </span>
+                        {/* Dropdown icon */}
+                        <IoChevronDown
+                          className={cn(
+                            'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
+                            !isModelAgent && 'group-hover:text-slate-900',
+                            isDropdownOpen && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{isModelAgent ? 'Default agents have a fixed model' : 'Select model'}</p>
+                    </TooltipContent>
                   </Tooltip>
 
                   {/* Dropdown menu - only show if not a model agent */}
@@ -352,18 +345,28 @@ export const ChatHeader: FC<ChatHeaderProps> = (props) => {
 
         {/* Right side - Action buttons */}
         <div className=" flex items-center justify-center gap-2">
-          <Tooltip content={<>New&nbsp;Chat</>} placement="bottom">
-            <button
-              className="cursor-pointer w-6 h-6 flex items-center justify-center"
-              onClick={clearChatSession}
-            >
-              <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="cursor-pointer w-6 h-6 flex items-center justify-center"
+                onClick={() => chat.resetSession()}
+              >
+                <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>New Chat</p>
+            </TooltipContent>
           </Tooltip>
-          <Tooltip content="Exit" placement="bottom">
-            <Link to="/agents">
-              <CloseIcon className="text-slate-500 w-6 h-6" />
-            </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/agents">
+                <CloseIcon className="text-slate-500 w-6 h-6" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Exit</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

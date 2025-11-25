@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 
 import { MarkdownRenderer } from '@react/features/ai-chat/components';
-import { useChatContext } from '../contexts';
+import { useChatStore } from '@react/features/ai-chat/hooks';
 
 interface ITypewriterProps {
   message: string;
@@ -27,7 +27,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastMessageLength, setLastMessageLength] = useState(0);
-  const { isGenerating = true } = useChatContext();
+  const { isStreaming } = useChatStore('chat') || {};
 
   /**
    * PERFORMANCE OPTIMIZATION:
@@ -42,7 +42,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
 
   // Handle immediate display when generation is complete
   useEffect(() => {
-    if (!isGenerating && message.length > 0) {
+    if (!isStreaming && message.length > 0) {
       // When generation is complete, show all content immediately
       setDisplayedText(message);
       setCurrentIndex(message.length);
@@ -50,7 +50,7 @@ export const Typewriter: FC<ITypewriterProps> = ({
       onComplete?.();
       return;
     }
-  }, [isGenerating, message, onComplete]);
+  }, [isStreaming, message, onComplete]);
 
   /**
    * SCROLL OPTIMIZATION:

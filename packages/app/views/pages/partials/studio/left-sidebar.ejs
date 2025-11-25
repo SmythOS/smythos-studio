@@ -685,21 +685,22 @@
         this.isSidebarOpen =
           (storedValue !== null ? storedValue === 'true' : true) || isChatPresent;
 
-          // Initialize currentSidebarTab properly
-          this.currentSidebarTab = localStorage.getItem('currentSidebarTab');
-          console.log('currentSidebarTab', this.currentSidebarTab);
-          this.previousTab = localStorage.getItem('previousTab');
-          console.log('previousTab', this.previousTab);
-
-          // Convert "null" strings to actual null values
-          if (this.currentSidebarTab === 'null') this.currentSidebarTab = null;
-          if (this.previousTab === 'null') this.previousTab = null;
-
-          // Set default tab to Agent Weaver if sidebar is open and no tab is selected
-          if (this.isSidebarOpen && !this.currentSidebarTab) {
-            this.currentSidebarTab = 'agentBuilderTab';
-            localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
+          // Always use default tab (weaver or component) instead of restoring from localStorage
+          // Check if weaver is enabled (same logic as builder.ejs - weaver is always enabled)
+          const isWeaverEnabled = true; // Weaver is always enabled (same as builder.ejs)
+          const defaultTab = isWeaverEnabled ? 'agentBuilderTab' : 'buildTab';
+          
+          // Always set to default tab when sidebar is open
+          if (this.isSidebarOpen) {
+            this.currentSidebarTab = defaultTab;
+            localStorage.setItem('currentSidebarTab', defaultTab);
+          } else {
+            this.currentSidebarTab = null;
           }
+          
+          // Initialize previousTab (but don't restore currentSidebarTab from localStorage)
+          this.previousTab = localStorage.getItem('previousTab');
+          if (this.previousTab === 'null') this.previousTab = null;
 
         // === SINGLE SOURCE OF TRUTH: Apply width to DOM ===
         const applyWidth = (width) => {
