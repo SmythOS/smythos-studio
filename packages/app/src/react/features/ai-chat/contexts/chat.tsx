@@ -14,6 +14,7 @@ export interface IChatContext {
     isLoading: boolean;
     errorMessage: string;
     data: IMessageFile[];
+    uploadingIds: Set<string>;
     addFiles: (newFiles: File[]) => Promise<void>;
     removeFile: (index: number) => Promise<void>;
     clearError: () => void;
@@ -56,6 +57,7 @@ export const ChatContext = createContext<IChatContext>({
     data: [],
     isLoading: false,
     errorMessage: '',
+    uploadingIds: new Set(),
     addFiles: async () => {},
     removeFile: async () => {},
     clearError: () => {},
