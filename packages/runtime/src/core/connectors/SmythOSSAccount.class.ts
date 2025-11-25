@@ -105,9 +105,12 @@ export class SmythOSSAccount extends AccountConnector {
     }
   }
 
-  public async getTeamSetting(acRequest: AccessRequest, teamId: string, settingKey: string): Promise<string> {
+  public async getTeamSetting(acRequest: AccessRequest, teamId: string, settingKey: string, group?: string): Promise<string> {
     try {
-      const response = await this.smythAPI.get(`/v1/teams/${teamId}/settings/${settingKey}`, { headers: await this.getSmythRequestHeaders() });
+      const query = group ? `?group=${group}` : '';
+      const response = await this.smythAPI.get(`/v1/teams/${teamId}/settings/${settingKey}${query}`, {
+        headers: await this.getSmythRequestHeaders(),
+      });
       return response?.data?.setting?.settingValue || null;
     } catch (error) {
       return null;

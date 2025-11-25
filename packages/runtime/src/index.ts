@@ -115,6 +115,13 @@ const sre = SmythRuntime.Instance.init({
     Connector: 'ConsoleLog',
     Settings: {},
   },
+
+  NKV: {
+    Connector: 'SmythNKV',
+    Settings: {
+      smythAPIBaseUrl: config.env.MIDDLEWARE_API_BASE_URL,
+    },
+  },
 });
 
 const __filename = url.fileURLToPath(import.meta.url);

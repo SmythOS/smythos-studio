@@ -15,6 +15,7 @@ import {
 
 import { Logger } from '@smythos/sre';
 
+import UserAuth from '@/modules/debugger/middlewares/userAuth.mw';
 import config from './config';
 import { RuntimeConfig, loadRuntimeConfig, validateRuntimeConfig } from './runtime-config';
 import { createAgentRunnerRouter, createDebuggerRouter } from './shared-agent-router';
@@ -50,7 +51,7 @@ export function configureAgentRouters(app: Express, runtimeConfig?: RuntimeConfi
 
   // Mount common routes that should be available in all server configurations
   app.use('/models', modelsRouter);
-  app.use('/user', userRouter);
+  app.use('/user', UserAuth, userRouter);
 
   // Configure based on routing strategy and enabled services
   const debuggerEnabled = config.services.debugger.enabled;

@@ -1,3 +1,4 @@
+import dataPoolsRouter from '@debugger/features/datapools/router.datapools';
 import AgentLoader from '@debugger/middlewares/agentLoader.mw';
 import { Component, ComponentInstances, ConnectorService, ISchedulerRequest, Logger } from '@smythos/sre';
 import express from 'express';
@@ -9,6 +10,7 @@ const router = express.Router();
 const middlewares = [AgentLoader];
 
 router.use('/smythfs', smythfsRouter);
+router.use('/data-pools', dataPoolsRouter);
 
 const triggerRegisterHandler = async (req, res) => {
   try {
