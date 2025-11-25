@@ -40,7 +40,7 @@ export const useAttachments = (props: IProps) => {
 
   const addFiles = useCallback(
     async (newFiles: File[]) => {
-      if (files.length === 0) return;
+      if (newFiles.length === 0) return;
       const remainingSlots = FILE_LIMITS.MAX_ATTACHED_FILES - files.length;
 
       if (remainingSlots <= 0) {
@@ -147,6 +147,7 @@ export const useAttachments = (props: IProps) => {
   return {
     data: files,
     isLoading,
+    uploadingIds,
     errorMessage,
 
     addFiles,
