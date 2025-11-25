@@ -1,4 +1,7 @@
 //This tooltip does not uses flow-bite and has minimum calculations thus having a better performance
+
+import { cn } from '@src/react/shared/utils/utils';
+
 /**
  * Type definition for tooltip position options
  */
@@ -61,7 +64,7 @@ export class TooltipV2 {
     // Add CSS classes
     this.element.classList.add('tooltip-trigger');
     if (this.options.tooltipClass) {
-      this.element.classList.add(this.options.tooltipClass);
+      this.element.className = cn(this.element.className, this.options.tooltipClass);
     }
 
     // Add event listeners based on showWhen option

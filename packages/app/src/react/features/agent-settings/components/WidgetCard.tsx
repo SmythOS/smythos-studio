@@ -1,5 +1,5 @@
-import classNames from 'classnames';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import classNames from 'classnames';
 import { isNil } from 'lodash-es';
 import React from 'react';
 
