@@ -107,28 +107,31 @@ const EmbodimentsWidget = ({ agent, agentId, isWriteAccess }: IProps) => {
                   <Spinner classes="w-5 h-5" />
                 ) : (
                   <Tooltip
-                    content={
-                      isReadOnlyAccess ? "You don't have access to this feature" : 'Enable/Disable'
-                    }
-                    placement="top"
                   >
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={itemSettings.enabled ?? false}
-                        onChange={(e) => updateEmbodimentStatus(item, e.target.checked)}
-                        className="sr-only peer"
-                        disabled={isReadOnlyAccess}
-                      />
-                      <div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-v2-blue"></div>
-                    </label>
+                    <TooltipTrigger asChild>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={itemSettings.enabled ?? false}
+                          onChange={(e) => updateEmbodimentStatus(item, e.target.checked)}
+                          className="sr-only peer"
+                          disabled={isReadOnlyAccess}
+                        />
+                        <div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-v2-blue"></div>
+                      </label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {isReadOnlyAccess ? 'You don\'t have access to this feature' : 'Enable/Disable'}
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </div>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <FaLock cursor={'pointer'} />
+                  <div>
+                    <FaLock cursor={'pointer'} />
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p>Premium Embodiment. Upgrade your plan</p>
@@ -195,11 +198,15 @@ const EmbodimentsWidget = ({ agent, agentId, isWriteAccess }: IProps) => {
         <div className="mb-6">
           <h3 className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-1">
             Deploy to Your Workflow
-            <Tooltip
-              className="w-52 text-center"
-              content="Choose how you want to deploy and integrate your agent."
-            >
-              <Info className="w-4 h-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Info className="w-4 h-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Choose how you want to deploy and integrate your agent.</p>
+              </TooltipContent>
             </Tooltip>
           </h3>
         </div>

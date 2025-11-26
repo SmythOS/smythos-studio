@@ -30,10 +30,9 @@ export const ChatInput = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { isStreaming, isChatCreating, isProcessing, sendMessage, stopGenerating } = chat || {};
-  const { data: files, addFiles, removeFile, clearFiles } = filesData || {};
+  const { data: files, uploadingIds, addFiles, removeFile, clearFiles } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
-  const isFilesLoading = filesData?.isLoading;
   const isMaxFilesUploaded = files.length >= 10;
   const isDisabled = isChatCreating || agent.isLoading.agent;
 
@@ -231,7 +230,7 @@ export const ChatInput = () => {
               key={`${fileWithMetadata.id}`}
               file={fileWithMetadata}
               onRemove={() => handleRemoveFile(index)}
-              isUploading={isFilesLoading} // .has(fileWithMetadata.id)
+              isUploading={uploadingIds.has(fileWithMetadata.id)}
             />
           ))}
         </div>

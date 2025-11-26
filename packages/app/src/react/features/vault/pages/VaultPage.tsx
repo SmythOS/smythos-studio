@@ -1,7 +1,6 @@
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { ErrorBoundarySuspense } from '@src/react/features/error-pages/higher-order-components/ErrorBoundary';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
-import { TooltipProvider } from '@src/react/shared/components/ui/tooltip';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
@@ -78,45 +77,43 @@ export default function VaultPage() {
   }
 
   return (
-    <TooltipProvider delayDuration={300} skipDelayDuration={100}>
-      <div className="container mx-auto py-6 space-y-6 pl-12 md:pl-0 pr-0">
-        <div className="flex items-center justify-between md:justify-end">
-          {pageAccess?.write && (
-            <CustomButton
-              handleClick={handleExportVault}
-              disabled={isExporting}
-              Icon={
-                isExporting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CiExport className="inline mr-1 w-4 h-4" strokeWidth={1} />
-                )
-              }
-              addIcon
-              label={isExporting ? 'Exporting...' : 'Export Vault Structure'}
-            />
-          )}
-        </div>
-
-        {hasBuiltinModels && (
-          <PluginComponents targetId={PluginTarget.VaultPageSmythOSRecommendedModels} />
+    <div className="container mx-auto py-6 space-y-6 pl-12 md:pl-0 pr-0">
+      <div className="flex items-center justify-between md:justify-end">
+        {pageAccess?.write && (
+          <CustomButton
+            handleClick={handleExportVault}
+            disabled={isExporting}
+            Icon={
+              isExporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CiExport className="inline mr-1 w-4 h-4" strokeWidth={1} />
+              )
+            }
+            addIcon
+            label={isExporting ? 'Exporting...' : 'Export Vault Structure'}
+          />
         )}
-
-        <UserModels pageAccess={pageAccess} />
-        <UserCustomModels pageAccess={pageAccess} />
-        <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
-        <OAuthConnections />
-
-        {isOnDevSAAS && <VectorDatabases />}
-
-        <ErrorBoundarySuspense
-          loadingFallback={<div>Loading...</div>}
-          errorFallback={() => <div>Error loading API keys</div>}
-        >
-          <ApiKeys pageAccess={pageAccess} />
-        </ErrorBoundarySuspense>
       </div>
-    </TooltipProvider>
+
+      {hasBuiltinModels && (
+        <PluginComponents targetId={PluginTarget.VaultPageSmythOSRecommendedModels} />
+      )}
+
+      <UserModels pageAccess={pageAccess} />
+      <UserCustomModels pageAccess={pageAccess} />
+      <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
+      <OAuthConnections />
+
+      {isOnDevSAAS && <VectorDatabases />}
+
+      <ErrorBoundarySuspense
+        loadingFallback={<div>Loading...</div>}
+        errorFallback={() => <div>Error loading API keys</div>}
+      >
+        <ApiKeys pageAccess={pageAccess} />
+      </ErrorBoundarySuspense>
+    </div>
   );
 }
 
