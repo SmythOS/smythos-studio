@@ -122,8 +122,8 @@ services:
     environment:
       # Repository to sync
       GITSYNC_REPO: ${GIT_SYNC_REPO_URL:-https://github.com/SmythOS/sre-models-pub}
-      # Sync every 5 minutes (300 seconds)
-      GITSYNC_PERIOD: ${GIT_SYNC_INTERVAL:-300s}
+      # Sync every 10 minutes (600 seconds)
+      GITSYNC_PERIOD: ${GIT_SYNC_INTERVAL:-600s}
       # Root directory where repo will be synced (models subdirectory)
       # Git-sync will sync repository content directly to /data/models/
       # Since we mount SMYTH_PATH/models:/data/models, this syncs to ${SMYTH_PATH}/models on the host
