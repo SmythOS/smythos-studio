@@ -3,6 +3,8 @@
   @toggle-sidebar-request.window="toggleSidebar()"
   class="max-h-screen z-[11] absolute top-16 md:top-0 h-screen"
   :class="{
+    // Static widths only apply when sidebarWidth is not set (!sidebarWidth)
+    // When sidebarWidth exists, width is controlled via inline styles
     'w-full md:w-[414px]': isSidebarOpen && currentSidebarTab === 'helpTab' && !sidebarWidth,
     'md:w-[378px]': isSidebarOpen && currentSidebarTab !== 'helpTab' && currentSidebarTab !== 'agentBuilderTab' && currentSidebarTab !== 'agentTab' && !sidebarWidth,
     'w-full md:w-[480px]': isSidebarOpen && (currentSidebarTab === 'agentBuilderTab' || currentSidebarTab === 'agentTab') && !sidebarWidth,
@@ -24,7 +26,6 @@
 
       <a
         href="/"
-        target="_blank"
         rel="noopener noreferrer"
         class="flex items-center justify-center cursor-pointer transition-colors h-10 fill-gray-700 hover:fill-gray-700 hover:outline-none mb-2"
         data-tooltip-target="tooltip-agent"
@@ -101,7 +102,11 @@
         </div>
       </div>
 
-      
+      <!-- Container for dynamically inserted Integrations button -->
+      <div id="sidebar-components-integrations-panel" data-qa="sidebar-components-integrations-panel"></div>
+
+      <!-- Container for dynamically inserted Template button (Internal use only) -->
+      <div id="sidebar-template-panel"></div>
 
       <!-- Deploy -->
       <div class="relative group deploy-btn">
@@ -342,7 +347,7 @@
       <button
         id="help-button"
         class="w-full h-10 flex items-center text-gray-600 justify-center transition-all duration-300"
-        @click="toggleHelpTab()"
+        @click="setSidebarTab('helpTab')"
         data-tooltip-target="tooltip-help"
         data-tooltip-placement="right"
       >
@@ -541,8 +546,7 @@
 
       <section
         x-show="(currentSidebarTab == 'deployTab')"
-        class="deployTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%] [&>*]:w-[calc(100%+5px)]"
-        style="scrollbar-gutter: stable"
+        class="deployTab pb-4 m-0 relative w-full overflow-hidden hover:overflow-y-auto h-[100%]"
       >
         <%- include('left-sidebar-deploy'); -%>
       </section>
@@ -561,6 +565,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const isChatPresent = urlParams.has('chat');
 
+    const getLeftSidebarWidth = () => {
+      const leftSidebarWidth = localStorage.getItem('left-sidebar-width') || '400px';
+      return leftSidebarWidth;
+    };
+
     Alpine.data('sidebarState', () => ({
       previousTab: localStorage.getItem('previousTab') || null,
       sidebarWidth: null, // Will be loaded from localStorage in init()
@@ -571,6 +580,7 @@
         'variablesTab',
         'authTab',
         'deployTab',
+        'integrationsTab',
         'templateTab',
       ],
 
@@ -578,20 +588,35 @@
         return this.buildSidebarTabs.includes(this.currentSidebarTab);
       },
 
+      /**
+       * Calculate the left position for the auto-save notifier
+       * Simple formula: sidebar left position + sidebar width + padding
+       * @returns {string} CSS left value in pixels
+       */
+      get agentStatusLeft() {
+        if (!this.isSidebarOpen) {
+          return '84px';
+        }
+        
+        // Sidebar left position: 80px on desktop (64px nav + 16px), 6px on mobile
+        const sidebarLeft = window.innerWidth >= 768 ? 80 : 6;
+        
+        // Get sidebar width from stored value or use default from getLeftSidebarWidth()
+        const sidebarWidth = this.sidebarWidth 
+          ? parseInt(this.sidebarWidth) 
+          : parseInt(getLeftSidebarWidth());
+        
+        // Position = sidebar left + sidebar width + padding
+        return `${sidebarLeft + sidebarWidth + 8}px`;
+      },
+
       // Add special handler for the help tab
       toggleHelpTab() {
         if (this.currentSidebarTab === 'helpTab') {
-          // If help tab is active, switch to previous tab
-          if (this.previousTab && this.previousTab !== 'helpTab') {
-            const temp = this.currentSidebarTab;
-            this.currentSidebarTab = this.previousTab;
-            this.previousTab = temp;
-          } else {
             // If no valid previous tab, close sidebar
             this.previousTab = this.currentSidebarTab;
             this.currentSidebarTab = null;
             this.isSidebarOpen = false;
-          }
         } else {
           // If help tab is not active, store current tab and switch to help
           this.previousTab = this.currentSidebarTab;
@@ -657,24 +682,25 @@
 
       init() {
         const storedValue = localStorage?.getItem('sidebarOpen');
-        const parts = document.location?.pathname?.split('/');
-        const currentAgentId = parts?.length == 3 ? parts?.pop() : null;
         this.isSidebarOpen =
           (storedValue !== null ? storedValue === 'true' : true) || isChatPresent;
 
-        // Initialize currentSidebarTab properly
-        this.currentSidebarTab = localStorage.getItem(`${currentAgentId}-currentSidebarTab`);
-        this.previousTab = localStorage.getItem('previousTab');
-
-        // Convert "null" strings to actual null values
-        if (this.currentSidebarTab === 'null') this.currentSidebarTab = null;
-        if (this.previousTab === 'null') this.previousTab = null;
-
-        // Set default tab to Agent Weaver if sidebar is open and no tab is selected
-        if (this.isSidebarOpen && !this.currentSidebarTab) {
-          this.currentSidebarTab = 'agentBuilderTab';
-          localStorage.setItem('currentSidebarTab', 'agentBuilderTab');
-        }
+          // Always use default tab (weaver or component) instead of restoring from localStorage
+          // Check if weaver is enabled (same logic as builder.ejs - weaver is always enabled)
+          const isWeaverEnabled = true; // Weaver is always enabled (same as builder.ejs)
+          const defaultTab = isWeaverEnabled ? 'agentBuilderTab' : 'buildTab';
+          
+          // Always set to default tab when sidebar is open
+          if (this.isSidebarOpen) {
+            this.currentSidebarTab = defaultTab;
+            localStorage.setItem('currentSidebarTab', defaultTab);
+          } else {
+            this.currentSidebarTab = null;
+          }
+          
+          // Initialize previousTab (but don't restore currentSidebarTab from localStorage)
+          this.previousTab = localStorage.getItem('previousTab');
+          if (this.previousTab === 'null') this.previousTab = null;
 
         // === SINGLE SOURCE OF TRUTH: Apply width to DOM ===
         const applyWidth = (width) => {
@@ -692,7 +718,7 @@
         };
 
         // Load saved width on init
-        const savedWidth = localStorage.getItem('left-sidebar-width');
+        const savedWidth = getLeftSidebarWidth();
         if (savedWidth) {
           this.sidebarWidth = savedWidth;
           if (this.isSidebarOpen) {
@@ -704,6 +730,7 @@
         window.addEventListener('leftSidebarResized', (event) => {
           this.sidebarWidth = event.detail.width;
           applyWidth(event.detail.width);
+          // The agentStatusLeft getter will automatically update via Alpine reactivity
         });
 
         // Watch sidebarWidth changes and apply to DOM
@@ -726,7 +753,7 @@
               if (contentContainer) contentContainer.style.width = '';
             });
             
-            // Very important: If sidebar is closed, ensure currentSidebarTab is null
+              // Very important: If sidebar is closed, ensure currentSidebarTab is null
             if (this.currentSidebarTab) {
               this.previousTab = this.currentSidebarTab;
               this.currentSidebarTab = null;
@@ -740,7 +767,7 @@
               applyWidth(this.sidebarWidth);
             } else {
               // No custom width, check localStorage
-              const savedWidth = localStorage.getItem('left-sidebar-width');
+              const savedWidth = getLeftSidebarWidth();
               console.log('[isSidebarOpen watcher] Checking localStorage:', savedWidth);
               if (savedWidth) {
                 this.sidebarWidth = savedWidth;
@@ -794,12 +821,12 @@
           this.isSidebarOpen = false;
         } else {
           // When reopening sidebar via border
-          this.isSidebarOpen = true;
           // Restore the previous tab if available
           if (this.previousTab) {
             this.currentSidebarTab = this.previousTab;
             localStorage.setItem('currentSidebarTab', this.currentSidebarTab);
           }
+          this.isSidebarOpen = true;
         }
       },
     }));

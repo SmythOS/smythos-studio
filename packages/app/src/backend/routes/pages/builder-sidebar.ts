@@ -58,7 +58,15 @@ const baseMenu: Menu = {
     { name: 'FSign', label: 'F:Sign', description: '' },
     { name: 'FTimestamp', label: 'F:Timestamp', description: '' },
   ],
-  'RAG Data': [],
+  'RAG Data': [
+    {
+      label: 'Manage My Vector DB',
+      externalLink: '/data',
+    },
+    { name: 'DataSourceLookup', label: 'RAG Search', description: '' },
+    { name: 'DataSourceIndexer', label: 'RAG Remember', description: '' },
+    { name: 'DataSourceCleaner', label: 'RAG Forget', description: '' },
+  ],
 
   Logic: [
     { name: 'LogicAND', description: 'AND', label: 'And', icon: 'LogicAND' },

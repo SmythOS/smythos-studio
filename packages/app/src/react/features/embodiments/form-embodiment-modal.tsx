@@ -80,8 +80,7 @@ const FormEmbodimentModal: FC<FormEmbodimentModalProps> = ({
 </script>
 <script>
       FormPreview.init({
-          domain: '${domain}?endpointId=${selectedEndpoint}',
-          // ... additional settings ...
+          domain: '${domain}?endpointId=${selectedEndpoint}&type=widget&style=widget'
       });
 </script>`;
 

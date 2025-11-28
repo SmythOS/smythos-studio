@@ -198,6 +198,7 @@
 
 .smyth.endpoint .pin.button {
   background: transparent !important;
+  z-index: 10;
 }
 .smyth.endpoint .pin.button:hover .icon {
   color: #006500;
@@ -227,6 +228,42 @@
 .component .input-endpoint .dbg-output .pin {
   left: -6px;
   right: auto;
+}
+
+/* Warning message container */
+.dbg-json-warning-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  margin-top: 6px;
+  background-color: #fff3e0;
+  border-left: 3px solid #ff9800;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+/* Warning icon */
+.dbg-json-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  background-color: #ff9800;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+/* Warning text */
+.dbg-json-warning-text {
+  color: #e65100;
+  font-weight: normal;
+  flex: 1;
 }
 
 .component .endpoint .dbg-output.pinned .pin .icon {
@@ -344,6 +381,9 @@
   overflow-y: auto;
 }
 .dbg-textarea.dbg-textarea-with-footer {
+  height: calc(100% - 60px) !important;
+}
+.dbg-textarea.dbg-textarea-with-warning {
   height: calc(100% - 60px) !important;
 }
 .dbg-log-download-link {

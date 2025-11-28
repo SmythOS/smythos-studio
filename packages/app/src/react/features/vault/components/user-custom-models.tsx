@@ -149,7 +149,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
   return (
     <div className="w-full p-6 rounded-lg border border-solid border-[#d9d9d9] flex-col justify-start items-start gap-3 flex">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 self-stretch text-[#1e1e1e] text-lg font-semibold font-['Inter'] leading-snug">
+        <div className="flex items-center gap-2 self-stretch text-[#1e1e1e] text-lg font-semibold leading-snug">
           Custom Models
           <Tooltip>
             <TooltipTrigger asChild>

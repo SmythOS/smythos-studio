@@ -57,6 +57,7 @@ const config = {
     PROD_AGENT_DOMAIN: process.env.PROD_AGENT_DOMAIN || 'agent.pstage.smyth.ai',
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PORT: process.env.REDIS_PORT,
+    SMYTHOS_EDITION: process.env.SMYTHOS_EDITION,
 
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
@@ -82,6 +83,7 @@ const config = {
     LOGTO_M2M_APP_SECRET: process.env.LOGTO_M2M_APP_SECRET,
     POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
     PUB_API_SERVER: process.env.PUB_API_SERVER,
+    IS_AWS_ENVIRONMENT: process.env.IS_AWS_ENVIRONMENT || false,
   },
   api: {
     SMYTH_USER_API_URL: `${MW_BASE_URL}/v1`,

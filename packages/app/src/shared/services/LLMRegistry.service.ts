@@ -29,6 +29,7 @@ export class LLMRegistry {
   // Single source of truth for determining GPT5 models (verbosity + reasoning effort support)
   private static readonly GPT5_MODEL_PATTERN = /gpt-5/i;
   private static readonly O3_AND_O4_MODELS_PATTERN = /o3|o4/i;
+  private static readonly GEMINI3_MODEL_PATTERN = /gemini-3/i;
 
   public static getModels(): Record<string, LLMModel> {
     const models = llmModelsStore.getState()?.models || {};
@@ -163,7 +164,8 @@ export class LLMRegistry {
    * 1. Exclusion group: Non-excluded models come first, then Legacy, Deprecated, Retired, Removed
    * 2. Regular tag priority: Enterprise → Custom → Personal → SmythOS → Default (maintained within each exclusion group)
    * 3. Provider order: OpenAI → Anthropic → GoogleAI → Perplexity → TogetherAI → Others
-   * 4. Alphabetically by label (tie-breaker)
+   * 4. 'new' tag priority: Models with 'new' tag come first within each group
+   * 5. Alphabetically by label (tie-breaker)
    *
    * Example order:
    * - Personal GPT-4 (non-excluded)
@@ -232,6 +234,15 @@ export class LLMRegistry {
       return index !== -1 ? index : this.PROVIDER_ORDER.length;
     };
 
+    /**
+     * Checks if a model has the 'new' tag
+     * @param tags - Array of tags for the model
+     * @returns True if the model has the 'new' tag (case-insensitive)
+     */
+    const hasNewTag = (tags: string[]): boolean => {
+      return tags.some((tag) => tag.toLowerCase() === 'new');
+    };
+
     return modelsCopy.sort((a, b) => {
       // First level: Sort by excluded tag priority (non-excluded → legacy → deprecated → retired → removed)
       const aExcludedTagWeight = getLowestPriorityExcludedTag(a.tags);
@@ -266,7 +277,16 @@ export class LLMRegistry {
         return aProviderWeight - bProviderWeight;
       }
 
-      // Fourth level: If same tag and provider, sort alphabetically by label as a tie-breaker
+      // Fourth level: Within the same group (exclusion tag, regular tag, provider),
+      // prioritize models with 'new' tag
+      const aHasNewTag = hasNewTag(a.tags);
+      const bHasNewTag = hasNewTag(b.tags);
+
+      if (aHasNewTag !== bHasNewTag) {
+        return aHasNewTag ? -1 : 1;
+      }
+
+      // Fifth level: If same tag and provider, sort alphabetically by label as a tie-breaker
       return a.label.localeCompare(b.label);
     });
   }
@@ -334,5 +354,25 @@ export class LLMRegistry {
    */
   public static isO3andO4Models(modelId: string): boolean {
     return Boolean(modelId && this.O3_AND_O4_MODELS_PATTERN.test(modelId));
+  }
+
+  /**
+   * Get all Gemini 3 models based on model name pattern matching
+   *
+   * @returns Array of model IDs that match the Gemini 3 pattern (case-insensitive)
+   */
+  public static getGemini3Models(): string[] {
+    const models = this.getModels();
+    return Object.keys(models).filter((modelId) => this.isGemini3Model(modelId));
+  }
+
+  /**
+   * Check if a model is a Gemini 3 model based on its name pattern
+   *
+   * @param modelId - The model ID to check
+   * @returns True if the model ID matches the Gemini 3 pattern (case-insensitive), false otherwise
+   */
+  public static isGemini3Model(modelId: string): boolean {
+    return Boolean(modelId && this.GEMINI3_MODEL_PATTERN.test(modelId));
   }
 }

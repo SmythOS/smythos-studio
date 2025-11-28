@@ -297,8 +297,13 @@ export default class Chatbot {
         outputTimestamp: new Date().toISOString(),
       });
     const toolHash = tool.id ? fnv1aHash(tool.id) : this.toolCallId;
+
+    // Check if this is the default attachment fallback skill - it should never be debugged
+    const isAttachmentFallback = tool.name === 'process_attachment_fallback' ||
+      tool.operationId === 'process_attachment_fallback';
+
     if (this.agent.usingTestDomain || this.isAgentChat) {
-      if (this.agent.debugSessionEnabled) {
+      if (this.agent.debugSessionEnabled && !isAttachmentFallback) {
         await delay(100);
         const dbgFunction = `${tool.name} (${args && typeof args === 'object' ? JSON.stringify(args) : args})`;
 
@@ -312,7 +317,7 @@ export default class Chatbot {
       }
     }
 
-    if (this.agent.debugSessionEnabled) {
+    if (this.agent.debugSessionEnabled && !isAttachmentFallback) {
       await delay(3000); // give some time to the UI debugger to attach - FIXME : find a better way to do this
     }
   }

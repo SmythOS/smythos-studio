@@ -32,6 +32,7 @@ import {
   updateDebugControls,
   updateDebugControlsOnSelection,
 } from './utils/debugger.utils';
+import { extractWorkflows } from './workspace/ComponentSort';
 import { Monitor } from './workspace/Monitor';
 
 const DEBUG_INJECT_TEXT_EXPERIMENT_VARIANTS = {
@@ -1325,6 +1326,56 @@ async function previewHandler(event: Event) {
   }
 }
 
+/**
+ * Checks if the output content is a stringified JSON
+ * @param outputContent - The output content to check
+ * @returns True if the output is a string that starts with '{' and ends with '}'
+ */
+function isStringifiedJSON(outputContent: any): boolean {
+  if (typeof outputContent !== 'string') {
+    return false;
+  }
+  const trimmed = outputContent.trim();
+  return trimmed.startsWith('{') && trimmed.endsWith('}');
+}
+
+/**
+ * Checks if this is a default output endpoint (not a mapped output like Response.id)
+ * @param outputEndpoint - The output endpoint element to check
+ * @returns True if this is a default output (no dots or brackets in name)
+ */
+function isDefaultOutput(outputEndpoint: HTMLElement): boolean {
+  const outputName = outputEndpoint.getAttribute('smt-name') || '';
+  const outputExpression = outputEndpoint.getAttribute('smt-expression') || '';
+  // A default output has no dots or brackets in its name/expression
+  return !/[.\[\]]/.test(outputName) && !/[.\[\]]/.test(outputExpression);
+}
+
+/**
+ * Checks if the component has mapped outputs (output endpoints with expressions like Response.id)
+ * @param outputEndpoint - The current output endpoint element
+ * @returns True if the component has other output endpoints with mapped expressions
+ */
+function hasMappedOutputs(outputEndpoint: HTMLElement): boolean {
+  const componentElement = outputEndpoint.closest('.component');
+  if (!componentElement) {
+    return false;
+  }
+
+  // Get all output endpoints in the component
+  const allOutputEndpoints = componentElement.querySelectorAll('.smyth.output-endpoint');
+
+  // Check if any output endpoint has an expression (contains dots or brackets)
+  for (const endpoint of allOutputEndpoints) {
+    const expression = endpoint.getAttribute('smt-expression') || endpoint.getAttribute('smt-name');
+    if (expression && /[.\[\]]/.test(expression)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function showOutputInfo(outputEndpoint, outputContent, compName?) {
   //console.log('showOutputInfo', outputContent);
   let div = outputEndpoint.querySelector('.dbg-element.dbg-output');
@@ -1345,8 +1396,30 @@ function showOutputInfo(outputEndpoint, outputContent, compName?) {
     ? getFormattedContent(outputContent, compName)
     : outputContent + '';
 
-  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}`;
+  // Check if we should show the stringified JSON warning in the output window
+  const isDefault = isDefaultOutput(outputEndpoint);
+  const isStringified = isStringifiedJSON(outputContent);
+  const hasMapped = hasMappedOutputs(outputEndpoint);
+  const shouldShowWarning = isDefault && isStringified && hasMapped;
+
+  // Build the warning message HTML if needed (positioned after textarea like preview button)
+  const warningMessage = shouldShowWarning
+    ? `<div class="dbg-json-warning-message">
+         <span class="dbg-json-warning-icon">!</span>
+         <span class="dbg-json-warning-text">Stringified JSON detected - mapped outputs won't work</span>
+       </div>`
+    : '';
+
+  div.innerHTML = `<button class="pin button primary"><span class="mif-pin icon"></span></button>${formattedContent}${warningMessage}`;
   div.className = 'dbg-element dbg-output';
+
+  // Adjust textarea height if warning is shown
+  if (shouldShowWarning) {
+    const textarea = div.querySelector('.dbg-textarea');
+    if (textarea) {
+      textarea.classList.add('dbg-textarea-with-warning');
+    }
+  }
 
   // keep the pinning state if the debugger window is already pinned
   const isPinned = div.closest('.endpoint')?.classList.contains('pinned');
@@ -1535,41 +1608,10 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
         let hasEmptyRequiredInput = false;
         let inputEndpoints = [];
 
-        // First, collect all input endpoints from the DOM
-        const allInputEndpointElements = componentElement.querySelectorAll('.smyth.input-endpoint');
+        const inputsInfo = getInputInfo(componentElement, input);
 
-        // Check each input endpoint
-        allInputEndpointElements.forEach((inputElement: HTMLElement) => {
-          const inputName = inputElement.getAttribute('smt-name');
-          const isOptional = inputElement.getAttribute('smt-optional') === 'true';
-          if (!inputName) return; // Skip if no name attribute
-
-          let isEmpty = true; // Default to empty
-
-          // Check if this input exists in the input object
-          if (input[inputName] !== undefined) {
-            const inputValue = input[inputName];
-            isEmpty = false; // Start with assumption it's not empty
-
-            if (inputValue === null || inputValue === undefined) {
-              isEmpty = true;
-            } else if (typeof inputValue === 'string' && inputValue.trim() === '') {
-              isEmpty = true;
-            }
-          }
-
-          // Add to our collection
-          inputEndpoints.push({
-            element: inputElement,
-            name: inputName,
-            isEmpty: isEmpty,
-            isOptional: isOptional,
-          });
-          // Only count empty required inputs for warning status
-          if (isEmpty && !isOptional) {
-            hasEmptyRequiredInput = true;
-          }
-        });
+        inputEndpoints = inputsInfo?.inputEndpoints;
+        hasEmptyRequiredInput = inputsInfo?.hasEmptyRequiredInput;
 
         const isFunctionalComponent = componentElement?.['_control']?.isFunctionalComponent();
 
@@ -1585,7 +1627,23 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
           if (!hasNonButtonMessages) {
             const component = componentElement['_control'] as Component;
             if (component) {
-              component.addComponentMessage('Missing Required Inputs', 'missing-input');
+              // Build a tooltip listing the names of required inputs that are currently empty.
+              const missingRequiredInputNames = inputEndpoints
+                .filter((endpoint) => endpoint.isEmpty && !endpoint.isOptional)
+                .map((endpoint) => endpoint.name);
+
+              const tooltipText =
+                missingRequiredInputNames.length > 0
+                  ? `Missing input(s):<br>${missingRequiredInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
+                  : undefined;
+
+              component.addComponentMessage(
+                'Missing Required Inputs',
+                'missing-input',
+                undefined,
+                undefined,
+                tooltipText,
+              );
             }
           }
           // Add icons to all input endpoints
@@ -1613,34 +1671,22 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
             endpoint.element.appendChild(icon);
           }
         }
-        // Add icons to all input endpoints regardless of component warning status
-        for (let endpoint of inputEndpoints) {
-          // Create the icon
-          const icon = document.createElement('img');
-          icon.className = 'input-status-icon';
-          icon.src = endpoint.isOptional
-            ? '/img/builder/empty-input.svg'
-            : '/img/builder/fill-input.svg';
-          icon.style.width = isFunctionalComponent ? '12px' : '16px';
-          icon.style.height = isFunctionalComponent ? '12px' : '16px';
-          icon.style.position = 'absolute';
-          icon.style.left = isFunctionalComponent ? '-7px' : '-8px';
-          icon.style.top = isFunctionalComponent ? '1px' : '6px';
-          icon.style.zIndex = '100'; // Ensure it's above other elements
-
-          // Remove any existing icon first
-          const existingIcon = endpoint.element.querySelector('.input-status-icon');
-          if (existingIcon) {
-            existingIcon.remove();
-          }
-
-          // Append the icon to the endpoint element
-          endpoint.element.appendChild(icon);
-        }
 
         // Only add this class if we actually need styling changes
         if (hasEmptyRequiredInput) {
           componentElement.classList.add('empty-inputs-style');
+        }
+        // Remove the empty inputs style if there are no longer any empty required inputs
+        else {
+          const missingInput = componentElement?.querySelector('.message.missing-input');
+          if (missingInput) {
+            componentElement?.classList?.remove('empty-inputs-style');
+            componentElement?.classList?.remove('has-empty-inputs');
+            missingInput?.remove();
+            componentElement
+              ?.querySelectorAll('.input-status-icon')
+              ?.forEach((icon: HTMLElement) => icon?.remove());
+          }
         }
       }
       // --- End of Input Emptiness Check ---
@@ -1996,7 +2042,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
                 typeof output['_error'] == 'string'
                   ? output['_error']
                   : JSON.stringify(output['_error']);
-              aiFixBtn.setAttribute('data-error', dataError);
+              aiFixBtn?.setAttribute('data-error', dataError);
             }
           } else {
             componentElement.classList.remove('state-error');
@@ -2015,7 +2061,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
 
           if (output['_debug_time']) {
             const debugBar = componentElement.querySelector('.debug-bar');
-            debugBar.setAttribute('debug-time', output['_debug_time'] + 'ms');
+            debugBar?.setAttribute('debug-time', output['_debug_time'] + 'ms');
           }
 
           //dettach from component and attach it to workspace.domElement while preserving the initial position
@@ -2404,6 +2450,12 @@ function clearDebugUIInfo() {
   nodes.forEach((node) => {
     node.remove();
   });
+
+  // Also clear warning icons
+  const warningIcons = [...workspace.domElement.querySelectorAll('.dbg-json-warning')];
+  warningIcons.forEach((icon) => {
+    icon.remove();
+  });
 }
 export async function stopDebugSession(resetUI = true) {
   repaintDebugComponentsAfter();
@@ -2614,6 +2666,38 @@ export function createDebugInjectDialog(
     dialog,
     actionType: 'step' | 'run',
   ) {
+    const agentData = (await workspace.export(false)) || workspace?.agent?.data;
+    const workflows = await extractWorkflows(agentData);
+
+    const selectedWorkflow = workflows.filter((wf) =>
+      wf.components.some((wc) => wc?.id === component?.uid),
+    );
+
+    // Before moving to the new session
+    // Reset the debug state of the selected workflow
+    selectedWorkflow?.forEach((wf) => {
+      wf?.components?.forEach((wc) => {
+        const compElement = document.querySelector(`#${wc?.id}`);
+        const dbgValues = compElement.querySelectorAll(`.dbg-output`);
+        const dbgBar: HTMLElement = compElement.querySelector(`.debug-bar`);
+        const dbgBox: HTMLElement = document.querySelector(`.debug-box[rel="${wc?.id}"]`);
+
+        if (compElement && dbgValues?.length > 0) {
+          dbgValues.forEach((dbgValue) => {
+            dbgValue?.remove();
+          });
+        }
+
+        if (compElement && dbgBar) {
+          dbgBar.style.display = 'none';
+        }
+
+        if (compElement && dbgBox) {
+          dbgBox?.remove();
+        }
+      });
+    });
+
     // Check if the current component has an error
     const hasError = component.domElement.querySelector('.error');
 
@@ -2706,7 +2790,26 @@ export function createDebugInjectDialog(
       ).some((message) => message.id !== 'component-button');
 
       if (!hasNonButtonMessages) {
-        component.addComponentMessage(`Missing Required Inputs`, 'missing-input');
+        const inputsInfo = getInputInfo(component.domElement, input);
+
+        // Build a tooltip listing the names of required inputs that are currently empty.
+        const missingRequiredInputNames = inputsInfo?.inputEndpoints
+          .filter((endpoint) => endpoint.isEmpty && !endpoint.isOptional)
+          .map((endpoint) => endpoint.name);
+
+        // When all inputs are empty, collect the names so we can expose them in a tooltip.
+        const tooltipText =
+          missingRequiredInputNames.length > 0
+            ? `Missing input(s):<br>${missingRequiredInputNames.map((input) => `<span class="font-bold">- ${input}</span>`).join('<br>')}`
+            : undefined;
+
+        component.addComponentMessage(
+          `Missing Required Inputs`,
+          'missing-input',
+          undefined,
+          undefined,
+          tooltipText,
+        );
       }
       warningToast('Cannot run with empty inputs', 'Please provide input values.');
       component.domElement.classList.add('has-empty-inputs');
@@ -3210,7 +3313,7 @@ function toggleDebugBarVisibility(componentElement: HTMLElement) {
   if (debugBar) {
     const isAnyButtonVisible =
       (debugLogBtn && !debugLogBtn.classList.contains('hidden')) ||
-      (aiFixBtn && !aiFixBtn.classList.contains('hidden'));
+      (aiFixBtn && !aiFixBtn?.classList.contains('hidden'));
     (debugBar as HTMLElement).style.display = isAnyButtonVisible ? '' : 'none';
   }
 }
@@ -3234,7 +3337,7 @@ function resetComponentsState({
     component.classList.remove('dbg-active-in_progress');
     component.classList.remove('dbg-active-error');
     component.classList.remove('has-empty-inputs'); // Remove the class that marks components with empty inputs
-    component.classList.remove('empty-input-style');
+    component.classList.remove('empty-inputs-style');
     $(component.querySelector('.cpt-overlay')).hide();
 
     const debugBtn = component.querySelector('.btn-debug');
@@ -3329,3 +3432,49 @@ function repaintDebugComponentsAfter(ms = 300) {
     });
   }, ms);
 }
+
+const getInputInfo = (componentElement: HTMLElement, input: any) => {
+  const inputEndpoints = [];
+  let hasEmptyRequiredInput = false;
+
+  // First, collect all input endpoints from the DOM
+  const allInputEndpointElements = componentElement.querySelectorAll('.smyth.input-endpoint');
+
+  // Check each input endpoint
+  allInputEndpointElements.forEach((inputElement: HTMLElement) => {
+    const inputName = inputElement.getAttribute('smt-name');
+    const isOptional = inputElement.getAttribute('smt-optional') === 'true';
+    if (!inputName) return; // Skip if no name attribute
+
+    let isEmpty = true; // Default to empty
+
+    // Check if this input exists in the input object
+    if (input[inputName] !== undefined) {
+      const inputValue = input[inputName];
+      isEmpty = false; // Start with assumption it's not empty
+
+      if (inputValue === null || inputValue === undefined) {
+        isEmpty = true;
+      } else if (typeof inputValue === 'string' && inputValue.trim() === '') {
+        isEmpty = true;
+      }
+    }
+
+    // Add to our collection
+    inputEndpoints.push({
+      element: inputElement,
+      name: inputName,
+      isEmpty: isEmpty,
+      isOptional: isOptional,
+    });
+    // Only count empty required inputs for warning status
+    if (isEmpty && !isOptional) {
+      hasEmptyRequiredInput = true;
+    }
+  });
+
+  return {
+    inputEndpoints,
+    hasEmptyRequiredInput,
+  };
+};

@@ -2,6 +2,8 @@
 // CORE MESSAGE TYPES
 // ============================================================================
 
+export type IChildren = { children: React.ReactNode };
+
 /**
  * Message type discriminator
  * Complete state representation through type alone
@@ -25,13 +27,12 @@ export type TMessageType = 'user' | 'system' | 'thinking' | 'loading' | 'error';
  */
 export interface IChatMessage {
   id?: string | number; // Unique identifier
+  turnId?: string; // Conversation Turn ID
   message: string; // Message content
   type: TMessageType; // Message type - single source of truth for state
-  conversationTurnId?: string; // Conversation Turn ID
-  messageId?: string; // Message ID (future)
   files?: IMessageFile[]; // Attached files (user messages only)
   avatar?: string; // Avatar URL for system/AI messages
-  thinkingMessage?: string; // Inline thinking/status message during generation
+  metaMessages?: IMetaMessages; // Full meta messages object for thinking component
   onRetryClick?: () => void; // Retry callback for error messages
   timestamp?: number; // Message timestamp (optional, for future use)
 }
@@ -44,18 +45,44 @@ export interface IChatMessage {
 export interface IMessageFile {
   id: string; // Required ID for React keys and tracking
   file: File; // The actual File object
+  url?: string; // Public URL (stored after upload)
+  name?: string; // File name (stored after upload)
+  type?: string; // File type/MIME type (stored after upload)
+  size?: number; // File size in bytes (stored after upload)
   metadata: {
-    publicUrl?: string;
-    fileType?: string;
     key?: string;
-    isUploading?: boolean;
+    fileType?: string;
+    publicUrl?: string;
     previewUrl?: string;
+    isUploading?: boolean;
   };
 }
 
 // ============================================================================
+// AGENT SETTINGS TYPES
+// ============================================================================
+
+export type TUAgentSettings = { key: string; value: string };
+
+// ============================================================================
 // STREAMING TYPES
 // ============================================================================
+
+export interface IFunctionCall {
+  name?: string;
+  arguments?: Record<string, unknown>;
+  topic?: string;
+}
+
+export interface IMetaMessages {
+  debug: string;
+  title: string;
+  statusMessage: string;
+  function: string;
+  callParams: string;
+  parameters: Record<string, unknown>;
+  functionCall: IFunctionCall;
+}
 
 /**
  * Stream chunk from backend
@@ -63,26 +90,28 @@ export interface IMessageFile {
  */
 export interface IStreamChunk {
   conversationTurnId?: string; // Conversation Turn ID
-  messageId?: string; // Message ID (future)
   content?: string; // Content chunk for streaming responses
-  status_message?: string; // Status/thinking message
-  function?: string; // Function/tool name
-  function_call?: { name?: string; arguments?: Record<string, unknown> };
-  debug?: string; // Debug information
-  hashId?: string; // Debug tracking hash
   debugOn?: boolean; // Debug session indicator
+  title?: string; // Title of the message
+  debug?: string; // Debug information
+  status_message?: string; // Status/thinking message
+  callParams?: string; // Call parameters
+  parameters?: Record<string, unknown>; // Parameters
+  function?: string; // Function/tool name
+  function_call?: IFunctionCall; // Function call information
+  hashId?: string; // Debug tracking hash
   error?: string; // Error message
   isError?: boolean; // Error indicator
 }
 
-export type TThinkingType = 'general' | 'function' | 'status'; // Thinking message type discriminator
+export type TThinkingType = 'tools' | 'general'; // Thinking message type discriminator
 
 export interface IStreamConfig {
   agentId: string; // Target agent ID
   chatId: string; // Conversation ID
   message: string; // User message content
   modelId?: string; // Model ID to override backend model selection
-  attachments?: IFileAttachment[]; // File attachments
+  attachments?: IMessageFile[]; // File attachments
   signal: AbortSignal; // Abort signal for cancellation
   headers?: Record<string, string>; // Custom headers
 }
@@ -99,15 +128,9 @@ export interface IFileAttachment {
  */
 /* eslint-disable no-unused-vars */
 export interface IStreamCallbacks {
-  onContent: (content: string, conversationTurnId?: string) => void;
-  onThinking?: (message: string, type: TThinkingType, conversationTurnId?: string) => void;
-  onToolCall?: (
-    toolName: string,
-    args: Record<string, unknown>,
-    conversationTurnId?: string,
-  ) => void;
-  onDebug?: (debug: IStreamChunk) => void; // Debug information received
-  onError: (error: IChatError) => void; // Error occurred - error object now includes conversationTurnId
+  onContent: (content: string, turnId?: string) => void;
+  onMetaMessages?: (metaMessages: IMetaMessages, turnId?: string) => void;
+  onError: (error: IChatError) => void; // Error occurred - error object now includes turnId
   onStart?: () => void; // Stream started
   onComplete: () => void; // Stream completed
 }
@@ -121,7 +144,7 @@ export type TErrorType = 'stream' | 'network' | 'abort' | 'system';
 export interface IChatError {
   message: string; // Error message
   type: TErrorType; // Error type
-  conversationTurnId?: string; // Conversation turn ID for grouping
+  turnId?: string; // Conversation turn ID for grouping
   originalError?: Error | unknown; // Original error object
   isAborted?: boolean; // User-initiated abort flag
 }
@@ -136,16 +159,14 @@ export interface IChatError {
 export interface IUseChatReturn {
   // State
   messages: IChatMessage[];
-  isGenerating: boolean;
+  isStreaming: boolean;
   isProcessing: boolean;
-  error: IChatError | null;
 
   // Actions
   sendMessage: (message: string, files?: File[] | IMessageFile[]) => Promise<void>;
-  retryLastMessage: () => Promise<void>;
+  retryMessage: () => Promise<void>;
   stopGenerating: () => void;
   clearMessages: () => void;
-  clearError: () => void;
 }
 
 // ============================================================================
@@ -160,4 +181,10 @@ export interface IAPIConfig {
   defaultHeaders?: Record<string, string>; // Default headers
   timeout?: number; // Request timeout
   retry?: { attempts: number; delay: number }; // Retry configuration
+}
+
+export interface ChatInputRef {
+  focus: () => void;
+  getValue: () => string;
+  setValue: (content: string) => void;
 }

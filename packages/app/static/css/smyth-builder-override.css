@@ -599,6 +599,7 @@
 
 .coloris .clr-field input {
   text-shadow: none !important;
+  padding: 8px !important;
 }
 
 #debug-menu {
@@ -659,6 +660,9 @@
 .dlg-form .form-group .input input {
   padding: 8px 12px 8px 12px !important;
   border-radius: 6px !important;
+}
+.dlg-form .form-group .input.coloris input {
+  padding: 0px !important;
 }
 
 .dlg-form .form-group .input input:read-only {

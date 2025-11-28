@@ -63,7 +63,7 @@ export default class S3Storage implements StaticStorage {
     }
 
     this.client = new S3Client({
-      region: matchConfig.region,
+      region: matchConfig.region || process.env.AWS_S3_REGION,
       credentials: {
         accessKeyId: matchConfig.accessKeyId,
         secretAccessKey: matchConfig.secretAccessKey,
@@ -126,7 +126,7 @@ export default class S3Storage implements StaticStorage {
     const upload = multer({
       storage: multerS3({
         s3: this.client,
-        bucket: this.bucket,
+        bucket: this.bucket || appConfig.env.AWS_S3_BUCKET_NAME,
         acl: params.acl || undefined,
         key: async (req, file, cb) => {
           const keyStr = typeof params.key === 'function' ? params.key(req, file) : params.key;

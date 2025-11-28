@@ -1,6 +1,7 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { BookIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
+import { builderStore } from '@src/shared/state_stores/builder/store';
+import { BookIcon, DatabaseIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
@@ -21,9 +22,17 @@ export const getSidebarMenuItems = (): SidebarMenuItem[] => {
     }[]
   ).flatMap((item) => item.config);
 
+  const devItems =
+    builderStore.getState().serverStatus?.env == 'DEV' &&
+    builderStore.getState().serverStatus?.edition == 'enterprise' &&
+    !window.location.hostname.includes('smythos.com')
+      ? [{ url: '/data-pool', name: 'Data Pool V2', icon: DatabaseIcon, visible: true, order: 8 }]
+      : [];
+
   return [
     { url: '/agents', name: 'Home', icon: HomeIcon, visible: true, order: 1 },
     { url: '/vault', name: 'Vault', icon: KeyIcon, visible: true, order: 5 },
+    ...devItems,
     ...pluginItems,
   ].sort((a, b) => (a.order || 0) - (b.order || 0));
 };

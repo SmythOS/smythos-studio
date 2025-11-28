@@ -168,7 +168,7 @@ router.post('/new', async (req, res) => {
 
   // const conversationId = buildConversationId(undefined, isTestDomain);
   try {
-    const token = (await getM2MToken('https://api.smyth.ai')) as string;
+    const token = (await getM2MToken(config.env.LOGTO_API_RESOURCE)) as string;
     const response = await mwSysAPI.post(
       '/chats',
       {

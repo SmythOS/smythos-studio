@@ -1109,13 +1109,13 @@ body.locked #agent-sidebar-root .restore-button {
 .component .button-container {
   width: 100%;
   line-height: 25px;
-  overflow: hidden;
+  border-radius: 0px 0px 5px 5px;
 }
 
 .component .messages-container {
   width: 100%;
   line-height: 25px;
-  overflow: hidden;
+  border-radius: 0px 0px 5px 5px;
 }
 
 .component .messages-container .message {
@@ -1939,6 +1939,42 @@ ul.agents-list-dlg .btn-delete {
   border-right: none !important;
 }
 
+/* Hide scrollbars for ace editors in compact/sidebar mode (maxLines: Infinity) */
+/* These editors grow to show all content and don't need internal scrolling */
+/* Use class-based targeting to only affect sidebar editors, not modal editors */
+
+/* Remove any overflow from the ace editor container itself */
+.ace-editor-sidebar {
+  overflow: visible !important;
+}
+
+.ace-editor-sidebar .ace_scrollbar {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.ace-editor-sidebar .ace_scrollbar-v,
+.ace-editor-sidebar .ace_scrollbar-h {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Also hide the scrollbar corner */
+.ace-editor-sidebar .ace_scrollbar-corner {
+  display: none !important;
+}
+
+/* Ensure no overflow scrolling on the scroller container */
+.ace-editor-sidebar .ace_scroller {
+  overflow: visible !important;
+}
+
 /* css for tooltip in ace editor, to show error, warning, info */
 .ace_tooltip {
   font:
@@ -2744,7 +2780,7 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 #boarding-popover-item .boarding-popover-title {
-  font-family: 'Inter' !important;
+  font-family: 'Manrope' !important;
   font-weight: 500 !important;
   font-style: Medium !important;
   font-size: 14px !important;
@@ -2754,7 +2790,7 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 #boarding-popover-item .boarding-popover-description {
-  font-family: 'Inter' !important;
+  font-family: 'Manrope' !important;
   font-weight: 400 !important;
   font-style: Regular !important;
   font-size: 13px !important;
@@ -2804,3 +2840,11 @@ body:not(:has(#upgrade-button-topbar)):has(#right-container.open #right-sidebar:
 }
 
 /* In-App Tutorial styles END */
+div#left-sidebar-container:after {
+  content: ' ';
+  position: absolute;
+  right: -12px;
+  top: 16px;
+  width: 12px;
+  height: calc(100% - 32px);
+}

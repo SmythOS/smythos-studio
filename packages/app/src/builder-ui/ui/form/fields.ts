@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { Tooltip } from 'flowbite-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../utils';
@@ -292,6 +292,8 @@ interface TextAreaWithEditor extends HTMLTextAreaElement {
     setValue: (value: string) => void;
     focus: () => void;
     container?: HTMLElement;
+    setOption?: (option: string, value: number | boolean | null) => void;
+    resize?: (force: boolean) => void;
   };
 }
 
@@ -700,6 +702,25 @@ async function initializeCodeEditor(
   if (textarea._editor) {
     textarea._editor.setValue(initialValue);
     textarea._editor.focus();
+
+    // For modal context, configure the ace editor to handle scrolling properly
+    // The ace editor is configured with maxLines: Infinity which makes it grow to show all content
+    // We need to enable the ace editor's internal scrolling for long content in modals
+    if (textarea._editor.container && textarea._editor.setOption && textarea._editor.resize) {
+      const editorContainer = textarea._editor.container;
+      // Override maxLines to enable internal scrolling instead of infinite growth
+      textarea._editor.setOption('maxLines', null);
+      // Set a reasonable height that fits within the modal
+      editorContainer.style.height = '100%';
+      editorContainer.style.minHeight = '200px';
+      // Ensure the ace editor's scrollbars are visible
+      textarea._editor.setOption('vScrollBarAlwaysVisible', false);
+      textarea._editor.setOption('hScrollBarAlwaysVisible', false);
+      // Remove the sidebar class to allow scrollbars in modals
+      editorContainer.classList.remove('ace-editor-sidebar');
+      // Trigger resize to apply new dimensions
+      textarea._editor.resize(true);
+    }
 
     // Setup bracket selection for Ace editor content
     const aceContentElement = textarea._editor.container?.querySelector('.ace_content') as HTMLElement | null;
@@ -1366,25 +1387,31 @@ export function createInfoButton(
   // and blocks dangerous elements like <script>, event handlers, etc.
   const sanitizedText = DOMPurify.sanitize(text);
 
-  // Render the Tooltip component
+  // Render the Tooltip component wrapped in TooltipProvider
   const root = createRoot(tooltipContainer);
   root.render(
     React.createElement(
-      Tooltip,
-      {
-        content: React.createElement('div', {
-          dangerouslySetInnerHTML: { __html: sanitizedText },
-        }),
-        placement: position as any,
-        className:
-          clsHint +
-          ' whitespace-normal text-xs ' +
-          (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
-          ' [&_a]:whitespace-nowrap [&_a]:inline-block',
-        style: 'dark',
-        arrow: true,
-      },
-      iconElement,
+      TooltipProvider,
+      { delayDuration: 300, skipDelayDuration: 100 },
+      React.createElement(
+        Tooltip,
+        {},
+        React.createElement(TooltipTrigger, { asChild: true }, iconElement),
+        React.createElement(
+          TooltipContent,
+          {
+            side: position as any,
+            className:
+              clsHint +
+              ' whitespace-normal text-xs ' +
+              (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
+              ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+          },
+          React.createElement('div', {
+            dangerouslySetInnerHTML: { __html: sanitizedText },
+          }),
+        ),
+      ),
     ),
   );
 

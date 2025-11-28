@@ -7,12 +7,17 @@ import { Input } from '@src/react/shared/components/ui/input';
 import { Button } from '@src/react/shared/components/ui/newDesign/button';
 import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@src/react/shared/components/ui/tooltip';
 import { errKeys } from '@src/react/shared/constants';
 import { useAuthCtx } from '@src/react/shared/contexts/auth.context';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { MANAGED_VAULT_SCOPES } from '@src/shared/constants/general';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import { Component, useEffect, useRef, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { IoKeyOutline } from 'react-icons/io5';
@@ -314,7 +319,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
       setSavingAgentVars(true);
       try {
         const pairsToSave = pairs.filter((pair) => pair.key !== '' && pair.value !== '');
-        let variables = {};
+        const variables = {};
         pairsToSave.forEach((pair) => {
           variables[pair.key] = pair.value;
         });
@@ -451,7 +456,8 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
     );
 
   return (
-    <WidgetCard title="" isWriteAccess={writeAccess} hasBorder={false} showOverflow={true}>
+    <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+      <WidgetCard title="" isWriteAccess={writeAccess} hasBorder={false} showOverflow={true}>
       <div className="bg-[#FFFF] text-[#5A5A5A] p-4 rounded-xl border border-solid border-gray-200">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base font-semibold flex items-center">
@@ -462,27 +468,34 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
             id="variables-widget-actions"
             className={`flex gap-3  ${writeAccess ? 'opacity-100' : 'opacity-0'}`}
           >
-            <Tooltip
-              content={
-                <div style={{ minWidth: '300px' }}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <LuInfo size={20} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <div style={{ maxWidth: '200px' }}>
                   The Agent Variables you declare here can be accessed and used across all
                   components. These variables act like global variables throughout your AI agent.
                 </div>
-              }
-              placement="top"
-            >
-              <LuInfo size={20} />
+              </TooltipContent>
             </Tooltip>
-            <Tooltip content="Close" placement="top">
-              <div
-                className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2"
-                onClick={(e) => {
-                  e?.stopPropagation();
-                  handleClose();
-                }}
-              >
-                <CloseIcon width={16} height={16} />
-              </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="cursor-pointer w-8 h-8 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-100 p-2"
+                  onClick={(e) => {
+                    e?.stopPropagation();
+                    handleClose();
+                  }}
+                >
+                  <CloseIcon width={16} height={16} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Close</p>
+              </TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -496,11 +509,10 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                   placeholder="Key"
                   value={pair.key}
                   onChange={(e) => handleInputChange(index, 'key', e.target.value)}
-                  className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal ${
-                    pair.error
-                      ? '!border-smyth-red focus:border-smyth-red'
-                      : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
-                  }`}
+                  className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal ${pair.error
+                    ? '!border-smyth-red focus:border-smyth-red'
+                    : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
+                    }`}
                 />
                 {index < pairs.length - 1 && (
                   <button
@@ -509,11 +521,15 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     type="button"
                     aria-label="Delete variable"
                   >
-                    <Tooltip
-                      content={<div style={{ width: '120px' }}>Delete Variable</div>}
-                      placement="top"
-                    >
-                      <FiTrash2 className="text-red-500" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <FiTrash2 className="text-red-500" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <div style={{ width: '120px' }}>Delete Variable</div>
+                      </TooltipContent>
                     </Tooltip>
                   </button>
                 )}
@@ -527,11 +543,10 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                     onChange={(e) => handleInputChange(index, 'value', e.target.value)}
                     onFocus={(e) => adjustTextareaHeight(e.target, true)}
                     onBlur={(e) => adjustTextareaHeight(e.target, false)}
-                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 ${
-                      pair.error
-                        ? '!border-smyth-red focus:border-smyth-red'
-                        : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
-                    } pr-10`}
+                    className={`w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none text-sm font-normal placeholder:text-sm placeholder:font-normal py-2 px-3 ${pair.error
+                      ? '!border-smyth-red focus:border-smyth-red'
+                      : 'border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500'
+                      } pr-10`}
                     style={{
                       minHeight: '36px',
                       lineHeight: '1.25rem',
@@ -672,6 +687,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
         </div>
       )}
     </WidgetCard>
+    </TooltipProvider>
   );
 };
 

@@ -1,21 +1,19 @@
-/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 
 /**
  * Professional React hook for complete chat state management
  * Combines streaming, message history, file uploads, and error handling
  */
 
+import { USER_STOPPED_MESSAGE } from '@react/features/ai-chat/constants';
+import { useChatStream } from '@react/features/ai-chat/hooks';
 import {
   IChatMessage,
-  IFileAttachment,
   IMessageFile,
+  IMetaMessages,
   IUseChatReturn,
-  TThinkingType,
 } from '@react/features/ai-chat/types/chat.types';
 import { useCallback, useRef, useState } from 'react';
-import { ChatAPIClient } from '../clients/chat-api.client';
-import { USER_STOPPED_MESSAGE } from '../constants';
-import { useChatStream } from './use-chat-stream';
 
 /**
  * Hook configuration interface
@@ -24,8 +22,6 @@ interface IUseChatConfig {
   agentId: string;
   chatId: string; // Chat/Conversation ID
   modelId?: string; // Model ID to override backend model selection
-  avatar?: string;
-  client?: ChatAPIClient; // Custom chat API client
   headers?: Record<string, string>; // Custom headers for requests
   onChatComplete?: (message: string) => void; // Called when chat completes successfully
   onError?: (error: Error) => void; // Called when error occurs
@@ -44,7 +40,7 @@ interface IUseChatConfig {
  *   messages,
  *   isGenerating,
  *   sendMessage,
- *   retryLastMessage,
+ *   retryMessage,
  *   stopGenerating,
  *   clearMessages,
  * } = useChat({
@@ -60,30 +56,26 @@ interface IUseChatConfig {
  * await sendMessage('Analyze these files', [file1, file2]);
  *
  * // Retry last message
- * await retryLastMessage();
+ * await retryMessage();
  *
  * // Stop generation
  * stopGenerating();
  * ```
  */
 export const useChat = (config: IUseChatConfig): IUseChatReturn => {
-  const { agentId, chatId, modelId, avatar, client, headers, onChatComplete, onError } = config;
+  const { agentId, chatId, modelId, headers, onChatComplete, onError } = config;
 
   // State management
   const [messages, setMessages] = useState<IChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Refs for retry functionality
-  type IFileWithMetadata = { file: File; metadata: { publicUrl?: string; fileType?: string } };
-  type IFiles = File[] | IFileWithMetadata[];
-  const lastUserMessageRef = useRef<{ message: string; files?: IFiles } | null>(null);
+  const lastUserMessageRef = useRef<{ message: string; files?: IMessageFile[] } | null>(null);
 
   // Current AI message being constructed
   const currentAIMessageRef = useRef<string>('');
 
   // Track if we're in thinking state to create new message after
   const isThinkingRef = useRef<boolean>(false);
-  const hasThinkingOccurredRef = useRef<boolean>(false);
 
   // Track current conversation turn ID for grouping messages
   const currentTurnIdRef = useRef<string | null>(null);
@@ -93,150 +85,63 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
   const pendingUpdateRef = useRef<{ content: string; turnId?: string } | null>(null);
 
   // Stream management
-  const { isStreaming, error, startStream, abortStream, clearError } = useChatStream({
-    client,
+  const { isStreaming, startStream, abortStream } = useChatStream({
     onStreamStart: () => {
       currentAIMessageRef.current = '';
       isThinkingRef.current = false;
-      hasThinkingOccurredRef.current = false;
     },
     onStreamEnd: () => setIsProcessing(false),
   });
 
   /**
-   * Uploads files and returns attachment metadata
-   * Skips upload if files already have publicUrl
-   */
-  const uploadFiles = useCallback(
-    async (files: IFiles): Promise<IFileAttachment[]> => {
-      const clientInstance = client || new ChatAPIClient();
-
-      // Check if files are already uploaded (have metadata with publicUrl)
-      const filesWithMetadata = files as IFileWithMetadata[];
-
-      if (filesWithMetadata[0] && 'metadata' in filesWithMetadata[0]) {
-        // Files are already uploaded, just extract the attachment info
-        return filesWithMetadata
-          .filter((f) => f.metadata.publicUrl)
-          .map((f) => ({
-            url: f.metadata.publicUrl || '',
-            name: f.file.name,
-            type: f.metadata.fileType || f.file.type,
-            size: f.file.size,
-          }));
-      }
-
-      // Files need to be uploaded
-      const rawFiles = files as File[];
-      const uploadPromises = rawFiles.map((file) => clientInstance.uploadFile(file, agentId));
-
-      try {
-        return await Promise.all(uploadPromises);
-      } catch (uploadError) {
-        throw new Error(
-          `Failed to upload files: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`,
-        );
-      }
-    },
-    [client, agentId],
-  );
-
-  /**
    * Adds a user message to the chat
    */
-  const addUserMessage = useCallback((message: string, files?: IFiles) => {
+  const addUserMessage = useCallback((message: string, files?: IMessageFile[]) => {
     const userMessage: IChatMessage = {
       id: Date.now(),
       message,
       type: 'user', // Type determines user vs system - no me property needed!
       timestamp: Date.now(),
-      files: files?.map((file, index) => {
-        if ('metadata' in file && 'id' in file) {
-          return file as IMessageFile;
-        }
-        if ('metadata' in file) {
-          return {
-            ...(file as { file: File; metadata: { publicUrl?: string; fileType?: string } }),
-            id: `${Date.now()}-${index}`,
-          };
-        }
-        return {
-          file: file as File,
-          metadata: { fileType: (file as File).type, isUploading: false },
-          id: `${Date.now()}-${index}`,
-        };
-      }),
+      files: files || [],
     };
 
     setMessages((prev) => [...prev, userMessage]);
   }, []);
 
   /**
-   * Adds an AI message to the chat (initially empty, for streaming)
+   * Add or update AI message (similar to addMetaMessage pattern)
+   * If last message is 'loading' or 'system', updates it; otherwise adds new message
+   * @param content - Message content (empty string for new loading message)
+   * @param turnId - Optional conversation turn ID
    */
-  const addAIMessage = useCallback(() => {
-    const aiMessage: IChatMessage = {
-      id: Date.now() + 1,
-      conversationTurnId: currentTurnIdRef.current || undefined, // Include turn ID from current turn
-      message: '',
-      type: 'loading', // Type determines AI vs user - no me property needed!
-      avatar,
-      timestamp: Date.now(),
-    };
-
-    setMessages((prev) => [...prev, aiMessage]);
-  }, [avatar]);
-
-  /**
-   * Updates the current AI message content (optimized with direct mutation)
-   * @param content - Message content to update
-   * @param isError - Whether this is an error message
-   * @param immediate - Force immediate update bypassing throttle
-   */
-  const updateAIMessage = useCallback(
-    (content: string, isError: boolean = false, immediate: boolean = false) => {
-      setMessages((prev) => {
-        const lastMessageIndex = prev.length - 1;
-
-        if (
-          lastMessageIndex >= 0 &&
-          (prev[lastMessageIndex].type === 'system' || prev[lastMessageIndex].type === 'loading')
-        ) {
-          // Optimized: Create new array only with modified last element
-          // This avoids copying the entire array for long conversations
-          const newMessages = prev.slice(0, -1);
-          newMessages.push({
-            ...prev[lastMessageIndex],
-            message: content,
-            type: isError ? 'error' : 'system',
-          });
-          return newMessages;
-        }
-
-        return prev;
-      });
-    },
-    [],
-  );
-
-  /**
-   * Updates thinking/status message for current AI response (optimized)
-   */
-  const updateThinkingMessage = useCallback((thinkingMessage: string) => {
+  const handleAIMessage = useCallback((content: string = '', turnId?: string) => {
     setMessages((prev) => {
-      const lastMessageIndex = prev.length - 1;
+      const lastMessage = prev[prev.length - 1];
 
-      if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'system') {
-        // Optimized: Only update last element without copying entire array
+      // If last message is loading or system type, update it instead of adding new
+      if (lastMessage && (lastMessage.type === 'system' || lastMessage.type === 'loading')) {
+        // Optimized: Create new array only with modified last element
+        // This avoids copying the entire array for long conversations
         const newMessages = prev.slice(0, -1);
         newMessages.push({
-          ...prev[lastMessageIndex],
-          thinkingMessage,
+          ...lastMessage,
+          message: content,
+          turnId: turnId || lastMessage.turnId,
+          type: content ? 'system' : 'loading',
         });
         return newMessages;
       }
 
-      return prev;
+      // Otherwise, add new AI message
+      const aiMessage: IChatMessage = {
+        id: Date.now() + 1,
+        message: content,
+        type: content ? 'system' : 'loading',
+        timestamp: Date.now(),
+        turnId: turnId || currentTurnIdRef.current || undefined,
+      };
+
+      return [...prev, aiMessage];
     });
   }, []);
 
@@ -246,7 +151,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
    * @param content - Accumulated content
    * @param turnId - Optional conversation turn ID
    */
-  const throttledUpdateAIMessage = useCallback((content: string, turnId?: string) => {
+  const updateStreamingMessage = useCallback((content: string, turnId?: string) => {
     // Store pending update
     pendingUpdateRef.current = { content, turnId };
 
@@ -258,7 +163,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
     // Schedule batched update
     updateThrottleRef.current = setTimeout(() => {
       if (pendingUpdateRef.current) {
-        const { content: pendingContent, turnId: pendingTurnId } = pendingUpdateRef.current;
+        const { content: pendingContent, turnId } = pendingUpdateRef.current;
 
         setMessages((prev) => {
           const lastMessageIndex = prev.length - 1;
@@ -268,7 +173,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             const needsUpdate =
               lastMsg.type === 'system' ||
               lastMsg.type === 'loading' ||
-              (pendingTurnId && !lastMsg.conversationTurnId);
+              (turnId && !lastMsg.turnId);
 
             if (needsUpdate) {
               // Optimized: Only update last element
@@ -276,7 +181,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
               newMessages.push({
                 ...lastMsg,
                 message: pendingContent,
-                conversationTurnId: pendingTurnId || lastMsg.conversationTurnId,
+                turnId: turnId || lastMsg.turnId,
                 type: 'system',
               });
               return newMessages;
@@ -293,11 +198,49 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
   }, []);
 
   /**
+   * Add and update meta messages for current AI response
+   */
+  const addMetaMessage = useCallback((metaMessages: IMetaMessages) => {
+    if (!metaMessages || !metaMessages.title) return;
+
+    setMessages((prev) => {
+      const lastMessage = prev[prev.length - 1];
+
+      // If last message is loading or thinking type, update it instead of adding new
+      if (lastMessage?.type === 'loading' || lastMessage?.type === 'thinking') {
+        return prev.map((msg, index) =>
+          index === prev.length - 1
+            ? {
+                ...msg,
+                type: 'thinking',
+                message: metaMessages.title,
+                metaMessages, // Store full metaMessages object for component
+                timestamp: Date.now(),
+              }
+            : msg,
+        );
+      }
+
+      // Otherwise, add new loading message
+      const metaMessage: IChatMessage = {
+        id: Date.now() + 2,
+        type: 'thinking',
+        message: metaMessages.title,
+        timestamp: Date.now(),
+        metaMessages, // Store full metaMessages object for component
+        turnId: currentTurnIdRef.current || undefined,
+      };
+
+      return [...prev, metaMessage];
+    });
+  }, []);
+
+  /**
    * Sends a message to the AI
    * Accepts either raw File[] or FileWithMetadata[] (already uploaded)
    */
   const sendMessage = useCallback(
-    async (message: string, files?: IFiles): Promise<void> => {
+    async (message: string, files?: IMessageFile[]): Promise<void> => {
       // Validate input
       if (!message.trim() && (!files || files.length === 0)) return;
 
@@ -306,36 +249,12 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
       try {
         setIsProcessing(true);
-        clearError();
-
-        // Remove any previous error messages and loading messages before sending new message
-        setMessages((prev) => {
-          // Check if there are any error messages (indicates stopped generation)
-          const hasErrorMessages = prev.some((msg) => msg.type === 'error');
-
-          // Remove error messages
-          const filtered = prev.filter((msg) => msg.type !== 'error');
-
-          // If there were error messages and the last message is loading,
-          if (hasErrorMessages && filtered.length > 0) {
-            const lastMessage = filtered[filtered.length - 1];
-            if (lastMessage.type === 'loading') return filtered.slice(0, -1);
-          }
-
-          return filtered;
-        });
-
-        // Upload files if present
-        let attachments: IFileAttachment[] = [];
-        if (files && files.length > 0) {
-          attachments = await uploadFiles(files);
-        }
 
         // Add user message to UI
         addUserMessage(message, files);
 
         // Add empty AI message for streaming
-        addAIMessage();
+        handleAIMessage();
 
         // Start streaming
         await startStream(
@@ -344,7 +263,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             chatId,
             message,
             modelId, // Pass model ID to override backend model selection
-            attachments,
+            attachments: files ?? [],
             signal: new AbortController().signal, // Signal managed by useChatStream
             headers,
           },
@@ -352,18 +271,31 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
             onStart: () => {
               currentTurnIdRef.current = null; // Reset turn ID for new conversation turn
             },
-            onContent: (content: string, conversationTurnId?: string) => {
+            onContent: (content: string, turnId?: string) => {
               // Capture turn ID only once
-              if (conversationTurnId && !currentTurnIdRef.current) {
-                currentTurnIdRef.current = conversationTurnId;
+              if (turnId && !currentTurnIdRef.current) {
+                currentTurnIdRef.current = turnId;
               }
 
-              // If content comes after thinking, clear thinking message and create new message
-              if (hasThinkingOccurredRef.current && isThinkingRef.current) {
-                updateThinkingMessage(''); // Clear thinking message from current message
+              // If content comes after thinking, replace thinking message with loading message
+              if (isThinkingRef.current) {
+                setMessages((prev) => {
+                  const lastMessageIndex = prev.length - 1;
+                  if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'thinking') {
+                    // Replace thinking message with loading message
+                    const newMessages = prev.slice(0, -1);
+                    newMessages.push({
+                      ...prev[lastMessageIndex],
+                      type: 'loading',
+                      message: '',
+                      turnId: turnId || prev[lastMessageIndex].turnId,
+                    });
+                    return newMessages;
+                  }
+                  return prev;
+                });
                 isThinkingRef.current = false; // Mark that we've handled the thinking transition
                 currentAIMessageRef.current = ''; // Reset accumulator for new message
-                addAIMessage(); // Add new AI message for content after thinking
               }
 
               // Accumulate content
@@ -371,52 +303,19 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
               // Use throttled update for better performance during streaming
               // This batches rapid chunk updates to reduce re-renders
-              throttledUpdateAIMessage(currentAIMessageRef.current, conversationTurnId);
+              updateStreamingMessage(currentAIMessageRef.current, turnId);
             },
-            onThinking: (thinkingMsg: string, type: TThinkingType, conversationTurnId?: string) => {
-              if (conversationTurnId && !currentTurnIdRef.current) {
-                currentTurnIdRef.current = conversationTurnId; // Capture turn ID from thinking messages
+            onMetaMessages: (metaMessages: IMetaMessages, turnId?: string) => {
+              if (turnId && !currentTurnIdRef.current) {
+                currentTurnIdRef.current = turnId; // Capture turn ID from thinking messages
               }
 
               // Mark that we're in thinking state
               isThinkingRef.current = true;
-              hasThinkingOccurredRef.current = true;
 
-              // Update thinking message and change type from 'loading' to 'system' to close loading indicator
-              setMessages((prev) => {
-                const lastIndex = prev.length - 1;
-                if (lastIndex >= 0) {
-                  const lastMsg = prev[lastIndex];
-                  // Only update last element without copying entire array
-                  const newMessages = prev.slice(0, -1);
-                  newMessages.push({
-                    ...lastMsg,
-                    thinkingMessage: thinkingMsg,
-                    conversationTurnId: conversationTurnId || lastMsg.conversationTurnId,
-                    // Change type from 'loading' to 'system' to close loading indicator
-                    type: lastMsg.type === 'loading' ? 'system' : lastMsg.type,
-                  });
-                  return newMessages;
-                }
-                return prev;
-              });
+              addMetaMessage(metaMessages);
             },
-            onToolCall: (
-              toolName: string,
-              args: Record<string, unknown>,
-              conversationTurnId?: string,
-            ) => {
-              // Capture turn ID if not set
-              if (conversationTurnId && !currentTurnIdRef.current) {
-                currentTurnIdRef.current = conversationTurnId;
-              }
-              // Log tool calls (can be extended for UI display)
-              // console.log('Tool call:', toolName, args);
-            },
-            onDebug: (debug) => {
-              // Log debug info (can be extended for debug UI)
-              // console.log('Debug:', debug);
-            },
+
             onError: (streamError) => {
               // Handle stream errors
               if (streamError.isAborted) {
@@ -435,7 +334,6 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                         ...lastMsg,
                         message: currentContent || lastMsg.message,
                         type: 'system',
-                        thinkingMessage: undefined,
                       };
                     }
                   }
@@ -446,6 +344,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                     message: USER_STOPPED_MESSAGE,
                     type: 'error', // Show as error/warning style but not an actual error
                     timestamp: Date.now(),
+                    turnId: currentTurnIdRef.current || undefined,
                   };
 
                   updated.push(stopMessage);
@@ -454,7 +353,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
                 });
               } else {
                 // Real error - show error message
-                updateAIMessage(streamError.message, true);
+                handleAIMessage(streamError.message);
               }
 
               // Reset state
@@ -472,7 +371,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
               // Finalize message with accumulated content
               const finalMessage = currentAIMessageRef.current;
-              updateAIMessage(finalMessage, false, true); // immediate update
+              handleAIMessage(finalMessage); // immediate update
 
               // Reset state
               currentAIMessageRef.current = '';
@@ -487,8 +386,6 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
         const errorMessage =
           sendError instanceof Error ? sendError.message : 'Failed to send message';
 
-        updateAIMessage(errorMessage, true);
-
         if (onError) onError(sendError instanceof Error ? sendError : new Error(errorMessage));
       } finally {
         setIsProcessing(false);
@@ -499,14 +396,11 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       agentId,
       chatId,
       headers,
-      uploadFiles,
       addUserMessage,
-      addAIMessage,
-      updateAIMessage,
-      updateThinkingMessage,
-      throttledUpdateAIMessage,
+      handleAIMessage,
+      addMetaMessage,
+      updateStreamingMessage,
       startStream,
-      clearError,
       onChatComplete,
       onError,
     ],
@@ -520,15 +414,22 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
 
     const { message, files } = lastUserMessageRef.current;
 
-    // Smart removal: check last message type
+    // Smart removal: find last user message index and remove everything from that point
     setMessages((prev) => {
-      const lastMsg = prev[prev.length - 1];
+      // Find the index of the last user message
+      let lastUserMessageIndex = -1;
+      for (let i = prev.length - 1; i >= 0; i--) {
+        if (prev[i].type === 'user') {
+          lastUserMessageIndex = i;
+          break;
+        }
+      }
 
-      // If last message is error (user stopped), remove 3 messages: user + AI + error
-      // Otherwise remove 2 messages: user + failed AI response
-      const messagesToRemove = lastMsg && lastMsg.type === 'error' ? 3 : 2;
+      // If no user message found, don't remove anything
+      if (lastUserMessageIndex === -1) return prev;
 
-      return prev.slice(0, -messagesToRemove);
+      // Remove everything from the last user message onwards
+      return prev.slice(0, lastUserMessageIndex);
     });
 
     // Resend the message
@@ -577,25 +478,16 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
     currentTurnIdRef.current = null;
   }, []);
 
-  /**
-   * Clears error state
-   */
-  const clearErrorState = useCallback(() => {
-    clearError();
-  }, [clearError]);
-
   return {
     // State
     messages,
-    isGenerating: isStreaming,
+    isStreaming,
     isProcessing,
-    error,
 
     // Actions
     sendMessage,
-    retryLastMessage,
-    stopGenerating,
     clearMessages,
-    clearError: clearErrorState,
+    retryMessage: retryLastMessage,
+    stopGenerating,
   };
 };

@@ -53,7 +53,7 @@ function updateWFBoundingBox(workflows) {
   });
 }
 
-async function extractWorkflows(data) {
+export async function extractWorkflows(data) {
   const { components, connections } = data;
 
   // Build adjacency list for graph representation
