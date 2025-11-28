@@ -13,7 +13,6 @@ import { Logger, SmythRuntime, version } from '@smythos/sre';
 
 // Core imports
 import config from '@core/config';
-import { modelsConfig } from '@core/config/models.config';
 import { startServers } from '@core/management-router';
 import { requestContext } from '@core/services/request-context';
 
@@ -96,12 +95,6 @@ const sre = SmythRuntime.Instance.init({
   },
   Component: {
     Connector: 'LocalComponent',
-  },
-  ModelsProvider: {
-    Connector: 'SmythModelsProvider',
-    Settings: {
-      models: modelsConfig,
-    },
   },
   AgentData: {
     Connector: 'SmythOSSAgentData',
@@ -225,6 +218,7 @@ let server: Server | null = null;
     console.info('🎯 All Services Running:');
     console.info(`   • Management Server: http://localhost:${config.env.ADMIN_PORT || '5054'}`);
     console.info(`   • Runtime Server:    http://localhost:${port}`);
+    console.info(`   • SRE Models Sync:   Managed by git-sync container`);
     console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.info('✨ SmythOS Runtime is ready!');
   } catch (error) {
