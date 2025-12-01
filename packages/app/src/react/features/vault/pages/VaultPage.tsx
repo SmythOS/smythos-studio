@@ -4,6 +4,7 @@ import { Button as CustomButton } from '@src/react/shared/components/ui/newDesig
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
@@ -48,6 +49,10 @@ export default function VaultPage() {
       setIsExporting(false);
     }
   };
+
+  const isOnDevSAAS = builderStore.getState().serverStatus?.env == 'DEV' &&
+  builderStore.getState().serverStatus?.edition == 'enterprise' &&
+  !window.location.hostname.includes('smythos.com');
 
   useEffect(() => {
     if (window.location.hash) {
@@ -100,7 +105,7 @@ export default function VaultPage() {
       <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
       <OAuthConnections />
 
-      {window.location.hostname === 'localhost' && <VectorDatabases />}
+      {isOnDevSAAS && <VectorDatabases />}
 
       <ErrorBoundarySuspense
         loadingFallback={<div>Loading...</div>}
