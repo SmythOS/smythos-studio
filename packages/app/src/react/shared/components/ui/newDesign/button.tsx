@@ -62,7 +62,7 @@ export function Button({
   iconPosition = 'left',
 }: CustomButtonProps) {
   const baseStyles =
-    'flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded-md transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none';
+    'flex items-center justify-center text-sm font-normal border border-solid text-base px-4 py-2 text-center rounded-sm transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-shadow-none';
 
   const getButtonStyles = () => {
     const styles = [];
