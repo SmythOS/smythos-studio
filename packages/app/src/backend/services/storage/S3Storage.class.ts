@@ -3,6 +3,7 @@ import {
   DeleteObjectCommandInput,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
@@ -206,5 +207,45 @@ export default class S3Storage implements StaticStorage {
       }),
     );
     return res.Body as NodeJS.ReadableStream;
+  }
+
+  public async listAvatarKeys(
+    prefix: string = 'teams/',
+    maxKeys: number = 2500,
+  ): Promise<string[]> {
+    const avatarKeys: string[] = [];
+    let continuationToken: string | undefined;
+    const avatarPattern = /avatar-/i;
+
+    try {
+      do {
+        const command = new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          MaxKeys: 1000,
+          ContinuationToken: continuationToken,
+        });
+
+        const response = await this.client.send(command);
+        const contents = response.Contents ?? [];
+
+        for (const obj of contents) {
+          if (obj.Key && avatarPattern.test(obj.Key)) {
+            avatarKeys.push(obj.Key);
+            if (avatarKeys.length >= maxKeys) {
+              break;
+            }
+          }
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } while (continuationToken && avatarKeys.length < maxKeys);
+
+      logger.info(`Found ${avatarKeys.length} avatar keys`);
+      return avatarKeys;
+    } catch (error) {
+      logger.error(`Error listing avatar keys: `, error);
+      throw error;
+    }
   }
 }
