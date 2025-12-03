@@ -81,6 +81,10 @@ export const dataPoolClient = {
       }
 
       const result = await response.json();
+      // sort by createdAt
+      result.namespaces.sort((a: Namespace, b: Namespace) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
       return result;
     } catch (error) {
       if (error instanceof Error) {

@@ -84,6 +84,7 @@ const config = {
     POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
     PUB_API_SERVER: process.env.PUB_API_SERVER,
     IS_AWS_ENVIRONMENT: process.env.IS_AWS_ENVIRONMENT || false,
+    DISABLE_DATA_POOL_V1: process.env.DISABLE_DATA_POOL_V1 || false,
   },
   api: {
     SMYTH_USER_API_URL: `${MW_BASE_URL}/v1`,

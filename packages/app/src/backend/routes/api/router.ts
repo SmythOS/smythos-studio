@@ -165,6 +165,9 @@ router.get('/status', includeTeamDetails, async (req, res) => {
         doc_url: config.env.DOC_SERVER,
         prod_agent_domain: config.env.PROD_AGENT_DOMAIN,
         embodiment_url: config.env.EMBODIMENT_SERVER_BASE_URL,
+        flags: {
+          disable_data_pool_v1: !!config.env.DISABLE_DATA_POOL_V1,
+        },
       },
     });
   } catch (error) {
@@ -176,6 +179,9 @@ router.get('/status', includeTeamDetails, async (req, res) => {
         server: 'Offline',
         smythos_edition: config.env.SMYTHOS_EDITION,
         env: config.env.NODE_ENV,
+        flags: {
+          disable_data_pool_v1: !!config.env.DISABLE_DATA_POOL_V1,
+        },
       },
     });
   }

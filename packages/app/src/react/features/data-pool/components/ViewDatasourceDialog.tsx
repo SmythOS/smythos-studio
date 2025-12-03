@@ -5,10 +5,10 @@
  */
 
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@src/react/shared/components/ui/dialog';
 import { Tooltip } from 'flowbite-react';
 import { Calendar, Database, FileText, Hash } from 'lucide-react';
@@ -128,7 +128,7 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
                 <span className="text-sm font-medium text-green-900">Size</span>
               </div>
               <p className="text-lg font-semibold text-green-900">
-                {formatSize(datasource.datasourceSizeMb)}
+                {datasource.datasourceSizeMb ? formatSize(datasource.datasourceSizeMb) : '-'}
               </p>
             </div>
 
@@ -172,7 +172,8 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
           )}
 
           {/* Metadata Section */}
-          <div className="space-y-2">
+          {metadata && (
+            <div className="space-y-2">
             <h3 className="text-lg font-semibold text-gray-900">Metadata</h3>
             <div className="relative bg-[#282c34] border border-gray-700 rounded-lg overflow-hidden">
               <div className="absolute top-3 right-3 z-10">
@@ -208,6 +209,7 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
               </Suspense>
             </div>
           </div>
+          )}
 
           {/* Source Text Section */}
           {datasource.text && (

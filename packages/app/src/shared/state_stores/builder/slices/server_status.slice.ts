@@ -17,6 +17,9 @@ export interface ServerStatus {
   user: any;
   userData: any;
   edition: string;
+  flags: {
+    disable_data_pool_v1: boolean;
+  };
 }
 
 export interface ServerStatusSlice extends Slice {
@@ -59,6 +62,7 @@ export const serverStatusSlice: StateCreator<BuilderStore, [], [], ServerStatusS
           user: data.user,
           userData: data.user,
           edition: data.smythos_edition,
+          flags: data.flags || {},
         },
       });
     } catch (err) {
