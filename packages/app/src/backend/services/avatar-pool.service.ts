@@ -15,13 +15,14 @@ const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
  */
 async function refreshCache(): Promise<void> {
   try {
-    // Cast to S3Storage to access listAvatarKeys method
+    // Cast to S3Storage to access listKeys method
     const s3Storage = assetStorage as any;
-    if (typeof s3Storage.listAvatarKeys === 'function') {
-      cachedAvatarKeys = await s3Storage.listAvatarKeys();
+    if (typeof s3Storage.listKeys === 'function') {
+      // Fallback to generic listKeys method if listAvatarKeys is not available
+      cachedAvatarKeys = await s3Storage.listKeys('teams/', 2500, /avatar-/i);
       cacheTimestamp = Date.now();
     } else {
-      throw new Error('listAvatarKeys method not available on storage');
+      throw new Error('listKeys method not available on storage');
     }
   } catch (error) {
     console.error('[AvatarPool] Failed to refresh cache:', error);

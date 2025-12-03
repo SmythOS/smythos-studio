@@ -209,13 +209,20 @@ export default class S3Storage implements StaticStorage {
     return res.Body as NodeJS.ReadableStream;
   }
 
-  public async listAvatarKeys(
-    prefix: string = 'teams/',
-    maxKeys: number = 2500,
+  /**
+   * Lists S3 object keys matching a given pattern
+   * @param prefix - S3 prefix to filter keys (default: empty string for root)
+   * @param maxKeys - Maximum number of keys to return (default: 2500)
+   * @param pattern - Regular expression pattern to match keys (default: matches all keys)
+   * @returns Promise resolving to an array of matching S3 keys
+   */
+  public async listKeys(
+    prefix: string = '',
+    maxKeys: number = 1000,
+    pattern?: RegExp,
   ): Promise<string[]> {
-    const avatarKeys: string[] = [];
+    const keys: string[] = [];
     let continuationToken: string | undefined;
-    const avatarPattern = /avatar-/i;
 
     try {
       do {
@@ -230,21 +237,26 @@ export default class S3Storage implements StaticStorage {
         const contents = response.Contents ?? [];
 
         for (const obj of contents) {
-          if (obj.Key && avatarPattern.test(obj.Key)) {
-            avatarKeys.push(obj.Key);
-            if (avatarKeys.length >= maxKeys) {
-              break;
+          if (obj.Key) {
+            // If pattern is provided, test against it; otherwise include all keys
+            if (!pattern || pattern.test(obj.Key)) {
+              keys.push(obj.Key);
+              if (keys.length >= maxKeys) {
+                break;
+              }
             }
           }
         }
 
         continuationToken = response.NextContinuationToken;
-      } while (continuationToken && avatarKeys.length < maxKeys);
+      } while (continuationToken && keys.length < maxKeys);
 
-      logger.info(`Found ${avatarKeys.length} avatar keys`);
-      return avatarKeys;
+      const patternInfo = pattern ? ` matching pattern ${pattern.source}` : '';
+      logger.info(`Found ${keys.length} keys${patternInfo}`);
+      return keys;
     } catch (error) {
-      logger.error(`Error listing avatar keys: `, error);
+      const patternInfo = pattern ? ` matching pattern ${pattern.source}` : '';
+      logger.error(`Error listing keys${patternInfo}: `, error);
       throw error;
     }
   }
