@@ -239,6 +239,9 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                             />
                           )}
                           <span>{selectedCred?.name}</span>
+                          {selectedCred?.isManaged && (
+                            <span className="text-xs text-gray-500">Managed</span>
+                          )}
                         </div>
                       );
                     })()}
@@ -277,6 +280,9 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                               />
                             )}
                             <span>{cred.name}</span>
+                            {cred.isManaged && (
+                              <span className="text-xs text-gray-500">Managed</span>
+                            )}
                           </div>
                         </SelectItem>
                       );

@@ -14,6 +14,20 @@ import { useDataPoolContext } from '../contexts/data-pool.context';
 import type { NamespaceWithProvider } from '../types';
 import { UploadDatasourceDialog } from './UploadDatasourceDialog';
 
+// const INTERNAL_CREDS: Record<string, CredentialConnection> = {
+//   __smythos_vectordb_cred__: {
+//     group: 'vector_db_creds',
+//     credentials: {
+//       apiKey: '',
+//       apiSecret: '',
+//     },
+//     provider: 'Pinecone',
+//     name: 'SmythOS Pinecone',
+//     id: '__smythos_vectordb_cred__',
+//     isReadOnly: true,
+//   },
+// };
+
 interface NamespaceTableProps {
   namespaces: NamespaceWithProvider[];
   onDelete: (namespace: NamespaceWithProvider) => void;
@@ -50,7 +64,8 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({ namespaces, onDelete }
         </thead>
         <tbody>
           {namespaces.map((namespace) => {
-            const credential = getCredentialById(namespace.credentialId);
+            const credential =
+              getCredentialById(namespace.credentialId);
             const providerLogo = credential ? getProviderLogo(credential.provider) : undefined;
 
             // Format model name for display (truncate if too long)
@@ -109,7 +124,10 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({ namespaces, onDelete }
                         className="w-5 h-5 object-contain"
                       />
                     )}
-                    <span>{credential?.name || 'Deleted'}</span>
+                    <span>{credential?.name || 'Unknown'}</span>
+                    {credential?.isManaged && (
+                      <span className="text-xs text-gray-500">Managed</span>
+                    )}
                   </div>
                 </td>
 
