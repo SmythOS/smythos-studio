@@ -18,7 +18,7 @@ async function refreshCache(): Promise<void> {
     // Cast to S3Storage to access listKeys method
     const s3Storage = assetStorage as any;
     if (typeof s3Storage.listKeys === 'function') {
-      // Fallback to generic listKeys method if listAvatarKeys is not available
+      // Fallback to generic listKeys method if listKeys is not available
       cachedAvatarKeys = await s3Storage.listKeys('teams/', 2500, /avatar-/i);
       cacheTimestamp = Date.now();
     } else {
