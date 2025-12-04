@@ -209,9 +209,6 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
       headers['Authorization'] = `Bearer ${req.user.accessToken}`;
     }
 
-    // Add debug header for routing through debugger server
-    headers['x-smyth-debug'] = 'true';
-
     const response = await axios.get(debuggerUrl.toString(), {
       headers,
       responseType: 'stream', // Stream the response
