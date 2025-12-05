@@ -81,7 +81,9 @@ export class DataSourceIndexer extends Component {
         value: '',
         validate: `maxlength=500000`,
         validateMessage: `The metadata length is limitted to 500,000 characters`,
-        attributes: {},
+        attributes: {
+          'data-template-vars': 'true',
+        },
       },
 
       ...(this.data.version === 'v2'
