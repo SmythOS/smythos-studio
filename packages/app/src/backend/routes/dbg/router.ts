@@ -205,6 +205,10 @@ router.get('/file-proxy', includeTeamDetails, async (req, res) => {
     }
 
     // Make request to debugger server
+    if (req.user?.accessToken) {
+      headers['Authorization'] = `Bearer ${req.user.accessToken}`;
+    }
+
     const response = await axios.get(debuggerUrl.toString(), {
       headers,
       responseType: 'stream', // Stream the response
