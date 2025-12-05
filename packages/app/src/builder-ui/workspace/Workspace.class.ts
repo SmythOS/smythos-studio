@@ -642,7 +642,11 @@ export class Workspace extends EventEmitter {
   }
 
   async loadAgent(id, options?: { lockAfterFetch?: boolean }) {
+    const params = new URLSearchParams(window.location.search);
+    const isRemixedTemplate = params.has('templateId');
+
     const result = await this.agent.load(id, { lockAfterFetch: options?.lockAfterFetch || false });
+
     if (result) {
       this.import(this.agent.data).then(() => {
         this.emit('agentUpdated', this.agent);
@@ -650,12 +654,18 @@ export class Workspace extends EventEmitter {
         // triggered when agent is loaded and ready to be used
         this.emit('AgentReady', this.agent);
       });
+
+      if (isRemixedTemplate) {
+        this.addEventListener('AgentReady', () => {
+          this.scrollToAgentCard();
+          setTimeout(() => {
+            this.zoomTo(0.5);
+          }, 300);
+        });
+      }
     }
 
     // Check if this is a remixed template - skip panzoom restoration if so
-    const params = new URLSearchParams(window.location.search);
-    const isRemixedTemplate = params.has('templateId');
-
     if (this.agent.data?.ui?.panzoom && !isRemixedTemplate) {
       const zoomElement = document.getElementById('zoom');
       const origTransition = zoomElement.style.transition;
@@ -1879,16 +1889,11 @@ export class Workspace extends EventEmitter {
     }
 
     this.agentCard = new AgentCard(this, properties, configuration);
+
     if (isFirstVisit || isRemixedTemplate) {
       // it will always be triggered after initialization of the agent card since redraw() is an async operation (next tick)
       this.agentCard.addEventListener('AgentCardCreated', () => {
         this.scrollToAgentCard();
-        // For remixed templates only, set a default zoom level to show more of the canvas after the agent card is created
-        if (isRemixedTemplate) {
-          setTimeout(() => {
-            this.zoomTo(0.5);
-          }, 300);
-        }
       });
     }
 
