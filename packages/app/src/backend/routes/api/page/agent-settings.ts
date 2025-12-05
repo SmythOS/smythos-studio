@@ -1,5 +1,4 @@
-import { getRandomAvatarUrl } from '@src/backend/services/avatar-pool.service';
-import { assetStorage, StorageFactory } from '@src/backend/services/storage';
+import { assetStorage } from '@src/backend/services/storage';
 import { randomUUID } from 'crypto';
 import express, { Request } from 'express';
 import { rateLimit } from 'express-rate-limit';
@@ -189,30 +188,23 @@ router.post(
   [includeTeamDetails, avatarGenRateLimiter],
   async (req: Request, res) => {
     try {
-      const isS3Storage = StorageFactory.determineAdapter() === 's3';
-      let publicUrl = '';
+      const base64Image: string = await falai.generateImage({
+        prompt: generateLinkedInAvatarPrompt(),
+      });
 
-      if (isS3Storage) {
-        publicUrl = await getRandomAvatarUrl();
-      } else {
-        const base64Image: string = await falai.generateImage({
-          prompt: generateLinkedInAvatarPrompt(),
-        });
+      const key = posixPath('teams', md5Hash(req._team.id), `avatar-${randomUUID()}`);
+      const uploaded = await assetStorage.saveContent({
+        key,
+        contentType: 'image/png',
+        body: Buffer.from(base64Image, 'base64'),
+        skipAclCheck: true,
+      });
 
-        const key = posixPath('teams', md5Hash(req._team.id), `avatar-${randomUUID()}`);
-        const uploaded = await assetStorage.saveContent({
-          key,
-          contentType: 'image/png',
-          body: Buffer.from(base64Image, 'base64'),
-          skipAclCheck: true,
-        });
-
-        if (!uploaded.success) {
-          return res.status(500).json({ error: 'Internal Server Error' });
-        }
-
-        publicUrl = uploaded.url;
+      if (!uploaded.success) {
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
+
+      const publicUrl = uploaded.url;
 
       // save the avatar in the agent settings
       await smythAPIReq.put(
