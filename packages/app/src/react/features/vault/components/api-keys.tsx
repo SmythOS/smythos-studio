@@ -401,7 +401,7 @@ export function ApiKeys({ pageAccess }: { pageAccess: { write: boolean } }) {
       <div className="p-6">
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
-            API Keys
+            Vault Keys
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="w-4 h-4 cursor-help" />
