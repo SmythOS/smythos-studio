@@ -56,7 +56,7 @@ export function useCredentials(group: string) {
 
     try {
       const data = await credentialsClient.fetchCredentials(group);
-      const internalCreds = INTERNAL_CREDENTIALS[group];
+      const internalCreds = INTERNAL_CREDENTIALS[group] || [];
       setCredentials([...internalCreds, ...data]);
     } catch (err: any) {
       console.error('Error fetching credentials:', err);

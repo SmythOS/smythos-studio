@@ -17,6 +17,7 @@ import {
 } from '@src/react/shared/components/ui/dialog';
 import { Input } from '@src/react/shared/components/ui/input';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import {
   Select,
   SelectContent,
@@ -27,7 +28,9 @@ import {
 import React, { useEffect, useMemo, useState } from 'react';
 import { credentialsClient } from '../clients/credentials.client';
 import credentialsSchema from '../credentials-schema.json';
+import { parseCredsShemaPlaceholders } from '../utils';
 import { CredentialFormSkeleton } from './credential-form-skeleton';
+import { PasswordInput } from './password-input';
 
 /**
  * Field schema definition from credentials-schema.json
@@ -35,15 +38,17 @@ import { CredentialFormSkeleton } from './credential-form-skeleton';
 interface CredentialField {
   key: string;
   label: string;
-  type: 'string' | 'password' | 'number' | 'email' | 'url';
+  type: 'string' | 'password' | 'number' | 'email' | 'url' | 'textarea';
   required: boolean;
   placeholder?: string;
+  default?: string;
 }
 
 /**
  * Provider schema definition
  */
 interface ProviderSchema {
+  
   id: string;
   name: string;
   group: string;
@@ -53,6 +58,11 @@ interface ProviderSchema {
   fields: CredentialField[];
   docs_url?: string;
   test_endpoint?: string;
+
+  metadata?: {
+    requires_callback?: boolean;
+    callback_path?: string;
+  };
 }
 
 /**
@@ -216,12 +226,13 @@ export function CreateCredentialsModal({
    */
   const handleProviderSelect = (providerId: string) => {
     setSelectedProviderId(providerId);
-    // Initialize credentials object with empty values
+    // Initialize credentials object with default values or empty strings
     const provider = availableProviders.find((p) => p.id === providerId);
     if (provider) {
       const initialCredentials: Record<string, string> = {};
       provider.fields.forEach((field) => {
-        initialCredentials[field.key] = '';
+        // Use default value if available in create mode, otherwise empty string
+        initialCredentials[field.key] = field.default || '';
       });
       setCredentials(initialCredentials);
     }
@@ -529,21 +540,61 @@ export function CreateCredentialsModal({
                 {/* Dynamic Fields */}
                 {selectedProvider.fields.map((field) => (
                   <div key={field.key}>
-                    <Input
-                      label={field.label}
-                      required={field.required}
-                      fullWidth
-                      type={getInputType(field.type)}
-                      placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                      value={credentials[field.key] || ''}
-                      onChange={(e) => handleCredentialChange(field.key, e.target.value)}
-                      onBlur={() => handleBlur(field.key)}
-                      error={touched[field.key] && !!errors[field.key]}
-                      errorMessage={errors[field.key]}
-                      disabled={isProcessing || isResolvingVaultKeys}
-                    />
+                    {field.type === 'textarea' ? (
+                      <TextArea
+                        label={field.label}
+                        required={field.required}
+                        fullWidth
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        value={credentials[field.key] || ''}
+                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                        onBlur={() => handleBlur(field.key)}
+                        error={touched[field.key] && !!errors[field.key]}
+                        errorMessage={errors[field.key]}
+                        disabled={isProcessing || isResolvingVaultKeys}
+                        rows={3}
+                        autoGrow={true}
+                        maxHeight={200}
+                      />
+                    ) : field.type === 'password' ? (
+                      <PasswordInput
+                        label={field.label}
+                        required={field.required}
+                        fullWidth
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        value={credentials[field.key] || ''}
+                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                        onBlur={() => handleBlur(field.key)}
+                        error={touched[field.key] && !!errors[field.key]}
+                        errorMessage={errors[field.key]}
+                        disabled={isProcessing || isResolvingVaultKeys}
+                      />
+                    ) : (
+                      <Input
+                        label={field.label}
+                        required={field.required}
+                        fullWidth
+                        type={getInputType(field.type)}
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        value={credentials[field.key] || ''}
+                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                        onBlur={() => handleBlur(field.key)}
+                        error={touched[field.key] && !!errors[field.key]}
+                        errorMessage={errors[field.key]}
+                        disabled={isProcessing || isResolvingVaultKeys}
+                      />
+                    )}
                   </div>
                 ))}
+
+                {selectedProvider.metadata?.callback_path && (
+                  <div>
+                    <p className='mt-2 text-sm'>
+                      <span className="font-medium">Callback Path: </span>
+                       <span className="text-gray-500">{parseCredsShemaPlaceholders(selectedProvider.metadata.callback_path)}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -10,6 +10,7 @@ import React, { useEffect, useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
 import { ApiKeys } from '../components/api-keys';
 import { OAuthConnections } from '../components/oauth-connections';
+import { OAuthConnectionsCredentials } from '../components/oauth-connections-creds';
 import UserCustomModels from '../components/user-custom-models';
 import { UserModels } from '../components/user-models';
 import { VectorDatabases } from '../components/vector-databases';
@@ -104,6 +105,7 @@ export default function VaultPage() {
       <UserCustomModels pageAccess={pageAccess} />
       <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
       <OAuthConnections />
+      <OAuthConnectionsCredentials />
 
       {isOnDevSAAS && <VectorDatabases />}
 
