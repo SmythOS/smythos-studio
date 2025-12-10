@@ -1,35 +1,19 @@
 /**
  * Credentials Router
  *
- * Handles CRUD operations for team credentials (vector databases, etc.)
- * Credentials are stored in team settings with groups for organization
- *
- * Structure:
- * - group: Category (e.g., 'vector_database')
- * - settingKey: Unique credential ID
- * - settingValue: JSON string containing { provider, credentials, name }
+ * Handles CRUD operations for team credentials (vector databases, OAuth, etc.)
+ * Routes delegate business logic to CredentialsService
  */
 
-import axios from 'axios';
 import express, { Request, Response } from 'express';
-import config from '../../../config';
 import { includeTeamDetails } from '../../../middlewares/auth.mw';
-import { authHeaders } from '../../../utils/api.utils';
-import { CredentialDependenciesChecker } from './dependencies';
-import {
-  deleteVaultKeysFromCredentials,
-  resolveVaultKeys,
-  sanitizeCredentials,
-  storeSensitiveFieldsInVault,
-} from './vault-helpers';
+import { CredentialsService } from './credentials.service';
 
 export const credentialsRouter = express.Router();
 
-const smythAPIBaseUrl = `${config.env.SMYTH_API_BASE_URL}/v1`;
-
 /**
  * Get all credentials for a specific group
- * GET /api/credentials?group=vector_database
+ * GET /api/credentials?group=vector_db_creds
  */
 credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Response) => {
   const group = req.query.group as string;
@@ -42,50 +26,7 @@ credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Respons
   }
 
   try {
-    const response = await axios.get(`${smythAPIBaseUrl}/teams/settings`, {
-      params: { group },
-      ...(await authHeaders(req)),
-    });
-
-    // Parse the settings response - middleware returns array of settings
-    const settingsArray = response.data?.data || response.data?.settings || [];
-
-    // If it's an object instead of array, convert to array
-    let settingsList: Array<{ settingKey: string; settingValue: string }> = [];
-    if (Array.isArray(settingsArray)) {
-      settingsList = settingsArray;
-    } else if (typeof settingsArray === 'object') {
-      // If it's an object, convert to array format
-      settingsList = Object.entries(settingsArray).map(([key, value]: [string, any]) => ({
-        settingKey: key,
-        settingValue: typeof value === 'object' ? JSON.stringify(value) : value,
-      }));
-    }
-
-    const credentials = settingsList
-      .map((setting: { settingKey: string; settingValue: string }) => {
-        try {
-          const parsedValue =
-            typeof setting.settingValue === 'string'
-              ? JSON.parse(setting.settingValue)
-              : setting.settingValue;
-
-          // Sanitize credentials to hide vault key references
-          const sanitizedCredentials = parsedValue.credentials
-            ? sanitizeCredentials(parsedValue.credentials)
-            : {};
-
-          return {
-            id: setting.settingKey,
-            ...parsedValue,
-            credentials: sanitizedCredentials,
-          };
-        } catch (error) {
-          console.error(`Error parsing credential ${setting.settingKey}:`, error);
-          return null;
-        }
-      })
-      .filter(Boolean);
+    const credentials = await CredentialsService.getCredentialsByGroup(group, req);
 
     res.json({
       success: true,
@@ -93,22 +34,21 @@ credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Respons
     });
   } catch (error: any) {
     console.error('Error fetching credentials:', error?.message);
-    console.error('Full error:', error?.response?.data);
     res.status(error?.response?.status || 500).json({
       success: false,
-      error: error?.response?.data?.message || 'Failed to fetch credentials',
+      error: error?.response?.data?.message || error?.message || 'Failed to fetch credentials',
     });
   }
 });
 
 /**
  * Get a specific credential by ID
- * GET /api/credentials/:id?group=vector_database&resolveVaultKeys=true
+ * GET /api/credentials/:id?group=vector_db_creds&resolveVaultKeys=true
  */
 credentialsRouter.get('/:id', includeTeamDetails, async (req: Request, res: Response) => {
   const { id } = req.params;
   const group = req.query.group as string;
-  const shouldResolveVaultKeys = req.query.resolveVaultKeys === 'true';
+  const resolveVaultKeys = req.query.resolveVaultKeys === 'true';
 
   if (!group) {
     return res.status(400).json({
@@ -118,39 +58,16 @@ credentialsRouter.get('/:id', includeTeamDetails, async (req: Request, res: Resp
   }
 
   try {
-    const response = await axios.get(`${smythAPIBaseUrl}/teams/settings/${id}`, {
-      params: { group },
-      ...(await authHeaders(req)),
+    const credential = await CredentialsService.getCredentialById(id, group, req, {
+      resolveVaultKeys,
     });
-
-    const settingValue = response.data?.setting?.settingValue;
-    if (!settingValue) {
-      return res.status(404).json({
-        success: false,
-        error: 'Credential not found',
-      });
-    }
-
-    const credential = typeof settingValue === 'string' ? JSON.parse(settingValue) : settingValue;
-
-    // Resolve vault keys if requested (for editing)
-    let credentials = credential.credentials || {};
-    if (shouldResolveVaultKeys) {
-      credentials = await resolveVaultKeys(credentials, req);
-    } else {
-      credentials = sanitizeCredentials(credentials);
-    }
 
     res.json({
       success: true,
-      data: {
-        id,
-        ...credential,
-        credentials,
-      },
+      data: credential,
     });
   } catch (error: any) {
-    if (error?.response?.status === 404) {
+    if (error?.response?.status === 404 || error?.message === 'Credential not found') {
       return res.status(404).json({
         success: false,
         error: 'Credential not found',
@@ -160,7 +77,7 @@ credentialsRouter.get('/:id', includeTeamDetails, async (req: Request, res: Resp
     console.error('Error fetching credential:', error?.message);
     res.status(error?.response?.status || 500).json({
       success: false,
-      error: error?.response?.data?.message || 'Failed to fetch credential',
+      error: error?.response?.data?.message || error?.message || 'Failed to fetch credential',
     });
   }
 });
@@ -182,58 +99,21 @@ credentialsRouter.post('/', includeTeamDetails, async (req: Request, res: Respon
   }
 
   try {
-    // Generate unique ID for the credential
-    const credentialId = `${group}@cred_${Math.random().toString(36).substring(2, 9)}`;
-
-    // Store sensitive fields in vault and get transformed credentials
-    const transformedCredentials = await storeSensitiveFieldsInVault(
-      credentials,
-      credentialId,
+    const result = await CredentialsService.createCredential(
+      { group, name, provider, credentials },
       req,
     );
 
-    // Prepare credential data
-    const credentialData = {
-      name,
-      provider,
-      credentials: transformedCredentials,
-      group,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Save to team settings
-    await axios.put(
-      `${smythAPIBaseUrl}/teams/settings`,
-      {
-        settingKey: credentialId,
-        settingValue: JSON.stringify(credentialData),
-        group,
-      },
-      await authHeaders(req),
-    );
-
-    // Return sanitized credentials (with [REDACTED] for sensitive fields)
-    const sanitizedCredentials = sanitizeCredentials(transformedCredentials);
-
     res.status(201).json({
       success: true,
-      data: {
-        id: credentialId,
-        name,
-        provider,
-        credentials: sanitizedCredentials,
-        group,
-        createdAt: credentialData.createdAt,
-        updatedAt: credentialData.updatedAt,
-      },
+      data: result,
       message: 'Credential created successfully',
     });
   } catch (error: any) {
     console.error('Error creating credential:', error?.message);
     res.status(error?.response?.status || 500).json({
       success: false,
-      error: error?.response?.data?.message || 'Failed to create credential',
+      error: error?.response?.data?.message || error?.message || 'Failed to create credential',
     });
   }
 });
@@ -256,77 +136,35 @@ credentialsRouter.put('/:id', includeTeamDetails, async (req: Request, res: Resp
   }
 
   try {
-    // Fetch existing credential to preserve createdAt
-    let createdAt: string | undefined;
-    try {
-      const existing = await axios.get(`${smythAPIBaseUrl}/teams/settings/${id}`, {
-        params: { group },
-        ...(await authHeaders(req)),
-      });
-      const existingData = JSON.parse(existing.data?.setting?.settingValue || '{}');
-      createdAt = existingData.createdAt;
-    } catch (error) {
-      // If not found, we'll create it as a new credential
-      createdAt = new Date().toISOString();
-    }
-
-    // Store sensitive fields in vault and get transformed credentials
-    const transformedCredentials = await storeSensitiveFieldsInVault(credentials, id, req);
-
-    // Prepare updated credential data
-    const credentialData = {
-      name,
-      provider,
-      credentials: transformedCredentials,
+    const result = await CredentialsService.updateCredential(
+      id,
       group,
-      createdAt: createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Update team settings
-    await axios.put(
-      `${smythAPIBaseUrl}/teams/settings`,
-      {
-        settingKey: id,
-        settingValue: JSON.stringify(credentialData),
-        group,
-      },
-      await authHeaders(req),
+      { name, provider, credentials },
+      req,
     );
-
-    // Return sanitized credentials (with [REDACTED] for sensitive fields)
-    const sanitizedCredentials = sanitizeCredentials(transformedCredentials);
 
     res.json({
       success: true,
-      data: {
-        id,
-        name,
-        provider,
-        credentials: sanitizedCredentials,
-        group,
-        createdAt: credentialData.createdAt,
-        updatedAt: credentialData.updatedAt,
-      },
+      data: result,
       message: 'Credential updated successfully',
     });
   } catch (error: any) {
     console.error('Error updating credential:', error?.message);
     res.status(error?.response?.status || 500).json({
       success: false,
-      error: error?.response?.data?.message || 'Failed to update credential',
+      error: error?.response?.data?.message || error?.message || 'Failed to update credential',
     });
   }
 });
 
 /**
  * Delete a credential
- * DELETE /api/credentials/:id?group=vector_database
+ * DELETE /api/credentials/:id?group=vector_db_creds&consentedWarnings=true
  */
 credentialsRouter.delete('/:id', includeTeamDetails, async (req: Request, res: Response) => {
   const { id } = req.params;
   const group = req.query.group as string;
-  const consentedWarnings = req.query.consentedWarnings as string;
+  const consentedWarnings = req.query.consentedWarnings === 'true';
 
   if (!group) {
     return res.status(400).json({
@@ -336,58 +174,25 @@ credentialsRouter.delete('/:id', includeTeamDetails, async (req: Request, res: R
   }
 
   try {
-    // Fetch existing credential to clean up vault keys
-    const existing = await axios.get(`${smythAPIBaseUrl}/teams/settings/${id}`, {
-      params: { group },
-      ...(await authHeaders(req)),
-    });
+    const result = await CredentialsService.deleteCredential({ id, group, consentedWarnings }, req);
 
-    const existingData = JSON.parse(existing.data?.setting?.settingValue || '{}');
-    if (!existingData.credentials) {
-      return res.status(400).json({
-        success: false,
-        error: 'Credential not found',
-      });
-    }
-
-    // check if there are dependencies on this credential
-    const dependenciesChecker = new CredentialDependenciesChecker(req, id, group);
-    const dependenciesResult = await dependenciesChecker.checkDependencies();
-
-    if (dependenciesResult.errors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: dependenciesResult.errors.join('\n'),
-      });
-    } else if (consentedWarnings != 'true' && dependenciesResult.warnings.length > 0) {
+    // Handle warnings (requires user confirmation)
+    if (!result.success && result.warnings) {
       return res.status(200).json({
         success: false,
-        warnings: dependenciesResult.warnings,
+        warnings: result.warnings,
       });
     }
-
-    // Delete associated vault keys
-    await deleteVaultKeysFromCredentials(existingData.credentials, req?._team?.id, req).catch(
-      (error) => {
-        console.warn('[Credentials] Could not delete vault keys:', error);
-      },
-    );
-
-    // Delete the credential from team settings
-    await axios.delete(`${smythAPIBaseUrl}/teams/settings/${id}`, {
-      params: { group },
-      ...(await authHeaders(req)),
-    });
 
     res.json({
       success: true,
-      message: 'Credential deleted successfully',
+      message: result.message,
     });
   } catch (error: any) {
     console.error('Error deleting credential:', error?.message);
     res.status(error?.response?.status || 500).json({
       success: false,
-      error: error?.response?.data?.message || 'Failed to delete credential',
+      error: error?.message || error?.response?.data?.message || 'Failed to delete credential',
     });
   }
 });

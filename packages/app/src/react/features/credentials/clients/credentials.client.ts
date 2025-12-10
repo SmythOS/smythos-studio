@@ -48,10 +48,14 @@ export const credentialsClient = {
   /**
    * Fetch a single credential by ID
    */
-  fetchCredentialById: async (id: string, group: string): Promise<CredentialConnection> => {
+  fetchCredentialById: async (
+    id: string,
+    group: string,
+    options: { resolveVaultKeys: boolean } = { resolveVaultKeys: false },
+  ): Promise<CredentialConnection> => {
     try {
       const response = await fetch(
-        `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}`,
+        `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}${options.resolveVaultKeys ? '&resolveVaultKeys=true' : ''}`,
         {
           method: 'GET',
           headers: {
@@ -178,7 +182,7 @@ export const credentialsClient = {
   ): Promise<{ success: boolean; warnings?: string[] }> => {
     try {
       const url = `/api/app/credentials/${encodeURIComponent(id)}?group=${encodeURIComponent(group)}${consentedWarnings ? '&consentedWarnings=true' : ''}`;
-      
+
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {

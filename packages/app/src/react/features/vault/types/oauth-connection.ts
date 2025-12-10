@@ -20,7 +20,7 @@ export interface OAuthInfo {
   consumerSecret?: string; // OAuth 1.0a
   oauth1CallbackURL?: string; // OAuth 1.0a
   // Allow any other string properties that might be added
-  [key: string]: string | undefined;
+  [key: string]: string | undefined | Record<string, string>;
 }
 
 /**

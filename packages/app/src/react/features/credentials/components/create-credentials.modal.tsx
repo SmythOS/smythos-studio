@@ -77,6 +77,7 @@ export interface CredentialConnection {
   isActive?: boolean;
   isReadOnly?: boolean;
   isManaged?: boolean;
+  customProperties?: Record<string, any>;
 }
 
 /**
