@@ -2257,7 +2257,7 @@ input[data-vault-exclusive='true']:disabled {
 }
 
 .code-editor-label-container-left-border {
-  width: 41px;
+  width: 48px;
   background-color: #ebebeb;
   border-right: 1px solid #e0e0e0;
   display: flex;
