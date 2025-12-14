@@ -21,6 +21,7 @@ import {
   createHint,
   createInfoButton,
   createInput,
+  createMultiSelectBox,
   createRadio,
   createRangeInput,
   createSelectBox,
@@ -83,6 +84,42 @@ export default function createFormField(entry, displayType = 'block', entryIndex
       if (entry.readonly) {
         formElement.setAttribute('disabled', 'disabled');
       }
+
+      isDropdown = true;
+
+      break;
+
+    case 'select-multiple':
+    case 'SELECT-MULTIPLE':
+      /**
+       * Native HTML multi-select field
+       * Supports multiple selections and search functionality
+       * Value should be an array of selected values
+       * createMultiSelectBox returns a container div with a nested select element
+       */
+      const multiSelectContainer = createMultiSelectBox(
+        entry.options,
+        Array.isArray(value) ? value : [],
+        entry?.dropdownHeight,
+      );
+
+      /**
+       * Get the actual select element from the container
+       * The container has a _selectElement property that references the select
+       */
+      const actualSelect = (multiSelectContainer as any)._selectElement as HTMLSelectElement;
+
+      if (entry.readonly && actualSelect) {
+        actualSelect.setAttribute('disabled', 'disabled');
+      }
+
+      /**
+       * Set formElement to the container, but store a reference to the select
+       * This allows the form system to work with the container while
+       * still being able to access the select for value retrieval
+       */
+      formElement = multiSelectContainer;
+      (formElement as any)._selectElement = actualSelect;
 
       isDropdown = true;
 
@@ -425,16 +462,25 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   formElement.className += ` text-gray-900 border border-gray-200 sm:text-md ${fieldClasses}`;
 
   if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
-    formElement.setAttribute('id', entry.name);
-    if (entry.name) formElement.setAttribute('name', entry.name);
+    /**
+     * For select-multiple, we need to apply id/name/attributes to the actual select element
+     * not the container div
+     */
+    const targetElement =
+      entry?.type?.toLowerCase() === 'select-multiple'
+        ? (formElement as any)._selectElement || formElement
+        : formElement;
+
+    targetElement.setAttribute('id', entry.name);
+    if (entry.name) targetElement.setAttribute('name', entry.name);
 
     // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
     for (let attr in attributes) {
       if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
-        formElement.setAttribute('disabled', 'disabled');
+        targetElement.setAttribute('disabled', 'disabled');
       }
 
-      formElement.setAttribute(attr, attributes[attr]);
+      targetElement.setAttribute(attr, attributes[attr]);
     }
   }
 
@@ -485,7 +531,13 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     formElement.setAttribute('data-deferred-events', JSON.stringify(events));
   } else {
     // Add events for non-tag inputs
-    for (let event in events) formElement.addEventListener(event, events[event]);
+    // For select-multiple, attach events to the actual select element
+    const eventTarget =
+      entry?.type?.toLowerCase() === 'select-multiple'
+        ? (formElement as any)._selectElement || formElement
+        : formElement;
+
+    for (let event in events) eventTarget.addEventListener(event, events[event]);
   }
 
   // add template variables
@@ -526,8 +578,9 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let labelElement = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
-    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${attributes.labelCase ? attributes.labelCase : 'capitalize'
-      }`;
+    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${
+      attributes.labelCase ? attributes.labelCase : 'capitalize'
+    }`;
 
     if (entry.type?.toLowerCase() === 'key-value' || entry.type?.toLowerCase() === 'table') {
       labelElement.classList.add('form-label__kv');
