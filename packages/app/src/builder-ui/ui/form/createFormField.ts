@@ -520,10 +520,13 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 
   /**
-   * Configure select-multiple fields: apply all form-related attributes to the actual select element.
-   * This function handles id, name, custom attributes, readonly, validation, and returns the target element for events.
+   * For select-multiple fields, configure all form-related attributes on the actual select element
+   * and get the target element for event listeners. For other fields, use formElement directly.
    */
-  const eventTarget = configureSelectMultiple(formElement, entry, attributes, events);
+  let eventTarget: HTMLElement = formElement;
+  if (entry?.type?.toLowerCase() === 'select-multiple') {
+    eventTarget = configureSelectMultiple(formElement, entry, attributes, events);
+  }
 
   // Handle events for tag inputs differently
   if (isTagInput && Object.keys(events).length > 0) {
@@ -531,7 +534,6 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     formElement.setAttribute('data-deferred-events', JSON.stringify(events));
   } else {
     // Add events for non-tag inputs
-    // For select-multiple, eventTarget is already set to the actual select element by configureSelectMultiple
     for (let event in events) eventTarget.addEventListener(event, events[event]);
   }
 
@@ -1084,11 +1086,11 @@ function applyTooltipConfig(actionBtn, action) {
  * For select-multiple fields, the formElement is a container div, but we need to apply
  * form-related attributes to the actual select element for proper form submission and validation.
  *
- * @param formElement - The container element (for select-multiple) or the form element itself
+ * @param formElement - The container element for select-multiple
  * @param entry - The form field entry configuration
  * @param attributes - Custom attributes to apply
- * @param events - Event handlers to attach
- * @returns The target element for event listeners (actual select for select-multiple, formElement otherwise)
+ * @param events - Event handlers to attach (unused, kept for consistency)
+ * @returns The actual select element for event listener attachment
  */
 function configureSelectMultiple(
   formElement: HTMLElement,
@@ -1096,11 +1098,6 @@ function configureSelectMultiple(
   attributes: Record<string, any>,
   events: Record<string, (e: Event) => void>,
 ): HTMLElement {
-  const isSelectMultiple = entry?.type?.toLowerCase() === 'select-multiple';
-  if (!isSelectMultiple) {
-    return formElement;
-  }
-
   const actualSelect = (formElement as any)._selectElement as HTMLSelectElement;
   if (!actualSelect) {
     return formElement;
