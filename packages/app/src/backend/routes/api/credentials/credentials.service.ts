@@ -21,7 +21,7 @@ import { authHeaders } from '../../../utils/api.utils';
 import { CredentialDependenciesChecker } from './dependencies';
 import {
   deleteVaultKeysFromCredentials,
-  resolveVaultKeys,
+  resolveVaultKeys as resolveVaultKeysHelper,
   sanitizeCredentials,
   storeSensitiveFieldsInVault,
 } from './vault-helpers';
@@ -37,6 +37,7 @@ interface CredentialData {
   group: string;
   createdAt?: string;
   updatedAt?: string;
+  authType: string;
 }
 
 // --- Service Class ---
@@ -45,7 +46,13 @@ export class CredentialsService {
   /**
    * Fetch all credentials for a specific group
    */
-  static async getCredentialsByGroup(group: string, req: Request): Promise<CredentialConnection[]> {
+  static async getCredentialsByGroup(
+    group: string,
+    req: Request,
+    options: { resolveVaultKeys?: boolean } = {},
+  ): Promise<CredentialConnection[]> {
+    const { resolveVaultKeys = false } = options;
+
     const response = await axios.get(`${smythAPIBaseUrl}/teams/settings`, {
       params: { group },
       ...(await authHeaders(req)),
@@ -64,32 +71,36 @@ export class CredentialsService {
       }));
     }
 
-    // Parse and sanitize credentials
-    const credentials = settingsList
-      .map((setting): CredentialConnection | null => {
+    // Parse and process credentials
+    const credentials = await Promise.all(
+      settingsList.map(async (setting): Promise<CredentialConnection | null> => {
         try {
           const parsedValue =
             typeof setting.settingValue === 'string'
               ? JSON.parse(setting.settingValue)
               : setting.settingValue;
 
-          const sanitizedCredentials = parsedValue.credentials
-            ? sanitizeCredentials(parsedValue.credentials)
-            : {};
+          // Resolve or sanitize credentials based on options
+          let processedCredentials = parsedValue.credentials || {};
+          if (resolveVaultKeys) {
+            processedCredentials = await resolveVaultKeysHelper(processedCredentials, req);
+          } else {
+            processedCredentials = sanitizeCredentials(processedCredentials);
+          }
 
           return {
             id: setting.settingKey,
             ...parsedValue,
-            credentials: sanitizedCredentials,
+            credentials: processedCredentials,
           };
         } catch (error) {
           console.error(`Error parsing credential ${setting.settingKey}:`, error);
           return null;
         }
-      })
-      .filter(Boolean);
+      }),
+    );
 
-    return credentials;
+    return credentials.filter((c): c is CredentialConnection => c !== null);
   }
 
   /**
@@ -118,7 +129,7 @@ export class CredentialsService {
     // Resolve vault keys if requested (for editing)
     let credentials = credential.credentials || {};
     if (shouldResolveVaultKeys) {
-      credentials = await resolveVaultKeys(credentials, req);
+      credentials = await resolveVaultKeysHelper(credentials, req);
     } else {
       credentials = sanitizeCredentials(credentials);
     }
@@ -137,7 +148,7 @@ export class CredentialsService {
     input: CreateCredentialInput,
     req: Request,
   ): Promise<CredentialConnection> {
-    const { group, name, provider, credentials } = input;
+    const { group, name, provider, credentials, authType } = input;
 
     // Generate unique ID
     const credentialId = `${group}@cred_${Math.random().toString(36).substring(2, 9)}`;
@@ -157,6 +168,7 @@ export class CredentialsService {
       group,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      authType,
     };
 
     // Save to team settings
@@ -224,6 +236,7 @@ export class CredentialsService {
       ...(updatedFields.customProperties
         ? { customProperties: updatedFields.customProperties }
         : {}),
+      ...(updatedFields.authType ? { authType: updatedFields.authType } : {}),
     };
 
     // Update team settings

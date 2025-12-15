@@ -1,10 +1,9 @@
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { API_CALL_DATA_ENTRIES, SMYTHOS_DOCS_URL } from '@src/shared/constants/general'; // Adjust the path as necessary
 import {
-  //deriveServiceFromOauthInfo,
   extractServiceFromConnection,
   getConnectionOauthInfo,
-  saveOAuthConnection,
+  signOutOAuthConnection,
 } from '@src/shared/helpers/oauth/oauth-api.helper';
 import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
 import {
@@ -14,16 +13,11 @@ import {
   mapInternalToServiceName,
   mapServiceNameToInternal,
 } from '@src/shared/helpers/oauth/oauth.utils';
-import { hasVaultKeys, resolveVaultKeys } from '@src/shared/helpers/oauth/vault-key-resolver';
 import { builderStore } from '../../shared/state_stores/builder/store';
 import { COMP_NAMES } from '../config';
-import {
-  generateOAuthModalHTML,
-  generateOAuthModalLoadingSkeleton,
-} from '../helpers/oauth/oauth-modal.helper';
 import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
-import { closeTwDialog, twEditValuesWithCallback } from '../ui/tw-dialogs';
+import { renderOAuthCredentialsModal } from '../ui/react-injects';
 import { delay, getVaultData, handleKvFieldEditBtn, handleKvFieldEditBtnForParams } from '../utils';
 import { Workspace } from '../workspace/Workspace.class';
 import { Component } from './Component.class';
@@ -52,10 +46,6 @@ export class APICall extends Component {
     return extractServiceFromConnection(connection);
   }
 
-  private getConnectionOauthInfo(connection: any, connectionId?: string): any {
-    return getConnectionOauthInfo(connection, connectionId);
-  }
-
   // private deriveServiceFromOauthInfo(oauthInfo: any): string {
   //   return deriveServiceFromOauthInfo(oauthInfo);
   // }
@@ -64,8 +54,8 @@ export class APICall extends Component {
     try {
       // console.log('[APICall.prepare] Getting OAuth connections from workspace cache...');
 
-      // Get OAuth connections from workspace cache
-      const oauthConnectionsData = await builderStore.getState().getOAuthConnections();
+      // Get OAuth connections from workspace cache with resolved vault keys
+      const oauthConnectionsData = await builderStore.getState().getOAuthConnections(false, true);
       // console.log('[APICall.prepare] OAuth connections retrieved from cache:', oauthConnectionsData);
 
       this.oauthConnections = oauthConnectionsData || {};
@@ -579,10 +569,7 @@ export class APICall extends Component {
     const selectedConnection = this.oauthConnections[selectedConnectionId];
     // console.log('[OAuth Auth] Selected connection:', selectedConnection);
 
-    const synthesizedOauthInfo = this.getConnectionOauthInfo(
-      selectedConnection,
-      selectedConnectionId,
-    );
+    const synthesizedOauthInfo = getConnectionOauthInfo(selectedConnection, selectedConnectionId);
     // console.log('[OAuth Auth] Synthesized oauth_info:', synthesizedOauthInfo);
 
     if (!selectedConnection || !synthesizedOauthInfo) {
@@ -1002,24 +989,11 @@ export class APICall extends Component {
       return false;
     }
 
-    let connectionId: string | null = null;
-    let selectedConnection: any = null;
-
-    // Determine the actual connection ID. It could be the ID directly or the name.
-    if (selectedValue.startsWith('OAUTH_') && selectedValue.endsWith('_TOKENS')) {
-      // Value looks like an ID
-      connectionId = selectedValue;
-      selectedConnection = this.oauthConnections[connectionId];
-    } else {
-      // Value might be a name, try to find the corresponding ID
-      const foundEntry = Object.entries(this.oauthConnections).find(
-        ([id, conn]: [string, any]) => conn?.auth_settings?.name === selectedValue,
-      );
-      if (foundEntry) {
-        connectionId = foundEntry[0];
-        selectedConnection = foundEntry[1];
-      }
-    }
+    let connectionId: string | null = selectedValue;
+    let selectedConnection: any = getConnectionOauthInfo(
+      this.oauthConnections[selectedValue],
+      selectedValue,
+    );
 
     // If no valid connection was found by ID or name
     if (!connectionId || !selectedConnection) {
@@ -1029,11 +1003,8 @@ export class APICall extends Component {
       return false;
     }
 
-    // Get OAuth info from either new or old structure
-    const oauthInfo = this.getConnectionOauthInfo(selectedConnection, connectionId);
-
     // Derive oauth_keys_prefix if not found
-    let oauth_keys_prefix = oauthInfo?.oauth_keys_prefix;
+    let oauth_keys_prefix = selectedConnection?.oauth_keys_prefix;
     if (
       !oauth_keys_prefix &&
       connectionId &&
@@ -1050,13 +1021,13 @@ export class APICall extends Component {
 
     // Call backend checkAuth to get actual authentication status
     const authCheckPayload = {
-      oauth_keys_prefix: oauth_keys_prefix,
+      oauth_conn_id: oauth_keys_prefix,
     };
 
     // console.log(`[checkAuth] Sending auth check request for ${connectionId}`);
 
     try {
-      const response = await fetch(`${this.workspace.server}/oauth/checkAuth`, {
+      const response = await fetch(`${this.workspace.server}/oauth/check-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(authCheckPayload),
@@ -1624,7 +1595,7 @@ export class APICall extends Component {
       // Always synchronize the component's legacy field (oauthService) with the selected connection
       // to avoid stale/broken state across legacy/new structures.
       const selectedConn = this.oauthConnections[selectedValue];
-      const selectedOauthInfo = this.getConnectionOauthInfo(selectedConn, selectedValue);
+      const selectedOauthInfo = getConnectionOauthInfo(selectedConn, selectedValue);
       if (selectedOauthInfo?.service) {
         // Store a user-friendly value for legacy consumers
         this.data.oauthService = mapInternalToServiceName(selectedOauthInfo.service);
@@ -1647,277 +1618,90 @@ export class APICall extends Component {
   private async handleOAuthConnectionAction(currentValue: string) {
     const isNone = !currentValue || currentValue === 'None';
 
-    // Fetch existing OAuth connections ONLY when editing to avoid modal delay on "Add New"
+    // Fetch existing OAuth connections for edit mode
     if (!isNone) {
       try {
-        // console.log('[OAuth Edit] Getting OAuth connections from workspace cache for editing...');
-        this.oauthConnections = await builderStore.getState().getOAuthConnections();
-        // console.log('[OAuth Edit] Retrieved connections for editing:', this.oauthConnections);
+        this.oauthConnections = await builderStore.getState().getOAuthConnections(false, true);
       } catch (error) {
         console.error('Error fetching OAuth connections:', error);
         errorToast('Error fetching connections. Please try again.', 'Error', 'alert');
         return;
       }
     } else {
-      // Ensure the object exists to avoid any downstream checks
       this.oauthConnections = this.oauthConnections || {};
-      // console.log('[OAuth Edit] Creating new connection, using existing connections:', this.oauthConnections);
     }
 
-    // Get current connection if editing and determine structure
-    const currentConnectionRaw = !isNone ? this.oauthConnections[currentValue] : null;
-    const isNewStructure =
-      currentConnectionRaw && currentConnectionRaw.auth_data && currentConnectionRaw.auth_settings;
+    // Prepare edit connection data if editing
+    let editConnection: any = undefined;
 
-    // Extract the settings part based on structure
-    const currentSettings = isNewStructure
-      ? currentConnectionRaw.auth_settings
-      : currentConnectionRaw; // Assume old structure if new one isn't present
+    if (!isNone && this.oauthConnections[currentValue]) {
+      const currentConnectionRaw = this.oauthConnections[currentValue];
+      const oauthInfo = getConnectionOauthInfo(currentConnectionRaw, currentValue);
 
-    let currentOauthInfo = this.getConnectionOauthInfo(currentSettings, currentValue) || {}; // Support both structures
-    const currentName = currentSettings?.name || ''; // Get name from the settings part
-
-    //console.log('[OAuth Edit] Identified Current Connection Settings:', currentSettings);
-    //console.log('[OAuth Edit] Identified Current OAuth Info:', currentOauthInfo);
-
-    // Determine service name and platform from the extracted settings
-    let currentService = currentSettings
-      ? mapInternalToServiceName(currentOauthInfo.service)
-      : 'None';
-    let currentPlatform = currentOauthInfo.platform || '';
-
-    // Check if we need to resolve vault keys
-    const needsVaultResolution = !isNone && hasVaultKeys(currentOauthInfo);
-
-    // Extract values needed for later use in onDOMReady
-    let consumerKeyValue = currentOauthInfo.consumerKey || '';
-    let consumerSecretValue = currentOauthInfo.consumerSecret || '';
-
-    // Generate initial form HTML - use loading skeleton if vault keys need resolution
-    let initialFormHTML = needsVaultResolution
-      ? generateOAuthModalLoadingSkeleton()
-      : generateOAuthModalHTML(currentName, currentPlatform, currentService, currentOauthInfo);
-
-    // Show dialog using twEditValuesWithCallback, passing HTML content
-    await twEditValuesWithCallback(
-      {
-        title: isNone ? 'Add OAuth Connection' : 'Edit OAuth Connection',
-        content: initialFormHTML,
-        onDOMReady: async (dialog) => {
-          // If we need to resolve vault keys, do it now
-          if (needsVaultResolution) {
-            console.log('[OAuth Vault Resolution] Starting vault key resolution...');
-            try {
-              // Resolve vault keys
-              console.log('[OAuth Vault Resolution] Resolving vault keys...');
-              currentOauthInfo = await resolveVaultKeys(currentOauthInfo);
-              console.log('[OAuth Vault Resolution] Vault keys resolved successfully');
-              currentPlatform = currentOauthInfo.platform || '';
-              consumerKeyValue = currentOauthInfo.consumerKey || '';
-              consumerSecretValue = currentOauthInfo.consumerSecret || '';
-
-              // Generate the actual form HTML with resolved values
-              const resolvedFormHTML = generateOAuthModalHTML(
-                currentName,
-                currentPlatform,
-                currentService,
-                currentOauthInfo,
-              );
-
-              // Find the content container and update it
-              // Try multiple selectors to find the right container
-              let contentContainer =
-                dialog.querySelector('.tw-dialog-content') ||
-                dialog.querySelector('.grid.gap-4.py-4')?.parentElement ||
-                dialog.querySelector('[role="document"]') ||
-                dialog;
-
-              console.log(
-                '[OAuth Vault Resolution] Found content container:',
-                contentContainer?.className,
-              );
-
-              if (contentContainer) {
-                contentContainer.innerHTML = resolvedFormHTML;
-                console.log('[OAuth Vault Resolution] Updated content with resolved values');
-              } else {
-                console.error('[OAuth Vault Resolution] Could not find content container');
-              }
-
-              // Re-run the setup logic after content is loaded
-              this.setupOAuthModalHandlers(
-                dialog,
-                currentOauthInfo,
-                consumerKeyValue,
-                consumerSecretValue,
-              );
-            } catch (error) {
-              console.error('Error resolving vault keys:', error);
-              errorToast('Failed to load connection details. Please try again.', 'Error', 'alert');
-
-              // Show form anyway with placeholders
-              const fallbackHTML = generateOAuthModalHTML(
-                currentName,
-                currentPlatform,
-                currentService,
-                currentOauthInfo,
-              );
-
-              let contentContainer =
-                dialog.querySelector('.tw-dialog-content') ||
-                dialog.querySelector('.grid.gap-4.py-4')?.parentElement ||
-                dialog.querySelector('[role="document"]') ||
-                dialog;
-
-              if (contentContainer) {
-                contentContainer.innerHTML = fallbackHTML;
-              }
-
-              this.setupOAuthModalHandlers(
-                dialog,
-                currentOauthInfo,
-                consumerKeyValue,
-                consumerSecretValue,
-              );
-            }
-          } else {
-            // No vault keys, setup handlers immediately
-            this.setupOAuthModalHandlers(
-              dialog,
-              currentOauthInfo,
-              consumerKeyValue,
-              consumerSecretValue,
-            );
-          }
-        },
-        actions: [
-          {
-            label: isNone ? 'Add Connection' : 'Save Changes',
-            cssClass:
-              'bg-smythos-blue-500 text-white border-transparent hover:bg-smyth-blue ml-auto px-6 py-2 rounded shadow',
-            requiresValidation: true,
-            callback: async (result, dialogElm) => {
-              // Read form data directly from the static form
-              const formElement = dialogElm.querySelector(
-                '#oauth-connection-form',
-              ) as HTMLFormElement;
-              if (!formElement) throw new Error('Form element not found');
-
-              const formDataRaw = new FormData(formElement);
-              // Ensure all keys exist, even if empty, consistent with how forms work
-              const formData: Record<string, string> = {};
-              formDataRaw.forEach((value, key) => {
-                formData[key] = value as string;
-              });
-
-              // --- Basic Validation ---
-              if (!formData.name || formData.name.trim() === '') {
-                errorToast('Name field is required.', 'Error', 'alert');
-                throw new Error('Validation failed: Name is required.'); // Throw to prevent dialog closing
-              }
-              if (!formData.platform || formData.platform.trim() === '') {
-                errorToast('Platform field is required.', 'Error', 'alert');
-                throw new Error('Validation failed: Platform is required.');
-              }
-              if (!formData.oauthService || formData.oauthService === 'None') {
-                errorToast('Auth Service must be selected.', 'Error', 'alert');
-                throw new Error('Validation failed: Auth Service is required.');
-              }
-              // ------------------------
-
-              try {
-                const isCreating = isNone;
-                const connectionId = isCreating
-                  ? `OAUTH_${generateOAuthId()}_TOKENS`
-                  : currentValue;
-                const service = this.mapServiceNameToInternal(formData.oauthService);
-                const type = ['Custom OAuth1.0', 'Twitter'].includes(formData.oauthService)
-                  ? 'oauth'
-                  : formData.oauthService === 'OAuth2 Client Credentials'
-                    ? 'oauth2_client_credentials'
-                    : 'oauth2';
-                const oauthPrefix = connectionId.replace('_TOKENS', '');
-
-                // 1. Build the new oauth_info object from the form data
-                const newOauthInfo: any = {
-                  oauth_keys_prefix: oauthPrefix,
-                  service,
-                  name: formData.name.trim(),
-                  platform: formData.platform.trim(),
-                };
-                // Add type-specific fields from formData to newOauthInfo
-                if (type === 'oauth2' || type === 'oauth2_client_credentials') {
-                  newOauthInfo.tokenURL = formData.tokenURL || '';
-                  newOauthInfo.clientID = formData.clientID || '';
-                  newOauthInfo.clientSecret = formData.clientSecret || '';
-                  if (type === 'oauth2') {
-                    // Only for full OAuth2
-                    newOauthInfo.authorizationURL = formData.authorizationURL || '';
-                    newOauthInfo.scope = formData.scope || '';
-                  }
-                } else if (type === 'oauth') {
-                  newOauthInfo.requestTokenURL = formData.requestTokenURL || '';
-                  newOauthInfo.accessTokenURL = formData.accessTokenURL || '';
-                  newOauthInfo.userAuthorizationURL = formData.userAuthorizationURL || '';
-                  newOauthInfo.consumerKey = formData.consumerKey || '';
-                  newOauthInfo.consumerSecret = formData.consumerSecret || '';
-                }
-                // Note: Callback URLs are not explicitly saved, they are derived.
-
-                // 2. Build the auth_settings object to be saved
-                const authSettingsToSave = {
-                  name: newOauthInfo.name, // Use name from newOauthInfo
-                  type: type,
-                  tokenURL:
-                    type === 'oauth2' || type === 'oauth2_client_credentials'
-                      ? newOauthInfo.tokenURL
-                      : undefined,
-                  oauth_info: newOauthInfo, // Include the full oauth_info
-                };
-                // Clean up undefined tokenURL before saving
-                if (authSettingsToSave.tokenURL === undefined) delete authSettingsToSave.tokenURL;
-
-                // --- Prepare final connectionData (REMOVED as we only send settings) ---
-                // let finalConnectionData: any; ... (Removed old logic)
-                // --- End Prepare final connectionData ---
-
-                // 3. Save only the constructed auth_settings
-                //console.log('[APICall Save] Saving connection settings:', JSON.stringify(authSettingsToSave, null, 2));
-                await saveOAuthConnection(connectionId, authSettingsToSave);
-                closeTwDialog(dialogElm); // Manually close dialog on success
-                successToast(
-                  isNone ? 'Connection created successfully' : 'Connection updated successfully',
-                );
-
-                // Clear auth check cache for the edited/created connection
-                this.authCheckPromises.delete(connectionId);
-
-                // Invalidate workspace cache and update connection options
-                builderStore.getState().invalidateOAuthConnectionsCache();
-                await this.updateOAuthConnectionOptions();
-
-                // Update component data and refresh UI elements
-                this.data.oauth_con_id = connectionId;
-                this.refreshSettingsSidebar();
-                this.updateOAuthActionButton(); // Update the edit/add button icon
-                // Update authentication button state after sidebar refresh
-                await this.updateAuthenticationButtonState();
-              } catch (error) {
-                console.error('Error saving OAuth connection:', error);
-                errorToast(`Error: ${error.message}`, 'Error', 'alert');
-                throw error; // Do not close the dialog, throw error to signal failure
-              }
-            },
+      if (oauthInfo) {
+        // Transform to CredentialConnection format expected by modal
+        editConnection = {
+          id: currentValue,
+          name: oauthInfo.name || 'OAuth Connection',
+          provider: oauthInfo.service || 'custom_oauth2',
+          group: 'oauth_connections_creds',
+          credentials: {
+            platform: oauthInfo.platform || '',
+            ...(oauthInfo.clientID && { clientID: oauthInfo.clientID }),
+            ...(oauthInfo.clientSecret && { clientSecret: oauthInfo.clientSecret }),
+            ...(oauthInfo.authorizationURL && { authorizationURL: oauthInfo.authorizationURL }),
+            ...(oauthInfo.tokenURL && { tokenURL: oauthInfo.tokenURL }),
+            ...(oauthInfo.scope && { scope: oauthInfo.scope }),
+            ...(oauthInfo.consumerKey && { consumerKey: oauthInfo.consumerKey }),
+            ...(oauthInfo.consumerSecret && { consumerSecret: oauthInfo.consumerSecret }),
+            ...(oauthInfo.requestTokenURL && { requestTokenURL: oauthInfo.requestTokenURL }),
+            ...(oauthInfo.accessTokenURL && { accessTokenURL: oauthInfo.accessTokenURL }),
+            ...(oauthInfo.userAuthorizationURL && {
+              userAuthorizationURL: oauthInfo.userAuthorizationURL,
+            }),
           },
-        ],
-        dialogClasses: 'smyth-modal-beautiful',
-      },
-      '', // dialogHeight
-      '', // minContentHeight
-      'auto', // overflowY
-      '600px', // minWidth
-      '700px', // maxWidth
-    );
+        };
+      }
+    }
+
+    // Open React modal
+    try {
+      const result = await renderOAuthCredentialsModal({
+        editConnection,
+        onSuccess: async (data) => {
+          const connectionId = data.id || `OAUTH_${generateOAuthId()}_TOKENS`;
+
+          const isEdit = !isNone;
+          successToast(
+            isEdit ? 'Connection created successfully' : 'Connection updated successfully',
+          );
+
+          if (isEdit) {
+            // /signOut to let user authenticate again using the new credentials
+            await signOutOAuthConnection(currentValue, true);
+          }
+
+          // Clear auth check cache for the edited/created connection
+          this.authCheckPromises.delete(connectionId);
+
+          // Invalidate workspace cache and update connection options
+          builderStore.getState().invalidateOAuthConnectionsCache();
+          await this.updateOAuthConnectionOptions();
+
+          // Update component data and refresh UI elements
+          this.data.oauth_con_id = connectionId;
+          this.refreshSettingsSidebar();
+          this.updateOAuthActionButton();
+          await this.updateAuthenticationButtonState();
+        },
+      });
+    } catch (error) {
+      // Modal was closed without saving
+      if (error?.message !== 'Modal closed') {
+        console.error('Error with OAuth modal:', error);
+        errorToast(`Error: ${error?.message}`, 'Error', 'alert');
+      }
+    }
   }
 
   // Build OAuth select options from connections with unified name detection and legacy fallback
@@ -2008,8 +1792,8 @@ export class APICall extends Component {
    */
   private async updateOAuthConnectionOptions() {
     try {
-      // Force refresh to get latest connections
-      this.oauthConnections = await builderStore.getState().getOAuthConnections();
+      // Force refresh to get latest connections with resolved vault keys
+      this.oauthConnections = await builderStore.getState().getOAuthConnections(true, true);
 
       const componentSpecificId = `OAUTH_${this.uid}_TOKENS`;
 
@@ -2172,153 +1956,5 @@ export class APICall extends Component {
 
     oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
     oauth_button.disabled = false;
-  }
-
-  /**
-   * Sets up the OAuth modal handlers (field visibility, change events, etc.)
-   * Extracted from onDOMReady to allow reuse after vault key resolution
-   */
-  private setupOAuthModalHandlers(
-    dialog: HTMLElement,
-    currentOauthInfo: any,
-    consumerKeyValue: string,
-    consumerSecretValue: string,
-  ) {
-    // Get all containers
-    const oauth1Container = dialog.querySelector('#oauth1-fields');
-    const oauth2Container = dialog.querySelector('#oauth2-fields');
-    const callbackDisplayContainer = dialog.querySelector('#callback-url-display');
-    const serviceSelect = dialog.querySelector('#oauthService') as HTMLSelectElement;
-    const initialServiceValue = serviceSelect?.value || 'None';
-
-    // Force-set OAuth1 fields (our working fix)
-    const consumerKeyInput = dialog.querySelector('#consumerKey') as HTMLInputElement;
-    const consumerSecretInput = dialog.querySelector('#consumerSecret') as HTMLInputElement;
-    if (consumerKeyInput && consumerKeyValue) {
-      consumerKeyInput.value = consumerKeyValue;
-    }
-    if (consumerSecretInput && consumerSecretValue) {
-      consumerSecretInput.value = consumerSecretValue;
-    }
-
-    // Force-set OAuth2 fields the same way
-    const clientIDInput = dialog.querySelector('#clientID') as HTMLInputElement;
-    const clientSecretInput = dialog.querySelector('#clientSecret') as HTMLInputElement;
-    const tokenURLInput = dialog.querySelector('#tokenURL') as HTMLInputElement;
-    const authURLInput = dialog.querySelector('#authorizationURL') as HTMLInputElement;
-    const scopeInput = dialog.querySelector('#scope') as HTMLTextAreaElement;
-
-    if (clientIDInput && currentOauthInfo.clientID) {
-      clientIDInput.value = currentOauthInfo.clientID;
-    }
-    if (clientSecretInput && currentOauthInfo.clientSecret) {
-      clientSecretInput.value = currentOauthInfo.clientSecret;
-    }
-    if (tokenURLInput && currentOauthInfo.tokenURL) {
-      tokenURLInput.value = currentOauthInfo.tokenURL;
-    }
-    if (authURLInput && currentOauthInfo.authorizationURL) {
-      authURLInput.value = currentOauthInfo.authorizationURL;
-    }
-    if (scopeInput && currentOauthInfo.scope) {
-      scopeInput.value = currentOauthInfo.scope;
-    }
-
-    // Comprehensive update field visibility function
-    const updateFieldVisibility = (selectedValue: string) => {
-      const isOAuth2 = ['Google', 'LinkedIn', 'Custom OAuth2.0'].includes(selectedValue);
-      const isOAuth1 = ['Twitter', 'Custom OAuth1.0'].includes(selectedValue);
-      const isClientCreds = selectedValue === 'OAuth2 Client Credentials';
-
-      // Show/hide main containers
-      oauth1Container?.classList.toggle('hidden', !isOAuth1);
-      oauth2Container?.classList.toggle('hidden', !(isOAuth2 || isClientCreds));
-
-      // Toggle specific fields within OAuth2
-      const scopeGroup = dialog.querySelector('[data-oauth-field="scope"]');
-      const authURLGroup = dialog.querySelector('#authorizationURL')?.closest('.form-group');
-
-      if (scopeGroup) {
-        scopeGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
-      }
-      if (authURLGroup) {
-        authURLGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
-      }
-
-      // Handle callback URL display
-      callbackDisplayContainer?.classList.toggle(
-        'hidden',
-        isClientCreds || (!isOAuth2 && !isOAuth1),
-      );
-      if (!callbackDisplayContainer?.classList.contains('hidden')) {
-        const callbackUrlDiv = callbackDisplayContainer?.querySelector('div.col-span-3');
-        const service = selectedValue === 'None' ? '' : selectedValue;
-        let callbackURL = '';
-
-        try {
-          const baseUrl = window.location.origin;
-          const serviceInternal = APICall.prototype.mapServiceNameToInternal.call(this, service);
-          if (serviceInternal && serviceInternal !== 'none') {
-            callbackURL = `${baseUrl}/oauth/${serviceInternal}/callback`;
-          }
-        } catch (e) {
-          console.error('Error creating callback URL:', e);
-        }
-
-        if (callbackUrlDiv) {
-          callbackUrlDiv.textContent = callbackURL;
-        }
-      }
-    };
-
-    // Apply initial visibility
-    updateFieldVisibility(initialServiceValue);
-
-    // Re-add change handler
-    if (serviceSelect) {
-      serviceSelect.addEventListener('change', (e) => {
-        const target = e.target as HTMLSelectElement;
-        updateFieldVisibility(target.value);
-
-        // Add this code to prefill values when service changes
-        const selectedService = target.value;
-        if (['Google', 'Twitter', 'LinkedIn'].includes(selectedService)) {
-          // Get default configuration for selected service
-          const baseUrl = window.location.origin;
-          const service = this.mapServiceNameToInternal(selectedService);
-          const callbackUrl = `${baseUrl}/oauth/${service}/callback`;
-
-          // Set default values based on service
-          if (selectedService === 'Google') {
-            (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
-              'https://accounts.google.com/o/oauth2/v2/auth';
-            (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
-              'https://oauth2.googleapis.com/token';
-            (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
-              'https://www.googleapis.com/auth/gmail.readonly';
-          } else if (selectedService === 'LinkedIn') {
-            (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
-              'https://www.linkedin.com/oauth/v2/authorization';
-            (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
-              'https://www.linkedin.com/oauth/v2/accessToken';
-            (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
-              'r_liteprofile r_emailaddress';
-          } else if (selectedService === 'Twitter') {
-            (dialog.querySelector('#requestTokenURL') as HTMLInputElement).value =
-              'https://api.twitter.com/oauth/request_token';
-            (dialog.querySelector('#accessTokenURL') as HTMLInputElement).value =
-              'https://api.twitter.com/oauth/access_token';
-            (dialog.querySelector('#userAuthorizationURL') as HTMLInputElement).value =
-              'https://api.twitter.com/oauth/authorize';
-          }
-
-          // Update callback URL display
-          const callbackUrlDiv = callbackDisplayContainer?.querySelector('div.col-span-3');
-          if (callbackUrlDiv) {
-            callbackUrlDiv.textContent = callbackUrl;
-          }
-        }
-      });
-    }
   }
 }

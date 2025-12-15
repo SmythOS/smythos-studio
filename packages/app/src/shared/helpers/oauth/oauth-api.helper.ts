@@ -1,3 +1,4 @@
+import { CredentialConnection } from '@src/react/features/credentials/components/create-credentials.modal';
 import {
   deriveCallbackUrl,
   handleApiResponse,
@@ -203,7 +204,7 @@ export function extractServiceFromConnection(connection: any): string {
  */
 export async function checkOAuthAuthentication(oauthInfo: any): Promise<{ success: boolean }> {
   try {
-    const response = await fetch('/oauth/checkAuth', {
+    const response = await fetch('/oauth/check-auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(oauthInfo),
@@ -303,14 +304,85 @@ export async function signOutOAuthConnection(
 /**
  * Save OAuth connection to backend
  */
+/**
+ * Save OAuth connection using new credentials API
+ * Converts from legacy format to new credentials format
+ */
 export async function saveOAuthConnection(connectionId: string, authSettings: any): Promise<void> {
-  const response = await fetch('/api/page/vault/oauth-connections', {
-    method: 'PUT',
+  const { name, type, oauth_info } = authSettings;
+
+  if (!oauth_info) {
+    throw new Error('oauth_info is required in authSettings');
+  }
+
+  // Build credentials object from oauth_info
+  const credentials: Record<string, { value: string; sensitive: boolean }> = {};
+
+  // Add platform and name
+  if (oauth_info.platform) {
+    credentials.platform = { value: oauth_info.platform, sensitive: false };
+  }
+
+  // Map OAuth2 fields
+  if (oauth_info.authorizationURL) {
+    credentials.authorizationURL = { value: oauth_info.authorizationURL, sensitive: false };
+  }
+  if (oauth_info.tokenURL) {
+    credentials.tokenURL = { value: oauth_info.tokenURL, sensitive: false };
+  }
+  if (oauth_info.clientID) {
+    credentials.clientID = { value: oauth_info.clientID, sensitive: true };
+  }
+  if (oauth_info.clientSecret) {
+    credentials.clientSecret = { value: oauth_info.clientSecret, sensitive: true };
+  }
+  if (oauth_info.scope) {
+    credentials.scope = { value: oauth_info.scope, sensitive: false };
+  }
+
+  // Map OAuth1 fields
+  if (oauth_info.requestTokenURL) {
+    credentials.requestTokenURL = { value: oauth_info.requestTokenURL, sensitive: false };
+  }
+  if (oauth_info.accessTokenURL) {
+    credentials.accessTokenURL = { value: oauth_info.accessTokenURL, sensitive: false };
+  }
+  if (oauth_info.userAuthorizationURL) {
+    credentials.userAuthorizationURL = { value: oauth_info.userAuthorizationURL, sensitive: false };
+  }
+  if (oauth_info.consumerKey) {
+    credentials.consumerKey = { value: oauth_info.consumerKey, sensitive: true };
+  }
+  if (oauth_info.consumerSecret) {
+    credentials.consumerSecret = { value: oauth_info.consumerSecret, sensitive: true };
+  }
+
+  // Determine if we're creating or updating based on whether the credential exists
+  const checkResponse = await fetch(
+    `/api/app/credentials/${encodeURIComponent(connectionId)}?group=oauth_connections_creds`,
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+
+  const isUpdate = checkResponse.ok;
+  const method = isUpdate ? 'PUT' : 'POST';
+  const url = isUpdate
+    ? `/api/app/credentials/${encodeURIComponent(connectionId)}`
+    : '/api/app/credentials';
+
+  const body: any = {
+    group: 'oauth_connections_creds',
+    name: name || oauth_info.name || 'OAuth Connection',
+    provider: oauth_info.service || type || 'custom_oauth2',
+    credentials,
+  };
+
+  const response = await fetch(url, {
+    method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      entryId: connectionId,
-      data: authSettings,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -322,12 +394,16 @@ export async function saveOAuthConnection(connectionId: string, authSettings: an
 }
 
 /**
- * Delete OAuth connection from backend
+ * Delete OAuth connection using new credentials API
  */
 export async function deleteOAuthConnection(connectionId: string): Promise<void> {
-  const response = await fetch(`/api/page/vault/oauth-connections/${connectionId}`, {
-    method: 'DELETE',
-  });
+  const response = await fetch(
+    `/api/app/credentials/${encodeURIComponent(connectionId)}?group=oauth_connections_creds`,
+    {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -384,4 +460,64 @@ export async function authenticateClientCredentials(
   }
 
   return await response.json();
+}
+
+type OAuthInfo = {
+  [key: string]: any; // you can refine this if you know the schema
+};
+
+type AuthSettings = {
+  name?: string;
+  platform?: string;
+  oauth_info?: OAuthInfo;
+  [key: string]: any; // other arbitrary setting fields
+};
+
+type AuthData = {
+  primary?: string;
+  secondary?: string;
+  expires_in?: number;
+};
+
+export type ExistingEntryData = {
+  // NEW structure
+  auth_data?: AuthData;
+  auth_settings?: AuthSettings;
+};
+
+export function transformOAuthCredEntry(
+  credentialEntry: CredentialConnection & { tokens: any },
+): ExistingEntryData {
+  // if old flow, return the old structure
+  if (credentialEntry.credentials?.primary) {
+    const { primary, secondary, expires_in, ...credentials } = credentialEntry.credentials;
+    return {
+      auth_data: {
+        primary,
+        secondary,
+        expires_in: expires_in ? parseInt(expires_in) : undefined,
+      },
+      auth_settings: {
+        ...credentials,
+        name: credentialEntry.name,
+        service: credentialEntry.provider,
+        platform: credentialEntry.name,
+      },
+    };
+  }
+
+  // if new flow, return the new structure
+  return {
+    auth_data: {
+      primary: credentialEntry.tokens?.primary,
+      secondary: credentialEntry.tokens?.secondary,
+      expires_in: credentialEntry.tokens?.expires_in,
+    },
+    auth_settings: {
+      name: credentialEntry.name,
+      service: credentialEntry.provider,
+      platform: credentialEntry.name,
+      ...credentialEntry.credentials,
+    },
+  };
 }

@@ -13,10 +13,11 @@ export const credentialsRouter = express.Router();
 
 /**
  * Get all credentials for a specific group
- * GET /api/credentials?group=vector_db_creds
+ * GET /api/credentials?group=vector_db_creds&resolveVaultKeys=true
  */
 credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Response) => {
   const group = req.query.group as string;
+  const resolveVaultKeys = req.query.resolveVaultKeys === 'true';
 
   if (!group) {
     return res.status(400).json({
@@ -26,7 +27,9 @@ credentialsRouter.get('/', includeTeamDetails, async (req: Request, res: Respons
   }
 
   try {
-    const credentials = await CredentialsService.getCredentialsByGroup(group, req);
+    const credentials = await CredentialsService.getCredentialsByGroup(group, req, {
+      resolveVaultKeys,
+    });
 
     res.json({
       success: true,
@@ -88,7 +91,7 @@ credentialsRouter.get('/:id', includeTeamDetails, async (req: Request, res: Resp
  * Body: { group, name, provider, credentials: { fieldName: { value, sensitive }, ... } }
  */
 credentialsRouter.post('/', includeTeamDetails, async (req: Request, res: Response) => {
-  const { group, name, provider, credentials } = req.body;
+  const { group, name, provider, credentials, authType } = req.body;
 
   // Validation
   if (!group || !name || !provider || !credentials) {
@@ -100,7 +103,7 @@ credentialsRouter.post('/', includeTeamDetails, async (req: Request, res: Respon
 
   try {
     const result = await CredentialsService.createCredential(
-      { group, name, provider, credentials },
+      { group, name, provider, credentials, authType },
       req,
     );
 
@@ -125,7 +128,7 @@ credentialsRouter.post('/', includeTeamDetails, async (req: Request, res: Respon
  */
 credentialsRouter.put('/:id', includeTeamDetails, async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { group, name, provider, credentials } = req.body;
+  const { group, name, provider, credentials, authType } = req.body;
 
   // Validation
   if (!group || !name || !provider || !credentials) {
@@ -139,7 +142,7 @@ credentialsRouter.put('/:id', includeTeamDetails, async (req: Request, res: Resp
     const result = await CredentialsService.updateCredential(
       id,
       group,
-      { name, provider, credentials },
+      { name, provider, credentials, authType },
       req,
     );
 

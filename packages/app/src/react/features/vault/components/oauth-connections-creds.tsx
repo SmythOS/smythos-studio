@@ -9,6 +9,7 @@
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
+import { signOutOAuthConnection } from '@src/shared/helpers/oauth/oauth-api.helper';
 import { getBackendOrigin } from '@src/shared/helpers/oauth/oauth.utils';
 import { Info, PlusCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -59,7 +60,7 @@ export function OAuthConnectionsCredentials() {
   }, [handleAuthTabMessage]);
 
   // --- Event Handlers ---
-  const handleSuccess = (data: { 
+  const handleSuccess = async (data: { 
     id?: string; 
     name: string; 
     provider: string; 
@@ -67,6 +68,14 @@ export function OAuthConnectionsCredentials() {
     isEdit: boolean 
   }) => {
     successToast(data.isEdit ? 'Connection updated successfully.' : 'Connection created successfully.');
+
+    if (data.isEdit) {
+      // /signOut to let user authenticate again using the new credentials
+      await signOutOAuthConnection(
+        data.id,
+        true
+      );
+    }
     setEditingConnection(undefined);
     refetch();
   };

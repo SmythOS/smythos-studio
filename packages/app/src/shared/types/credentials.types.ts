@@ -40,6 +40,8 @@ export interface CredentialConnection {
 
   /** Whether the credential is currently authenticated/active */
   isActive?: boolean;
+
+  customProperties?: Record<string, any>;
 }
 
 /**
@@ -57,6 +59,9 @@ export interface CreateCredentialInput {
 
   /** Credential fields with value and sensitivity flag */
   credentials: Record<string, { value: string; sensitive: boolean }>;
+
+  /** Authentication type */
+  authType: string;
 }
 
 /**
@@ -74,6 +79,9 @@ export interface UpdateCredentialInput {
 
   /** Extra data to be stored in the credential */
   customProperties?: Record<string, any>;
+
+  /** Authentication type */
+  authType?: string;
 }
 
 /**

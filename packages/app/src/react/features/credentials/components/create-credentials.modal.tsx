@@ -351,6 +351,7 @@ export function CreateCredentialsModal({
         name: connectionName,
         provider: selectedProviderId,
         credentials: credentialsWithMetadata,
+        authType: selectedProvider.auth_type,
       };
 
       let result;

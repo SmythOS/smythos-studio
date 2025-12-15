@@ -8,7 +8,6 @@ import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
 import { oauthStrategyInitialization } from '../../middlewares/oauthStrategy.mw';
-import { getTeamSettingsObj } from '../../services/team-data.service';
 import { CredentialsService } from '../api/credentials/credentials.service';
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
 const router = express.Router();
@@ -99,21 +98,24 @@ function normalizeAuthSettings(mergedSettings: any): any {
   return mergedSettings;
 }
 
-router.post('/checkAuth', includeTeamDetails, async (req, res) => {
+router.post('/check-auth', includeTeamDetails, async (req, res) => {
   try {
-    const existing = await getTeamSettingsObj(req, 'oauth');
-    if (existing) {
-      const result = await compareOAuthDetails(existing, req);
-      // Use res.send() or res.json() to send the result back to the client.
-      res.json({ success: result });
+    const credRecord = await CredentialsService.getCredentialById(
+      req.body.oauth_conn_id || req.body.oauth_keys_prefix,
+      'oauth_connections_creds',
+      req,
+      { resolveVaultKeys: true },
+    );
+
+    if (credRecord.customProperties?.tokens?.primary) {
+      return res.json({ success: true });
     } else {
-      // If there are no existing settings, respond accordingly.
-      res.status(404).send('No existing OAuth settings found.');
+      return res.json({ success: false });
     }
   } catch (error) {
-    console.error('Error during comparing oauth values:', error?.message);
+    console.error('Error during checking OAuth authentication:', error?.message);
     // Send a 500 Internal Server Error response with an error message.
-    res.status(500).send('Failed to compare oauth values.');
+    res.status(500).send('Failed to check OAuth authentication.');
   }
 });
 

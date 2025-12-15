@@ -21,9 +21,17 @@ import {
   useInitiateOAuth,
   useSignOutOAuth,
 } from '../components/use-oauth-creds';
-import type { OAuthInfo } from '../types/oauth-connection';
+import { OAuthInfo } from '../types/oauth-connection';
 
-// --- Constants ---
+
+
+
+// --- Helper Functions ---
+
+/**
+ * Build OAuth info object from credential connection
+ */
+
 const PROVIDER_TO_SERVICE_MAP: Record<string, string> = {
   google: 'google',
   linkedin: 'linkedin',
@@ -32,14 +40,7 @@ const PROVIDER_TO_SERVICE_MAP: Record<string, string> = {
   custom_oauth1: 'oauth1',
   oauth2_client_credentials: 'oauth2_client_credentials',
 };
-
-
-// --- Helper Functions ---
-
-/**
- * Build OAuth info object from credential connection
- */
-function buildOAuthInfo(connection: CredentialConnection): OAuthInfo | null {
+function buildOAuthInfoFromCred(connection: CredentialConnection): OAuthInfo | null {
   if (!connection.credentials || !connection.id) return null;
 
   const service = PROVIDER_TO_SERVICE_MAP[connection.provider] || connection.provider;
@@ -52,12 +53,11 @@ function buildOAuthInfo(connection: CredentialConnection): OAuthInfo | null {
     ...connection.credentials,
   };
 
-
-  // @ts-expect-error - tokens is a custom property
   oauthInfo.tokens = connection.customProperties?.tokens;
 
   return oauthInfo;
 }
+
 
 
 
@@ -105,7 +105,7 @@ const {getData} = useCredentialById(connection.id, 'oauth_connections_creds', { 
 
 const getOAuthFullInfo = useCallback(async () => {
   const oauthFullCredRecord = await getData();
-  return buildOAuthInfo(oauthFullCredRecord);
+  return buildOAuthInfoFromCred(oauthFullCredRecord);
 }, [getData]);
 
   // Check authentication status on mount (only once)

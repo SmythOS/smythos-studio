@@ -23,9 +23,16 @@ export const credentialsClient = {
   /**
    * Fetch all credentials for a specific group
    */
-  fetchCredentials: async (group: string): Promise<CredentialConnection[]> => {
+  fetchCredentials: async (
+    group: string,
+    options: { resolveVaultKeys?: boolean } = { resolveVaultKeys: false },
+  ): Promise<CredentialConnection[]> => {
     try {
-      const response = await fetch(`/api/app/credentials?group=${encodeURIComponent(group)}`, {
+      const url = `/api/app/credentials?group=${encodeURIComponent(group)}${
+        options.resolveVaultKeys ? '&resolveVaultKeys=true' : ''
+      }`;
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
