@@ -520,8 +520,10 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 
   /**
-   * For select-multiple fields, configure all form-related attributes on the actual select element
-   * and get the target element for event listeners. For other fields, use formElement directly.
+   * For select-multiple fields, the formElement is a container/wrapper div that contains a nested select element.
+   * We need to attach events to the nested select element (not the wrapper) so that events fire correctly.
+   * configureSelectMultiple sets up attributes on the nested select and returns it for event attachment.
+   * For other field types, formElement is the actual input/select element, so we use it directly.
    */
   let eventTarget: HTMLElement = formElement;
   if (entry?.type?.toLowerCase() === 'select-multiple') {
