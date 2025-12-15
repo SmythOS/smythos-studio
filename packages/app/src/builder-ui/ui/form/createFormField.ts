@@ -190,8 +190,16 @@ export default function createFormField(entry, displayType = 'block', entryIndex
         formElement.addEventListener('created', async () => {
           const mode = entry?.code?.mode;
           const theme = entry?.code?.theme || 'tomorrow';
-          setCodeEditor(formElement, mode, theme, entry?.code?.disableWorker);
+          const editors = setCodeEditor(formElement, mode, theme, entry?.code?.disableWorker);
           (<any>formElement)._editor.setValue((<any>formElement).value);
+
+          if (entry?.code?.editorHeight) {
+            editors?.forEach((editor: any) => {
+              editor?.setOptions({
+                maxLines: entry?.code?.editorHeight,
+              });
+            });
+          }
         });
       }
       if (entry?.toggle?.toLowerCase() === 'json') {
@@ -518,9 +526,8 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let labelElement = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
-    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${
-      attributes.labelCase ? attributes.labelCase : 'capitalize'
-    }`;
+    labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${attributes.labelCase ? attributes.labelCase : 'capitalize'
+      }`;
 
     if (entry.type?.toLowerCase() === 'key-value' || entry.type?.toLowerCase() === 'table') {
       labelElement.classList.add('form-label__kv');
