@@ -62,18 +62,8 @@ export const routeMap: IPageRoute[] = [
     component: VaultPage,
     layoutOptions: { sidebar: true, topMenu: true },
   },
-  {
-    title: 'Data Pool',
-    path: 'data-pool',
-    component: DataPoolPage,
-    layoutOptions: { sidebar: true, topMenu: true, background: 'white' },
-  },
-  {
-    title: 'Datasources',
-    path: 'data-pool/:namespaceLabel/datasources',
-    component: DatasourcesPage,
-    layoutOptions: { sidebar: true, topMenu: true, background: 'white' },
-  },
+  { path: '/data', component: DataPoolPage, title: 'Data Pool' },
+  { path: '/data/:namespaceLabel/datasources', component: DatasourcesPage, title: 'Datasources' },
 ];
 
 export const routeNames = routeMap.map((route) => route.path);

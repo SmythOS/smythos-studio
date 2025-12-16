@@ -1,54 +1,30 @@
-import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceCleaner extends Component {
   private namespaces: string[] = [];
-  private isNewComponent: boolean = false;
 
   protected async prepare(): Promise<any> {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    const eligibleForV2 =
-      builderStore.getState().serverStatus.edition === 'enterprise' &&
-      !window.location.hostname.includes('smythos.com');
-
-    const componentVersion =
-      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
-
-    if (this.isNewComponent && eligibleForV2) {
-      this.data.version = componentVersion;
-    }
-
     this.updateSettings();
   }
 
   protected async updateSettings() {
-    if (!this.data.version || this.data.version === 'v1') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespaceId.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    } else if (this.data.version === 'v2') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
-      this.settings.namespaceId.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    }
+    const result = await fetch(
+      `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+    );
+    const namespaces = await result.json();
+    this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
+    this.settings.namespaceId.options = this.namespaces;
+    if (this.settingsOpen) this.refreshSettingsSidebar();
   }
 
   protected async init() {
     this.settings = {
       namespaceId: {
         type: 'select',
-        label: 'namespace',
-        help: 'Select the namespace that contains the source to remove.',
+        label: 'data space',
+        help: 'Select the data space that contains the source to remove.',
         value: '',
         options: this.namespaces,
       },
@@ -94,7 +70,7 @@ export class DataSourceCleaner extends Component {
       if (!namespaces[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
-          `Missing Namespace<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
+          `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
         );
       }

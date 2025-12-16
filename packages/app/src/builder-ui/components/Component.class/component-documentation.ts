@@ -192,14 +192,14 @@ export const COMPONENT_DOCUMENTATION: Record<string, ComponentDocumentation> = {
 
   DataSourceIndexer: {
     description:
-      'Adds or updates content in the agent’s knowledge base. Stores text and optional metadata in a selected namespace with a stable source ID, enabling later search, updates, or deletion.',
+      'Adds or updates content in the agent’s knowledge base. Stores text and optional metadata in a selected data space with a stable source ID, enabling later search, updates, or deletion.',
     docsLink:
       'https://smythos.com/docs/agent-studio/components/rag-data/rag-remember/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-remember&utm_content=component-header',
   },
 
   DataSourceCleaner: {
     description:
-      'Deletes a specific source from a selected namespace using its exact source identifier. Operation is permanent and intended for data hygiene and compliance workflows.',
+      'Deletes a specific source from a data space using its exact source identifier. Operation is permanent and intended for data hygiene and compliance workflows.',
     docsLink:
       'https://smythos.com/docs/agent-studio/components/rag-data/rag-forget/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-forget&utm_content=source-identifier',
   },
