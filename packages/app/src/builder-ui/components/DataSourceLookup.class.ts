@@ -65,6 +65,11 @@ export class DataSourceLookup extends Component {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
 
+    // if the namespace value is using the old legacy format {{teamId}}_{{namespace}}, we need to convert it to the new format {{namespace}}
+    if (this.data['namespace'] && /^c[a-z0-9]{24}.+$/.test(this.data['namespace'])) {
+      this.data['namespace'] = this.data['namespace'].split('_').slice(1).join('_');
+    }
+
     this.properties.defaultInputs = ['Query'];
     this.properties.defaultOutputs = ['Results'];
 

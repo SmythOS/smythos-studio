@@ -45,6 +45,11 @@ export class DataSourceCleaner extends Component {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
 
+    // if the namespace value is using the old legacy format {{teamId}}_{{namespace}}, we need to convert it to the new format {{namespace}}
+    if (this.data['namespaceId'] && /^c[a-z0-9]{24}.+$/.test(this.data['namespaceId'])) {
+      this.data['namespaceId'] = this.data['namespaceId'].split('_').slice(1).join('_');
+    }
+
     this.properties.defaultInputs = [];
     this.properties.defaultOutputs = ['Success'];
 
@@ -65,8 +70,8 @@ export class DataSourceCleaner extends Component {
     this.namespaces.forEach((ns: any) => {
       namespaces[ns.value] = ns.text;
     });
-    if (this.data['namespace']) {
-      const nsId = this.data['namespace'];
+    if (this.data['namespaceId']) {
+      const nsId = this.data['namespaceId'];
       if (!namespaces[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
