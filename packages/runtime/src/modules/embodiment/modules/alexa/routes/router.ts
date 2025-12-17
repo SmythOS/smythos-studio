@@ -1,54 +1,21 @@
-import { Agent } from '@smythos/sre';
 import express from 'express';
 
-import { DEFAULT_AGENT_MODEL_SETTINGS_KEY, DEFAULT_MODEL } from '@core/constants';
+import { AlexaRole } from '@smythos/server-common';
 
-import agentLoader from '@embodiment/middlewares/agentLoader.mw';
-
-import { createAlexaSkill, handleAlexaRequest, isAlexaEnabled, parseAlexaRequest } from '../services/alexa.service';
+import { constructServerUrl } from '@embodiment/helpers/openapi-adapter.helper';
 
 const router = express.Router();
 
-router.post('/', agentLoader, async (req: any, res) => {
-  try {
-    const agent: Agent = req._agent;
-    await agent.agentSettings?.ready();
-    const isEnabled = isAlexaEnabled(agent);
-    // wait for agent embodiments to be ready
-    await agent.agentSettings?.embodiments?.ready();
-
-    const alexRequest = parseAlexaRequest(req.body);
-    const model = agent.agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_MODEL;
-
-    const response = await handleAlexaRequest(agent, alexRequest, model, isEnabled);
-
-    res.json(response);
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).send({ error: error.message });
-  }
+// Create Alexa Role instance
+const alexaRole = new AlexaRole([], {
+  serverOrigin: (req: express.Request) => {
+    const domain = req.hostname;
+    const serverOrigin = constructServerUrl(domain);
+    return serverOrigin;
+  },
 });
 
-router.post('/publish', agentLoader, async (req: any, res) => {
-  try {
-    const agent: Agent = req._agent;
-    const agentName = agent.name;
-    const agentDomain = agent.domain;
-    const accessToken = req.body.accessToken;
-    const vendorId = req.body.vendorId;
-    const scheme = agentDomain.includes(':') ? 'http' : 'https';
-    const endpoint = `${scheme}://${agentDomain}/alexa`;
-
-    await createAlexaSkill(agentName, accessToken, vendorId, endpoint);
-
-    return res.json({
-      success: true,
-      message: 'Agent published to Alexa successfully',
-    });
-  } catch (error: any) {
-    console.error('Error publishing to Alexa:', error);
-    return res.status(500).json({ success: false, error: error.message });
-  }
-});
+// Mount Alexa Role
+alexaRole.mount(router);
 
 export { router as alexaRouter };

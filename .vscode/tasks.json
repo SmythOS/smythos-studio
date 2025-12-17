@@ -56,7 +56,7 @@
     {
       "label": "runtime: build:dev",
       "type": "shell",
-      "command": "NODE_ENV=development FORMAT=cjs npx rollup -c",
+      "command": "NODE_OPTIONS='--max-old-space-size=8192' NODE_ENV=development FORMAT=cjs npx rollup -c",
       "options": {
         "cwd": "${workspaceFolder}/packages/runtime"
       },
