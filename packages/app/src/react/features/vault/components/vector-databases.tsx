@@ -183,7 +183,25 @@ export function VectorDatabases() {
                   <tr key={connection.id} className="border-t">
                     {/* Connection Name */}
                     <td className="pr-4 py-3 truncate" title={connection.name}>
-                      <span className="font-medium">{connection.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{connection.name}</span>
+                        {connection.isManaged && (
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200 ml-2 shadow-sm"
+                            title="This is an internal connection automatically managed by SmythOS"
+                          >
+                            <svg
+                              className="w-3 h-3 mr-1 text-blue-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              aria-hidden="true"
+                            >
+                              <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm.93 12.412a.75.75 0 11-1.86 0l-1.406-5.624A.75.75 0 017.38 7h5.24a.75.75 0 01.716.788l-1.406 5.624zm-.93-7.162a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                            Managed
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Provider */}
@@ -201,7 +219,10 @@ export function VectorDatabases() {
                     </td>
 
                     {/* Actions */}
-                    <td className="pl-4 py-3">
+                    
+
+                    {!connection.isReadOnly && (
+                      <td className="pl-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         {/* Edit Button */}
                         <Tooltip content="Edit">
@@ -226,6 +247,7 @@ export function VectorDatabases() {
                         </Tooltip>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

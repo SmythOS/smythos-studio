@@ -3,6 +3,7 @@ import {
   DeleteObjectCommandInput,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
@@ -206,5 +207,57 @@ export default class S3Storage implements StaticStorage {
       }),
     );
     return res.Body as NodeJS.ReadableStream;
+  }
+
+  /**
+   * Lists S3 object keys matching a given pattern
+   * @param prefix - S3 prefix to filter keys (default: empty string for root)
+   * @param maxKeys - Maximum number of keys to return (default: 2500)
+   * @param pattern - Regular expression pattern to match keys (default: matches all keys)
+   * @returns Promise resolving to an array of matching S3 keys
+   */
+  public async listKeys(
+    prefix: string = '',
+    maxKeys: number = 1000,
+    pattern?: RegExp,
+  ): Promise<string[]> {
+    const keys: string[] = [];
+    let continuationToken: string | undefined;
+
+    try {
+      do {
+        const command = new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          MaxKeys: 1000,
+          ContinuationToken: continuationToken,
+        });
+
+        const response = await this.client.send(command);
+        const contents = response.Contents ?? [];
+
+        for (const obj of contents) {
+          if (obj.Key) {
+            // If pattern is provided, test against it; otherwise include all keys
+            if (!pattern || pattern.test(obj.Key)) {
+              keys.push(obj.Key);
+              if (keys.length >= maxKeys) {
+                break;
+              }
+            }
+          }
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } while (continuationToken && keys.length < maxKeys);
+
+      const patternInfo = pattern ? ` matching pattern ${pattern.source}` : '';
+      logger.info(`Found ${keys.length} keys${patternInfo}`);
+      return keys;
+    } catch (error) {
+      const patternInfo = pattern ? ` matching pattern ${pattern.source}` : '';
+      logger.error(`Error listing keys${patternInfo}: `, error);
+      throw error;
+    }
   }
 }

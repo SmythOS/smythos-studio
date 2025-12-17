@@ -144,7 +144,7 @@ export function setCodeEditor(
     const editor = ace?.edit(div);
     editors.push(editor);
     editor?.setOptions({
-      maxLines: Infinity,
+      maxLines: null,
       wrap: wrapLine, // enable horizontal scrolling
       showGutter: showLineNumbers,
       showLineNumbers,
@@ -153,7 +153,8 @@ export function setCodeEditor(
       hScrollBarAlwaysVisible: false,
     });
     // Remove fixed height and allow content to determine height
-    editor.container.style.height = 'auto';
+    editor.container.style.height = '100%';
+    editor.container.style.minHeight = '200px';
     editor.renderer.setScrollMargin(
       scrollMarginTop,
       scrollMarginBottom,

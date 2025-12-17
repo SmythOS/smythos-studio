@@ -227,6 +227,17 @@ export function generateTemplateVarBtns(
   return wrapper;
 }
 
+function resizeAceEditor(parent: HTMLElement | null) {
+  if (!parent) return;
+  const editorEl =
+    parent.querySelector('.json-editor') ||
+    parent.querySelector('textarea[data-template-vars=true]') ||
+    parent.querySelector('textarea[data-agent-vars=true]') ||
+    parent.querySelector('textarea[data-trigger-vars=true]');
+  const editor = (editorEl as any)?._editor;
+  editor?.resize();
+}
+
 // TODO: REFACTOR THIS FUNCTION
 export function handleTemplateVars(targetElm, component = null) {
   targetElm.onclick = (e) => {
@@ -306,7 +317,10 @@ export function handleTemplateVars(targetElm, component = null) {
         }
 
         // Remove the template variable buttons container
-        document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`)?.remove();
+        const wrapper = document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`);
+        const parent = wrapper?.parentElement as HTMLElement;
+        wrapper?.remove();
+        resizeAceEditor(parent);
       } else if (
         (clickedElm.getAttribute('data-template-vars') === 'true' ||
           (clickedElm as HTMLElement)?.closest?.('[data-template-vars="true"]')) &&
@@ -369,6 +383,7 @@ export function handleTemplateVars(targetElm, component = null) {
         if (!buttonsContainer) return;
 
         focusedElmParent.appendChild(buttonsContainer);
+        resizeAceEditor(focusedElmParent);
       } else if (
         (clickedElm.getAttribute('data-agent-vars') === 'true' ||
           (clickedElm as HTMLElement)?.closest?.('[data-agent-vars="true"]')) &&
@@ -406,6 +421,7 @@ export function handleTemplateVars(targetElm, component = null) {
         if (!buttonsContainer) return;
 
         focusedElmParent.appendChild(buttonsContainer);
+        resizeAceEditor(focusedElmParent);
       } else if (
         clickedElm.getAttribute('data-trigger-vars') === 'true' &&
         !clickedElm?.hasAttribute('readonly')
@@ -434,15 +450,20 @@ export function handleTemplateVars(targetElm, component = null) {
         if (!buttonsContainer) return;
         const focusedElmParent = clickedElm.closest('.form-group');
         focusedElmParent.appendChild(buttonsContainer);
+        resizeAceEditor(focusedElmParent as HTMLElement);
       } else {
         // * Remove template variable buttons
-        document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`)?.remove();
+        const wrapper = document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`);
+        const parent = wrapper?.parentElement as HTMLElement;
+        wrapper?.remove();
+        resizeAceEditor(parent);
       }
     } catch (err) {
       console.log('Template variables display error: ', err);
     }
   };
 }
+
 function extractTriggerVariables(schema: any, path = '') {
   let variables = new Map();
 

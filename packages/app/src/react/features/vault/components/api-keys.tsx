@@ -355,7 +355,7 @@ export const UpdateApiKeyDialog: FC<UpdateApiKeyDialogProps> = ({
             handleClick={handleSubmit}
             disabled={isLoading || !isFormValid()}
             label={isLoading ? 'Saving...' : 'Save'}
-            className={cn('w-[100px]', 'rounded-lg')}
+            className={cn('w-[100px]')}
           />
         </DialogFooter>
       </DialogContent>

@@ -5,8 +5,8 @@
   "main": "dist/index.cjs",
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=8192' cross-env NODE_ENV=development FORMAT=cjs npx rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
-    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=3096' rollup -c",
+    "dev": "cross-env NODE_ENV=development FORMAT=cjs rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
+    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=4096' rollup -c",
     "start": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "start:prod": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",

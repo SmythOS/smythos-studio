@@ -28,10 +28,8 @@ export const agentOperationsSlice: StateCreator<BuilderStore, [], [], AgentOpera
       if (response.ok) {
         const data = await response.json();
         if (data.url && window.workspace?.agent) {
-          const timeoutId = setTimeout(() => {
-            window.workspace.agent.emit('AvatarUpdated', data.url);
-            clearTimeout(timeoutId);
-          }, 1000);
+          window.sessionStorage.setItem(`agent-avatar-${agentId}`, data.url);
+          window.workspace.agent.emit('AvatarUpdated', data.url);
         }
         return true;
       }
