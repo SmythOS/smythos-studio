@@ -14,7 +14,7 @@ const INTERNAL_CREDENTIALS = {
   vector_db_creds: [
     {
       id: '__smythos_vectordb_cred__',
-      name: 'SmythOS Pinecone',
+      name: 'SmythOS Pinecone 1536d',
       provider: 'Pinecone',
       credentials: {},
       createdAt: '2024-11-26T17:59:56.212Z',

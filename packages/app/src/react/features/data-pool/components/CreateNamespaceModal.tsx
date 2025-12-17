@@ -217,7 +217,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
     setError(null);
   };
 
-  const isFormValid = name.trim() !== '' && selectedCredentialId !== '' && selectedModelId !== '';
+  const isFormValid = name.trim() !== '' && selectedCredentialId !== '' && selectedModelId !== '' && dimensions !== '';
 
   return (
     <>
@@ -389,16 +389,13 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                 </label>
                 <input
                   type="number"
-                  placeholder="e.g., 1536 (optional)"
+                  placeholder="e.g., 1536"
                   value={dimensions}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setDimensions(e.target.value)}
                   disabled={isCreating}
                   readOnly={isDimensionsReadOnly}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                 />
-                <p className="text-xs text-gray-500">
-                  Leave empty for default
-                </p>
               </div>
             </div>
           </div>
