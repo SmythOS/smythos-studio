@@ -1477,7 +1477,6 @@ ul.agents-list-dlg .btn-delete {
 }
 
 .comp-menuitem-list .btn-delete {
-  padding: 10px 15px !important;
   display: flex;
   align-items: center;
 }
