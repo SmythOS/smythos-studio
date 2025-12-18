@@ -485,8 +485,12 @@ export class GenAILLM extends Component {
           {
             label: '$ View Pricing',
             icon: 'dollar-sign',
-            classes: 'text-gray-600 top-[-8px] right-6 hover:underline _model_pricing_link hidden',
-            tooltip: 'SmythOS charges based on input and output tokens',
+            classes:
+              'text-gray-600 top-[-8px] right-[-80px] shadow-none hover:underline _model_pricing_link hidden',
+            tooltip: {
+              text: 'SmythOS charges based on input and output tokens',
+              position: 'left',
+            },
             events: {
               click: () => {
                 window.open(

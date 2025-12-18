@@ -18,7 +18,7 @@ export function createActionButton(action: Record<string, any>) {
   button.type = 'button';
   button.setAttribute(
     'class',
-    `field-action-btn absolute z-10 py-1 px-2 transition-opacity rounded-md h-8 hover:opacity-75 text-gray-400${
+    `field-action-btn absolute z-10 py-1 px-2 transition-opacity rounded-md h-8 text-gray-400${
       action?.classes ? ' ' + action.classes : ''
     }`,
   );
