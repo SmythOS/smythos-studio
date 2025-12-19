@@ -719,6 +719,7 @@ export class GenAILLM extends Component {
           { text: 'High', value: 'high' },
         ],
         attributes: {
+          'data-template-vars': 'true',
           'data-supported-models': this.gpt5Models.join(','),
         },
         help: 'Control how much reasoning detail appears in the response.',
