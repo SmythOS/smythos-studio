@@ -95,15 +95,16 @@ export const ChatHeader: FC = () => {
       .getState()
       .init()
       .finally(() => {
-        const models: Array<ILLMModels> = LLMRegistry.getSortedModelsByFeatures('tools').map(
-          (model) => ({
-            label: model.label,
-            value: model.entryId,
-            tags: model.tags,
-            default: model?.default || false,
-            provider: model.provider || '',
-          }),
-        );
+        const models: Array<ILLMModels> = LLMRegistry.getSortedModelsByFeatures({
+          features: 'tools',
+          selectedModel: currentModel,
+        }).map((model) => ({
+          label: model.label,
+          value: model.entryId,
+          tags: model.tags,
+          default: model?.default || false,
+          provider: model.provider || '',
+        }));
 
         setLlmModels(models);
         setIsModelsLoading(false);

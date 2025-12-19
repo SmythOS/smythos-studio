@@ -26,18 +26,12 @@ import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { Agent } from '@react/shared/types/agent-data.types';
 import { extractError } from '@react/shared/utils/errors';
 import { cn, validateDomains, validateURL } from '@react/shared/utils/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { Info } from 'lucide-react';
-
-// const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
-//   name: model.label,
-//   value: model.entryId,
-//   tags: model.tags,
-// }));
 
 // #region Temporary Badges
 const TEMP_BADGES = {

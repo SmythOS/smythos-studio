@@ -29,6 +29,17 @@ import {
 import { FaCheck } from 'react-icons/fa';
 import * as Yup from 'yup';
 
+/**
+ * Form values interface
+ * Represents the shape of form data for agent settings
+ */
+interface FormValues {
+  chatGptModel?: string;
+  behavior?: string;
+  name?: string;
+  shortDescription?: string;
+}
+
 // Create the context type
 interface WidgetsContextType {
   formik: ReturnType<typeof useFormik>;
@@ -67,13 +78,6 @@ export const useWidgetsContext = () => {
   }
   return context;
 };
-
-interface FormValues {
-  chatGptModel?: string;
-  behavior?: string;
-  name?: string;
-  shortDescription?: string;
-}
 
 const OverviewWidgetsContainer = ({ isWriteAccess }: { isWriteAccess: boolean }) => {
   const queryClient = useQueryClient();
@@ -152,12 +156,19 @@ const OverviewWidgetsContainer = ({ isWriteAccess }: { isWriteAccess: boolean })
       .getState()
       .init()
       .finally(() => {
+        // Get the current model from settings data
+        // Since formik.values.chatGptModel is empty at this point, we access the source data directly
+        const currentModelValue = settingsQuery.data?.settings?.chatGptModel || '';
+
         const llmModels: {
           label: string;
           value: string;
           tags: string[];
           default?: boolean;
-        }[] = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
+        }[] = LLMRegistry.getSortedModelsByFeatures({
+          features: 'tools',
+          selectedModel: currentModelValue,
+        }).map((model) => ({
           label: model.label,
           value: model.entryId,
           tags: model.tags,
@@ -175,7 +186,7 @@ const OverviewWidgetsContainer = ({ isWriteAccess }: { isWriteAccess: boolean })
 
         setIsLLMModelsLoading(false);
       });
-  }, []); // Empty dependency array means this runs once on mount
+  }, [settingsQuery.data]); // Re-run when settings data becomes available
 
   //* we deprecated the agent embodiments settings and instead we are using the agent settings
   // for backward compatibility we will show the agent embodiment settings in case the agent settings are not available (empty)
