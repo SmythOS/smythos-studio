@@ -3,10 +3,28 @@ import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceCleaner extends Component {
-  private namespaces: string[] = [];
+  private namespaces: { value: string; text: string; __legacy_id: string }[] = [];
 
   protected async prepare(): Promise<any> {
-    this.updateSettings();
+    this.updateSettings().then(() => {
+      // if the current value does not match anything
+      const isUnableToMatchNsRecord =
+        this.data['namespaceId'] &&
+        !this.namespaces.find((ns) => ns.value === this.data['namespaceId']);
+      if (isUnableToMatchNsRecord) {
+        // try two cases, case where teamid is stripped, and case of original id
+        const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespaceId']}`;
+        const ns = this.data['namespaceId'];
+        const matching = this.namespaces.find(
+          (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+        );
+        if (matching) {
+          this.data['namespaceId'] = matching.value;
+        } else {
+          console.log('WE are not able to map the old name');
+        }
+      }
+    });
   }
 
   protected async updateSettings() {
@@ -14,7 +32,11 @@ export class DataSourceCleaner extends Component {
       `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
     );
     const namespaces = await result.json();
-    this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
+    this.namespaces = namespaces.map((item) => ({
+      value: item.label,
+      text: item.label,
+      __legacy_id: item.__legacy_id,
+    }));
     this.settings.namespaceId.options = this.namespaces;
     if (this.settingsOpen) this.refreshSettingsSidebar();
   }
@@ -43,11 +65,6 @@ export class DataSourceCleaner extends Component {
     const dataEntries = ['namespaceId', 'id'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
-    }
-
-    // if the namespace value is using the old legacy format {{teamId}}_{{namespace}}, we need to convert it to the new format {{namespace}}
-    if (this.data['namespaceId'] && /^c[a-z0-9]{24}.+$/.test(this.data['namespaceId'])) {
-      this.data['namespaceId'] = this.data['namespaceId'].split('_').slice(1).join('_');
     }
 
     this.properties.defaultInputs = [];

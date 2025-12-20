@@ -22,8 +22,9 @@ import {
 } from '@src/react/shared/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { Info, PlusCircle } from 'lucide-react';
+import { Info, PlusCircle, Settings } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CreateCredentialsModal
 } from '../../credentials/components/create-credentials.modal';
@@ -50,6 +51,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   onSuccess,
 }) => {
   const { credentials, credentialsLoading, getCredentialById, refetchCredentials } = useDataPoolContext();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [selectedCredentialId, setSelectedCredentialId] = useState('');
   const [embeddingModels, setEmbeddingModels] = useState<EmbeddingModel[]>([]);
@@ -155,6 +157,13 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
     // If "create_new" is selected, open the create credentials modal
     if (value === '__create_new__') {
       setIsCreateCredModalOpen(true);
+      return;
+    }
+    
+    // If "manage_connections" is selected, navigate to vault page
+    if (value === '__manage_connections__') {
+      onClose();
+      navigate('/vault');
       return;
     }
     
@@ -278,6 +287,14 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                     <div className="flex items-center gap-2 text-blue-600 font-medium">
                       <PlusCircle className="w-4 h-4" />
                       <span>Create New Connection</span>
+                    </div>
+                  </SelectItem>
+                  
+                  {/* Manage Connections Option */}
+                  <SelectItem value="__manage_connections__">
+                    <div className="flex items-center gap-2 text-gray-600 font-medium">
+                      <Settings className="w-4 h-4" />
+                      <span>Manage Connections</span>
                     </div>
                   </SelectItem>
                   
