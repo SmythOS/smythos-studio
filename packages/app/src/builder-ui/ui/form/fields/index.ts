@@ -1,10 +1,15 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@src/react/shared/components/ui/tooltip';
 import DOMPurify from 'dompurify';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { delay } from '../../utils';
-import { handleKvFieldEditBtn, handleVaultBtn } from '../../utils/component.utils';
-import { addBracketSelection, handleTemplateVars } from './misc';
+import { delay } from '../../../utils';
+import { handleKvFieldEditBtn, handleVaultBtn } from '../../../utils/component.utils';
+import { addBracketSelection, handleTemplateVars } from '../misc';
 
 declare var Metro;
 
@@ -240,6 +245,9 @@ export const createSelectBox = (
   return select;
 };
 
+// Re-export createMultiSelectBox from separate module
+export { createMultiSelectBox } from './multiSelectBox.field';
+
 export const createCheckbox = (label: string, value: string): HTMLInputElement => {
   const checkbox = document.createElement('input');
   checkbox.setAttribute('data-role', 'checkbox');
@@ -305,8 +313,8 @@ type CodeConfig = { mode?: string; theme?: string; disableWorker?: boolean };
 /**
  * Cached imports for modal and editor functionality to avoid repeated dynamic imports
  */
-let cachedTwModalDialog: typeof import('../tw-dialogs').twModalDialog | null = null;
-let cachedSetCodeEditor: typeof import('../dom').setCodeEditor | null = null;
+let cachedTwModalDialog: typeof import('../../tw-dialogs').twModalDialog | null = null;
+let cachedSetCodeEditor: typeof import('../../dom').setCodeEditor | null = null;
 
 /**
  * Lazy load and cache modal-related imports
@@ -314,18 +322,18 @@ let cachedSetCodeEditor: typeof import('../dom').setCodeEditor | null = null;
  * Imports are cached separately to handle both code editor and non-code editor cases
  */
 async function getModalImports(needsCodeEditor: boolean): Promise<{
-  twModalDialog: typeof import('../tw-dialogs').twModalDialog;
-  setCodeEditor: typeof import('../dom').setCodeEditor | null;
+  twModalDialog: typeof import('../../tw-dialogs').twModalDialog;
+  setCodeEditor: typeof import('../../dom').setCodeEditor | null;
 }> {
   // Load dialog module if not cached
   if (!cachedTwModalDialog) {
-    const dialogModule = await import('../tw-dialogs');
+    const dialogModule = await import('../../tw-dialogs');
     cachedTwModalDialog = dialogModule.twModalDialog;
   }
 
   // Load code editor module if needed and not cached
   if (needsCodeEditor && !cachedSetCodeEditor) {
-    const domModule = await import('../dom');
+    const domModule = await import('../../dom');
     cachedSetCodeEditor = domModule.setCodeEditor;
   }
 
@@ -554,9 +562,7 @@ function getCodeConfigFromAttributes(
 /**
  * Get code configuration based on content type (APICall components)
  */
-function getCodeConfigFromContentType(
-  textarea: HTMLTextAreaElement,
-): CodeConfig | undefined {
+function getCodeConfigFromContentType(textarea: HTMLTextAreaElement): CodeConfig | undefined {
   const contentType = textarea.getAttribute('data-content-type');
 
   if (!contentType) return undefined;
@@ -681,7 +687,7 @@ function syncTextareaValues(
  */
 async function initializeCodeEditor(
   textarea: TextAreaWithEditor,
-  setCodeEditor: typeof import('../dom').setCodeEditor,
+  setCodeEditor: typeof import('../../dom').setCodeEditor,
   mode: string,
   theme: string,
   disableWorker: boolean | undefined,
@@ -723,7 +729,9 @@ async function initializeCodeEditor(
     }
 
     // Setup bracket selection for Ace editor content
-    const aceContentElement = textarea._editor.container?.querySelector('.ace_content') as HTMLElement | null;
+    const aceContentElement = textarea._editor.container?.querySelector(
+      '.ace_content',
+    ) as HTMLElement | null;
     if (aceContentElement) {
       addBracketSelection(aceContentElement);
     }
@@ -882,7 +890,9 @@ function setupVaultInDialog(
 
           if (targetField) {
             (targetField as HTMLTextAreaElement).focus();
-            (targetField as HTMLTextAreaElement).scrollTop = (targetField as HTMLTextAreaElement).scrollHeight;
+            (targetField as HTMLTextAreaElement).scrollTop = (
+              targetField as HTMLTextAreaElement
+            ).scrollHeight;
 
             const inputEvent = new Event('input', { bubbles: true });
             (targetField as HTMLTextAreaElement).dispatchEvent(inputEvent);
@@ -895,9 +905,9 @@ function setupVaultInDialog(
 
     // After vault handler runs, ensure focus/update
     setTimeout(() => {
-      const updatedTargetField = (newVaultButton.closest('.form-group')?.querySelector(
-        '[data-vault]'
-      ) as HTMLTextAreaElement | null);
+      const updatedTargetField = newVaultButton
+        .closest('.form-group')
+        ?.querySelector('[data-vault]') as HTMLTextAreaElement | null;
       if (updatedTargetField) {
         updatedTargetField.focus();
         updatedTargetField.scrollTop = updatedTargetField.scrollHeight;
@@ -938,7 +948,8 @@ function reattachActionButtons(
     ) as HTMLButtonElement | null;
     if (!modalActionButton) return;
 
-    const originalClickHandler = (originalButton as unknown as { onclick?: (e: Event) => void }).onclick;
+    const originalClickHandler = (originalButton as unknown as { onclick?: (e: Event) => void })
+      .onclick;
     if (originalClickHandler) {
       modalActionButton.onclick = async (event) => {
         const buttonId = originalButton.id;
@@ -962,7 +973,8 @@ function reattachActionButtons(
       };
     }
 
-    const originalEvents = (originalButton as unknown as { _events?: Record<string, EventListener> })._events || {};
+    const originalEvents =
+      (originalButton as unknown as { _events?: Record<string, EventListener> })._events || {};
     Object.keys(originalEvents).forEach((eventType) => {
       modalActionButton.addEventListener(eventType, originalEvents[eventType] as EventListener);
     });
@@ -1019,7 +1031,6 @@ async function handleExpandTextarea(
   modalTextarea.value = originalTextarea.value;
   modalTextarea.classList.add('form-control', 'flex-1', 'resize-none', 'overflow-y-auto');
   modalTextarea.id = 'expanded-textarea';
-
 
   // Copy validation attributes from original textarea for Metro UI validation
   const validateAttr = originalTextarea.getAttribute('data-validate');

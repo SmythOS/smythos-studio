@@ -75,7 +75,11 @@ export const DatasourcesTable: FC<DatasourcesTableProps> = ({ datasources, onDel
              
 
               {/* Size */}
-              <td className="px-6 py-4 text-gray-700">{formatSize(datasource.datasourceSizeMb)}</td>
+              <td className="px-6 py-4 text-gray-700">{
+              datasource.datasourceSizeMb ?
+              formatSize(datasource.datasourceSizeMb) :
+              '-'
+              }</td>
 
               {/* Created */}
               <td className="px-6 py-4 text-gray-700">{formatDate(datasource.createdAt)}</td>

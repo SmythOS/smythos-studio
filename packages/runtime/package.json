@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development FORMAT=cjs rollup -c && node --enable-source-maps ./dist/index.dev.cjs",
-    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=3096' rollup -c",
+    "build": "cross-env NODE_ENV=production FORMAT=cjs NODE_OPTIONS='--max-old-space-size=4096' rollup -c",
     "start": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "start:prod": "cross-env NODE_ENV=production node ./dist/index.cjs",
     "test": "cross-env TEST_ENV=true vitest --reporter verbose",
@@ -53,7 +53,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
-    "@smythos/sre": "^1.6.11",
+    "@smythos/server-common": "github:SmythOS/server-common#release",
+    "@smythos/sre": "^1.7.16",
     "axios": "^1.7.7",
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
@@ -70,9 +71,9 @@
     "pkce-challenge": "^5.0.0",
     "source-map-support": "^0.5.21",
     "swagger-ui-dist": "^5.18.2",
+    "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
-    "ws": "^8.18.3",
-    "swagger-ui-express": "^5.0.0"
+    "ws": "^8.18.3"
   },
   "keywords": [],
   "license": "ISC"

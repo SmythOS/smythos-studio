@@ -65,6 +65,8 @@ export interface CredentialConnection {
   group: string;
   credentials: Record<string, string>;
   isActive?: boolean;
+  isReadOnly?: boolean;
+  isManaged?: boolean;
 }
 
 /**
