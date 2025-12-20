@@ -103,6 +103,11 @@ export class DataSourceIndexer extends Component {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
 
+    const chunkFields = ['chunkSize', 'chunkOverlap'];
+    for (let item of chunkFields) {
+      if (!this.data[item]) this.data[item] = this.settings[item].value;
+    }
+
     this.properties.defaultInputs = ['Source'];
     this.properties.defaultOutputs = ['Success'];
 
