@@ -1048,10 +1048,6 @@ async function handleExpandTextarea(
     // Copy vault attribute to modal textarea
     modalTextarea.setAttribute('data-vault', hasVaultAttribute);
 
-    // Mark this textarea as coming from expanded/modal view
-    // This is used to hide the "Add Key" option in the vault dropdown
-    modalTextarea.setAttribute('data-vault-from-modal', 'true');
-
     // Create vault button for modal
     const modalVaultButton = createVaultButton();
     textareaWrapper.appendChild(modalVaultButton);
