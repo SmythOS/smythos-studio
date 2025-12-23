@@ -104,12 +104,11 @@ export class ChatAPIClient {
         ...this.config.defaultHeaders,
         'X-AGENT-ID': agentId,
         'x-conversation-id': chatId,
-        'x-enable-meta-messages': 'true',
         ...(modelId ? { 'x-model-id': modelId } : {}), // Include model override if provided
         ...headers,
       };
 
-      const requestBody = { message, attachments };
+      const requestBody = { message, attachments, enableMetaMessages: true };
 
       // Make streaming request
       const response = await fetch(`${this.config.baseUrl}/stream`, {
