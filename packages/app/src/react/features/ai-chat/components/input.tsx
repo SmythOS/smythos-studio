@@ -285,7 +285,7 @@ export const ChatInput = () => {
         <div onClick={(e) => e.stopPropagation()}>
           <SendButton
             isProcessing={isProcessing || isStreaming}
-            disabled={!canSubmit}
+            disabled={!canSubmit || uploadingIds.size > 0}
             onClick={handleSubmit}
           />
         </div>
