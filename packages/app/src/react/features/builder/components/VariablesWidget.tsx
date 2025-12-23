@@ -474,8 +474,8 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                   <LuInfo size={20} />
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="top">
-                <div style={{ maxWidth: '200px' }}>
+              <TooltipContent side="top" className="max-w-[240px] text-center text-wrap">
+                <div>
                   The Agent Variables you declare here can be accessed and used across all
                   components. These variables act like global variables throughout your AI agent.
                 </div>
@@ -528,7 +528,7 @@ const VariablesWidget = ({ agentId, workspace }: { agentId: string; workspace: W
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top">
-                        <div style={{ width: '120px' }}>Delete Variable</div>
+                        <div>Delete Variable</div>
                       </TooltipContent>
                     </Tooltip>
                   </button>

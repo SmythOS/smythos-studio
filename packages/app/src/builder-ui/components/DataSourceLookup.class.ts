@@ -48,6 +48,7 @@ export class DataSourceLookup extends Component {
         type: 'select',
         label: 'Data Space',
         help: 'Select the memory bucket to search, matching the data space used when indexing. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=namespace#step-1-define-the-search-scope" target="_blank" class="text-blue-600 hover:text-blue-800">See namespace mapping</a>',
+        tooltipClasses: 'w-56',
         options: this.namespaces,
       },
       topK: {
@@ -57,12 +58,14 @@ export class DataSourceLookup extends Component {
         value: 3,
         validate: `required min=0 custom=isValidInteger`,
         validateMessage: `Please enter a positive number`,
+        tooltipClasses: 'w-56',
       },
       includeMetadata: {
         type: 'checkbox',
         label: 'Include metadata',
         help: 'Return stored fields like title, URL, tags, and timestamps with each result.',
         value: false,
+        tooltipClasses: 'w-56',
       },
       scoreThreshold: {
         type: 'range',
@@ -72,12 +75,14 @@ export class DataSourceLookup extends Component {
         max: 1,
         step: 0.01,
         help: 'Hide items below this 0–1 relevance score; higher keeps only strong matches. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=score-threshold#step-2-filter-and-format-the-output" target="_blank" class="text-blue-600 hover:text-blue-800">See threshold examples</a>',
+        tooltipClasses: 'w-56',
       },
       includeScore: {
         type: 'checkbox',
         label: 'Include score',
         help: 'Add the similarity score to each item for sorting and debugging.',
         value: false,
+        tooltipClasses: 'w-56',
       },
     };
 
