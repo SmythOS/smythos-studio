@@ -15,6 +15,43 @@ import { EVENTS } from '@src/shared/posthog/constants/events';
 import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@src/shared/state_stores/llm-models';
 
+// #region Provider Icon Component
+interface ProviderIconProps {
+  provider: string;
+  className?: string;
+}
+
+/**
+ * Provider icon with gradient fallback
+ * Shows provider SVG icon, falls back to gradient "AI" badge if image fails to load
+ */
+const ProviderIcon: FC<ProviderIconProps> = ({ provider, className = 'size-5 rounded-full' }) => {
+  const [hasError, setHasError] = useState<boolean>(false);
+
+  if (hasError) {
+    return (
+      <div
+        className={cn(
+          className,
+          'bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center',
+        )}
+      >
+        <span className="text-white text-xs font-semibold">AI</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className={className}
+      alt={`${provider} icon`}
+      onError={() => setHasError(true)}
+      src={`/img/provider_${provider.toLowerCase()}.svg`}
+    />
+  );
+};
+// #endregion Provider Icon Component
+
 // #region Temporary Badges
 const TEMP_BADGES: Record<string, boolean> = {
   enterprise: true,
@@ -253,11 +290,7 @@ export const ChatHeader: FC = () => {
                             onClick={() => setProvider(llmProvider)}
                           >
                             <div className="w-full flex items-center gap-2">
-                              <img
-                                src={`/img/provider_${llmProvider.toLowerCase()}.svg`}
-                                alt={`${llmProvider} icon`}
-                                className="size-5"
-                              />
+                              <ProviderIcon provider={llmProvider} />
                               <span className="font-semibold text-sm text-slate-900">
                                 {llmProvider}
                               </span>
@@ -271,6 +304,7 @@ export const ChatHeader: FC = () => {
                           </div>
                         ))}
                       </div>
+
                       <div
                         className={cn(
                           'absolute left-[240px] z-50 w-[300px] max-h-[500px] overflow-y-auto bg-slate-100 rounded-md shadow-xl',
