@@ -262,6 +262,14 @@ export class Component extends EventEmitter {
 
     this.data = this.properties.data || {};
 
+    // Auto-initialize templateVarToggleStates for template variable toggle functionality
+    if (
+      !this.data.templateVarToggleStates ||
+      typeof this.data.templateVarToggleStates !== 'object'
+    ) {
+      this.data.templateVarToggleStates = {};
+    }
+
     if (this.properties.template) {
       const template = this.properties.template;
       this.properties.inputs = [

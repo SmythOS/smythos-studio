@@ -293,31 +293,47 @@ export function handleTemplateVars(targetElm, component = null) {
 
             editor?.focus();
           } else {
-            // Get the start and end positions of the cursor.
-            const startPosition = focusedField.selectionStart;
-            const endPosition = focusedField.selectionEnd;
-
-            // Insert the text into the textarea.
             const value = buttonElm.getAttribute('data-var');
 
-            focusedField.value = `${focusedField.value.substring(
-              0,
-              startPosition,
-            )}${value}${focusedField.value.substring(endPosition)}`;
+            // Check if this is a template-var-input for a select field
+            // These inputs should only contain a single template variable
+            const isTemplateVarInput = focusedField.classList.contains('template-var-input');
 
-            // Focus on the textarea again.
-            focusedField.focus();
+            if (isTemplateVarInput) {
+              // For select template var inputs: replace entire value with single template variable
+              focusedField.value = value;
+              focusedField.focus();
+              dispatchInputEvent(focusedField);
 
-            dispatchInputEvent(focusedField);
+              // Set cursor to end of the inserted variable
+              const cursorPosition = value?.length || 0;
+              focusedField.setSelectionRange(cursorPosition, cursorPosition);
+            } else {
+              // For regular textareas: insert at cursor position (existing behavior)
+              const startPosition = focusedField.selectionStart;
+              const endPosition = focusedField.selectionEnd;
 
-            // Set the cursor position to the end of the text.
-            const cursorPosition = startPosition + value?.length || 0;
-            focusedField.setSelectionRange(cursorPosition, cursorPosition);
+              focusedField.value = `${focusedField.value.substring(
+                0,
+                startPosition,
+              )}${value}${focusedField.value.substring(endPosition)}`;
+
+              // Focus on the textarea again.
+              focusedField.focus();
+
+              dispatchInputEvent(focusedField);
+
+              // Set the cursor position to the end of the text.
+              const cursorPosition = startPosition + value?.length || 0;
+              focusedField.setSelectionRange(cursorPosition, cursorPosition);
+            }
           }
         }
 
         // Remove the template variable buttons container
-        const wrapper = document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`);
+        const wrapper = document.querySelector(
+          `.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`,
+        );
         const parent = wrapper?.parentElement as HTMLElement;
         wrapper?.remove();
         resizeAceEditor(parent);
@@ -453,7 +469,9 @@ export function handleTemplateVars(targetElm, component = null) {
         resizeAceEditor(focusedElmParent as HTMLElement);
       } else {
         // * Remove template variable buttons
-        const wrapper = document.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`);
+        const wrapper = document.querySelector(
+          `.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}.tvb-${compUid}`,
+        );
         const parent = wrapper?.parentElement as HTMLElement;
         wrapper?.remove();
         resizeAceEditor(parent);
@@ -490,7 +508,10 @@ export const setTabIndex = (selector: string): void => {
  * Finds and returns the bracket match range for a given cursor position
  * Only matches if cursor is ON or INSIDE the brackets, not before/after them
  */
-function findBracketMatch(text: string, cursorPosition: number): { start: number; end: number } | null {
+function findBracketMatch(
+  text: string,
+  cursorPosition: number,
+): { start: number; end: number } | null {
   const regex = /{{.*?}}/g;
   let match;
 
@@ -522,7 +543,8 @@ function _bracketSelectionEvent(e: any) {
     // Handle Ace editor clicks
     const editorContainer = aceContentElement.closest('.ace-editor');
     const textarea = editorContainer?.previousElementSibling as any;
-    const editor = textarea?._editor ||
+    const editor =
+      textarea?._editor ||
       (aceContentElement.closest('.form-group')?.querySelector('.json-editor') as any)?._editor;
 
     if (editor) {
@@ -542,7 +564,9 @@ function _bracketSelectionEvent(e: any) {
   } else if (inputElement?.classList?.contains('fake-textarea')) {
     // Handle Metro UI fake textarea clicks
     const textareaWrapper = inputElement.closest('.textarea');
-    const realTextarea = textareaWrapper?.querySelector('textarea:not(.fake-textarea)') as HTMLTextAreaElement;
+    const realTextarea = textareaWrapper?.querySelector(
+      'textarea:not(.fake-textarea)',
+    ) as HTMLTextAreaElement;
 
     if (realTextarea) {
       realTextarea.focus();
