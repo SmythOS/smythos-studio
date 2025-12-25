@@ -10,11 +10,11 @@ export type IChildren = { children: React.ReactNode };
  *
  * - 'user': Message from user
  * - 'system': Response from AI/system
- * - 'thinking': AI is processing/thinking
+ * - 'debug': AI is processing/thinking
  * - 'loading': AI is generating response (replying/retrying)
  * - 'error': Error occurred during processing
  */
-export type TMessageType = 'user' | 'system' | 'thinking' | 'loading' | 'error';
+export type TMessageType = 'user' | 'system' | 'debug' | 'loading' | 'error' | 'meta';
 
 /**
  * Core chat message interface
