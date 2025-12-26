@@ -6,6 +6,7 @@ declare global {
   }
 }
 
+import { isTemplateVarsEnabled } from '../utils/form.utils';
 import { addBracketSelection } from './form/misc';
 
 export function setCaratAtEnd(element) {
@@ -125,7 +126,7 @@ export function setCodeEditor(
   textAreas?.forEach((textArea) => {
     if (textArea?.tagName !== 'TEXTAREA') return;
     const isReadOnly = textArea?.hasAttribute('readonly');
-    const hasDataTempVarsTrue = textArea && textArea?.getAttribute('data-template-vars') === 'true';
+    const hasDataTempVarsTrue = textArea && isTemplateVarsEnabled(textArea?.getAttribute('data-template-vars'));
     const dataAttr = textArea?.getAttribute('data-hide-line-numbers');
     const scrollMarginTop = textArea?.getAttribute('data-scroll-margin-top') || 20;
     const scrollMarginBottom = textArea?.getAttribute('data-scroll-margin-bottom') || 20;

@@ -918,7 +918,6 @@ function createTemplateVarToggle(
   templateVarInput.value = value || '';
   templateVarInput.placeholder = 'Click to select a template variable';
   templateVarInput.autocomplete = 'off';
-  templateVarInput.setAttribute('data-template-vars', 'true');
   templateVarInput.classList.add('template-var-input');
   templateVarInput.style.paddingRight = '36px';
   templateVarInput.style.backgroundColor = '#ffffff';
@@ -927,6 +926,13 @@ function createTemplateVarToggle(
 
   // Copy template-related attributes from entry for variable filtering
   const attributes = entry.attributes || {};
+
+  // Preserve the original data-template-vars value to support singleOnly and other configs
+  if (attributes['data-template-vars']) {
+    templateVarInput.setAttribute('data-template-vars', attributes['data-template-vars']);
+  } else {
+    templateVarInput.setAttribute('data-template-vars', 'true');
+  }
   if (attributes['data-template-excluded-vars']) {
     templateVarInput.setAttribute(
       'data-template-excluded-vars',

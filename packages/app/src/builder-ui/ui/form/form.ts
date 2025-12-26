@@ -1,4 +1,5 @@
 import { delay, isValidJson } from '../../utils';
+import { isTemplateVarsEnabled } from '../../utils/form.utils';
 import createFormField from './createFormField';
 import { createInfoButton } from './fields';
 import { generateKeyValuePairs, readKeyValueData } from './keyValueField';
@@ -97,7 +98,7 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
 
   // Auto-inject templateVarToggleStates hidden field if any field has data-template-vars
   const hasTemplateVarsField = Object.values(entriesObject).some(
-    (entry: any) => entry?.attributes?.['data-template-vars'] === 'true',
+    (entry: any) => isTemplateVarsEnabled(entry?.attributes?.['data-template-vars']),
   );
 
   if (hasTemplateVarsField && !entriesObject['templateVarToggleStates']) {
