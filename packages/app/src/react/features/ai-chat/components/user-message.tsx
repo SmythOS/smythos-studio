@@ -26,13 +26,7 @@ export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
           {files.map((attachment, index) => (
             <FileItemPreview
               key={`${attachment.name}-${index}-${attachment.url || attachment.blobUrl || index}`}
-              fileObj={attachment.file}
-              url={attachment.url}
-              blobUrl={attachment.blobUrl}
-              mimeType={attachment.type}
-              fileName={attachment.name}
-              isReadOnly
-              inChatBubble
+              attachment={attachment}
             />
           ))}
         </div>

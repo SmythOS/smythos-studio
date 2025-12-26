@@ -235,16 +235,12 @@ export const ChatInput = () => {
           role="list"
           aria-label="Attached files"
         >
-          {files.map((fileWithMetadata, index) => (
+          {files.map((file, index) => (
             <FileItemPreview
-              key={`${fileWithMetadata.id}`}
-              fileObj={fileWithMetadata.file}
-              url={fileWithMetadata.url}
-              blobUrl={fileWithMetadata.blobUrl}
-              mimeType={fileWithMetadata.type}
-              fileName={fileWithMetadata.name}
+              key={`${file.id}`}
+              attachment={file}
               onRemove={() => handleRemoveFile(index)}
-              isUploading={uploadStatus[fileWithMetadata.name]?.status === 'uploading'}
+              isUploading={uploadStatus[file.name]?.status === 'uploading'}
             />
           ))}
         </div>
