@@ -30,32 +30,38 @@ export const dispatchInputEvent = (elm: HTMLInputElement | HTMLTextAreaElement):
 };
 
 /**
- * Checks if template variables are enabled based on the element's data-template-vars attribute.
+ * Checks if template variables are enabled from attribute value.
  * Supports both simple boolean string ("true") and JSON object format ({"enabled": true, "singleOnly": true}).
+ * Returns true only if explicitly enabled, false for everything else.
  *
  * @example
- * // Pass element directly
- * isTemplateVarsEnabled(inputElement) // returns true if enabled
+ * const attrValue = element.getAttribute('data-template-vars');
+ * if (isTemplateVarsEnabled(attrValue)) {
+ *   // Show template variable buttons
+ * }
  *
- * // Works with any HTMLElement that has data-template-vars attribute
- * const formField = document.querySelector('.my-field');
- * isTemplateVarsEnabled(formField) // returns true if enabled
+ * isTemplateVarsEnabled('true') // returns true
+ * isTemplateVarsEnabled('{"enabled": true, "singleOnly": true}') // returns true
+ * isTemplateVarsEnabled('false') // returns false
+ * isTemplateVarsEnabled('{"enabled": false}') // returns false
+ * isTemplateVarsEnabled(null) // returns false
  *
- * @param element - The HTML element to check for data-template-vars attribute
- * @returns true if template vars are enabled, false otherwise
+ * @param attributeValue - The data-template-vars attribute value string
+ * @returns true if explicitly enabled, false otherwise
  */
-export function isTemplateVarsEnabled(element: HTMLElement | null | undefined): boolean {
-  if (!element) return false;
-
-  const attributeValue = element.getAttribute('data-template-vars');
+export function isTemplateVarsEnabled(attributeValue: string | null | undefined): boolean {
   if (!attributeValue) return false;
+
+  // Simple boolean string
   if (attributeValue === 'true') return true;
 
+  // Try to parse as JSON object
   try {
     const config = JSON.parse(attributeValue);
+    // Check if enabled property is explicitly true
     return config.enabled === true;
   } catch {
-    // Fallback: check for "enabled":true or "enabled": true in string
-    return attributeValue.includes('"enabled":true') || attributeValue.includes('"enabled": true');
+    // Not valid JSON - return false
+    return false;
   }
 }

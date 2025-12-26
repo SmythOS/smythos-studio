@@ -640,7 +640,7 @@ function shouldSkipDueToExistingVars(clickedElm: HTMLElement): boolean {
   // Check if this is a field that should show variables
   const isDatalistField = clickedElm.getAttribute('list');
   const isVarField =
-    isTemplateVarsEnabled(clickedElm) ||
+    isTemplateVarsEnabled(clickedElm.getAttribute('data-template-vars')) ||
     clickedElm.getAttribute('data-agent-vars') === 'true' ||
     clickedElm.getAttribute('data-trigger-vars') === 'true' ||
     isDatalistField ||
@@ -815,7 +815,7 @@ export function handleTemplateVars(targetElm, component = null) {
 
       // Handle template-vars fields
       if (
-        (isTemplateVarsEnabled(clickedElm) ||
+        (isTemplateVarsEnabled(clickedElm.getAttribute('data-template-vars')) ||
           (clickedElm as HTMLElement)?.closest?.('[data-template-vars]')) &&
         !(clickedElm as HTMLElement)?.closest?.('[readonly]')
       ) {
@@ -1019,7 +1019,7 @@ export function handleTemplateVars(targetElm, component = null) {
         ) as HTMLInputElement;
 
         const isVarField =
-          isTemplateVarsEnabled(clickedElm) ||
+          isTemplateVarsEnabled(clickedElm.getAttribute('data-template-vars')) ||
           clickedElm.getAttribute('data-agent-vars') === 'true' ||
           clickedElm.getAttribute('data-trigger-vars') === 'true' ||
           clickedElm.getAttribute('list') || // Direct datalist field
@@ -1054,7 +1054,10 @@ export function handleTemplateVars(targetElm, component = null) {
       const target = e.target as HTMLElement;
 
       // Only trigger for datalist inputs with template vars (supports both "true" and object format)
-      if (target.getAttribute('list') && isTemplateVarsEnabled(target)) {
+      if (
+        target.getAttribute('list') &&
+        isTemplateVarsEnabled(target.getAttribute('data-template-vars'))
+      ) {
         // Check if variables are already showing for this field
         const formGroup = target.closest('.form-group');
         const existingWrapper = formGroup?.querySelector(`.${TEMPLATE_VAR_BTNS_WRAPPER_CLASS}`);
