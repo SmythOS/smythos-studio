@@ -82,9 +82,41 @@ export const useChatState = (options: IConfigOptions): IChatState => {
 
         if (!lastMessage) return prev;
 
+        // Helper function to find matching META message index
+        const findMatchingMetaIndex = (): number => {
+          const reverseIdx = updated
+            .slice()
+            .reverse()
+            .findIndex((msg) => {
+              if (msg.type !== MESSAGE_TYPES.META) return false;
+
+              const msgHashId = msg.metaMessages?.hashId;
+              const newHashId = meta.hashId;
+              if (msgHashId && newHashId) return msgHashId === newHashId;
+
+              const msgTitle = msg.metaMessages?.title || '';
+              const newTitle = meta.title || '';
+              return msgTitle === newTitle;
+            });
+
+          return reverseIdx !== -1 ? updated.length - 1 - reverseIdx : -1;
+        };
+
+        // If debugOn is false, remove ALL META messages from the array
+        if (meta.debugOn === false) {
+          const filteredMessages = updated.filter((msg) => msg.type !== MESSAGE_TYPES.META);
+
+          // Only return filtered if we actually removed something
+          if (filteredMessages.length !== updated.length) {
+            return filteredMessages;
+          }
+
+          return prev;
+        }
+
         const debugText = meta.debug?.trim() || '';
 
-        // Convert LOADING to DEBUG
+        // Convert LOADING to META
         if (lastMessage.type === MESSAGE_TYPES.LOADING) {
           updated[lastIdx] = {
             ...lastMessage,
@@ -96,26 +128,12 @@ export const useChatState = (options: IConfigOptions): IChatState => {
           return updated;
         }
 
-        // Find existing DEBUG message by hashId or title
-        const matchIdx = updated
-          .slice()
-          .reverse()
-          .findIndex((msg) => {
-            if (msg.type !== MESSAGE_TYPES.META) return false;
+        // Find existing META message by hashId or title
+        const matchIdx = findMatchingMetaIndex();
 
-            const msgHashId = msg.metaMessages?.hashId;
-            const newHashId = meta.hashId;
-            if (msgHashId && newHashId) return msgHashId === newHashId;
-
-            const msgTitle = msg.metaMessages?.title || '';
-            const newTitle = meta.title || '';
-            return msgTitle === newTitle;
-          });
-
-        // Update existing DEBUG message
+        // Update existing META message
         if (matchIdx !== -1) {
-          const realIndex = updated.length - 1 - matchIdx;
-          const target = updated[realIndex];
+          const target = updated[matchIdx];
 
           const currentContent = Array.isArray(target.content)
             ? target.content
@@ -125,7 +143,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
             ? [...currentContent, debugText].join('\n\n')
             : currentContent.join('\n\n');
 
-          updated[realIndex] = {
+          updated[matchIdx] = {
             ...target,
             content: updatedContent,
             metaMessages: {
@@ -137,7 +155,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
           return updated;
         }
 
-        // Create new DEBUG message
+        // Create new META message
         const newMessage: IMessage = {
           id: Date.now() + Math.random(),
           type: MESSAGE_TYPES.META,
