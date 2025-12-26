@@ -797,7 +797,9 @@ function setupTemplateVarsIfNeeded(
   modalTextareaInDialog: TextAreaWithEditor,
   currentComponent: { _uid: string } | null,
 ): void {
-  const hasTemplateVars = isTemplateVarsEnabled(modalTextareaInDialog.getAttribute('data-template-vars'));
+  const hasTemplateVars = isTemplateVarsEnabled(
+    modalTextareaInDialog.getAttribute('data-template-vars'),
+  );
   const hasAgentVars = modalTextareaInDialog.getAttribute('data-agent-vars') === 'true';
 
   if (!hasTemplateVars && !hasAgentVars) {

@@ -491,7 +491,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
       // Automatically set autocomplete="off" for fields that support variable insertion
       // data-template-vars can be "true" or an object like '{"enabled": true, "singleOnly": true}'
-      const hasTemplateVars = isTemplateVarsEnabled(formElement);
+      const hasTemplateVars = isTemplateVarsEnabled(formElement.getAttribute('data-template-vars'));
 
       if (
         (hasTemplateVars ||
