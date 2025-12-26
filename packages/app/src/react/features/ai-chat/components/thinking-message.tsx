@@ -6,8 +6,11 @@ import { FC, useEffect, useRef, useState } from 'react';
 import { IMetaMessages } from '../types/chat';
 
 interface IProps {
-  avatar?: string;
-  metaMessages?: IMetaMessages;
+  data: {
+    avatar?: string;
+    metaMessages?: IMetaMessages;
+  };
+  scrollToBottom: () => void;
 }
 
 // Custom CSS for smooth blinking animation (like the image)
@@ -29,9 +32,15 @@ const blinkAnimation = `
  * Manages thinking message cycling internally using ThinkingMessageManager
  * Receives metaMessages from parent and handles the cycling logic
  */
-export const ThinkingMessage: FC<IProps> = ({ avatar, metaMessages }) => {
+export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
+  const { avatar, metaMessages } = data;
+
   const [thinkingMessage, setThinkingMessage] = useState<string>('');
   const thinkingManagerRef = useRef(createThinkingManager());
+  // thinking-message.tsx
+  useEffect(() => {
+    scrollToBottom?.();
+  }, [scrollToBottom]);
 
   /**
    * Effect to manage thinking message lifecycle

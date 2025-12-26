@@ -2,12 +2,13 @@ import { FC, memo } from 'react';
 
 import {
   ErrorMessage,
+  MetaMessage,
   ReplyLoader,
   SystemMessage,
-  ThinkingMessage,
   UserMessage,
 } from '@react/features/ai-chat/components';
 
+import { MESSAGE_TYPES } from '../constants';
 import '../styles/index.css';
 import { IMessage } from '../types/chat';
 
@@ -31,15 +32,15 @@ export const Chat: FC<IChatProps> = memo((props) => {
   const { type, attachments, avatar, content, metaMessages, onRetryClick, scrollToBottom } = props;
 
   switch (type) {
-    case 'loading':
-      return <ReplyLoader />;
-    case 'meta':
-      return <ThinkingMessage avatar={avatar} metaMessages={metaMessages} />;
-    case 'user':
+    case MESSAGE_TYPES.USER:
       return <UserMessage message={content} files={attachments} />;
-    case 'system':
+    case MESSAGE_TYPES.LOADING:
+      return <ReplyLoader />;
+    case MESSAGE_TYPES.META:
+      return <MetaMessage data={{ avatar, metaMessages }} scrollToBottom={scrollToBottom} />;
+    case MESSAGE_TYPES.SYSTEM:
       return <SystemMessage message={content} scrollToBottom={scrollToBottom} />;
-    case 'error':
+    case MESSAGE_TYPES.ERROR:
       return <ErrorMessage message={content} onRetryClick={onRetryClick} />;
     default:
       return <ErrorMessage message="Something went wrong!" onRetryClick={onRetryClick} />;
