@@ -77,22 +77,22 @@ export class ChatAPIClient {
     const { agentId, chatId, message, modelId, attachments, signal, headers = {} } = streamConfig;
     const { onContent, onMetaMessages, onError, onStart, onComplete } = callbacks;
 
-    // Validate required parameters
-    // Message can be empty if attachments are provided
-    if (!agentId || !chatId || (!message && (!attachments || attachments.length === 0))) {
-      const error: IChatError = {
-        message: 'Missing required parameters: agentId, chatId, or message',
-        type: 'system',
-      };
-      onError(error);
-      return Promise.reject(error);
-    }
-
     // State management for stream processing
     let accumulatedData = ''; // eslint-disable-line prefer-const
-    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
+    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>> | undefined;
 
     try {
+      // Validate required parameters
+      // Message can be empty if attachments are provided
+      if (!agentId || !chatId || (!message && (!attachments || attachments.length === 0))) {
+        const error: IChatError = {
+          message: 'Missing required parameters: agentId, chatId, or message',
+          type: 'system',
+        };
+        // Throw to be handled by catch block
+        throw error;
+      }
+
       // Start performance monitoring
       performanceMonitor.startStream();
 
@@ -125,8 +125,8 @@ export class ChatAPIClient {
           message: errorData.message || `HTTP ${response.status}: Failed to get response`,
           type: 'network',
         };
-        onError(error);
-        return Promise.reject(error);
+        // Don't call onError here - let the catch block handle it to avoid duplicate error handling
+        throw error;
       }
 
       // Get stream reader
@@ -136,15 +136,14 @@ export class ChatAPIClient {
           message: 'Failed to get response reader - response body is null',
           type: 'stream',
         };
-        onError(error);
-        return Promise.reject(error);
+        // Don't call onError here - let the catch block handle it to avoid duplicate error handling
+        throw error;
       }
 
       // Process stream
       await this.processStream(reader, signal, accumulatedData, {
         onContent,
         onMetaMessages,
-        onError,
       });
 
       // End performance monitoring
@@ -158,7 +157,7 @@ export class ChatAPIClient {
       // End performance monitoring on error
       performanceMonitor.endStream();
 
-      // Notify error callback
+      // Notify error callback (single point of error notification)
       onError(chatError);
 
       // Clean up reader
@@ -186,9 +185,9 @@ export class ChatAPIClient {
     reader: ReadableStreamDefaultReader<Uint8Array>,
     signal: AbortSignal,
     accumulatedData: string,
-    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
-    const { onContent, onMetaMessages, onError } = callbacks;
+    const { onContent, onMetaMessages } = callbacks;
     const decoder = new TextDecoder();
 
     while (true) {
@@ -226,7 +225,7 @@ export class ChatAPIClient {
 
       // Process each chunk
       for (const chunk of chunks) {
-        await this.processChunk(chunk, { onContent, onMetaMessages, onError });
+        await this.processChunk(chunk, { onContent, onMetaMessages });
       }
 
       // Clear accumulated data after successful processing
@@ -242,23 +241,22 @@ export class ChatAPIClient {
    */
   private async processChunk(
     chunk: IStreamChunk,
-    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
-    const { onContent, onMetaMessages, onError } = callbacks;
+    const { onContent, onMetaMessages } = callbacks;
     const processed = processStreamChunk(chunk);
 
     // Extract conversation turn ID from chunk
     const turnId = chunk.conversationTurnId;
 
-    // Handle errors
+    // Handle errors - throw to stop stream processing, catch block will handle error notification
     if (processed.hasError) {
       const error: IChatError = {
         type: 'stream',
         turnId, // Include turn ID in error
         message: processed.error || 'Unknown error occurred',
       };
-      onError(error);
-      return;
+      throw error;
     }
 
     // Handle status messages (highest priority)

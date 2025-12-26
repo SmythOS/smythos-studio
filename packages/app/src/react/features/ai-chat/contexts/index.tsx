@@ -1,11 +1,11 @@
 import {
   useAgentSettings,
-  useAttachments,
-  useChat,
   useCreateChatMutation,
   useScrollToBottom,
   useUpdateAgentSettingsMutation,
 } from '@react/features/ai-chat/hooks';
+import { useChatState } from '@react/features/ai-chat/hooks/use-chat-state';
+import { useFileUpload } from '@react/features/ai-chat/hooks/use-file-upload';
 import { ChatInputRef, IChildren } from '@react/features/ai-chat/types/chat.types';
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
@@ -23,8 +23,7 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
 
   const navigate = useNavigate();
 
-  // Internal refs for tracking state
-  const isFirstMessageSentRef = useRef(false);
+  // Internal ref for tracking initialization state
   const hasInitializedChatRef = useRef(false);
 
   // Model override state (temporary, not saved to agent config)
@@ -51,7 +50,10 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
   // FILE UPLOAD MANAGEMENT
   // ============================================================================
 
-  const files = useAttachments({ agentId, chatId: agentSettings?.lastConversationId });
+  const fileUpload = useFileUpload({
+    agentId: agentId || '',
+    chatId: agentSettings?.lastConversationId || '',
+  });
 
   // ============================================================================
   // SCROLL BEHAVIOR
@@ -63,26 +65,23 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
   // CHAT STATE MANAGEMENT
   // ============================================================================
 
+  const chatStateV2 = useChatState({
+    agentId: agentId || '',
+    chatId: agentSettings?.lastConversationId || '',
+    modelId: modelOverride || agentSettings?.chatGptModel,
+    enableMetaMessages: true,
+    inputRef,
+  });
+
+  // Destructure for easier access
   const {
     messages,
+    setMessages,
     isStreaming,
-    isProcessing,
-
-    sendMessage: sendChatMessage,
-    retryMessage,
-    clearMessages,
-    stopGenerating,
-  } = useChat({
-    agentId,
-    chatId: agentSettings?.lastConversationId || '',
-    modelId: modelOverride || agentSettings?.chatGptModel, // Use override if set, otherwise fall back to agent's default model
-    onChatComplete: () => {
-      if (!isFirstMessageSentRef.current) {
-        isFirstMessageSentRef.current = true;
-      }
-    },
-    onError: (err) => console.error('Chat error:', err), // eslint-disable-line no-console
-  });
+    sendMessage: sendMessageV2,
+    stopStreaming,
+    retryLastMessage,
+  } = chatStateV2;
 
   // ============================================================================
   // CHAT ACTIONS
@@ -94,23 +93,28 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
    */
   const sendMessage = useCallback(
     async (message: string) => {
-      if (!message.trim() && files.data.length === 0) return;
+      if (!message.trim() && fileUpload.attachments.length === 0) return;
 
       try {
-        // Send message with already-uploaded files
-        const filesForChat =
-          files.data.length > 0
-            ? (files.data as unknown as Parameters<typeof sendChatMessage>[1])
-            : undefined;
-        await sendChatMessage(message, filesForChat);
+        // Convert V2 attachments to IAttachment format
+        const attachments = fileUpload.attachments.map((f) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          url: f.url,
+          blobUrl: f.blobUrl,
+          file: f.file,
+        }));
+
+        await sendMessageV2(message, attachments);
 
         // Clear files after successful send
-        files.clearFiles();
+        fileUpload.clear();
       } catch (error) {
         console.error('Failed to send message:', error); // eslint-disable-line no-console
       }
     },
-    [files, sendChatMessage],
+    [fileUpload, sendMessageV2],
   );
 
   /**
@@ -141,10 +145,9 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
    * Clears current chat session and creates a new one
    */
   const resetSession = useCallback(async () => {
-    stopGenerating();
-    isFirstMessageSentRef.current = false;
-    clearMessages();
-    files.clearFiles();
+    stopStreaming();
+    setMessages([]);
+    fileUpload.clear();
     await createSession();
 
     // Trigger callback
@@ -153,7 +156,7 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
     // Track observability events
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
-  }, [createSession, clearMessages, files, stopGenerating, inputRef]);
+  }, [createSession, setMessages, fileUpload, stopStreaming, inputRef]);
 
   // ============================================================================
   // LIFECYCLE EFFECTS
@@ -187,9 +190,9 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
    * Auto-focus input when agent is loaded and not disabled
    */
   useEffect(() => {
-    const inputDisabled = isChatCreating || isAgentLoading || isProcessing;
+    const inputDisabled = isChatCreating || isAgentLoading || isStreaming;
     if (!isAgentLoading && !inputDisabled) inputRef.current?.focus();
-  }, [isAgentLoading, isChatCreating, isProcessing]);
+  }, [isAgentLoading, isChatCreating, isStreaming]);
 
   // Memoize the store to avoid unnecessary re-renders
   const values: IChatContext = useMemo(
@@ -200,18 +203,17 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
         settings: agentSettings,
         isLoading: { agent: isAgentLoading, settings: isAgentSettingsLoading },
       },
-      files,
+      files: fileUpload,
       chat: {
         isChatCreating,
         messages,
         isStreaming,
-        isProcessing,
-        createSession,
         sendMessage,
-        retryMessage,
-        stopGenerating,
-        clearMessages,
         resetSession,
+        createSession,
+        stopStreaming,
+        retryMessage: retryLastMessage,
+        clearMessages: () => setMessages([]),
       },
 
       scroll,
@@ -226,21 +228,17 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
       agentSettings,
       isAgentLoading,
       isAgentSettingsLoading,
-      files,
-
+      fileUpload,
       isChatCreating,
       messages,
       isStreaming,
-      isProcessing,
       createSession,
       sendMessage,
-      retryMessage,
-      stopGenerating,
-      clearMessages,
+      retryLastMessage,
+      stopStreaming,
+      setMessages,
       resetSession,
-
       scroll,
-
       modelOverride,
       setModelOverride,
     ],

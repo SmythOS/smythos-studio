@@ -207,7 +207,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
       const lastMessage = prev[prev.length - 1];
 
       // If last message is loading or thinking type, update it instead of adding new
-      if (lastMessage?.type === 'loading' || lastMessage?.type === 'thinking') {
+      if (lastMessage?.type === 'loading' || lastMessage?.type === 'meta') {
         return prev.map((msg, index) =>
           index === prev.length - 1
             ? {
@@ -281,7 +281,7 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
               if (isThinkingRef.current) {
                 setMessages((prev) => {
                   const lastMessageIndex = prev.length - 1;
-                  if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'thinking') {
+                  if (lastMessageIndex >= 0 && prev[lastMessageIndex].type === 'meta') {
                     // Replace thinking message with loading message
                     const newMessages = prev.slice(0, -1);
                     newMessages.push({
@@ -482,12 +482,11 @@ export const useChat = (config: IUseChatConfig): IUseChatReturn => {
     // State
     messages,
     isStreaming,
-    isProcessing,
 
     // Actions
     sendMessage,
     clearMessages,
     retryMessage: retryLastMessage,
-    stopGenerating,
+    stopStreaming: stopGenerating,
   };
 };

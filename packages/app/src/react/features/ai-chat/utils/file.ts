@@ -63,3 +63,91 @@ export const createFileMetadata = (file: File): IMessageFile => ({
   id: generateUniqueFileId(file),
   metadata: { fileType: file.type, previewUrl: getLocalPreviewUrl(file), isUploading: true },
 });
+
+/**
+ * Interface for upload files props
+ */
+interface IUploadFilesProps {
+  files: File[];
+  agentId?: string;
+  chatId?: string;
+}
+
+/**
+ * Interface for upload response
+ */
+interface IUploadResponse {
+  files?: Array<{
+    url: string;
+    name?: string;
+    type?: string;
+    size?: number;
+    mimetype?: string;
+  }>;
+}
+
+/**
+ * Uploads files to the server
+ *
+ * @param props - Upload configuration
+ * @returns Promise with upload response containing file URLs
+ *
+ * @example
+ * ```typescript
+ * const response = await uploadFiles({
+ *   files: [file1, file2],
+ *   agentId: 'agent-123',
+ *   chatId: 'chat-456',
+ * });
+ * console.log(response.files[0].url);
+ * ```
+ */
+export const uploadFiles = async (props: IUploadFilesProps): Promise<IUploadResponse> => {
+  const { files, agentId, chatId } = props;
+
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('file', file);
+    });
+
+    const headers: Record<string, string> = {};
+
+    // Add agent and chat IDs if provided
+    if (agentId) {
+      headers['X-AGENT-ID'] = agentId;
+    }
+    if (chatId) {
+      headers['x-conversation-id'] = chatId;
+    }
+
+    const response = await fetch('/api/page/chat/upload', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Normalize response structure
+    const runtimeFiles = data?.files || (data?.file ? [data.file] : []);
+
+    return {
+      files: runtimeFiles.map(
+        (f: { url?: string; publicUrl?: string; mimetype?: string; type?: string; name?: string; size?: number }) => ({
+          url: f.url || f.publicUrl || '',
+          name: f.name,
+          type: f.mimetype || f.type,
+          size: f.size,
+        }),
+      ),
+    };
+  } catch (error) {
+    console.error('Error uploading files:', error); // eslint-disable-line no-console
+    throw error;
+  }
+};

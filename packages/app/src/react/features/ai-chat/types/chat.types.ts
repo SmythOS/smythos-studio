@@ -160,12 +160,11 @@ export interface IUseChatReturn {
   // State
   messages: IChatMessage[];
   isStreaming: boolean;
-  isProcessing: boolean;
 
   // Actions
   sendMessage: (message: string, files?: File[] | IMessageFile[]) => Promise<void>;
   retryMessage: () => Promise<void>;
-  stopGenerating: () => void;
+  stopStreaming: () => void;
   clearMessages: () => void;
 }
 

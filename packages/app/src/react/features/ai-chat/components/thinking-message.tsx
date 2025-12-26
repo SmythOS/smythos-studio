@@ -1,9 +1,9 @@
-import { IMetaMessages } from '@react/features/ai-chat/types/chat.types';
 import {
   createThinkingManager,
   formatStatusMessage,
 } from '@react/features/ai-chat/utils/stream.utils';
 import { FC, useEffect, useRef, useState } from 'react';
+import { IMetaMessages } from '../types/chat';
 
 interface IProps {
   avatar?: string;

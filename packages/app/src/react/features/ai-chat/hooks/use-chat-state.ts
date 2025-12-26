@@ -29,6 +29,17 @@ export const useChatState = (options: IConfigOptions): IChatState => {
 
       if (!lastMessage) return prev;
 
+      if (lastMessage.type === MESSAGE_TYPES.META) {
+        updated[lastIdx] = {
+          ...lastMessage,
+          type: MESSAGE_TYPES.SYSTEM,
+          content: content,
+          metaMessages: undefined,
+          updatedAt: Date.now(),
+        };
+        return updated;
+      }
+
       if (lastMessage.type === MESSAGE_TYPES.LOADING) {
         updated[lastIdx] = {
           ...lastMessage,

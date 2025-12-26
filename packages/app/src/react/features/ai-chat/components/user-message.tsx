@@ -1,13 +1,13 @@
-import { FileItemPreview } from '@react/features/ai-chat/components';
-import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
 import { FC } from 'react';
+import { IAttachment } from '../types/chat';
+import { FileItemPreview } from './FileItemPreview';
 
 /**
  * User Message Component Properties
  */
 interface IUserMessage {
   message: string;
-  files?: IMessageFile[];
+  files?: IAttachment[];
 }
 
 /**
@@ -23,13 +23,16 @@ export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
       {/* File Attachments */}
       {hasFiles && (
         <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto">
-          {files.map((fileWithKey, index) => (
+          {files.map((attachment, index) => (
             <FileItemPreview
+              key={`${attachment.name}-${index}-${attachment.url || attachment.blobUrl || index}`}
+              fileObj={attachment.file}
+              url={attachment.url}
+              blobUrl={attachment.blobUrl}
+              mimeType={attachment.type}
+              fileName={attachment.name}
               isReadOnly
-              key={fileWithKey.id || index}
-              file={fileWithKey}
-              fileKey={fileWithKey.metadata.key}
-              inChatBubble={true}
+              inChatBubble
             />
           ))}
         </div>

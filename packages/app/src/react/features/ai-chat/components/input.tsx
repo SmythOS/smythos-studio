@@ -9,7 +9,8 @@ import {
 } from 'react';
 import '../styles/index.css';
 
-import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/ai-chat/components';
+import { AttachmentButton, SendButton } from '@react/features/ai-chat/components';
+import { FileItemPreview } from '@react/features/ai-chat/components/FileItemPreview';
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatStores, useClipboardPaste } from '@react/features/ai-chat/hooks';
 import { createFileFromText } from '@react/features/ai-chat/utils';
@@ -29,8 +30,16 @@ export const ChatInput = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { isStreaming, isChatCreating, isProcessing, sendMessage, stopGenerating } = chat || {};
-  const { data: files, uploadingIds, addFiles, removeFile, clearFiles } = filesData || {};
+  const { isChatCreating } = chat || {};
+  const { isStreaming, sendMessage, stopStreaming } = chat || {};
+  const {
+    attachments: files,
+    status: uploadStatus,
+    process: addFiles,
+    remove: removeFile,
+    clear: clearFiles,
+    uploading,
+  } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
   const isMaxFilesUploaded = files.length >= 10;
@@ -114,11 +123,12 @@ export const ChatInput = () => {
   );
 
   const handleSubmit = useCallback((): void => {
-    if (isStreaming) return stopGenerating();
+    if (isStreaming) return stopStreaming();
 
     const trimmedMessage = message.trim();
     if (trimmedMessage.length > 0 || files.length > 0) {
-      sendMessage(trimmedMessage, files);
+      // sendMessage(trimmedMessage, files);
+      sendMessage(trimmedMessage);
       setMessage('');
       clearFiles();
 
@@ -228,9 +238,13 @@ export const ChatInput = () => {
           {files.map((fileWithMetadata, index) => (
             <FileItemPreview
               key={`${fileWithMetadata.id}`}
-              file={fileWithMetadata}
+              fileObj={fileWithMetadata.file}
+              url={fileWithMetadata.url}
+              blobUrl={fileWithMetadata.blobUrl}
+              mimeType={fileWithMetadata.type}
+              fileName={fileWithMetadata.name}
               onRemove={() => handleRemoveFile(index)}
-              isUploading={uploadingIds.has(fileWithMetadata.id)}
+              isUploading={uploadStatus[fileWithMetadata.name]?.status === 'uploading'}
             />
           ))}
         </div>
@@ -277,15 +291,15 @@ export const ChatInput = () => {
         <div onClick={(e) => e.stopPropagation()}>
           <AttachmentButton
             onClick={handleAttachmentClick}
-            fileAttachmentDisabled={isMaxFilesUploaded || isDisabled || isProcessing || isStreaming}
+            fileAttachmentDisabled={isMaxFilesUploaded || isDisabled || isStreaming}
             isMaxFilesUploaded={isMaxFilesUploaded}
           />
         </div>
 
         <div onClick={(e) => e.stopPropagation()}>
           <SendButton
-            isProcessing={isProcessing || isStreaming}
-            disabled={!canSubmit || uploadingIds.size > 0}
+            isStreaming={isStreaming}
+            disabled={!canSubmit || uploading}
             onClick={handleSubmit}
           />
         </div>

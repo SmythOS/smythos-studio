@@ -5,12 +5,12 @@ import { Button } from '@react/shared/components/ui/newDesign/button';
 import { cn } from '@src/react/shared/utils/general';
 
 interface SendButtonProps {
-  isProcessing: boolean;
+  isStreaming: boolean;
   disabled: boolean;
   onClick: () => void;
 }
 
-export const SendButton: FC<SendButtonProps> = ({ isProcessing, disabled, onClick }) => (
+export const SendButton: FC<SendButtonProps> = ({ isStreaming, disabled, onClick }) => (
   <Button
     addIcon
     variant="primary"
@@ -18,10 +18,10 @@ export const SendButton: FC<SendButtonProps> = ({ isProcessing, disabled, onClic
     handleClick={onClick}
     className={cn(
       'h-[40px] w-[40px] rounded-lg px-0 py-0',
-      isProcessing ? 'chat-stop' : 'chat-send',
+      isStreaming ? 'chat-stop' : 'chat-send',
     )}
     Icon={
-      isProcessing ? (
+      isStreaming ? (
         <FaStop fontSize={14} />
       ) : (
         <svg

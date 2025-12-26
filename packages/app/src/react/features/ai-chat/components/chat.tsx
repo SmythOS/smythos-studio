@@ -7,12 +7,14 @@ import {
   ThinkingMessage,
   UserMessage,
 } from '@react/features/ai-chat/components';
-import { IChatMessage } from '@react/features/ai-chat/types/chat.types';
 
 import '../styles/index.css';
+import { IMessage } from '../types/chat';
 
-interface IChatProps extends IChatMessage {
-  scrollToBottom?: () => void; // Callback to scroll chat to bottom
+interface IChatProps extends IMessage {
+  avatar: string;
+  onRetryClick?: () => void;
+  scrollToBottom?: () => void;
 }
 
 /**
@@ -26,19 +28,19 @@ interface IChatProps extends IChatMessage {
  * @returns Appropriate message component
  */
 export const Chat: FC<IChatProps> = memo((props) => {
-  const { type, files, avatar, message, metaMessages, onRetryClick, scrollToBottom } = props;
+  const { type, attachments, avatar, content, metaMessages, onRetryClick, scrollToBottom } = props;
 
   switch (type) {
     case 'loading':
       return <ReplyLoader />;
-    case 'thinking':
+    case 'meta':
       return <ThinkingMessage avatar={avatar} metaMessages={metaMessages} />;
     case 'user':
-      return <UserMessage message={message} files={files} />;
+      return <UserMessage message={content} files={attachments} />;
     case 'system':
-      return <SystemMessage message={message} scrollToBottom={scrollToBottom} />;
+      return <SystemMessage message={content} scrollToBottom={scrollToBottom} />;
     case 'error':
-      return <ErrorMessage message={message} onRetryClick={onRetryClick} />;
+      return <ErrorMessage message={content} onRetryClick={onRetryClick} />;
     default:
       return <ErrorMessage message="Something went wrong!" onRetryClick={onRetryClick} />;
   }
