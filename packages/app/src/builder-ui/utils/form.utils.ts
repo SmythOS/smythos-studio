@@ -30,24 +30,24 @@ export const dispatchInputEvent = (elm: HTMLInputElement | HTMLTextAreaElement):
 };
 
 /**
- * Checks if template variables are enabled based on the data-template-vars attribute value.
+ * Checks if template variables are enabled based on the element's data-template-vars attribute.
  * Supports both simple boolean string ("true") and JSON object format ({"enabled": true, "singleOnly": true}).
  *
  * @example
- * // String format
- * isTemplateVarsEnabled("true") // returns true
+ * // Pass element directly
+ * isTemplateVarsEnabled(inputElement) // returns true if enabled
  *
- * // Object format
- * isTemplateVarsEnabled('{"enabled": true, "singleOnly": true}') // returns true
+ * // Works with any HTMLElement that has data-template-vars attribute
+ * const formField = document.querySelector('.my-field');
+ * isTemplateVarsEnabled(formField) // returns true if enabled
  *
- * // From element
- * const attr = element.getAttribute('data-template-vars');
- * isTemplateVarsEnabled(attr) // returns true if enabled
- *
- * @param attributeValue - The value of data-template-vars attribute
+ * @param element - The HTML element to check for data-template-vars attribute
  * @returns true if template vars are enabled, false otherwise
  */
-export function isTemplateVarsEnabled(attributeValue: string | null | undefined): boolean {
+export function isTemplateVarsEnabled(element: HTMLElement | null | undefined): boolean {
+  if (!element) return false;
+
+  const attributeValue = element.getAttribute('data-template-vars');
   if (!attributeValue) return false;
   if (attributeValue === 'true') return true;
 
