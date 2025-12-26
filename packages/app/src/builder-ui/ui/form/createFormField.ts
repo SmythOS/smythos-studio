@@ -5,6 +5,7 @@ import {
   handleVaultBtn,
   isValidJson,
 } from '../../utils';
+import { isTemplateVarsEnabled } from '../../utils/form.utils';
 import {
   attachTooltipV2,
   mapMetroClassesToTooltipV2,
@@ -474,6 +475,19 @@ export default function createFormField(entry, displayType = 'block', entryIndex
         }
 
         formElement.setAttribute(attr, attributes[attr]);
+      }
+
+      // Automatically set autocomplete="off" for fields that support variable insertion
+      // data-template-vars can be "true" or an object like '{"enabled": true, "singleOnly": true}'
+      const hasTemplateVars = isTemplateVarsEnabled(attributes['data-template-vars']);
+
+      if (
+        (hasTemplateVars ||
+          attributes['data-agent-vars'] === 'true' ||
+          attributes['data-trigger-vars'] === 'true') &&
+        !attributes['autocomplete']
+      ) {
+        formElement.setAttribute('autocomplete', 'off');
       }
     }
   }

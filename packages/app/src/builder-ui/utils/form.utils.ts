@@ -1,4 +1,3 @@
-
 export const focusField = (elm: HTMLInputElement) => {
   if (!elm) return;
 
@@ -29,3 +28,34 @@ export const dispatchInputEvent = (elm: HTMLInputElement | HTMLTextAreaElement):
   });
   elm.dispatchEvent(changeEvent);
 };
+
+/**
+ * Checks if template variables are enabled based on the data-template-vars attribute value.
+ * Supports both simple boolean string ("true") and JSON object format ({"enabled": true, "singleOnly": true}).
+ *
+ * @example
+ * // String format
+ * isTemplateVarsEnabled("true") // returns true
+ *
+ * // Object format
+ * isTemplateVarsEnabled('{"enabled": true, "singleOnly": true}') // returns true
+ *
+ * // From element
+ * const attr = element.getAttribute('data-template-vars');
+ * isTemplateVarsEnabled(attr) // returns true if enabled
+ *
+ * @param attributeValue - The value of data-template-vars attribute
+ * @returns true if template vars are enabled, false otherwise
+ */
+export function isTemplateVarsEnabled(attributeValue: string | null | undefined): boolean {
+  if (!attributeValue) return false;
+  if (attributeValue === 'true') return true;
+
+  try {
+    const config = JSON.parse(attributeValue);
+    return config.enabled === true;
+  } catch {
+    // Fallback: check for "enabled":true or "enabled": true in string
+    return attributeValue.includes('"enabled":true') || attributeValue.includes('"enabled": true');
+  }
+}
