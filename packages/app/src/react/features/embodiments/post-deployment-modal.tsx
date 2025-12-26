@@ -513,7 +513,9 @@ function PostDeploymentModal({
                     ) : !state.canUseEmbodiments ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <FaLock className="text-gray-400 cursor-pointer" />
+                          <div>
+                            <FaLock className="text-gray-400 cursor-pointer" />
+                          </div>
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           <p>Premium Embodiment. Upgrade your plan</p>

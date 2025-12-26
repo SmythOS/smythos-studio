@@ -1,54 +1,53 @@
-import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceLookup extends Component {
-  private namespaces: string[] = [];
-  private isNewComponent: boolean = false;
-  private componentVersion: string = 'v1';
-
+  private namespaces: { value: string; text: string; __legacy_id: string }[] = [];
   protected async prepare(): Promise<any> {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    const eligibleForV2 =
-      builderStore.getState().serverStatus.edition === 'enterprise' &&
-      !window.location.hostname.includes('smythos.com');
+    // this.isNewComponent = Object.keys(this.data).length === 0;
 
-    const componentVersion =
-      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
-
-    if (this.isNewComponent && eligibleForV2) {
-      this.data.version = componentVersion;
-    }
-    this.updateSettings();
+    this.updateSettings().then(() => {
+      // if the current value does not match anything
+      const isUnableToMatchNsRecord =
+        this.data['namespace'] &&
+        !this.namespaces.find((ns) => ns.value === this.data['namespace']);
+      if (isUnableToMatchNsRecord) {
+        // try two cases, case where teamid is stripped, and case of original id
+        const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespace']}`;
+        const ns = this.data['namespace'];
+        const matching = this.namespaces.find(
+          (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+        );
+        if (matching) {
+          this.data['namespace'] = matching.value;
+        } else {
+          console.log('WE are not able to map the old name');
+        }
+      }
+    });
   }
 
   protected async updateSettings() {
-    if (!this.data.version || this.data.version === 'v1') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    } else if (this.data.version === 'v2') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    }
+    const result = await fetch(
+      `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+    );
+    const namespaces = await result.json();
+    this.namespaces = namespaces.map((item) => ({
+      value: item.label,
+      text: item.label,
+      __legacy_id: item.__legacy_id,
+    }));
+    this.settings.namespace.options = this.namespaces;
+    if (this.settingsOpen) this.refreshSettingsSidebar();
   }
 
   protected async init() {
     this.settings = {
       namespace: {
         type: 'select',
-        label: 'namespace',
-        help: 'Select the memory bucket to search, matching the namespace used when indexing. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=namespace#step-1-define-the-search-scope" target="_blank" class="text-blue-600 hover:text-blue-800">See namespace mapping</a>',
+        label: 'Data Space',
+        help: 'Select the memory bucket to search, matching the data space used when indexing. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=namespace#step-1-define-the-search-scope" target="_blank" class="text-blue-600 hover:text-blue-800">See namespace mapping</a>',
         options: this.namespaces,
       },
       topK: {
@@ -87,6 +86,23 @@ export class DataSourceLookup extends Component {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
     }
 
+    // if the current value does not match anything
+    const isUnableToMatchNsRecord =
+      this.data['namespace'] && !this.namespaces.find((ns) => ns.value === this.data['namespace']);
+    if (isUnableToMatchNsRecord) {
+      // try two cases, case where teamid is stripped, and case of original id
+      const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespace']}`;
+      const ns = this.data['namespace'];
+      const matching = this.namespaces.find(
+        (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+      );
+      if (matching) {
+        this.data['namespace'] = matching.value;
+      } else {
+        console.log('WE are not able to map the old name');
+      }
+    }
+
     this.properties.defaultInputs = ['Query'];
     this.properties.defaultOutputs = ['Results'];
 
@@ -112,7 +128,7 @@ export class DataSourceLookup extends Component {
       if (!namespaces[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
-          `Missing Namespace<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
+          `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
         );
       }

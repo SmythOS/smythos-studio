@@ -418,7 +418,7 @@ const _compMenuMarkup = ({ data, compName, placeholderLogo, compDisplayName }: C
   }
 
   let deleteBtn = `<button 
-    class="btn-delete w-1 h-2 p-0"
+    class="btn-delete"
     rel="${data?.id || ''}"
     aria-label="Delete ${data?.name || 'item'}">
 
@@ -1132,3 +1132,4 @@ export function addTooltipToLockBadge(element, tooltipText) {
 
 export { default as PromptGeneratorUtils } from './PromptGenerator.utils';
 export { default as VisionLLMUtils } from './VisionLLM.utils';
+

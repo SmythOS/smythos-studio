@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FaStop } from 'react-icons/fa6';
 
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { cn } from '@src/react/shared/utils/general';
 
 interface SendButtonProps {
   isProcessing: boolean;
@@ -11,9 +12,14 @@ interface SendButtonProps {
 
 export const SendButton: FC<SendButtonProps> = ({ isProcessing, disabled, onClick }) => (
   <Button
-    variant="primary"
-    handleClick={onClick}
     addIcon
+    variant="primary"
+    disabled={disabled}
+    handleClick={onClick}
+    className={cn(
+      'h-[40px] w-[40px] rounded-lg px-0 py-0',
+      isProcessing ? 'chat-stop' : 'chat-send',
+    )}
     Icon={
       isProcessing ? (
         <FaStop fontSize={14} />
@@ -34,7 +40,5 @@ export const SendButton: FC<SendButtonProps> = ({ isProcessing, disabled, onClic
         </svg>
       )
     }
-    className="h-[40px] w-[40px] rounded-lg px-0 py-0"
-    disabled={disabled}
   />
 );

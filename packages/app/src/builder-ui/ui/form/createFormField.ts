@@ -5,6 +5,7 @@ import {
   handleVaultBtn,
   isValidJson,
 } from '../../utils';
+import { isTemplateVarsEnabled } from '../../utils/form.utils';
 import {
   attachTooltipV2,
   mapMetroClassesToTooltipV2,
@@ -21,6 +22,7 @@ import {
   createHint,
   createInfoButton,
   createInput,
+  createMultiSelectBox,
   createRadio,
   createRangeInput,
   createSelectBox,
@@ -89,8 +91,43 @@ export default function createFormField(entry, displayType = 'block', entryIndex
       }
 
       isDropdown = true;
-      hasTemplateVarToggle =
-        String(attributes?.['data-template-vars'] || '').toLowerCase() === 'true';
+      hasTemplateVarToggle = isTemplateVarsEnabled(attributes?.['data-template-vars']);
+
+      break;
+
+    case 'select-multiple':
+    case 'SELECT-MULTIPLE':
+      /**
+       * Native HTML multi-select field
+       * Supports multiple selections and search functionality
+       * Value should be an array of selected values
+       * createMultiSelectBox returns a container div with a nested select element
+       */
+      const multiSelectContainer = createMultiSelectBox(
+        entry.options,
+        Array.isArray(value) ? value : [],
+        entry?.dropdownHeight,
+      );
+
+      /**
+       * Get the actual select element from the container
+       * The container has a _selectElement property that references the select
+       */
+      const actualSelect = (multiSelectContainer as any)._selectElement as HTMLSelectElement;
+
+      if (entry.readonly && actualSelect) {
+        actualSelect.setAttribute('disabled', 'disabled');
+      }
+
+      /**
+       * Set formElement to the container, but store a reference to the select
+       * This allows the form system to work with the container while
+       * still being able to access the select for value retrieval
+       */
+      formElement = multiSelectContainer;
+      (formElement as any)._selectElement = actualSelect;
+
+      isDropdown = true;
 
       break;
     case 'checkbox':
@@ -438,20 +475,32 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
 
   if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
-    formElement.setAttribute('id', entry.name);
-    if (entry.name) formElement.setAttribute('name', entry.name);
+    // For non-select-multiple fields, apply id/name/attributes directly
+    if (entry?.type?.toLowerCase() !== 'select-multiple') {
+      formElement.setAttribute('id', entry.name);
+      if (entry.name) formElement.setAttribute('name', entry.name);
 
-    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
-    for (let attr in attributes) {
-      if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
-        formElement.setAttribute('disabled', 'disabled');
+      // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
+      for (let attr in attributes) {
+        if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
+          formElement.setAttribute('disabled', 'disabled');
+        }
+
+        formElement.setAttribute(attr, attributes[attr]);
       }
 
-      if (templateVarInput && attr === 'data-template-vars') {
-        continue;
-      }
+      // Automatically set autocomplete="off" for fields that support variable insertion
+      // data-template-vars can be "true" or an object like '{"enabled": true, "singleOnly": true}'
+      const hasTemplateVars = isTemplateVarsEnabled(attributes['data-template-vars']);
 
-      formElement.setAttribute(attr, attributes[attr]);
+      if (
+        (hasTemplateVars ||
+          attributes['data-agent-vars'] === 'true' ||
+          attributes['data-trigger-vars'] === 'true') &&
+        !attributes['autocomplete']
+      ) {
+        formElement.setAttribute('autocomplete', 'off');
+      }
     }
 
     if (templateVarInput) {
@@ -516,13 +565,24 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     */
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 
+  /**
+   * For select-multiple fields, the formElement is a container/wrapper div that contains a nested select element.
+   * We need to attach events to the nested select element (not the wrapper) so that events fire correctly.
+   * configureSelectMultiple sets up attributes on the nested select and returns it for event attachment.
+   * For other field types, formElement is the actual input/select element, so we use it directly.
+   */
+  let eventTarget: HTMLElement = formElement;
+  if (entry?.type?.toLowerCase() === 'select-multiple') {
+    eventTarget = configureSelectMultiple(formElement, entry, attributes, events);
+  }
+
   // Handle events for tag inputs differently
   if (isTagInput && Object.keys(events).length > 0) {
     // Store events to be attached after MetroUI initialization
     formElement.setAttribute('data-deferred-events', JSON.stringify(events));
   } else {
-    // Add events for non-tag inputs (template var input events are handled in createTemplateVarToggle)
-    for (let event in events) formElement.addEventListener(event, events[event]);
+    // Add events for non-tag inputs
+    for (let event in events) eventTarget.addEventListener(event, events[event]);
   }
 
   // add template variables
@@ -1379,4 +1439,96 @@ function applyTooltipConfig(actionBtn, action) {
     className: mapMetroClassesToTooltipV2(tooltipConfig.classes),
     delayDuration: 300,
   });
+}
+
+/**
+ * Configures all select-multiple specific attributes and behaviors.
+ * For select-multiple fields, the formElement is a container div, but we need to apply
+ * form-related attributes to the actual select element for proper form submission and validation.
+ *
+ * @param formElement - The container element for select-multiple
+ * @param entry - The form field entry configuration
+ * @param attributes - Custom attributes to apply
+ * @param events - Event handlers to attach (unused, kept for consistency)
+ * @returns The actual select element for event listener attachment
+ */
+function configureSelectMultiple(
+  formElement: HTMLElement,
+  entry: any,
+  attributes: Record<string, any>,
+  events: Record<string, (e: Event) => void>,
+): HTMLElement {
+  const actualSelect = (formElement as any)._selectElement as HTMLSelectElement;
+  if (!actualSelect) {
+    return formElement;
+  }
+
+  /**
+   * Apply id, name, and custom attributes to the actual select element
+   */
+  if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
+    actualSelect.setAttribute('id', entry.name);
+    if (entry.name) {
+      actualSelect.setAttribute('name', entry.name);
+    }
+
+    // Apply custom attributes
+    for (const attr in attributes) {
+      if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
+        actualSelect.setAttribute('disabled', 'disabled');
+      }
+      actualSelect.setAttribute(attr, attributes[attr]);
+    }
+  }
+
+  /**
+   * Copy readonly attribute from container to the actual select element
+   */
+  const containerReadonly = formElement.getAttribute('readonly');
+  if (containerReadonly !== null) {
+    actualSelect.setAttribute('readonly', containerReadonly);
+  }
+
+  /**
+   * Copy validation attributes from container to the actual select element
+   */
+  if (entry.validate) {
+    if (entry.doNotValidateOnLoad) {
+      const containerRules = formElement.getAttribute('data-validate-rules');
+      if (containerRules) {
+        actualSelect.setAttribute('data-validate-rules', containerRules);
+      }
+      // Re-attach validation event listeners to the actual select element
+      const enableValidation = () => {
+        actualSelect.setAttribute('data-validate', entry.validate);
+        actualSelect.removeAttribute('data-validate-rules');
+        actualSelect.removeEventListener('focus', enableValidation);
+        actualSelect.removeEventListener('input', enableValidation);
+        actualSelect.removeEventListener('change', enableValidation);
+      };
+      actualSelect.addEventListener('focus', enableValidation, { once: true });
+      actualSelect.addEventListener('input', enableValidation, { once: true });
+      actualSelect.addEventListener('change', enableValidation, { once: true });
+    } else {
+      const containerValidate = formElement.getAttribute('data-validate');
+      if (containerValidate) {
+        actualSelect.setAttribute('data-validate', containerValidate);
+      }
+    }
+  }
+
+  /**
+   * Copy smythValidate attribute to the actual select element
+   */
+  if (entry.smythValidate) {
+    const containerSmythValidate = formElement.getAttribute('data-smyth-validate');
+    if (containerSmythValidate) {
+      actualSelect.setAttribute('data-smyth-validate', containerSmythValidate);
+    }
+  }
+
+  /**
+   * Return the actual select element for event listener attachment
+   */
+  return actualSelect;
 }

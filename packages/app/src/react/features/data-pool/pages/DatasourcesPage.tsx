@@ -151,7 +151,7 @@ const DatasourcesPage: FC = () => {
         <Link to="/">Home</Link>
       </Breadcrumb.Item>
       <Breadcrumb.Item>
-        <Link to="/data-pool">Data Spaces</Link>
+        <Link to="/data">Data Spaces</Link>
       </Breadcrumb.Item>
       <Breadcrumb.Item>{namespaceLabel}</Breadcrumb.Item>
     </Breadcrumb>

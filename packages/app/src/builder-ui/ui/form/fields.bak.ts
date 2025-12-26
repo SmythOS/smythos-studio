@@ -1,5 +1,10 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@src/react/shared/components/ui/tooltip';
 import DOMPurify from 'dompurify';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../utils';
@@ -554,9 +559,7 @@ function getCodeConfigFromAttributes(
 /**
  * Get code configuration based on content type (APICall components)
  */
-function getCodeConfigFromContentType(
-  textarea: HTMLTextAreaElement,
-): CodeConfig | undefined {
+function getCodeConfigFromContentType(textarea: HTMLTextAreaElement): CodeConfig | undefined {
   const contentType = textarea.getAttribute('data-content-type');
 
   if (!contentType) return undefined;
@@ -723,7 +726,9 @@ async function initializeCodeEditor(
     }
 
     // Setup bracket selection for Ace editor content
-    const aceContentElement = textarea._editor.container?.querySelector('.ace_content') as HTMLElement | null;
+    const aceContentElement = textarea._editor.container?.querySelector(
+      '.ace_content',
+    ) as HTMLElement | null;
     if (aceContentElement) {
       addBracketSelection(aceContentElement);
     }
@@ -882,7 +887,9 @@ function setupVaultInDialog(
 
           if (targetField) {
             (targetField as HTMLTextAreaElement).focus();
-            (targetField as HTMLTextAreaElement).scrollTop = (targetField as HTMLTextAreaElement).scrollHeight;
+            (targetField as HTMLTextAreaElement).scrollTop = (
+              targetField as HTMLTextAreaElement
+            ).scrollHeight;
 
             const inputEvent = new Event('input', { bubbles: true });
             (targetField as HTMLTextAreaElement).dispatchEvent(inputEvent);
@@ -895,9 +902,9 @@ function setupVaultInDialog(
 
     // After vault handler runs, ensure focus/update
     setTimeout(() => {
-      const updatedTargetField = (newVaultButton.closest('.form-group')?.querySelector(
-        '[data-vault]'
-      ) as HTMLTextAreaElement | null);
+      const updatedTargetField = newVaultButton
+        .closest('.form-group')
+        ?.querySelector('[data-vault]') as HTMLTextAreaElement | null;
       if (updatedTargetField) {
         updatedTargetField.focus();
         updatedTargetField.scrollTop = updatedTargetField.scrollHeight;
@@ -938,7 +945,8 @@ function reattachActionButtons(
     ) as HTMLButtonElement | null;
     if (!modalActionButton) return;
 
-    const originalClickHandler = (originalButton as unknown as { onclick?: (e: Event) => void }).onclick;
+    const originalClickHandler = (originalButton as unknown as { onclick?: (e: Event) => void })
+      .onclick;
     if (originalClickHandler) {
       modalActionButton.onclick = async (event) => {
         const buttonId = originalButton.id;
@@ -962,7 +970,8 @@ function reattachActionButtons(
       };
     }
 
-    const originalEvents = (originalButton as unknown as { _events?: Record<string, EventListener> })._events || {};
+    const originalEvents =
+      (originalButton as unknown as { _events?: Record<string, EventListener> })._events || {};
     Object.keys(originalEvents).forEach((eventType) => {
       modalActionButton.addEventListener(eventType, originalEvents[eventType] as EventListener);
     });
@@ -1020,7 +1029,6 @@ async function handleExpandTextarea(
   modalTextarea.classList.add('form-control', 'flex-1', 'resize-none', 'overflow-y-auto');
   modalTextarea.id = 'expanded-textarea';
 
-
   // Copy validation attributes from original textarea for Metro UI validation
   const validateAttr = originalTextarea.getAttribute('data-validate');
   if (validateAttr) {
@@ -1036,10 +1044,6 @@ async function handleExpandTextarea(
   if (hasVaultAttribute) {
     // Copy vault attribute to modal textarea
     modalTextarea.setAttribute('data-vault', hasVaultAttribute);
-
-    // Mark this textarea as coming from expanded/modal view
-    // This is used to hide the "Add Key" option in the vault dropdown
-    modalTextarea.setAttribute('data-vault-from-modal', 'true');
 
     // Create vault button for modal
     const modalVaultButton = createVaultButton();

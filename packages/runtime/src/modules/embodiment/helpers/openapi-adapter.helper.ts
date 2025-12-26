@@ -59,7 +59,7 @@ const agentDataConnector = new EmbodimentAgentDataConnector();
 /**
  * Constructs the server URL from domain using environment configuration
  */
-function constructServerUrl(domain: string, useInternalDomain = false): string {
+export function constructServerUrl(domain: string, useInternalDomain = false): string {
   if (useInternalDomain) {
     return config.env.LOCAL_BASE_URL;
   }

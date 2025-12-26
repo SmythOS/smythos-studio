@@ -20,9 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@src/react/shared/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
-import { PlusCircle } from 'lucide-react';
+import { Info, PlusCircle, Settings } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CreateCredentialsModal
 } from '../../credentials/components/create-credentials.modal';
@@ -49,6 +51,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   onSuccess,
 }) => {
   const { credentials, credentialsLoading, getCredentialById, refetchCredentials } = useDataPoolContext();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [selectedCredentialId, setSelectedCredentialId] = useState('');
   const [embeddingModels, setEmbeddingModels] = useState<EmbeddingModel[]>([]);
@@ -57,7 +60,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [isDimensionsReadOnly, setIsDimensionsReadOnly] = useState(false);
   // State for Create Credentials Modal
   const [isCreateCredModalOpen, setIsCreateCredModalOpen] = useState(false);
 
@@ -157,9 +160,40 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
       return;
     }
     
+    // If "manage_connections" is selected, navigate to vault page
+    if (value === '__manage_connections__') {
+      onClose();
+      navigate('/vault');
+      return;
+    }
+    
     setSelectedCredentialId(value);
+    handleDimentionDynamicChange('connection', value);
     setError(null);
   };
+
+  const handleDimentionDynamicChange = (change: 'embedding_model' | 'connection', id: string) => {
+    setIsDimensionsReadOnly(false);
+
+    if (change === 'embedding_model') {
+      // check if model is text-embedding-ada-002, then set dimensions to 1536 and read only
+      if (id === 'text-embedding-ada-002') {
+        setDimensions('1536');
+        setIsDimensionsReadOnly(true);
+      }
+    }
+
+    if (change === 'connection') {
+      // check if smyth conneciton, then set dimensions to 1536 and read only
+      if (id === '__smythos_vectordb_cred__') {
+        setDimensions('1536');
+        setIsDimensionsReadOnly(true);
+      }
+    }
+
+    
+    
+  }; 
 
   /**
    * Handle successful credential creation
@@ -192,7 +226,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
     setError(null);
   };
 
-  const isFormValid = name.trim() !== '' && selectedCredentialId !== '' && selectedModelId !== '';
+  const isFormValid = name.trim() !== '' && selectedCredentialId !== '' && selectedModelId !== '' && dimensions !== '';
 
   return (
     <>
@@ -253,6 +287,14 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                     <div className="flex items-center gap-2 text-blue-600 font-medium">
                       <PlusCircle className="w-4 h-4" />
                       <span>Create New Connection</span>
+                    </div>
+                  </SelectItem>
+                  
+                  {/* Manage Connections Option */}
+                  <SelectItem value="__manage_connections__">
+                    <div className="flex items-center gap-2 text-gray-600 font-medium">
+                      <Settings className="w-4 h-4" />
+                      <span>Manage Connections</span>
                     </div>
                   </SelectItem>
                   
@@ -317,7 +359,11 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                 </label>
                 <Select
                   value={selectedModelId}
-                  onValueChange={setSelectedModelId}
+                  onValueChange={(value) => {
+
+                    setSelectedModelId(value);
+                    handleDimentionDynamicChange('embedding_model', value);
+                  }}
                   disabled={isLoadingModels || isCreating}
                 >
                   <SelectTrigger className="w-full" disabled={isLoadingModels || isCreating}>
@@ -345,20 +391,28 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
 
               {/* Dimensions Input */}
               <div className="space-y-2">
-                <label className="text-gray-700 mb-1 text-sm font-normal flex items-center">
+                <label className="text-gray-700  text-sm font-normal flex items-center">
                   Vector Dimensions
+                  <Tooltip>
+                  <TooltipTrigger asChild>
+                <Info className="w-4 h-4 cursor-help ml-1" />
+              </TooltipTrigger>
+                        <TooltipContent side="right" className="w-[200px] text-center">
+                          <p>
+                            The dimension should match the one configured in your vector database provider.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                 </label>
                 <input
                   type="number"
-                  placeholder="e.g., 1536 (optional)"
+                  placeholder="e.g., 1536"
                   value={dimensions}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setDimensions(e.target.value)}
                   disabled={isCreating}
+                  readOnly={isDimensionsReadOnly}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                 />
-                <p className="text-xs text-gray-500">
-                  Leave empty for default
-                </p>
               </div>
             </div>
           </div>

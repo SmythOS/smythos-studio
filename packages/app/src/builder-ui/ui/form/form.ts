@@ -294,6 +294,16 @@ export function readFormValues(form, entriesObject) {
             .filter((checkbox) => checkbox.checked)
             .map((checkbox) => checkbox.value);
           break;
+        case 'select-multiple':
+        case 'SELECT-MULTIPLE':
+          /**
+           * For select-multiple, get all selected option values as an array
+           * The inputField is the hidden select element with multiple attribute
+           */
+          result[key] = Array.from(inputField.selectedOptions).map(
+            (option: HTMLOptionElement) => option.value,
+          );
+          break;
         case 'toggle':
           result[key] = inputField.checked;
           break;
@@ -376,6 +386,17 @@ export function readFormValidation(form, entriesObject) {
         case 'checkbox':
         case 'toggle':
           result[key] = { value: inputField.checked };
+          break;
+        case 'select-multiple':
+        case 'SELECT-MULTIPLE':
+          /**
+           * For select-multiple validation, return array of selected values
+           */
+          result[key] = {
+            value: Array.from(inputField.selectedOptions).map(
+              (option: HTMLOptionElement) => option.value,
+            ),
+          };
           break;
         case 'number':
           // Convert string value to number for number fields

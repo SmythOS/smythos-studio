@@ -485,8 +485,12 @@ export class GenAILLM extends Component {
           {
             label: '$ View Pricing',
             icon: 'dollar-sign',
-            classes: 'text-gray-600 top-[-8px] right-6 hover:underline _model_pricing_link hidden',
-            tooltip: 'SmythOS charges based on input and output tokens',
+            classes:
+              'text-gray-600 top-[-8px] right-[-80px] shadow-none hover:underline _model_pricing_link hidden',
+            tooltip: {
+              text: 'SmythOS charges based on input and output tokens',
+              position: 'left',
+            },
             events: {
               click: () => {
                 window.open(
@@ -968,7 +972,11 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'City',
         value: '',
-        attributes: openAIAttributes,
+        attributes: {
+          ...openAIAttributes,
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
+        },
         class: 'hidden',
         help: "The city: free text strings, like 'Minneapolis'.",
         validate: 'maxlength=100',
@@ -984,7 +992,8 @@ export class GenAILLM extends Component {
         attributes: {
           ...openAIAttributes,
           placeholder: 'Type country name or code (e.g., United States or US)',
-          autocomplete: 'off',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
         help: "Country: type the full country name or two-letter ISO code, like 'United States' or 'US'. Select from the dropdown to confirm.",
@@ -995,7 +1004,11 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'Region',
         value: '',
-        attributes: openAIAttributes,
+        attributes: {
+          ...openAIAttributes,
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
+        },
         class: 'hidden',
         help: "Region: free text strings, like 'Minnesota'.",
         validate: 'maxlength=100',
@@ -1011,7 +1024,8 @@ export class GenAILLM extends Component {
         attributes: {
           ...openAIAttributes,
           placeholder: 'Type to search timezones (e.g., America/Chicago)',
-          autocomplete: 'off',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
         help: 'Timezone: an IANA timezone like America/Chicago. Type to search.',
@@ -1172,7 +1186,8 @@ export class GenAILLM extends Component {
         attributes: {
           ...xAIAttributes,
           placeholder: 'Type country name or code (e.g., United States or US)',
-          autocomplete: 'off',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
         help: 'Country: type the full country name or two-letter ISO code to limit search results. Select from the dropdown to confirm.',
