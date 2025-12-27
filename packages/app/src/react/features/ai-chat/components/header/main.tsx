@@ -1,19 +1,18 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { FaRegPenToSquare } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 
-import { Skeleton } from '@react/features/ai-chat/components';
+import { CloseIcon, Skeleton } from '@react/features/ai-chat/components';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatStores } from '@react/features/ai-chat/hooks';
-import { CloseIcon } from '@src/react/features/ai-chat/components/common/icons';
-import { cn } from '@src/react/shared/utils/general';
-import { Observability } from '@src/shared/observability';
-import { EVENTS } from '@src/shared/posthog/constants/events';
-import { LLMRegistry } from '@src/shared/services/LLMRegistry.service';
-import { llmModelsStore } from '@src/shared/state_stores/llm-models';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
+import { cn } from '@react/shared/utils/general';
+import { Observability } from '@shared/observability';
+import { EVENTS } from '@shared/posthog/constants/events';
+import { LLMRegistry } from '@shared/services/LLMRegistry.service';
+import { llmModelsStore } from '@shared/state_stores/llm-models';
 
 // #region Provider Icon Component
 interface ProviderIconProps {
