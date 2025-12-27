@@ -226,17 +226,18 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
     }
 
     // Render file icon preview for non-image files
+
     return (
       <div className="relative inline-block group mt-4">
         {onRemove && (
-          <div className="absolute -top-2 -right-2 group-hover:[&>button]:opacity-100">
+          <div className="absolute -top-2 -right-2 z-10 group-hover:[&>button]:opacity-100">
             <RemoveButton onRemove={onRemove} />
           </div>
         )}
         <div className="flex items-center gap-4 text-sm bg-white rounded-lg border border-[#E5E7EB] px-2 py-1 overflow-hidden w-40 min-w-32 max-h-[52px]">
-          <div className="flex items-center justify-center bg-[#45C9A9] rounded-lg p-2 shrink-0">
+          <div className="flex items-center justify-center bg-primary-100 rounded-lg p-2 flex-shrink-0">
             {isUploading ? (
-              <div className="animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="animate-spin rounded-full h-6 w-6 border-solid border-2 border-white border-t-transparent" />
             ) : (
               fileIcon
             )}
