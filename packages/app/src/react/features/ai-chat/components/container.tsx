@@ -12,13 +12,11 @@ export const Container: FC<IChildren> = ({ children }) => {
     const parent = containerElement.parentElement;
     parentElementRef.current = parent;
 
-    // Store original state
     originalStateRef.current = {
       className: parent.className,
       maxWidth: parent.style.maxWidth,
     };
 
-    // Override max-width constraint
     parent.classList.remove('max-w-[1224px]');
     parent.classList.add('max-w-none');
     parent.style.maxWidth = 'none';

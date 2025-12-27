@@ -20,7 +20,6 @@ export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
 
   return (
     <div className="break-all flex flex-col items-end">
-      {/* File Attachments */}
       {hasFiles && (
         <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto">
           {files.map((attachment, index) => (
@@ -32,7 +31,6 @@ export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
         </div>
       )}
 
-      {/* Message Bubble - automatically hidden if empty */}
       {message && (
         <div className="rounded-[18px] bg-[#f4f4f4] text-[#2b2b2b] p-3 px-4 w-fit whitespace-pre-wrap text-wrap max-w-[535px]">
           {message}

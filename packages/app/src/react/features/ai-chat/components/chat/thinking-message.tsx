@@ -13,7 +13,6 @@ interface IProps {
   scrollToBottom: () => void;
 }
 
-// Custom CSS for smooth blinking animation (like the image)
 const blinkAnimation = `
   @keyframes smoothBlink {
     0% { opacity: 1; }
@@ -37,7 +36,7 @@ export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
 
   const [thinkingMessage, setThinkingMessage] = useState<string>('');
   const thinkingManagerRef = useRef(createThinkingManager());
-  // thinking-message.tsx
+
   useEffect(() => {
     scrollToBottom?.();
   }, [scrollToBottom]);
@@ -72,8 +71,6 @@ export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
   return (
     <>
       <style>{blinkAnimation}</style>
-      {/* White rectangular bubble like the image */}
-
       <div className="flex items-center gap-3 px-3">
         {/* Avatar inside the bubble */}
         <div className="flex-shrink-0">

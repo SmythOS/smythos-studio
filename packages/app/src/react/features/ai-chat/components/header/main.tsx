@@ -1,82 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import { FaRegPenToSquare } from 'react-icons/fa6';
-import { IoChevronDown } from 'react-icons/io5';
-import { Link } from 'react-router-dom';
+import { FC } from 'react';
 
-import { CloseIcon, Skeleton } from '@react/features/ai-chat/components';
+import { Skeleton } from '@react/features/ai-chat/components';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatStores } from '@react/features/ai-chat/hooks';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 import { cn } from '@react/shared/utils/general';
-import { Observability } from '@shared/observability';
-import { EVENTS } from '@shared/posthog/constants/events';
-import { LLMRegistry } from '@shared/services/LLMRegistry.service';
-import { llmModelsStore } from '@shared/state_stores/llm-models';
 
-// #region Provider Icon Component
-interface ProviderIconProps {
-  provider: string;
-  className?: string;
-}
+import { HeaderActions } from './header-actions';
+import { ModelDropdown } from './model-dropdown';
 
 /**
- * Provider icon with gradient fallback
- * Shows provider SVG icon, falls back to gradient "AI" badge if image fails to load
+ * Model agent data structure from API
  */
-const ProviderIcon: FC<ProviderIconProps> = ({ provider, className = 'size-5 rounded-full' }) => {
-  const [hasError, setHasError] = useState<boolean>(false);
-
-  if (hasError) {
-    return (
-      <div
-        className={cn(
-          className,
-          'bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center',
-        )}
-      >
-        <span className="text-white text-xs font-semibold">AI</span>
-      </div>
-    );
-  }
-
-  return (
-    <img
-      className={className}
-      alt={`${provider} icon`}
-      onError={() => setHasError(true)}
-      src={`/img/provider_${provider.toLowerCase()}.svg`}
-    />
-  );
-};
-// #endregion Provider Icon Component
-
-// #region Temporary Badges
-const TEMP_BADGES: Record<string, boolean> = {
-  enterprise: true,
-  smythos: true,
-  personal: true,
-  limited: true,
-};
-
-/**
- * Get badge string from model tags
- * @param tags - Array of model tags
- * @returns Badge string for display
- */
-function getTempBadge(tags: string[]): string {
-  return tags.filter((tag) => TEMP_BADGES?.[tag?.toLowerCase()]).join(' ');
-}
-// #endregion Temporary Badges
-
-interface ILLMModels {
-  label: string;
-  value: string;
-  tags: string[];
-  default?: boolean;
-  provider: string;
-}
-
 interface ModelAgent {
   id: string;
   name: string;
@@ -85,8 +20,8 @@ interface ModelAgent {
 }
 
 /**
- * Fetch model agents from API
- * @returns Promise of ModelAgent array
+ * Fetches model agents from API
+ * Used to determine if current agent is a "default model agent" with fixed model
  */
 const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   const response = await fetch('/api/page/agents/models');
@@ -94,315 +29,117 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   return data.agents;
 };
 
+/**
+ * ChatHeader Component
+ * Main header for chat interface displaying agent info and model selection
+ *
+ * Features:
+ * - Agent avatar and name display
+ * - LLM model selection dropdown (disabled for default model agents)
+ * - New Chat and Exit action buttons
+ */
 export const ChatHeader: FC = () => {
   const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
   const { data: agent, settings, isLoading } = agentData || {};
   const avatar = settings?.avatar;
 
-  // Fetch model agents to check if current agent is a model agent
+  // Fetch model agents to check if current agent is a default model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
     queryKey: ['modelAgents'],
     queryFn: fetchModelAgents,
     refetchOnWindowFocus: false,
   });
 
-  // Check if current agent.id exists in modelAgents list
+  // Default model agents have fixed models that cannot be changed
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
 
   // Use override if set, otherwise use agent's default model
   const currentModel = modelOverride || settings?.chatGptModel || '';
 
-  // State for LLM models
-  const [llmModels, setLlmModels] = useState<Array<ILLMModels>>([]);
-  const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
-  const [provider, setProvider] = useState<string>(currentModel);
-
-  // State for custom dropdown
-  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  /**
-   * Initialize LLM models store on component mount
-   * Fetches available models with 'tools' feature
-   */
-  useEffect(() => {
-    llmModelsStore
-      .getState()
-      .init()
-      .finally(() => {
-        const models: Array<ILLMModels> = LLMRegistry.getSortedModelsByFeatures('tools').map(
-          (model) => ({
-            label: model.label,
-            value: model.entryId,
-            tags: model.tags,
-            default: model?.default || false,
-            provider: model.provider || '',
-          }),
-        );
-
-        setLlmModels(models);
-        setIsModelsLoading(false);
-        setProvider(models.find((m) => m.value === currentModel)?.provider || 'OpenAI');
-      });
-  }, [currentModel]);
-
-  /**
-   * Handle click outside dropdown to close it
-   */
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    if (isDropdownOpen) document.addEventListener('mousedown', handleClickOutside);
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
-
-  /**
-   * Handle model selection change
-   * Only updates context state - does NOT modify agent configuration
-   * Model override is sent with each request via x-model-id header
-   */
-  const handleModelChange = useCallback(
-    (newModel: string) => {
-      // Set temporary model override (not saved to agent config)
-      setModelOverride(newModel);
-
-      // Close dropdown after selection
-      setIsDropdownOpen(false);
-
-      // Track model change event (synchronous, no need to await)
-      Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_LLM_selected, {
-        model: newModel,
-      });
-    },
-    [setModelOverride],
-  );
-
-  /**
-   * Toggle dropdown open/close
-   */
-  const toggleDropdown = useCallback(() => setIsDropdownOpen((prev) => !prev), []);
-
-  // Get unique providers and group models by provider
-  const providers = Array.from(new Set(llmModels.map((model) => model.provider)));
-
   return (
     <div className="w-full bg-white border-b border-[#e5e5e5] h-14 flex justify-center absolute top-0 left-0 z-10 px-2.5 lg:px-0">
       <div className="w-full max-w-4xl flex justify-between items-center">
-        {/* Left side - Agent Avatar, Name and Model Selection */}
         <div className="w-full flex items-center gap-3">
-          <figure>
-            {isLoading.settings ? (
-              <Skeleton className="size-8 rounded-full" />
-            ) : (
-              <img
-                src={avatar ?? DEFAULT_AVATAR_URL}
-                alt="avatar"
-                className="size-8 rounded-full transition-opacity duration-300 ease-in-out"
-              />
-            )}
-          </figure>
+          <AgentAvatar avatar={avatar} isLoading={isLoading.settings} />
 
           <div className="flex items-start justify-center flex-col w-full">
-            {isLoading.agent ? (
-              <Skeleton
-                className={cn(
-                  'w-25 h-[18px] rounded',
-                  (isLoading.settings || isModelsLoading) && 'rounded-b-none',
-                )}
-              />
-            ) : (
-              <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
-                {agent?.name ?? 'Unknown Agent'}
-              </span>
-            )}
+            <AgentName
+              name={agent?.name}
+              isAgentLoading={isLoading.agent}
+              isSettingsLoading={isLoading.settings}
+            />
 
-            {/* Model selection */}
             <div className="flex items-center group w-full">
-              {isLoading.settings || isModelsLoading ? (
-                <Skeleton
-                  className={cn('w-25 h-4 rounded ', isLoading.settings && 'rounded-t-none')}
-                />
+              {isLoading.settings ? (
+                <Skeleton className="w-25 h-4 rounded rounded-t-none" />
               ) : (
-                <div ref={dropdownRef} className="relative leading-none w-full">
-                  {/* Selected value display - clickable trigger */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={toggleDropdown}
-                        disabled={
-                          isLoading.agent || isLoading.settings || isModelsLoading || isModelAgent
-                        }
-                        className={cn(
-                          'inline-flex items-center gap-0.5 text-xs text-slate-500 leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                          !isModelAgent && 'cursor-pointer hover:text-slate-900',
-                        )}
-                      >
-                        {/* Display selected model label */}
-                        <span>
-                          {llmModels.find((m) => m.value === currentModel)?.label || 'Select Model'}
-                          {(() => {
-                            const selectedModelData = llmModels.find(
-                              (m) => m.value === currentModel,
-                            );
-                            if (selectedModelData) {
-                              const badge = getTempBadge(selectedModelData.tags);
-                              return badge ? ` (${badge})` : '';
-                            }
-                            return '';
-                          })()}
-                        </span>
-                        {/* Dropdown icon */}
-                        <IoChevronDown
-                          className={cn(
-                            'size-3 text-slate-500 flex-shrink-0 transition-transform leading-none',
-                            !isModelAgent && 'group-hover:text-slate-900',
-                            isDropdownOpen && 'rotate-180',
-                          )}
-                        />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>{isModelAgent ? 'Default agents have a fixed model' : 'Select model'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Dropdown menu - only show if not a model agent */}
-                  {isDropdownOpen && !isModelAgent && (
-                    <>
-                      <div className="absolute top-full -left-3 z-50 mt-1 bg-slate-100 rounded-md shadow-xl border-t border-slate-200 min-w-[250px] max-h-[500px] overflow-y-auto divide-y divide-slate-200">
-                        {providers.map((llmProvider, index) => (
-                          <div
-                            key={index}
-                            className={cn(
-                              'px-4 py-2 flex items-center justify-between gap-2 cursor-pointer transition-colors duration-300 ease-in-out',
-                              llmProvider === provider
-                                ? 'bg-slate-200/90'
-                                : 'hover:bg-slate-200/90',
-                            )}
-                            onClick={() => setProvider(llmProvider)}
-                          >
-                            <div className="w-full flex items-center gap-2">
-                              <ProviderIcon provider={llmProvider} />
-                              <span className="font-semibold text-sm text-slate-900">
-                                {llmProvider}
-                              </span>
-                            </div>
-                            <IoChevronDown
-                              className={cn(
-                                'size-4 text-slate-900 flex-shrink-0 transition-transform leading-none -rotate-90',
-                                llmProvider === provider ? 'block' : 'hidden',
-                              )}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      <div
-                        className={cn(
-                          'absolute left-[240px] z-50 w-[300px] max-h-[500px] overflow-y-auto bg-slate-100 rounded-md shadow-xl',
-                        )}
-                        style={{
-                          top:
-                            providers.indexOf(provider) > 0
-                              ? `${20 + providers.indexOf(provider) * 36}px`
-                              : '20px',
-                        }}
-                      >
-                        {llmModels
-                          .filter((model) => model.provider === provider)
-                          .map((model, modelIndex) => {
-                            const badge = getTempBadge(model.tags);
-                            const isSelected = model.value === currentModel;
-
-                            return (
-                              <button
-                                key={modelIndex}
-                                type="button"
-                                onClick={() => handleModelChange(model.value)}
-                                className={cn(
-                                  'w-full  text-left hover:bg-slate-200 transition-colors flex items-center justify-between gap-2 pr-2.5',
-                                  isSelected
-                                    ? 'font-semibold bg-slate-200/90 text-slate-900 border-l-2 border-slate-700'
-                                    : 'text-slate-700',
-                                )}
-                              >
-                                <span className="text-sm flex items-center gap-2.5 px-4 py-2.5">
-                                  {model.label}
-                                  {badge && (
-                                    <span
-                                      className={cn(
-                                        'text-[10px]  rounded-full px-1.5',
-                                        badge === 'SmythOS'
-                                          ? 'bg-primary-100/50 text-slate-700'
-                                          : 'bg-primary-300 text-slate-700',
-                                      )}
-                                    >
-                                      {badge}
-                                    </span>
-                                  )}
-                                </span>
-
-                                {isSelected && (
-                                  <svg
-                                    className="w-5 h-5 text-slate-700 shrink-0"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2.5}
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
-                                )}
-                              </button>
-                            );
-                          })}
-                      </div>
-                    </>
-                  )}
-                </div>
+                <ModelDropdown
+                  currentModel={currentModel}
+                  isModelAgent={isModelAgent}
+                  isDisabled={isLoading.agent || isLoading.settings}
+                  onModelChange={setModelOverride}
+                />
               )}
             </div>
           </div>
         </div>
 
-        {/* Right side - Action buttons */}
-        <div className=" flex items-center justify-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className="cursor-pointer w-6 h-6 flex items-center justify-center"
-                onClick={() => chat.resetSession()}
-              >
-                <FaRegPenToSquare className="text-slate-500 w-4 h-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>New Chat</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="/agents">
-                <CloseIcon className="text-slate-500 w-6 h-6" />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Exit</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <HeaderActions onNewChat={() => chat.resetSession()} />
       </div>
     </div>
+  );
+};
+
+/**
+ * Props for AgentAvatar component
+ */
+interface AgentAvatarProps {
+  avatar: string | undefined;
+  isLoading: boolean;
+}
+
+/**
+ * AgentAvatar Component
+ * Displays agent's avatar with loading skeleton
+ */
+const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
+  <figure>
+    {isLoading ? (
+      <Skeleton className="size-8 rounded-full" />
+    ) : (
+      <img
+        src={avatar ?? DEFAULT_AVATAR_URL}
+        alt="avatar"
+        className="size-8 rounded-full transition-opacity duration-300 ease-in-out"
+      />
+    )}
+  </figure>
+);
+
+/**
+ * Props for AgentName component
+ */
+interface AgentNameProps {
+  name: string | undefined;
+  isAgentLoading: boolean;
+  isSettingsLoading: boolean;
+}
+
+/**
+ * AgentName Component
+ * Displays agent's name with loading skeleton
+ */
+const AgentName: FC<AgentNameProps> = ({ name, isAgentLoading, isSettingsLoading }) => {
+  if (isAgentLoading) {
+    return (
+      <Skeleton className={cn('w-25 h-[18px] rounded', isSettingsLoading && 'rounded-b-none')} />
+    );
+  }
+
+  return (
+    <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
+      {name ?? 'Unknown Agent'}
+    </span>
   );
 };
