@@ -1,6 +1,6 @@
 import { FC } from 'react';
-import { IAttachment } from '../types/chat';
-import { FileItemPreview } from './FileItemPreview';
+import { IAttachment } from '../../types/chat';
+import { FileItemPreview } from '../common/FileItemPreview';
 
 /**
  * User Message Component Properties

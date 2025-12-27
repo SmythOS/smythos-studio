@@ -7,10 +7,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import '../styles/index.css';
+import '../../styles/index.css';
 
 import { AttachmentButton, SendButton } from '@react/features/ai-chat/components';
-import { FileItemPreview } from '@react/features/ai-chat/components/FileItemPreview';
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { useChatStores, useClipboardPaste } from '@react/features/ai-chat/hooks';
 import { createFileFromText } from '@react/features/ai-chat/utils';
@@ -20,6 +19,7 @@ import {
 } from '@react/features/ai-chat/utils/scroll-utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@react/shared/utils/general';
+import { FileItemPreview } from '@src/react/features/ai-chat/components/common/FileItemPreview';
 
 const TEXTAREA_MAX_HEIGHT = 160;
 const LARGE_TEXT_THRESHOLD = 4000;

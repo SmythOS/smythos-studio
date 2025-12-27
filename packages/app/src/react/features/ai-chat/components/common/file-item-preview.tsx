@@ -1,5 +1,5 @@
-import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
+import { CloseIcon } from '@src/react/features/ai-chat/components/common/icons';
 import classNames from 'classnames';
 import { FC, useEffect, useMemo, useState } from 'react';
 import {
@@ -53,7 +53,7 @@ const RemoveButton: FC<{ onRemove: () => void }> = ({ onRemove }) => (
   </button>
 );
 
-export const FileItemPreview: FC<FileItemPreviewProps> = ({
+export const FileItemPreviews: FC<FileItemPreviewProps> = ({
   file,
   onRemove,
   isUploading,

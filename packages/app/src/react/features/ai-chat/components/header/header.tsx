@@ -6,9 +6,9 @@ import { IoChevronDown } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 
 import { Skeleton } from '@react/features/ai-chat/components';
-import { CloseIcon } from '@react/features/ai-chat/components/icons';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatStores } from '@react/features/ai-chat/hooks';
+import { CloseIcon } from '@src/react/features/ai-chat/components/common/icons';
 import { cn } from '@src/react/shared/utils/general';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';

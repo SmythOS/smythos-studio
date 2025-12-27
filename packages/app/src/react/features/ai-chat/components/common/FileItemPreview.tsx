@@ -9,7 +9,7 @@ import {
   FaRegFileWord,
   FaXmark,
 } from 'react-icons/fa6';
-import type { IAttachment } from '../types/chat';
+import type { IAttachment } from '../../types/chat';
 
 /** Map of file extensions to their corresponding icons */
 const FILE_ICONS: Record<string, ReactElement> = {

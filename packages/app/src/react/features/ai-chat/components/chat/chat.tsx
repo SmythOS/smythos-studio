@@ -8,9 +8,9 @@ import {
   UserMessage,
 } from '@react/features/ai-chat/components';
 
-import { MESSAGE_TYPES } from '../constants';
-import '../styles/index.css';
-import { IMessage } from '../types/chat';
+import { MESSAGE_TYPES } from '../../constants';
+import '../../styles/index.css';
+import { IMessage } from '../../types/chat';
 
 interface IChatProps extends IMessage {
   avatar: string;

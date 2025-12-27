@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { FaCircleExclamation } from 'react-icons/fa6';
-import { CloseIcon } from './icons';
+import { CloseIcon } from '../common/icons';
 
 interface ErrorToastProps {
   message: string;
