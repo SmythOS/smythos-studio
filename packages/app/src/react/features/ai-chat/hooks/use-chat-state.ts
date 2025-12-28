@@ -1,13 +1,14 @@
 import { ChatAPIClient } from '@react/features/ai-chat/clients/chat-api.client';
 import { MESSAGE_TYPES } from '@react/features/ai-chat/constants';
 import type {
+  IChatState,
   TAttachment,
   TChatError,
-  IChatState,
-  TChatStateConfig,
   TChatMessage,
+  TChatStateConfig,
   TMetaMessage,
 } from '@react/features/ai-chat/types';
+import { forceScrollToBottomImmediate } from '@react/features/ai-chat/utils';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const useChatState = (options: TChatStateConfig): IChatState => {
@@ -301,23 +302,15 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
   );
 
   const stopStreaming = useCallback((): void => {
-    if (abortRef.current) {
-      abortRef.current.abort();
-    }
+    if (abortRef.current) abortRef.current.abort();
+
     setIsStreaming(false);
 
     setMessages((prev) => {
-      const filtered = prev.filter((msg) => msg.type !== MESSAGE_TYPES.LOADING);
-
-      const updated = filtered.map((msg) => {
-        if (msg.metaMessages?.debugOn === true) {
-          return {
-            ...msg,
-            metaMessages: { ...msg.metaMessages, debugOn: false },
-          };
-        }
-        return msg;
-      });
+      // Filter out LOADING and META messages when stopping stream
+      const filtered = prev.filter(
+        (msg) => msg.type !== MESSAGE_TYPES.LOADING && msg.type !== MESSAGE_TYPES.META,
+      );
 
       const errorMessage: TChatMessage = {
         id: Date.now() + Math.random(),
@@ -326,8 +319,13 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
         updatedAt: Date.now(),
       };
 
-      return [...updated, errorMessage];
+      return [...filtered, errorMessage];
     });
+
+    // Scroll to bottom to show error message
+    setTimeout(() => {
+      forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
+    }, 100);
 
     // Auto-focus input after stopping stream
     inputRef?.current?.focus();
@@ -337,9 +335,11 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
     const lastUserMessage = messages.filter((msg) => msg.type === MESSAGE_TYPES.USER).pop();
 
     if (lastUserMessage) {
-      setMessages((prev) =>
-        prev.filter((msg) => msg.type !== MESSAGE_TYPES.ERROR && msg.id !== lastUserMessage.id),
-      );
+      // Find the index of the last user message
+      const lastUserMessageIndex = messages.findIndex((msg) => msg.id === lastUserMessage.id);
+
+      // Remove the user message and all messages after it (system response, error, meta, etc.)
+      setMessages((prev) => prev.slice(0, lastUserMessageIndex));
 
       const content = typeof lastUserMessage.content === 'string' ? lastUserMessage.content : '';
       sendMessage(content, lastUserMessage.attachments || [], true);
