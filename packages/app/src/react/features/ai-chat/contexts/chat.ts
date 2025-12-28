@@ -1,10 +1,10 @@
+/* eslint-disable no-unused-vars */
 import type { IFileUpload, TChatMessage } from '@react/features/ai-chat/types';
 import type { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
 import { createContext, RefObject } from 'react';
 
 export interface IChatContext {
-  /** Refs for input textarea and chat container (chatbot pattern - direct element refs) */
-  ref: {
+  refs: {
     input?: RefObject<HTMLTextAreaElement | null>;
     container?: RefObject<HTMLDivElement | null>;
   };
@@ -13,7 +13,6 @@ export interface IChatContext {
     settings?: AgentSettings;
     isLoading: { agent: boolean; settings: boolean };
   };
-  /** File upload management using V2 hook */
   files: IFileUpload;
   chat: {
     isChatCreating: boolean;
@@ -35,7 +34,7 @@ export interface IChatContext {
 }
 
 export const ChatContext = createContext<IChatContext>({
-  ref: { input: undefined, container: undefined },
+  refs: { input: undefined, container: undefined },
   agent: { data: undefined, settings: undefined, isLoading: { agent: false, settings: false } },
   files: {
     attachments: [],
@@ -65,4 +64,3 @@ export const ChatContext = createContext<IChatContext>({
   modelOverride: null,
   setModelOverride: () => {},
 });
-

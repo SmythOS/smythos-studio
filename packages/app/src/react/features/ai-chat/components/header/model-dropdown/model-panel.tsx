@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import { cn } from '@react/shared/utils/general';
 
-import type { TLLMModel } from '@react/features/ai-chat/types';
+import { TLLMModel } from '@react/features/ai-chat/types';
 import { getBadgeFromTags } from '@react/features/ai-chat/utils';
 
 interface IProps {

@@ -8,7 +8,7 @@ import { EVENTS } from '@shared/posthog/constants/events';
 import { LLMRegistry } from '@shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@shared/state_stores/llm-models';
 
-import type { TLLMModel } from '@react/features/ai-chat/types';
+import { TLLMModel } from '@react/features/ai-chat/types';
 import { getBadgeFromTags } from '@react/features/ai-chat/utils';
 import { ModelPanel } from './model-panel';
 import { ProviderPanel } from './provider-panel';

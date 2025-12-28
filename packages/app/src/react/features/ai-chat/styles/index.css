@@ -31,3 +31,22 @@
         left: calc(-100% + var(--my-scroll-var) - 10px);
     }
 }
+
+/* Smooth blink animation for thinking/loading states */
+@keyframes smoothBlink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.smooth-blink-text {
+    animation: smoothBlink 1.5s ease-in-out infinite;
+}

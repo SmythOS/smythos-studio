@@ -3,18 +3,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { CodeBlock } from '@react/features/ai-chat/components';
-import { cn } from '@src/react/shared/utils/general';
+import { cn } from '@react/shared/utils/general';
 
-interface IMarkdownRendererProps {
+type TProps = {
   message: string;
   className?: string;
-}
+};
 
-/**
- * Shared Markdown renderer component with consistent styling
- * Used by both SystemMessage and Typewriter components
- */
-export const MarkdownRenderer: FC<IMarkdownRendererProps> = ({ message, className }) => {
+export const MarkdownRenderer: FC<TProps> = ({ message, className }) => {
   return (
     <div className={className}>
       <ReactMarkdown

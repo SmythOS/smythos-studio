@@ -1,6 +1,6 @@
+import { CloseIcon } from '@react/features/ai-chat/components';
 import { FC } from 'react';
 import { FaCircleExclamation } from 'react-icons/fa6';
-import { CloseIcon } from '../common/icons';
 
 interface IProps {
   message: string;

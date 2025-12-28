@@ -1,5 +1,4 @@
 import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
-import '../../styles/index.css';
 
 import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/ai-chat/components';
 import { useChatStores, useClipboardPaste } from '@react/features/ai-chat/hooks';
@@ -15,20 +14,20 @@ import { cn } from '@react/shared/utils/general';
 const LARGE_TEXT_THRESHOLD = 4000;
 
 export const ChatInput = () => {
-  const { ref: allRefs, files: filesData, chat, agent } = useChatStores();
+  const { refs, files: filesData, chat, agent } = useChatStores();
   const [message, setMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use inputRef from context (chatbot pattern - no useImperativeHandle needed)
-  const inputRef = allRefs?.input;
+  const inputRef = refs?.input;
 
   const { isChatCreating } = chat || {};
+  const { isLoading, data: agentData } = agent || {};
   const { isStreaming, sendMessage, stopStreaming } = chat || {};
   const { attachments, status, addFiles, remove, clear, uploading } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
   const isMaxFilesUploaded = attachments.length >= 10;
-  const isDisabled = isChatCreating || agent.isLoading.agent;
+  const isDisabled = isChatCreating || isLoading.agent;
 
   // Adjust textarea height when message changes (chatbot pattern)
   useEffect(() => {
@@ -141,7 +140,7 @@ export const ChatInput = () => {
           onKeyDown={handleKeyDown}
           aria-label="Message input"
           onClick={(e) => e.stopPropagation()}
-          placeholder={`Message ${agent.data?.name || ''}...`}
+          placeholder={`Message ${agentData?.name || ''}...`}
           className="bg-white border-none outline-none ring-0 focus:outline-none focus:border-none flex-1 max-h-36 resize-none ph-no-capture text-[16px] font-[400] text-gray-900 placeholder:text-gray-500 placeholder:text-[16px] placeholder:font-[400]"
         />
 

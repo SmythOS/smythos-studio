@@ -1,38 +1,30 @@
 import { FC, memo } from 'react';
 
-import {
-  ErrorMessage,
-  Loading,
-  MetaMessage,
-  SystemMessage,
-  UserMessage,
-} from '@react/features/ai-chat/components';
+import { Error, Loading, Meta, System, User } from '@react/features/ai-chat/components';
 import { MESSAGE_TYPES } from '@react/features/ai-chat/constants';
 import { TChatMessage } from '@react/features/ai-chat/types';
 
-import '../../styles/index.css';
-
-interface IChatProps extends TChatMessage {
+interface IProps extends TChatMessage {
   avatar: string;
-  onRetryClick?: () => void;
+  retry?: () => void;
   scrollToBottom?: () => void;
 }
 
-export const Chat: FC<IChatProps> = memo((props) => {
-  const { type, attachments, avatar, content, metaMessages, onRetryClick, scrollToBottom } = props;
+export const Chat: FC<IProps> = memo((props) => {
+  const { type, attachments, avatar, content, metaMessages, retry, scrollToBottom } = props;
 
   switch (type) {
     case MESSAGE_TYPES.USER:
-      return <UserMessage message={content} files={attachments} />;
+      return <User message={content} files={attachments} />;
     case MESSAGE_TYPES.LOADING:
       return <Loading />;
     case MESSAGE_TYPES.META:
-      return <MetaMessage data={{ avatar, metaMessages }} scrollToBottom={scrollToBottom} />;
+      return <Meta data={{ avatar, metaMessages }} scrollToBottom={scrollToBottom} />;
     case MESSAGE_TYPES.SYSTEM:
-      return <SystemMessage message={content} scrollToBottom={scrollToBottom} />;
+      return <System message={content} onUpdate={scrollToBottom} />;
     case MESSAGE_TYPES.ERROR:
-      return <ErrorMessage message={content} onRetryClick={onRetryClick} />;
+      return <Error message={content} onRetryClick={retry} />;
     default:
-      return <ErrorMessage message="Something went wrong!" onRetryClick={onRetryClick} />;
+      return <Error message="Something went wrong!" onRetryClick={retry} />;
   }
 });

@@ -1,17 +1,17 @@
 import { FC } from 'react';
 import { FaStop } from 'react-icons/fa6';
 
-import { SendIcon } from '@react/features/ai-chat/components/common/icons';
+import { SendIcon } from '@react/features/ai-chat/components';
 import { Button } from '@react/shared/components/ui/newDesign/button';
-import { cn } from '@src/react/shared/utils/general';
+import { cn } from '@react/shared/utils/general';
 
-interface SendButtonProps {
+interface IProps {
   isStreaming: boolean;
   disabled: boolean;
   onClick: () => void;
 }
 
-export const SendButton: FC<SendButtonProps> = ({ isStreaming, disabled, onClick }) => (
+export const SendButton: FC<IProps> = ({ isStreaming, disabled, onClick }) => (
   <Button
     addIcon
     variant="primary"
