@@ -139,44 +139,6 @@ export interface IAPIConfig {
 }
 
 // ============================================================================
-// SCROLL TYPES
-// ============================================================================
-
-export type TScrollBehavior = 'smooth' | 'auto' | 'instant';
-export type TScrollLogicalPosition = 'start' | 'center' | 'end' | 'nearest';
-
-export interface IScrollOptions {
-  behavior?: TScrollBehavior;
-  force?: boolean;
-  delay?: number;
-}
-
-export interface IScrollToElementOptions {
-  behavior?: TScrollBehavior;
-  block?: TScrollLogicalPosition;
-  inline?: TScrollLogicalPosition;
-}
-
-export interface IScrollPosition {
-  scrollTop: number;
-  scrollHeight: number;
-  clientHeight: number;
-  distanceFromBottom: number;
-  isNearBottom: boolean;
-}
-
-// ============================================================================
-// DEBUG TYPES
-// ============================================================================
-
-export interface IDebugInfo {
-  content?: string | string[];
-  metaMessages?: IMetaMessages;
-  timestamp?: number;
-  updatedAt: number;
-}
-
-// ============================================================================
 // HOOK RETURN TYPES
 // ============================================================================
 
@@ -228,18 +190,4 @@ export interface IFileUpload {
   setShowToast: (show: boolean) => void;
   setToast: (message: string) => void;
   setErrorMessage: (message: string) => void;
-}
-
-export interface IScroll {
-  toBottom: (smooth?: boolean) => void;
-  smartToBottom: (smooth?: boolean) => void;
-}
-
-export interface IDragOptions {
-  onDrop: (files: File[]) => void | Promise<void>;
-}
-
-export interface IDragState {
-  isDragging: boolean;
-  dropRef: RefObject<HTMLDivElement | null>;
 }

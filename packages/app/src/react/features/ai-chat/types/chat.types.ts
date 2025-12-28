@@ -17,31 +17,9 @@ export type IChildren = { children: React.ReactNode };
 export type TMessageType = 'user' | 'system' | 'debug' | 'loading' | 'error' | 'meta';
 
 /**
- * Core chat message interface
- *
- * Design principles:
- * - Type-based discrimination - `type` is single source of truth
- * - No redundant boolean flags (isReplying, isRetrying, isError)
- * - Minimal required fields
- * - Optional fields for specific use cases
- */
-export interface IChatMessage {
-  id?: string | number; // Unique identifier
-  turnId?: string; // Conversation Turn ID
-  message: string; // Message content
-  type: TMessageType; // Message type - single source of truth for state
-  files?: IMessageFile[]; // Attached files (user messages only)
-  avatar?: string; // Avatar URL for system/AI messages
-  metaMessages?: IMetaMessages; // Full meta messages object for thinking component
-  onRetryClick?: () => void; // Retry callback for error messages
-  timestamp?: number; // Message timestamp (optional, for future use)
-}
-
-/**
  * File attachment structure
  * Simplified from previous complex nested structure
  */
-
 export interface IMessageFile {
   id: string; // Required ID for React keys and tracking
   file: File; // The actual File object
@@ -150,25 +128,6 @@ export interface IChatError {
 }
 
 // ============================================================================
-// HOOK INTERFACES
-// ============================================================================
-
-/**
- * Chat hook return type
- */
-export interface IUseChatReturn {
-  // State
-  messages: IChatMessage[];
-  isStreaming: boolean;
-
-  // Actions
-  sendMessage: (message: string, files?: File[] | IMessageFile[]) => Promise<void>;
-  retryMessage: () => Promise<void>;
-  stopStreaming: () => void;
-  clearMessages: () => void;
-}
-
-// ============================================================================
 // API CLIENT TYPES
 // ============================================================================
 
@@ -181,4 +140,3 @@ export interface IAPIConfig {
   timeout?: number; // Request timeout
   retry?: { attempts: number; delay: number }; // Retry configuration
 }
-
