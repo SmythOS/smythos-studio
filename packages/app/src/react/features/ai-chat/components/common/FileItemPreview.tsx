@@ -11,7 +11,6 @@ import {
 } from 'react-icons/fa6';
 import type { IAttachment } from '../../types/chat';
 
-/** Map of file extensions to their corresponding icons */
 const FILE_ICONS: Record<string, ReactElement> = {
   pdf: <FaRegFilePdf className="text-white text-xl" />,
   doc: <FaRegFileWord className="text-white text-xl" />,
@@ -33,17 +32,12 @@ const FILE_ICONS: Record<string, ReactElement> = {
   txt: <FaRegFileLines className="text-white text-xl" />,
 };
 
-/** Default icon for unknown file types */
 const DEFAULT_ICON = <FaRegFileLines className="text-white text-xl" />;
 
 interface IRemoveButtonProps {
   onRemove: () => void;
 }
 
-/**
- * Remove button component for file preview
- * Shows on hover with a close icon
- */
 const RemoveButton: FC<IRemoveButtonProps> = memo(({ onRemove }) => (
   <button
     onClick={onRemove}
@@ -56,28 +50,13 @@ const RemoveButton: FC<IRemoveButtonProps> = memo(({ onRemove }) => (
 
 RemoveButton.displayName = 'RemoveButton';
 
-/**
- * Props for FileItemPreview component
- * Uses IAttachment for file data, onRemove presence determines if removable
- */
 export interface IFileItemPreviewProps {
-  /** Attachment data containing file info */
   attachment: IAttachment;
-  /** If provided, shows remove button. If not, component is readonly */
   onRemove?: () => void;
-  /** Shows upload spinner overlay when true */
   isUploading?: boolean;
 }
 
-/**
- * Extracts file extension from filename or URL
- * @param fileName - The name of the file
- * @param url - Optional URL to extract extension from
- * @param blobUrl - Optional blob URL to extract extension from
- * @returns Lowercase file extension or empty string
- */
 const getFileExtension = (fileName: string, url?: string, blobUrl?: string | null): string => {
-  // Try to get extension from filename first
   if (fileName) {
     const ext = fileName.split('.').pop();
     if (ext) {
@@ -85,7 +64,6 @@ const getFileExtension = (fileName: string, url?: string, blobUrl?: string | nul
     }
   }
 
-  // Fallback to URL if filename doesn't have extension
   const urlToCheck = url || blobUrl;
   if (urlToCheck) {
     const urlPath = urlToCheck.split('/').pop() || urlToCheck.split('\\').pop() || '';
@@ -99,65 +77,35 @@ const getFileExtension = (fileName: string, url?: string, blobUrl?: string | nul
   return '';
 };
 
-/**
- * Checks if the given MIME type is an image type
- * @param mimeType - The MIME type to check
- * @returns True if the type is an image
- */
 const isImageType = (mimeType: string): boolean => {
   return mimeType.startsWith('image/');
 };
 
-/**
- * Gets the preview URL for an attachment
- * Prioritizes blob URL, then creates object URL from file, then falls back to url
- * @param attachment - The attachment to get preview URL for
- * @returns Preview URL or null if not available
- */
 const getPreviewUrl = (attachment: IAttachment): string | null => {
-  // Prefer blobUrl if available
   if (attachment.blobUrl) {
     return attachment.blobUrl;
   }
 
-  // Create object URL from File if available
   if (attachment.file) {
     return URL.createObjectURL(attachment.file);
   }
 
-  // Fallback to url
   return attachment.url || null;
 };
 
-/**
- * FileItemPreview component displays a preview of an attached file
- * - Shows image thumbnail for image files
- * - Shows file icon and name for other file types
- * - Optional remove button controlled by onRemove prop presence
- * - Optional upload spinner overlay
- */
 export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
   ({ attachment, onRemove, isUploading = false }) => {
     const { name, type, file, url, blobUrl } = attachment;
 
-    // State for image preview URL
     const [preview, setPreview] = useState<string | null>(() => {
-      // Initialize with blobUrl or url for immediate display
       return blobUrl || url || null;
     });
 
-    // Extract file extension from name or URLs
     const fileExtension = useMemo(() => getFileExtension(name, url, blobUrl), [name, url, blobUrl]);
-
-    // Get appropriate icon based on file extension
     const fileIcon = useMemo(() => FILE_ICONS[fileExtension] || DEFAULT_ICON, [fileExtension]);
-
-    // Check if file is an image based on MIME type
     const isImage = useMemo(() => isImageType(type), [type]);
 
-    // Effect to handle preview URL creation and cleanup
     useEffect(() => {
-      // Skip if not an image
       if (!isImage) {
         setPreview(null);
         return;
@@ -166,7 +114,6 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
       const previewUrl = getPreviewUrl(attachment);
       setPreview(previewUrl);
 
-      // Cleanup: revoke object URL if we created one from file
       return () => {
         if (previewUrl && file && !blobUrl && !url) {
           URL.revokeObjectURL(previewUrl);
@@ -174,11 +121,7 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
       };
     }, [isImage, attachment, file, blobUrl, url]);
 
-    /**
-     * Handles image load error by trying alternative sources
-     */
     const handleImageError = () => {
-      // Try creating blob URL from file if available
       if (file && isImageType(file.type)) {
         try {
           const newBlobUrl = URL.createObjectURL(file);
@@ -189,13 +132,11 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
         }
       }
 
-      // Try using the URL if it's a valid http(s) URL
       if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
         if (preview !== url) setPreview(url);
       } else setPreview(null);
     };
 
-    // Render image preview for image files
     if (isImage) {
       return (
         <div className="relative inline-block size-16 min-w-16 min-h-16 group mt-4">
@@ -224,8 +165,6 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
         </div>
       );
     }
-
-    // Render file icon preview for non-image files
 
     return (
       <div className="relative inline-block group mt-4">

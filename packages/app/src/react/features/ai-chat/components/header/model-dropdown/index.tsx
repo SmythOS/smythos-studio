@@ -12,9 +12,6 @@ import { getBadgeFromTags, ILLMModel } from '@react/features/ai-chat/utils';
 import { ModelPanel } from './model-panel';
 import { ProviderPanel } from './provider-panel';
 
-/**
- * Props for ModelDropdown component
- */
 interface IProps {
   currentModel: string;
   isModelAgent: boolean;
@@ -22,32 +19,15 @@ interface IProps {
   onModelChange: (model: string) => void; // eslint-disable-line no-unused-vars
 }
 
-/**
- * ModelDropdown Component
- * Two-panel dropdown for LLM model selection with provider grouping
- * Left panel: Provider list, Right panel: Models for selected provider
- *
- * @param currentModel - Currently selected model ID
- * @param isModelAgent - Whether this is a default model agent (disables dropdown)
- * @param isDisabled - External disabled state
- * @param onModelChange - Callback when user selects a new model
- */
-export const ModelDropdown: FC<IProps> = ({
-  currentModel,
-  isModelAgent,
-  isDisabled,
-  onModelChange,
-}) => {
+export const ModelDropdown: FC<IProps> = (props) => {
+  const { currentModel, isModelAgent, isDisabled, onModelChange } = props;
+
   const [llmModels, setLlmModels] = useState<Array<ILLMModel>>([]);
   const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
   const [provider, setProvider] = useState<string>(currentModel);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  /**
-   * Initializes LLM models store on mount
-   * Fetches models with 'tools' feature capability
-   */
   useEffect(() => {
     llmModelsStore
       .getState()
@@ -69,9 +49,6 @@ export const ModelDropdown: FC<IProps> = ({
       });
   }, [currentModel]);
 
-  /**
-   * Closes dropdown when clicking outside
-   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -84,11 +61,6 @@ export const ModelDropdown: FC<IProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isDropdownOpen]);
 
-  /**
-   * Handles model selection
-   * Updates context state only - does NOT modify agent configuration
-   * Model override is sent with each request via x-model-id header
-   */
   const handleModelChange = useCallback(
     (newModel: string) => {
       onModelChange(newModel);

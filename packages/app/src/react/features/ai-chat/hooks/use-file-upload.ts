@@ -11,44 +11,14 @@ import {
 } from '@react/features/ai-chat/utils/file';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/**
- * File upload hook options
- */
-interface IFileUploadOptions {
+type IProps = {
   agentId?: string;
   chatId?: string;
-}
+};
 
-/**
- * Custom hook for managing file uploads with preview support
- *
- * @param options - Hook configuration with agentId and chatId
- * @returns File upload state and methods
- *
- * @example
- * ```typescript
- * const {
- *   attachments,
- *   uploading,
- *   process,
- *   remove,
- *   clear,
- * } = useFileUpload({ agentId: 'agent-123', chatId: 'chat-456' });
- *
- * // Process files from input
- * await process(fileList);
- *
- * // Remove single file
- * remove(0);
- *
- * // Clear all
- * clear();
- * ```
- */
-export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
+export const useFileUpload = (options: IProps): IFileUpload => {
   const { agentId, chatId } = options;
 
-  // State
   const [attachments, setAttachments] = useState<IFileAttachment[]>([]);
   const [status, setStatus] = useState<Record<string, IUploadStatus>>({});
   const [uploading, setUploading] = useState(false);
@@ -56,11 +26,9 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
   const [toast, setToast] = useState('');
   const [showToast, setShowToast] = useState(false);
 
-  // Refs
   const blobsRef = useRef<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-hide error message after 5 seconds
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (errorMessage) {
@@ -71,7 +39,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     };
   }, [errorMessage]);
 
-  // Handle upload error
   const onError = useCallback(
     (fileName: string, message: string) => {
       setErrorMessage(message);
@@ -96,7 +63,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     [attachments],
   );
 
-  // Process files for upload
   const processFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0) return;
@@ -124,7 +90,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
       if (valid.length > 0) {
         const pending = valid.slice(0, slots);
 
-        // Create attachments with blob URLs for images
         const created: IFileAttachment[] = pending.map(({ file, id }) => {
           let blobUrl: string | null = null;
           if (file.type.startsWith('image/')) {
@@ -189,7 +154,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     [attachments.length, agentId, chatId, onError],
   );
 
-  // Handle file input change
   const onSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files || []).slice(0, MAX_UPLOADS);
@@ -198,7 +162,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     [processFiles],
   );
 
-  // Remove attachment by index
   const remove = useCallback(
     (index: number) => {
       const target = attachments[index];
@@ -216,7 +179,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     [attachments],
   );
 
-  // Clear all attachments
   const clear = useCallback(
     (preserveBlobUrls = false) => {
       if (preserveBlobUrls) {
@@ -239,7 +201,6 @@ export const useFileUpload = (options: IFileUploadOptions): IFileUpload => {
     [attachments],
   );
 
-  // Cleanup unused blob URLs
   const cleanup = useCallback(() => {
     const active = new Set<string>();
 

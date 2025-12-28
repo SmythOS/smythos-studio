@@ -2,15 +2,15 @@ import { FC, memo } from 'react';
 
 import {
   ErrorMessage,
+  Loading,
   MetaMessage,
-  ReplyLoader,
   SystemMessage,
   UserMessage,
 } from '@react/features/ai-chat/components';
+import { MESSAGE_TYPES } from '@react/features/ai-chat/constants';
+import { IMessage } from '@react/features/ai-chat/types/chat';
 
-import { MESSAGE_TYPES } from '../../constants';
 import '../../styles/index.css';
-import { IMessage } from '../../types/chat';
 
 interface IChatProps extends IMessage {
   avatar: string;
@@ -18,16 +18,6 @@ interface IChatProps extends IMessage {
   scrollToBottom?: () => void;
 }
 
-/**
- * Chat Component (Memoized for Performance)
- * Renders appropriate message component based on message type and state
- *
- * Memoization prevents unnecessary re-renders of unchanged messages
- * Critical for performance in long conversations (100+ messages)
- *
- * @param props - Chat message properties
- * @returns Appropriate message component
- */
 export const Chat: FC<IChatProps> = memo((props) => {
   const { type, attachments, avatar, content, metaMessages, onRetryClick, scrollToBottom } = props;
 
@@ -35,7 +25,7 @@ export const Chat: FC<IChatProps> = memo((props) => {
     case MESSAGE_TYPES.USER:
       return <UserMessage message={content} files={attachments} />;
     case MESSAGE_TYPES.LOADING:
-      return <ReplyLoader />;
+      return <Loading />;
     case MESSAGE_TYPES.META:
       return <MetaMessage data={{ avatar, metaMessages }} scrollToBottom={scrollToBottom} />;
     case MESSAGE_TYPES.SYSTEM:

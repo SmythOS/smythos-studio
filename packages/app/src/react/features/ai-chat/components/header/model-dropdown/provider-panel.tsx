@@ -11,10 +11,6 @@ interface IProps {
   onProviderSelect: (provider: string) => void; // eslint-disable-line no-unused-vars
 }
 
-/**
- * ProviderPanel Component
- * Left panel showing list of LLM providers
- */
 export const ProviderPanel: FC<IProps> = ({ providers, selectedProvider, onProviderSelect }) => (
   <div className="absolute top-full -left-3 z-50 mt-1 bg-slate-100 rounded-md shadow-xl border-t border-slate-200 min-w-[250px] max-h-[500px] overflow-y-auto divide-y divide-slate-200">
     {providers.map((llmProvider, index) => (

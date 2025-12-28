@@ -2,20 +2,12 @@ import { FC } from 'react';
 import { IAttachment } from '../../types/chat';
 import { FileItemPreview } from '../common/FileItemPreview';
 
-/**
- * User Message Component Properties
- */
-interface IUserMessage {
+interface IProps {
   message: string;
   files?: IAttachment[];
 }
 
-/**
- * User Message Component
- * Displays user's message with optional file attachments
- * Message bubble automatically hidden if message is empty
- */
-export const UserMessage: FC<IUserMessage> = ({ message, files }) => {
+export const UserMessage: FC<IProps> = ({ message, files }) => {
   const hasFiles = files && files.length > 0;
 
   return (

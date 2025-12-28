@@ -11,10 +11,6 @@ interface IProps {
   onModelSelect: (model: string) => void; // eslint-disable-line no-unused-vars
 }
 
-/**
- * ModelPanel Component
- * Right panel showing models for the selected provider
- */
 export const ModelPanel: FC<IProps> = ({ models, currentModel, providerIndex, onModelSelect }) => (
   <div
     className="absolute left-[240px] z-50 w-[300px] max-h-[500px] overflow-y-auto bg-slate-100 rounded-md shadow-xl"

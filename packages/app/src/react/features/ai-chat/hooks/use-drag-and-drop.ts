@@ -1,15 +1,8 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
-interface UseDragAndDropProps {
-  onDrop: (files: File[]) => Promise<void>; // eslint-disable-line no-unused-vars
-}
+type IProps = { onDrop: (files: File[]) => Promise<void> }; // eslint-disable-line no-unused-vars
 
-/**
- * A hook that provides drag and drop functionality for files within a specific container
- * @param onDrop - Callback function that handles the dropped files
- * @returns A ref object to be attached to the container element where drag and drop should be enabled
- */
-export const useDragAndDrop = ({ onDrop }: UseDragAndDropProps): RefObject<HTMLElement> => {
+export const useDragAndDrop = ({ onDrop }: IProps): RefObject<HTMLElement> => {
   const containerRef = useRef<HTMLElement>(null);
   const dragCounterRef = useRef(0);
 

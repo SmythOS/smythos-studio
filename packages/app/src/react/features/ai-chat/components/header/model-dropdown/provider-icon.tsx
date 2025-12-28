@@ -2,21 +2,11 @@ import { FC, useState } from 'react';
 
 import { cn } from '@react/shared/utils/general';
 
-/**
- * Props for ProviderIcon component
- */
 interface IProps {
   provider: string;
   className?: string;
 }
 
-/**
- * ProviderIcon Component
- * Displays provider logo with gradient "AI" badge fallback if image fails to load
- *
- * @param provider - Provider name to load icon for
- * @param className - Optional CSS classes for customization
- */
 export const ProviderIcon: FC<IProps> = ({ provider, className = 'size-5 rounded-full' }) => {
   const [hasError, setHasError] = useState<boolean>(false);
 

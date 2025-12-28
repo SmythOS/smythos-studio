@@ -5,19 +5,8 @@ import { Link } from 'react-router-dom';
 import { CloseIcon } from '@react/features/ai-chat/components';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 
-/**
- * Props for HeaderActions component
- */
-interface IProps {
-  onNewChat: () => void;
-}
+type IProps = { onNewChat: () => void };
 
-/**
- * HeaderActions Component
- * Renders action buttons in chat header (New Chat, Exit)
- *
- * @param onNewChat - Callback to reset chat session
- */
 export const HeaderActions: FC<IProps> = ({ onNewChat }) => (
   <div className="flex items-center justify-center gap-2">
     <Tooltip>

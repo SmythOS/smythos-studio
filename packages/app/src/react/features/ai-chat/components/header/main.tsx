@@ -9,9 +9,6 @@ import { cn } from '@react/shared/utils/general';
 import { HeaderActions } from './header-actions';
 import { ModelDropdown } from './model-dropdown';
 
-/**
- * Model agent data structure from API
- */
 interface ModelAgent {
   id: string;
   name: string;
@@ -19,42 +16,25 @@ interface ModelAgent {
   description: string;
 }
 
-/**
- * Fetches model agents from API
- * Used to determine if current agent is a "default model agent" with fixed model
- */
 const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   const response = await fetch('/api/page/agents/models');
   const data = await response.json();
   return data.agents;
 };
 
-/**
- * ChatHeader Component
- * Main header for chat interface displaying agent info and model selection
- *
- * Features:
- * - Agent avatar and name display
- * - LLM model selection dropdown (disabled for default model agents)
- * - New Chat and Exit action buttons
- */
-export const ChatHeader: FC = () => {
+export const Header: FC = () => {
   const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
   const { data: agent, settings, isLoading } = agentData || {};
   const avatar = settings?.avatar;
 
-  // Fetch model agents to check if current agent is a default model agent
   const { data: modelAgents } = useQuery<ModelAgent[]>({
     queryKey: ['modelAgents'],
     queryFn: fetchModelAgents,
     refetchOnWindowFocus: false,
   });
 
-  // Default model agents have fixed models that cannot be changed
   const isModelAgent = modelAgents?.some((modelAgent) => modelAgent.id === agent?.id) ?? false;
-
-  // Use override if set, otherwise use agent's default model
   const currentModel = modelOverride || settings?.chatGptModel || '';
 
   return (
@@ -91,18 +71,11 @@ export const ChatHeader: FC = () => {
   );
 };
 
-/**
- * Props for AgentAvatar component
- */
 interface AgentAvatarProps {
   avatar: string | undefined;
   isLoading: boolean;
 }
 
-/**
- * AgentAvatar Component
- * Displays agent's avatar with loading skeleton
- */
 const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
   <figure>
     {isLoading ? (
@@ -117,19 +90,12 @@ const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
   </figure>
 );
 
-/**
- * Props for AgentName component
- */
 interface AgentNameProps {
   name: string | undefined;
   isAgentLoading: boolean;
   isSettingsLoading: boolean;
 }
 
-/**
- * AgentName Component
- * Displays agent's name with loading skeleton
- */
 const AgentName: FC<AgentNameProps> = ({ name, isAgentLoading, isSettingsLoading }) => {
   if (isAgentLoading) {
     return (

@@ -26,11 +26,6 @@ const blinkAnimation = `
   }
 `;
 
-/**
- * ThinkingMessage Component
- * Manages thinking message cycling internally using ThinkingMessageManager
- * Receives metaMessages from parent and handles the cycling logic
- */
 export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
   const { avatar, metaMessages } = data;
 
@@ -41,30 +36,19 @@ export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
     scrollToBottom?.();
   }, [scrollToBottom]);
 
-  /**
-   * Effect to manage thinking message lifecycle
-   * Starts/updates cycling when metaMessages are received
-   * The ThinkingMessageManager handles priority internally (status > tools > general)
-   * Stops when component unmounts
-   */
   useEffect(() => {
     const manager = thinkingManagerRef.current;
 
-    // Check if statusMessage exists - if yes, just display formatted, no cycling
     if (metaMessages?.statusMessage) {
-      // Format and display statusMessage directly, no thinkingManager needed
       const formatted = formatStatusMessage(metaMessages.statusMessage);
       setThinkingMessage(formatted);
-      manager.stop(); // Stop any existing cycling
+      manager.stop();
       return;
     }
 
-    // No statusMessage, check for toolName
     const toolName = metaMessages?.title || metaMessages?.functionCall?.name;
-
     manager.start(setThinkingMessage, toolName || '');
 
-    // Cleanup: stop thinking manager when component unmounts
     return () => manager.stop();
   }, [metaMessages]);
 
@@ -72,7 +56,6 @@ export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
     <>
       <style>{blinkAnimation}</style>
       <div className="flex items-center gap-3 px-3">
-        {/* Avatar inside the bubble */}
         <div className="flex-shrink-0">
           <div className="size-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             {avatar ? (
@@ -85,7 +68,6 @@ export const MetaMessage: FC<IProps> = ({ data, scrollToBottom }) => {
           </div>
         </div>
 
-        {/* Message text inside the bubble */}
         <div className="flex-1">
           <span className="text-sm text-gray-500 font-medium smooth-blink-text">
             {thinkingMessage}

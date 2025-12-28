@@ -23,15 +23,8 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
 
   const navigate = useNavigate();
 
-  // Internal ref for tracking initialization state
   const hasInitializedChatRef = useRef(false);
-
-  // Model override state (temporary, not saved to agent config)
   const [modelOverride, setModelOverride] = useState<string | null>(null);
-
-  // ============================================================================
-  // API HOOKS
-  // ============================================================================
 
   const { data: agent, isLoading: isAgentLoading } = useAgent(agentId, {
     refetchOnWindowFocus: false,
@@ -46,24 +39,12 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
 
   const agentSettings = settingsData?.settings;
 
-  // ============================================================================
-  // FILE UPLOAD MANAGEMENT
-  // ============================================================================
-
   const fileUpload = useFileUpload({
     agentId: agentId || '',
     chatId: agentSettings?.lastConversationId || '',
   });
 
-  // ============================================================================
-  // SCROLL BEHAVIOR
-  // ============================================================================
-
   const scroll = useScrollToBottom(containerRef);
-
-  // ============================================================================
-  // CHAT STATE MANAGEMENT
-  // ============================================================================
 
   const chatStateV2 = useChatState({
     agentId: agentId || '',
@@ -73,7 +54,6 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
     inputRef,
   });
 
-  // Destructure for easier access
   const {
     messages,
     setMessages,
@@ -83,20 +63,11 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
     retryLastMessage,
   } = chatStateV2;
 
-  // ============================================================================
-  // CHAT ACTIONS
-  // ============================================================================
-
-  /**
-   * Sends a message with optional file attachments
-   * Integrates with the file upload system
-   */
   const sendMessage = useCallback(
     async (message: string) => {
       if (!message.trim() && fileUpload.attachments.length === 0) return;
 
       try {
-        // Convert V2 attachments to IAttachment format
         const attachments = fileUpload.attachments.map((f) => ({
           name: f.name,
           type: f.type,
@@ -107,8 +78,6 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
         }));
 
         await sendMessageV2(message, attachments);
-
-        // Clear files after successful send
         fileUpload.clear();
       } catch (error) {
         console.error('Failed to send message:', error); // eslint-disable-line no-console
@@ -117,9 +86,6 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
     [fileUpload, sendMessageV2],
   );
 
-  /**
-   * Creates a new chat session/conversation
-   */
   const createSession = useCallback(async () => {
     try {
       const conversation = await createChat({
@@ -141,60 +107,39 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
     }
   }, [agentId, createChat, updateAgentSettings]);
 
-  /**
-   * Clears current chat session and creates a new one
-   */
   const resetSession = useCallback(async () => {
     stopStreaming();
     setMessages([]);
     fileUpload.clear();
     await createSession();
 
-    // Trigger callback
     inputRef?.current?.focus();
 
-    // Track observability events
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createSession, setMessages, fileUpload, stopStreaming, inputRef]);
 
-  // ============================================================================
-  // LIFECYCLE EFFECTS
-  // ============================================================================
-
-  /**
-   * Initialize chat session on component mount
-   * Only runs once when both agent and settings are loaded
-   */
   useEffect(() => {
     if (agentSettings && agent && !hasInitializedChatRef.current) {
       agent.aiAgentSettings = agentSettings;
       agent.id = agentId;
 
-      // This ensures fresh conversation every time user loads the page
       hasInitializedChatRef.current = true;
       createSession().then(() => inputRef?.current?.focus());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agentSettings, agent, agentId]); // Only depend on core values, not callbacks
+  }, [agentSettings, agent, agentId]);
 
-  /**
-   * Track chat session lifecycle for observability
-   */
   useEffect(() => {
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
     return () => Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
   }, []);
 
-  /**
-   * Auto-focus input when agent is loaded and not disabled
-   */
   useEffect(() => {
     const inputDisabled = isChatCreating || isAgentLoading || isStreaming;
     if (!isAgentLoading && !inputDisabled) inputRef.current?.focus();
   }, [isAgentLoading, isChatCreating, isStreaming]);
 
-  // Memoize the store to avoid unnecessary re-renders
   const values: IChatContext = useMemo(
     () => ({
       ref: { input: inputRef, container: containerRef },
