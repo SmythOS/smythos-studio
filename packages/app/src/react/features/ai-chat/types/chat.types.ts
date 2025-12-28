@@ -182,8 +182,3 @@ export interface IAPIConfig {
   retry?: { attempts: number; delay: number }; // Retry configuration
 }
 
-export interface ChatInputRef {
-  focus: () => void;
-  getValue: () => string;
-  setValue: (content: string) => void;
-}

@@ -1,57 +1,71 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
-import { FC } from 'react';
+import { ChangeEvent, FC, RefObject, useCallback } from 'react';
 
+import { AttachmentIcon } from '@react/features/ai-chat/components/common/icons';
+import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
 import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
 
-interface AttachmentButtonProps {
-  onClick: () => void;
-  fileAttachmentDisabled: boolean;
+interface IProps {
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onFilesAdd: (files: File[]) => void; // eslint-disable-line no-unused-vars
+  isDisabled: boolean;
   isMaxFilesUploaded: boolean;
 }
 
-export const AttachmentButton: FC<AttachmentButtonProps> = ({
-  onClick,
-  fileAttachmentDisabled,
-  isMaxFilesUploaded,
-}) => {
+export const AttachmentButton: FC<IProps> = (props) => {
+  const { fileInputRef, onFilesAdd, isDisabled, isMaxFilesUploaded } = props;
+
+  const fileChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files?.length) return;
+      onFilesAdd(Array.from(e.target.files));
+    },
+    [onFilesAdd],
+  );
+
+  const handleClick = () => {
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
   const button = (
     <button
-      onClick={onClick}
-      disabled={fileAttachmentDisabled}
-      className="text-gray-500 hover:text-gray-700 mr-2 transition-colors"
+      type="button"
+      onClick={handleClick}
+      disabled={isDisabled || isMaxFilesUploaded}
+      className="text-gray-500 hover:text-gray-700 mr-2 transition-colors disabled:text-gray-300 disabled:cursor-not-allowed"
       title={!isMaxFilesUploaded ? 'Attach file' : undefined}
       aria-label="Attach file"
     >
-      <svg
-        width="17"
-        height="16"
-        viewBox="0 0 17 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        aria-hidden="true"
-      >
-        <path
-          d="M16.2056 8.33749L10.9576 13.5854C8.73264 15.8096 5.12529 15.8096 2.90114 13.5854C0.676184 11.3605 0.676184 7.75312 2.90114 5.52816L6.55545 1.87466C8.03339 0.395946 10.4291 0.395946 11.907 1.87466C13.3849 3.35176 13.3849 5.74832 11.907 7.22623L8.34251 10.7907C7.59626 11.5369 6.3871 11.5369 5.64086 10.7907C4.89462 10.0444 4.89462 8.83526 5.64086 8.08902L9.00457 4.72527"
-          stroke="#424242"
-          strokeWidth="1.24776"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <AttachmentIcon />
     </button>
   );
 
-  return isMaxFilesUploaded ? (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {button}
-      </TooltipTrigger>
-      <TooltipContent side="top">
-        <p>{`You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files`}</p>
-      </TooltipContent>
-    </Tooltip>
-  ) : (
-    button
+  return (
+    <>
+      {/* Hidden file input for file selection */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={fileChange}
+        accept={CHAT_ACCEPTED_FILE_TYPES.input}
+        className="hidden"
+        multiple
+        aria-label="File attachment input"
+        onClick={(e) => e.stopPropagation()}
+      />
+      {isMaxFilesUploaded ? (
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`You can only attach ${FILE_LIMITS.MAX_ATTACHED_FILES} files`}</p>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        button
+      )}
+    </>
   );
 };

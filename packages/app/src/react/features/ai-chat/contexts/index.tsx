@@ -6,7 +6,7 @@ import {
 } from '@react/features/ai-chat/hooks';
 import { useChatState } from '@react/features/ai-chat/hooks/use-chat-state';
 import { useFileUpload } from '@react/features/ai-chat/hooks/use-file-upload';
-import { ChatInputRef, IChildren } from '@react/features/ai-chat/types/chat.types';
+import { IChildren } from '@react/features/ai-chat/types/chat.types';
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
@@ -18,7 +18,8 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
   const params = useParams<{ agentId: string }>();
   const agentId = params?.agentId;
 
-  const inputRef = useRef<ChatInputRef>(null);
+  // Direct element refs (chatbot pattern - no useImperativeHandle needed)
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();

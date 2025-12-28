@@ -1,11 +1,14 @@
 /* eslint-disable no-unused-vars */
 import { IFileUpload, IMessage } from '@react/features/ai-chat/types/chat';
-import { ChatInputRef } from '@react/features/ai-chat/types/chat.types';
 import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
-import { createContext, Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { createContext, Dispatch, RefObject, SetStateAction } from 'react';
 
 export interface IChatContext {
-  ref: { input?: MutableRefObject<ChatInputRef>; container?: MutableRefObject<HTMLDivElement> };
+  /** Refs for input textarea and chat container (chatbot pattern - direct element refs) */
+  ref: {
+    input?: RefObject<HTMLTextAreaElement | null>;
+    container?: RefObject<HTMLDivElement | null>;
+  };
   agent: {
     data?: AgentDetails;
     settings?: AgentSettings;

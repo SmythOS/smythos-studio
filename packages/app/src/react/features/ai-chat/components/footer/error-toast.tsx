@@ -2,12 +2,12 @@ import { FC } from 'react';
 import { FaCircleExclamation } from 'react-icons/fa6';
 import { CloseIcon } from '../common/icons';
 
-interface ErrorToastProps {
+interface IProps {
   message: string;
   onClose: () => void;
 }
 
-export const ErrorToast: FC<ErrorToastProps> = ({ message, onClose }) => (
+export const ErrorToast: FC<IProps> = ({ message, onClose }) => (
   <div className="bg-[#FEFBED] border border-solid border-[#FAEBA8] flex items-center justify-between w-full min-h-[42px] rounded-md p-3">
     <div className="flex items-center gap-1.5">
       <div className="flex-shrink-0">
