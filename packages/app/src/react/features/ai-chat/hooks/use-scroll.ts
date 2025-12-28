@@ -4,7 +4,6 @@ import { scrollManager } from '@src/react/features/ai-chat/utils/scroll';
 
 export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   useEffect(() => {
     if (ref.current) scrollManager.init(ref.current);
@@ -16,15 +15,10 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
 
     if (ref.current) {
       const { scrollTop, scrollHeight, clientHeight } = ref.current;
-
       const distanceFromBottom = Math.ceil(scrollHeight - scrollTop - clientHeight);
       const threshold = 200;
-
       const isScrolledUp = distanceFromBottom > threshold;
       setShowScrollButton(isScrolledUp);
-
-      const isNearBottom = distanceFromBottom <= threshold;
-      setShouldAutoScroll(isNearBottom);
     }
   }, [ref]);
 
@@ -35,7 +29,6 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
           top: ref.current.scrollHeight,
           behavior: smooth ? 'smooth' : 'auto',
         });
-        setShouldAutoScroll(true);
       }
     },
     [ref],
@@ -57,9 +50,6 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
     showScrollButton,
     handleScroll,
     scrollToBottom,
-    setShowScrollButton,
-    shouldAutoScroll,
     smartScrollToBottom,
-    setShouldAutoScroll,
   };
 };

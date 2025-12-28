@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { IFileUpload, IMessage } from '@react/features/ai-chat/types/chat';
 import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
-import { createContext, Dispatch, RefObject, SetStateAction } from 'react';
+import { createContext, RefObject } from 'react';
 
 export interface IChatContext {
   /** Refs for input textarea and chat container (chatbot pattern - direct element refs) */
@@ -17,27 +17,19 @@ export interface IChatContext {
   /** File upload management using V2 hook */
   files: IFileUpload;
   chat: {
-    // State
     isChatCreating: boolean;
     messages: IMessage[];
     isStreaming: boolean;
-
-    // Actions
-    createSession: () => Promise<void>;
     sendMessage: (message: string) => Promise<void>;
     retryMessage: () => void;
     stopStreaming: () => void;
-    clearMessages: () => void;
     resetSession: () => Promise<void>;
   };
   scroll: {
     showScrollButton: boolean;
-    shouldAutoScroll: boolean;
     handleScroll: () => void;
     scrollToBottom: (smooth?: boolean) => void;
     smartScrollToBottom: (smooth?: boolean) => void;
-    setShowScrollButton: Dispatch<SetStateAction<boolean>>;
-    setShouldAutoScroll: Dispatch<SetStateAction<boolean>>;
   };
   // Model override (temporary, not saved to agent config)
   modelOverride: string | null;
@@ -51,38 +43,26 @@ export const ChatContext = createContext<IChatContext>({
     attachments: [],
     status: {},
     uploading: false,
-    toast: '',
-    showToast: false,
     errorMessage: '',
-    inputRef: { current: null },
-    onSelect: async () => {},
-    process: async () => {},
+    addFiles: async () => {},
     remove: () => {},
     clear: () => {},
-    cleanup: () => {},
-    setShowToast: () => {},
-    setToast: () => {},
-    setErrorMessage: () => {},
+    clearError: () => {},
   },
   chat: {
     isChatCreating: false,
     messages: [],
     isStreaming: false,
-    createSession: async () => {},
     sendMessage: async () => {},
     retryMessage: async () => {},
     stopStreaming: () => {},
-    clearMessages: () => {},
     resetSession: async () => {},
   },
   scroll: {
     showScrollButton: false,
-    shouldAutoScroll: true,
     handleScroll: () => {},
     scrollToBottom: () => {},
     smartScrollToBottom: () => {},
-    setShowScrollButton: () => {},
-    setShouldAutoScroll: () => {},
   },
   modelOverride: null,
   setModelOverride: () => {},

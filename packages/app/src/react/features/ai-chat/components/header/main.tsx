@@ -1,13 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { FC } from 'react';
 
 import { Skeleton } from '@react/features/ai-chat/components';
-import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatStores } from '@react/features/ai-chat/hooks';
-import { cn } from '@react/shared/utils/general';
 
-import { HeaderActions } from './header-actions';
-import { ModelDropdown } from './model-dropdown';
+import { AgentAvatar, AgentName, HeaderActions, ModelDropdown } from '.';
 
 interface ModelAgent {
   id: string;
@@ -22,7 +18,7 @@ const fetchModelAgents = async (): Promise<ModelAgent[]> => {
   return data.agents;
 };
 
-export const Header: FC = () => {
+export const Header = () => {
   const { agent: agentData, chat, modelOverride, setModelOverride } = useChatStores() || {};
 
   const { data: agent, settings, isLoading } = agentData || {};
@@ -68,44 +64,5 @@ export const Header: FC = () => {
         <HeaderActions onNewChat={() => chat.resetSession()} />
       </div>
     </div>
-  );
-};
-
-interface AgentAvatarProps {
-  avatar: string | undefined;
-  isLoading: boolean;
-}
-
-const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
-  <figure>
-    {isLoading ? (
-      <Skeleton className="size-8 rounded-full" />
-    ) : (
-      <img
-        src={avatar ?? DEFAULT_AVATAR_URL}
-        alt="avatar"
-        className="size-8 rounded-full transition-opacity duration-300 ease-in-out"
-      />
-    )}
-  </figure>
-);
-
-interface AgentNameProps {
-  name: string | undefined;
-  isAgentLoading: boolean;
-  isSettingsLoading: boolean;
-}
-
-const AgentName: FC<AgentNameProps> = ({ name, isAgentLoading, isSettingsLoading }) => {
-  if (isAgentLoading) {
-    return (
-      <Skeleton className={cn('w-25 h-[18px] rounded', isSettingsLoading && 'rounded-b-none')} />
-    );
-  }
-
-  return (
-    <span className="text-lg font-medium text-[#111827] transition-opacity duration-300 ease-in-out leading-none">
-      {name ?? 'Unknown Agent'}
-    </span>
   );
 };

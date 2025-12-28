@@ -23,11 +23,8 @@ export const useFileUpload = (options: IProps): IFileUpload => {
   const [status, setStatus] = useState<Record<string, IUploadStatus>>({});
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [toast, setToast] = useState('');
-  const [showToast, setShowToast] = useState(false);
 
   const blobsRef = useRef<Set<string>>(new Set());
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -57,13 +54,11 @@ export const useFileUpload = (options: IProps): IFileUpload => {
         delete next[fileName];
         return next;
       });
-
-      if (inputRef.current) inputRef.current.value = '';
     },
     [attachments],
   );
 
-  const processFiles = useCallback(
+  const addFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0) return;
 
@@ -97,8 +92,7 @@ export const useFileUpload = (options: IProps): IFileUpload => {
               blobUrl = URL.createObjectURL(file);
               blobsRef.current.add(blobUrl);
             } catch (err) {
-              // eslint-disable-next-line no-console
-              console.error('[FileUpload] Error creating blob URL:', err);
+              console.error('[FileUpload] Error creating blob URL:', err); // eslint-disable-line no-console
             }
           }
           return { id, file, blobUrl, name: file.name, type: file.type, size: file.size };
@@ -154,14 +148,6 @@ export const useFileUpload = (options: IProps): IFileUpload => {
     [attachments.length, agentId, chatId, onError],
   );
 
-  const onSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files || []).slice(0, MAX_UPLOADS);
-      await processFiles(files);
-    },
-    [processFiles],
-  );
-
   const remove = useCallback(
     (index: number) => {
       const target = attachments[index];
@@ -173,8 +159,6 @@ export const useFileUpload = (options: IProps): IFileUpload => {
         delete next[target.name];
         return next;
       });
-
-      if (inputRef.current) inputRef.current.value = '';
     },
     [attachments],
   );
@@ -196,44 +180,22 @@ export const useFileUpload = (options: IProps): IFileUpload => {
 
       setAttachments([]);
       setStatus({});
-      if (inputRef.current) inputRef.current.value = '';
     },
     [attachments],
   );
 
-  const cleanup = useCallback(() => {
-    const active = new Set<string>();
-
-    attachments.forEach((a) => {
-      if (a.blobUrl) active.add(a.blobUrl);
-    });
-
-    const stale: string[] = [];
-    blobsRef.current.forEach((url) => {
-      if (!active.has(url)) {
-        URL.revokeObjectURL(url);
-        stale.push(url);
-      }
-    });
-
-    stale.forEach((url) => blobsRef.current.delete(url));
-  }, [attachments]);
+  const clearError = useCallback(() => {
+    setErrorMessage('');
+  }, [setErrorMessage]);
 
   return {
     attachments,
     status,
     uploading,
-    toast,
-    showToast,
     errorMessage,
-    inputRef,
-    onSelect,
-    process: processFiles,
+    addFiles,
     remove,
     clear,
-    cleanup,
-    setShowToast,
-    setToast,
-    setErrorMessage,
+    clearError,
   };
 };

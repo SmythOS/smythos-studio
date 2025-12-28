@@ -24,7 +24,7 @@ export const ChatInput = () => {
 
   const { isChatCreating } = chat || {};
   const { isStreaming, sendMessage, stopStreaming } = chat || {};
-  const { attachments, status, process, remove, clear, uploading } = filesData || {};
+  const { attachments, status, addFiles, remove, clear, uploading } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
   const isMaxFilesUploaded = attachments.length >= 10;
@@ -94,10 +94,10 @@ export const ChatInput = () => {
   );
 
   useClipboardPaste({
-    onFilePaste: process,
+    onFilePaste: addFiles,
     targetRef: inputRef,
     largeTextThreshold: LARGE_TEXT_THRESHOLD,
-    onLargeTextPaste: (text) => process([createFileFromText(text).file]),
+    onLargeTextPaste: (text) => addFiles([createFileFromText(text).file]),
   });
 
   const isMaxLengthReached = message.length === maxLength;
@@ -158,7 +158,7 @@ export const ChatInput = () => {
 
         <div onClick={(e) => e.stopPropagation()}>
           <AttachmentButton
-            onFilesAdd={process}
+            onFilesAdd={addFiles}
             fileInputRef={fileInputRef}
             isDisabled={isDisabled || isStreaming}
             isMaxFilesUploaded={isMaxFilesUploaded}

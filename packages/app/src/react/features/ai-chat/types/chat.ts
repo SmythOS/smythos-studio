@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import type { ChangeEvent, Dispatch, RefObject, SetStateAction } from 'react';
+import type { Dispatch, RefObject, SetStateAction } from 'react';
 
 // ============================================================================
 // MESSAGE TYPES
@@ -178,16 +178,9 @@ export interface IFileUpload {
   attachments: IFileAttachment[];
   status: Record<string, IUploadStatus>;
   uploading: boolean;
-  toast: string;
-  showToast: boolean;
   errorMessage: string;
-  inputRef: RefObject<HTMLInputElement | null>;
-  onSelect: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  process: (files: File[]) => Promise<void>;
+  addFiles: (files: File[]) => Promise<void>;
   remove: (index: number) => void;
-  clear: () => void;
-  cleanup: () => void;
-  setShowToast: (show: boolean) => void;
-  setToast: (message: string) => void;
-  setErrorMessage: (message: string) => void;
+  clear: (preserveBlobUrls?: boolean) => void;
+  clearError: () => void;
 }

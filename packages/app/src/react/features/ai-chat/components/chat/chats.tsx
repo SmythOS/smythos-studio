@@ -30,7 +30,7 @@ export const Chats: FC = () => {
 
   const agent = agentData?.data;
   const containerRef = allRefs?.container;
-  const handleFileDrop = files.process;
+  const handleFileDrop = files.addFiles;
 
   const ref = useRef<HTMLDivElement>(null);
   const dropzoneRef = useDragAndDrop({ onDrop: handleFileDrop });
