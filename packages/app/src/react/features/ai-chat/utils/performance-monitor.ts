@@ -26,47 +26,7 @@
  * console.log(metrics);
  */
 
-/**
- * Represents a single chunk's performance metrics
- */
-interface ChunkMetric {
-  timestamp: number; // High-resolution timestamp when chunk was received
-  chunkIndex: number; // Sequential index of this chunk in the stream
-  networkTime?: number; // Time elapsed since previous chunk (milliseconds)
-  processingTime?: number; // Time spent processing/parsing the chunk (milliseconds)
-  chunkSize: number; // Size of chunk data in bytes
-  type: 'content' | 'thinking' | 'tool' | 'debug'; // Type of content in this chunk
-}
-
-/**
- * Aggregated performance metrics for an entire stream
- */
-interface PerformanceMetrics {
-  totalChunks: number; // Total number of chunks received
-  averageNetworkTime: number; // Average time between chunks (milliseconds)
-  averageProcessingTime: number; // Average processing time per chunk (milliseconds)
-  totalDuration: number; // Total stream duration (milliseconds)
-  slowestChunk: ChunkMetric | null; // Chunk with highest total latency
-  chunksPerSecond: number; // Throughput in chunks per second
-}
-
-/**
- * Global debug interface exposed on window object
- */
-interface ChatDebugInterface {
-  enable: () => void; // Enable performance monitoring
-  disable: () => void; // Disable performance monitoring
-  metrics: () => PerformanceMetrics; // Get current performance metrics
-}
-
-/**
- * Extend Window interface with chatDebug property
- */
-declare global {
-  interface Window {
-    chatDebug: ChatDebugInterface;
-  }
-}
+import type { TChunkMetric, TPerformanceMetrics } from '@react/features/ai-chat/types';
 
 /**
  * Maximum number of chunks to track before cleanup
@@ -76,7 +36,7 @@ const MAX_METRICS_SIZE = 10000;
 
 class PerformanceMonitor {
   private enabled: boolean = false;
-  private metrics: ChunkMetric[] = [];
+  private metrics: TChunkMetric[] = [];
   private streamStartTime: number = 0;
   private lastChunkTime: number = 0;
   private chunkIndex: number = 0;
@@ -139,13 +99,13 @@ class PerformanceMonitor {
    * @param chunkData - Raw chunk data received
    * @param type - Type of chunk content
    */
-  recordChunkArrival(chunkData: string, type: ChunkMetric['type'] = 'content'): void {
+  recordChunkArrival(chunkData: string, type: TChunkMetric['type'] = 'content'): void {
     if (!this.enabled) return;
 
     const now = performance.now();
     const networkTime = now - this.lastChunkTime;
 
-    const metric: ChunkMetric = {
+    const metric: TChunkMetric = {
       timestamp: now,
       chunkIndex: this.chunkIndex++,
       networkTime,
@@ -194,34 +154,34 @@ class PerformanceMonitor {
     if (!this.enabled) return;
 
     const totalDuration = performance.now() - this.streamStartTime;
-    const metrics = this.getMetrics();
+    const metricsResult = this.getMetrics();
 
     this.log('%c✅ STREAM COMPLETED', 'color: #00ff00; font-weight: bold; font-size: 14px');
     this.log(`⏱️  Total Duration: ${totalDuration.toFixed(2)}ms`);
-    this.log(`📦 Total Chunks: ${metrics.totalChunks}`);
-    this.log(`⚡ Chunks/Second: ${metrics.chunksPerSecond.toFixed(2)}`);
+    this.log(`📦 Total Chunks: ${metricsResult.totalChunks}`);
+    this.log(`⚡ Chunks/Second: ${metricsResult.chunksPerSecond.toFixed(2)}`);
     this.log('\n📊 PERFORMANCE BREAKDOWN:');
-    this.log(`  🌐 Network (avg): ${metrics.averageNetworkTime.toFixed(2)}ms`);
-    this.log(`  ⚙️  Processing (avg): ${metrics.averageProcessingTime.toFixed(2)}ms`);
+    this.log(`  🌐 Network (avg): ${metricsResult.averageNetworkTime.toFixed(2)}ms`);
+    this.log(`  ⚙️  Processing (avg): ${metricsResult.averageProcessingTime.toFixed(2)}ms`);
 
-    if (metrics.slowestChunk) {
+    if (metricsResult.slowestChunk) {
       this.log('\n🐌 SLOWEST CHUNK:');
-      this.log(`  Index: #${metrics.slowestChunk.chunkIndex}`);
-      this.log(`  Network: ${metrics.slowestChunk.networkTime?.toFixed(2)}ms`);
-      this.log(`  Processing: ${metrics.slowestChunk.processingTime?.toFixed(2)}ms`);
-      this.log(`  Size: ${metrics.slowestChunk.chunkSize} bytes`);
+      this.log(`  Index: #${metricsResult.slowestChunk.chunkIndex}`);
+      this.log(`  Network: ${metricsResult.slowestChunk.networkTime?.toFixed(2)}ms`);
+      this.log(`  Processing: ${metricsResult.slowestChunk.processingTime?.toFixed(2)}ms`);
+      this.log(`  Size: ${metricsResult.slowestChunk.chunkSize} bytes`);
     }
 
     // Identify bottleneck
-    this.identifyBottleneck(metrics);
+    this.identifyBottleneck(metricsResult);
   }
 
   /**
    * Analyzes metrics and identifies the bottleneck
-   * @param metrics - Performance metrics to analyze
+   * @param performanceMetrics - Performance metrics to analyze
    */
-  private identifyBottleneck(metrics: PerformanceMetrics): void {
-    const { averageNetworkTime, averageProcessingTime } = metrics;
+  private identifyBottleneck(performanceMetrics: TPerformanceMetrics): void {
+    const { averageNetworkTime, averageProcessingTime } = performanceMetrics;
 
     this.log('\n🎯 BOTTLENECK ANALYSIS:');
 
@@ -251,7 +211,7 @@ class PerformanceMonitor {
   /**
    * Gets computed metrics
    */
-  getMetrics(): PerformanceMetrics {
+  getMetrics(): TPerformanceMetrics {
     const totalChunks = this.metrics.length;
 
     if (totalChunks === 0) {
@@ -268,8 +228,8 @@ class PerformanceMonitor {
     const totalDuration = performance.now() - this.streamStartTime;
 
     // Calculate averages
-    const networkTimes = this.metrics.map((m) => m.networkTime || 0).filter((t) => t > 0);
-    const processingTimes = this.metrics.map((m) => m.processingTime || 0).filter((t) => t > 0);
+    const networkTimes = this.metrics.map((m) => m.networkTime ?? 0).filter((t) => t > 0);
+    const processingTimes = this.metrics.map((m) => m.processingTime ?? 0).filter((t) => t > 0);
 
     const averageNetworkTime =
       networkTimes.length > 0 ? networkTimes.reduce((a, b) => a + b, 0) / networkTimes.length : 0;
@@ -280,8 +240,8 @@ class PerformanceMonitor {
 
     // Find slowest chunk (by total time)
     const slowestChunk = this.metrics.reduce((slowest, current) => {
-      const currentTotal = (current.networkTime || 0) + (current.processingTime || 0);
-      const slowestTotal = (slowest.networkTime || 0) + (slowest.processingTime || 0);
+      const currentTotal = (current.networkTime ?? 0) + (current.processingTime ?? 0);
+      const slowestTotal = (slowest.networkTime ?? 0) + (slowest.processingTime ?? 0);
 
       return currentTotal > slowestTotal ? current : slowest;
     }, this.metrics[0]);
@@ -350,3 +310,4 @@ if (typeof window !== 'undefined') {
     metrics: () => performanceMonitor.getMetrics(),
   };
 }
+

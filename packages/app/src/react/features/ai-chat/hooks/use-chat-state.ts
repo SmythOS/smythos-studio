@@ -1,19 +1,19 @@
 import { ChatAPIClient } from '@react/features/ai-chat/clients/chat-api.client';
 import { MESSAGE_TYPES } from '@react/features/ai-chat/constants';
 import type {
-  IAttachment,
-  IChatError,
+  TAttachment,
+  TChatError,
   IChatState,
-  IConfigOptions,
-  IMessage,
-  IMetaMessages,
-} from '@react/features/ai-chat/types/chat';
+  TChatStateConfig,
+  TChatMessage,
+  TMetaMessage,
+} from '@react/features/ai-chat/types';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-export const useChatState = (options: IConfigOptions): IChatState => {
+export const useChatState = (options: TChatStateConfig): IChatState => {
   const { agentId, chatId, modelId, enableMetaMessages = false, inputRef } = options;
 
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [messages, setMessages] = useState<TChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
 
   const abortRef = useRef<AbortController | null>(null);
@@ -60,7 +60,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
         return updated;
       }
 
-      const newMessage: IMessage = {
+      const newMessage: TChatMessage = {
         id: Date.now() + Math.random(),
         type: MESSAGE_TYPES.SYSTEM,
         content: content,
@@ -72,7 +72,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
   }, []);
 
   const onMetaMessage = useCallback(
-    (meta: IMetaMessages): void => {
+    (meta: TMetaMessage): void => {
       if (!enableMetaMessages) return;
 
       setMessages((prev) => {
@@ -156,7 +156,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
         }
 
         // Create new META message
-        const newMessage: IMessage = {
+        const newMessage: TChatMessage = {
           id: Date.now() + Math.random(),
           type: MESSAGE_TYPES.META,
           content: debugText,
@@ -170,7 +170,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
     [enableMetaMessages],
   );
 
-  const onStreamError = useCallback((error: IChatError): void => {
+  const onStreamError = useCallback((error: TChatError): void => {
     if (error.isAborted) {
       setIsStreaming(false);
       return;
@@ -178,7 +178,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
 
     setMessages((prev) => {
       const filtered = prev.filter((msg) => msg.type !== MESSAGE_TYPES.LOADING);
-      const errorMessage: IMessage = {
+      const errorMessage: TChatMessage = {
         id: Date.now() + Math.random(),
         type: MESSAGE_TYPES.ERROR,
         content: error.message || 'An error occurred',
@@ -193,7 +193,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
   const sendMessage = useCallback(
     async (
       message: string,
-      currentAttachments: IAttachment[] = [],
+      currentAttachments: TAttachment[] = [],
       shouldSetUserMessage = true,
     ): Promise<void> => {
       if (isStreaming) return;
@@ -206,7 +206,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
         setMessages((prev) => {
           const msgCount = prev.length;
 
-          const userMessage: IMessage | null = shouldSetUserMessage
+          const userMessage: TChatMessage | null = shouldSetUserMessage
             ? {
                 id: msgCount + 1,
                 type: MESSAGE_TYPES.USER,
@@ -226,7 +226,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
               }
             : null;
 
-          const loadingMessage: IMessage = {
+          const loadingMessage: TChatMessage = {
             id: shouldSetUserMessage ? msgCount + 2 : msgCount + 1,
             type: MESSAGE_TYPES.LOADING,
             content: '',
@@ -319,7 +319,7 @@ export const useChatState = (options: IConfigOptions): IChatState => {
         return msg;
       });
 
-      const errorMessage: IMessage = {
+      const errorMessage: TChatMessage = {
         id: Date.now() + Math.random(),
         type: MESSAGE_TYPES.ERROR,
         content: 'Generation interrupted by user',

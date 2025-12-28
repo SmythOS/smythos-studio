@@ -8,7 +8,8 @@ import { EVENTS } from '@shared/posthog/constants/events';
 import { LLMRegistry } from '@shared/services/LLMRegistry.service';
 import { llmModelsStore } from '@shared/state_stores/llm-models';
 
-import { getBadgeFromTags, ILLMModel } from '@react/features/ai-chat/utils';
+import type { TLLMModel } from '@react/features/ai-chat/types';
+import { getBadgeFromTags } from '@react/features/ai-chat/utils';
 import { ModelPanel } from './model-panel';
 import { ProviderPanel } from './provider-panel';
 
@@ -22,7 +23,7 @@ interface IProps {
 export const ModelDropdown: FC<IProps> = (props) => {
   const { currentModel, isModelAgent, isDisabled, onModelChange } = props;
 
-  const [llmModels, setLlmModels] = useState<Array<ILLMModel>>([]);
+  const [llmModels, setLlmModels] = useState<Array<TLLMModel>>([]);
   const [isModelsLoading, setIsModelsLoading] = useState<boolean>(true);
   const [provider, setProvider] = useState<string>(currentModel);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -33,7 +34,7 @@ export const ModelDropdown: FC<IProps> = (props) => {
       .getState()
       .init()
       .finally(() => {
-        const models: Array<ILLMModel> = LLMRegistry.getSortedModelsByFeatures('tools').map(
+        const models: Array<TLLMModel> = LLMRegistry.getSortedModelsByFeatures('tools').map(
           (model) => ({
             label: model.label,
             value: model.entryId,

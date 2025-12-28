@@ -1,24 +1,23 @@
 import {
   useAgentSettings,
+  useChatState,
   useCreateChatMutation,
+  useFileUpload,
   useScrollToBottom,
   useUpdateAgentSettingsMutation,
 } from '@react/features/ai-chat/hooks';
-import { useChatState } from '@react/features/ai-chat/hooks/use-chat-state';
-import { useFileUpload } from '@react/features/ai-chat/hooks/use-file-upload';
-import { IChildren } from '@react/features/ai-chat/types/chat.types';
+import type { TChildren } from '@react/features/ai-chat/types';
 import { useAgent } from '@react/shared/hooks/agent';
 import { Observability } from '@shared/observability';
 import { EVENTS } from '@shared/posthog/constants/events';
-import { ChatContext, IChatContext } from '@src/react/features/ai-chat/contexts/chat';
+import { ChatContext, IChatContext } from '@react/features/ai-chat/contexts/chat';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-export const ChatContextProvider: FC<IChildren> = ({ children }) => {
+export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const params = useParams<{ agentId: string }>();
   const agentId = params?.agentId;
 
-  // Direct element refs (chatbot pattern - no useImperativeHandle needed)
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -188,3 +187,4 @@ export const ChatContextProvider: FC<IChildren> = ({ children }) => {
 
   return <ChatContext.Provider value={values}>{children}</ChatContext.Provider>;
 };
+

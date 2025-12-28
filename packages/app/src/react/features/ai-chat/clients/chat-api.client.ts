@@ -4,14 +4,14 @@
  */
 
 import {
-  IAPIConfig,
-  IChatError,
-  IFileAttachment,
+  TAPIConfig,
+  TChatError,
+  TFileAttachment,
   IStreamCallbacks,
-  IStreamChunk,
-  IStreamConfig,
-} from '@react/features/ai-chat/types/chat.types';
-import { performanceMonitor } from '@react/features/ai-chat/utils/chat-performance-monitor';
+  TStreamChunk,
+  TStreamConfig,
+} from '@react/features/ai-chat/types';
+import { performanceMonitor } from '@react/features/ai-chat/utils';
 import { CreateChatRequest } from '@react/shared/types/api-payload.types';
 import { CreateChatsResponse } from '@react/shared/types/api-results.types';
 import { processStreamChunk, splitJSONStream } from '@src/react/features/ai-chat/utils/stream';
@@ -19,7 +19,7 @@ import { processStreamChunk, splitJSONStream } from '@src/react/features/ai-chat
 /**
  * Default configuration for the Chat API Client
  */
-const DEFAULT_CONFIG: IAPIConfig = {
+const DEFAULT_CONFIG: TAPIConfig = {
   baseUrl: '/api/page/chat',
   defaultHeaders: { 'Content-Type': 'application/json' },
 };
@@ -29,7 +29,7 @@ const DEFAULT_CONFIG: IAPIConfig = {
  * Handles all communication with the chat service including streaming responses
  */
 export class ChatAPIClient {
-  private config: IAPIConfig;
+  private config: TAPIConfig;
 
   /**
    * Creates a new ChatAPIClient instance
@@ -44,7 +44,7 @@ export class ChatAPIClient {
    * });
    * ```
    */
-  constructor(config: Partial<IAPIConfig> = {}) {
+  constructor(config: Partial<TAPIConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
@@ -73,7 +73,7 @@ export class ChatAPIClient {
    * );
    * ```
    */
-  async streamChat(streamConfig: IStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
+  async streamChat(streamConfig: TStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
     const { agentId, chatId, message, modelId, attachments, signal, headers = {} } = streamConfig;
     const { onContent, onMetaMessages, onError, onStart, onComplete } = callbacks;
 
@@ -85,7 +85,7 @@ export class ChatAPIClient {
       // Validate required parameters
       // Message can be empty if attachments are provided
       if (!agentId || !chatId || (!message && (!attachments || attachments.length === 0))) {
-        const error: IChatError = {
+        const error: TChatError = {
           message: 'Missing required parameters: agentId, chatId, or message',
           type: 'system',
         };
@@ -121,7 +121,7 @@ export class ChatAPIClient {
       // Handle HTTP errors
       if (!response.ok) {
         const errorData = await this.parseErrorResponse(response);
-        const error: IChatError = {
+        const error: TChatError = {
           message: errorData.message || `HTTP ${response.status}: Failed to get response`,
           type: 'network',
         };
@@ -132,7 +132,7 @@ export class ChatAPIClient {
       // Get stream reader
       reader = response.body?.getReader();
       if (!reader) {
-        const error: IChatError = {
+        const error: TChatError = {
           message: 'Failed to get response reader - response body is null',
           type: 'stream',
         };
@@ -240,7 +240,7 @@ export class ChatAPIClient {
    * @param callbacks - Event callbacks
    */
   private async processChunk(
-    chunk: IStreamChunk,
+    chunk: TStreamChunk,
     callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
     const { onContent, onMetaMessages } = callbacks;
@@ -251,7 +251,7 @@ export class ChatAPIClient {
 
     // Handle errors - throw to stop stream processing, catch block will handle error notification
     if (processed.hasError) {
-      const error: IChatError = {
+      const error: TChatError = {
         type: 'stream',
         turnId, // Include turn ID in error
         message: processed.error || 'Unknown error occurred',
@@ -279,7 +279,7 @@ export class ChatAPIClient {
    * @param signal - Abort signal to check for user cancellation
    * @returns Structured chat error
    */
-  private handleStreamError(error: unknown, signal: AbortSignal): IChatError {
+  private handleStreamError(error: unknown, signal: AbortSignal): TChatError {
     // Check if this is an abort error
     if (error instanceof DOMException && error.name === 'AbortError') {
       return {
@@ -385,7 +385,7 @@ export class ChatAPIClient {
    * // Use attachment.url in chat message
    * ```
    */
-  async uploadFile(file: File, agentId: string, chatId?: string): Promise<IFileAttachment> {
+  async uploadFile(file: File, agentId: string, chatId?: string): Promise<TFileAttachment> {
     const formData = new FormData();
     formData.append('file', file);
 

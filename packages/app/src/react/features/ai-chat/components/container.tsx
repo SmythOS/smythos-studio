@@ -1,7 +1,7 @@
-import { IChildren } from '@react/features/ai-chat/types/chat.types';
+import { TChildren } from '@react/features/ai-chat/types';
 import { FC, useCallback, useEffect, useRef } from 'react';
 
-export const Container: FC<IChildren> = ({ children }) => {
+export const Container: FC<TChildren> = ({ children }) => {
   const parentElementRef = useRef<HTMLElement | null>(null);
   const originalStateRef = useRef<{ className: string; maxWidth: string } | null>(null);
 

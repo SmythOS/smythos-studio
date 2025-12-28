@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-import { IFileUpload, IMessage } from '@react/features/ai-chat/types/chat';
-import { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
+import type { IFileUpload, TChatMessage } from '@react/features/ai-chat/types';
+import type { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
 import { createContext, RefObject } from 'react';
 
 export interface IChatContext {
@@ -18,7 +17,7 @@ export interface IChatContext {
   files: IFileUpload;
   chat: {
     isChatCreating: boolean;
-    messages: IMessage[];
+    messages: TChatMessage[];
     isStreaming: boolean;
     sendMessage: (message: string) => Promise<void>;
     retryMessage: () => void;
@@ -31,7 +30,6 @@ export interface IChatContext {
     scrollToBottom: (smooth?: boolean) => void;
     smartScrollToBottom: (smooth?: boolean) => void;
   };
-  // Model override (temporary, not saved to agent config)
   modelOverride: string | null;
   setModelOverride: (model: string | null) => void;
 }
@@ -67,3 +65,4 @@ export const ChatContext = createContext<IChatContext>({
   modelOverride: null,
   setModelOverride: () => {},
 });
+

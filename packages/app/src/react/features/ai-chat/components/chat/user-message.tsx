@@ -1,10 +1,10 @@
 import { FC } from 'react';
-import { IAttachment } from '../../types/chat';
+import { TAttachment } from '../../types';
 import { FileItemPreview } from '../common/FileItemPreview';
 
 interface IProps {
   message: string;
-  files?: IAttachment[];
+  files?: TAttachment[];
 }
 
 export const UserMessage: FC<IProps> = ({ message, files }) => {

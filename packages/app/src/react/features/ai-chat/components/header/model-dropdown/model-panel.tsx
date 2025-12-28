@@ -2,10 +2,11 @@ import { FC } from 'react';
 
 import { cn } from '@react/shared/utils/general';
 
-import { getBadgeFromTags, ILLMModel } from '@react/features/ai-chat/utils';
+import type { TLLMModel } from '@react/features/ai-chat/types';
+import { getBadgeFromTags } from '@react/features/ai-chat/utils';
 
 interface IProps {
-  models: ILLMModel[];
+  models: TLLMModel[];
   currentModel: string;
   providerIndex: number;
   onModelSelect: (model: string) => void; // eslint-disable-line no-unused-vars

@@ -9,7 +9,7 @@ import {
   FaRegFileWord,
   FaXmark,
 } from 'react-icons/fa6';
-import type { IAttachment } from '../../types/chat';
+import type { TAttachment } from '../../types';
 
 const FILE_ICONS: Record<string, ReactElement> = {
   pdf: <FaRegFilePdf className="text-white text-xl" />,
@@ -51,7 +51,7 @@ const RemoveButton: FC<IRemoveButtonProps> = memo(({ onRemove }) => (
 RemoveButton.displayName = 'RemoveButton';
 
 export interface IFileItemPreviewProps {
-  attachment: IAttachment;
+  attachment: TAttachment;
   onRemove?: () => void;
   isUploading?: boolean;
 }
@@ -81,7 +81,7 @@ const isImageType = (mimeType: string): boolean => {
   return mimeType.startsWith('image/');
 };
 
-const getPreviewUrl = (attachment: IAttachment): string | null => {
+const getPreviewUrl = (attachment: TAttachment): string | null => {
   if (attachment.blobUrl) {
     return attachment.blobUrl;
   }

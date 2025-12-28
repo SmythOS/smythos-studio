@@ -3,7 +3,7 @@
  * Stream processing utilities for chat responses
  */
 
-import { IStreamChunk, TThinkingType } from '@react/features/ai-chat/types/chat.types';
+import { TStreamChunk, TThinkingType } from '@react/features/ai-chat/types';
 
 /** Function-specific thinking messages that cycle during function execution */
 const FUNCTION_THINKING_MESSAGES = [
@@ -30,7 +30,7 @@ const GENERAL_THINKING_MESSAGES = [
  * @param data - Raw string data from stream
  * @returns Array of parsed JSON objects
  */
-export const splitJSONStream = (data: string): IStreamChunk[] => {
+export const splitJSONStream = (data: string): TStreamChunk[] => {
   if (!data || typeof data !== 'string') return [];
 
   const cleanData = data.trim();
@@ -62,12 +62,12 @@ export const splitJSONStream = (data: string): IStreamChunk[] => {
           return null;
         }
 
-        return JSON.parse(str) as IStreamChunk;
+        return JSON.parse(str) as TStreamChunk;
       } catch {
         return null;
       }
     })
-    .filter((chunk): chunk is IStreamChunk => chunk !== null);
+    .filter((chunk): chunk is TStreamChunk => chunk !== null);
 
   return parsedChunks;
 };
@@ -194,7 +194,7 @@ export const createThinkingManager = (): ThinkingMessageManager => new ThinkingM
  * @param chunk - Stream chunk to process
  * @returns Processed chunk data
  */
-export const processStreamChunk = (chunk: IStreamChunk) => {
+export const processStreamChunk = (chunk: TStreamChunk) => {
   const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
 
   return {

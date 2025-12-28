@@ -3,12 +3,12 @@ import {
   formatStatusMessage,
 } from '@src/react/features/ai-chat/utils/stream';
 import { FC, useEffect, useRef, useState } from 'react';
-import { IMetaMessages } from '../../types/chat';
+import { TMetaMessage } from '../../types';
 
 interface IProps {
   data: {
     avatar?: string;
-    metaMessages?: IMetaMessages;
+    metaMessages?: TMetaMessage;
   };
   scrollToBottom: () => void;
 }

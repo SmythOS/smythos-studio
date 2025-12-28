@@ -8,11 +8,11 @@ import {
   UserMessage,
 } from '@react/features/ai-chat/components';
 import { MESSAGE_TYPES } from '@react/features/ai-chat/constants';
-import { IMessage } from '@react/features/ai-chat/types/chat';
+import { TChatMessage } from '@react/features/ai-chat/types';
 
 import '../../styles/index.css';
 
-interface IChatProps extends IMessage {
+interface IChatProps extends TChatMessage {
   avatar: string;
   onRetryClick?: () => void;
   scrollToBottom?: () => void;

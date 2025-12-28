@@ -1,8 +1,10 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
-type IProps = { onDrop: (files: File[]) => Promise<void> }; // eslint-disable-line no-unused-vars
+type TDragAndDropConfig = {
+  onDrop: (files: File[]) => Promise<void>;
+};
 
-export const useDragAndDrop = ({ onDrop }: IProps): RefObject<HTMLElement> => {
+export const useDragAndDrop = ({ onDrop }: TDragAndDropConfig): RefObject<HTMLElement> => {
   const containerRef = useRef<HTMLElement>(null);
   const dragCounterRef = useRef(0);
 

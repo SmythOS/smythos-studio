@@ -1,26 +1,26 @@
 import { ALLOWED_FILE_SIZE, MAX_UPLOADS } from '@react/features/ai-chat/constants';
 import type {
-  IFileAttachment,
+  TFileAttachment,
   IFileUpload,
-  IUploadStatus,
-} from '@react/features/ai-chat/types/chat';
+  TUploadStatus,
+} from '@react/features/ai-chat/types';
 import {
   generateUniqueFileId,
   uploadFiles,
   validateSingleFile,
-} from '@react/features/ai-chat/utils/file';
+} from '@react/features/ai-chat/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type IProps = {
+type TFileUploadConfig = {
   agentId?: string;
   chatId?: string;
 };
 
-export const useFileUpload = (options: IProps): IFileUpload => {
+export const useFileUpload = (options: TFileUploadConfig): IFileUpload => {
   const { agentId, chatId } = options;
 
-  const [attachments, setAttachments] = useState<IFileAttachment[]>([]);
-  const [status, setStatus] = useState<Record<string, IUploadStatus>>({});
+  const [attachments, setAttachments] = useState<TFileAttachment[]>([]);
+  const [status, setStatus] = useState<Record<string, TUploadStatus>>({});
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -85,7 +85,7 @@ export const useFileUpload = (options: IProps): IFileUpload => {
       if (valid.length > 0) {
         const pending = valid.slice(0, slots);
 
-        const created: IFileAttachment[] = pending.map(({ file, id }) => {
+        const created: TFileAttachment[] = pending.map(({ file, id }) => {
           let blobUrl: string | null = null;
           if (file.type.startsWith('image/')) {
             try {
