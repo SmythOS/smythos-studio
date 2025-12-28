@@ -2,8 +2,7 @@ import { ChatInput, ErrorToast, ScrollToBottomButton } from '@react/features/ai-
 import { useChatStores } from '@react/features/ai-chat/hooks';
 import { FC } from 'react';
 
-const CHAT_WARNING_INFO =
-  "SmythOS can make mistakes, always check your work. We don't store chat history, save important work."; // eslint-disable-line quotes
+const CHAT_WARNING_INFO = `SmythOS can make mistakes, always check your work. We don't store chat history, save important work.`;
 
 export const Footer: FC = () => {
   const { files, scroll } = useChatStores();

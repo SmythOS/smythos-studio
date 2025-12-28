@@ -9,7 +9,7 @@ import {
   FaRegFileWord,
   FaXmark,
 } from 'react-icons/fa6';
-import type { TAttachment } from '../../types';
+import type { TAttachment } from '@react/features/ai-chat/types';
 
 const FILE_ICONS: Record<string, ReactElement> = {
   pdf: <FaRegFilePdf className="text-white text-xl" />,
@@ -34,11 +34,11 @@ const FILE_ICONS: Record<string, ReactElement> = {
 
 const DEFAULT_ICON = <FaRegFileLines className="text-white text-xl" />;
 
-interface IRemoveButtonProps {
+type TRemoveButtonProps = {
   onRemove: () => void;
-}
+};
 
-const RemoveButton: FC<IRemoveButtonProps> = memo(({ onRemove }) => (
+const RemoveButton: FC<TRemoveButtonProps> = memo(({ onRemove }) => (
   <button
     onClick={onRemove}
     className="size-6 flex justify-center items-center bg-white rounded-full text-[#6B7280] border border-[#E5E7EB] opacity-0 transition-opacity duration-200 z-10 cursor-pointer hover:text-[#374151] pt-0.5"
@@ -50,11 +50,11 @@ const RemoveButton: FC<IRemoveButtonProps> = memo(({ onRemove }) => (
 
 RemoveButton.displayName = 'RemoveButton';
 
-export interface IFileItemPreviewProps {
+export type TFileItemPreviewProps = {
   attachment: TAttachment;
   onRemove?: () => void;
   isUploading?: boolean;
-}
+};
 
 const getFileExtension = (fileName: string, url?: string, blobUrl?: string | null): string => {
   if (fileName) {
@@ -93,7 +93,7 @@ const getPreviewUrl = (attachment: TAttachment): string | null => {
   return attachment.url || null;
 };
 
-export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
+export const FileItemPreview: FC<TFileItemPreviewProps> = memo(
   ({ attachment, onRemove, isUploading = false }) => {
     const { name, type, file, url, blobUrl } = attachment;
 
@@ -194,3 +194,4 @@ export const FileItemPreview: FC<IFileItemPreviewProps> = memo(
 );
 
 FileItemPreview.displayName = 'FileItemPreview';
+

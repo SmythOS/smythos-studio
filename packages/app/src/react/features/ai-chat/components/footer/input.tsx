@@ -1,16 +1,16 @@
 import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import '../../styles/index.css';
 
-import { AttachmentButton, SendButton } from '@react/features/ai-chat/components';
+import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/ai-chat/components';
 import { useChatStores, useClipboardPaste } from '@react/features/ai-chat/hooks';
-import { adjustTextareaHeight, createFileFromText } from '@react/features/ai-chat/utils';
-import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
-import { cn } from '@react/shared/utils/general';
-import { FileItemPreview } from '@src/react/features/ai-chat/components/common/FileItemPreview';
 import {
+  adjustTextareaHeight,
+  createFileFromText,
   forceScrollToBottomImmediate,
   scrollManager,
-} from '@src/react/features/ai-chat/utils/scroll';
+} from '@react/features/ai-chat/utils';
+import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
+import { cn } from '@react/shared/utils/general';
 
 const LARGE_TEXT_THRESHOLD = 4000;
 

@@ -1,14 +1,14 @@
-import { cn } from '@src/react/shared/utils/general';
+import { cn } from '@react/shared/utils/general';
 import { FC } from 'react';
-import { Skeleton } from '..';
+import { Skeleton } from '@react/features/ai-chat/components';
 
-interface IProps {
+type TAgentNameProps = {
   name: string | undefined;
   isAgentLoading: boolean;
   isSettingsLoading: boolean;
-}
+};
 
-export const AgentName: FC<IProps> = ({ name, isAgentLoading, isSettingsLoading }) => {
+export const AgentName: FC<TAgentNameProps> = ({ name, isAgentLoading, isSettingsLoading }) => {
   if (isAgentLoading) {
     return (
       <Skeleton className={cn('w-25 h-[18px] rounded', isSettingsLoading && 'rounded-b-none')} />
@@ -21,3 +21,4 @@ export const AgentName: FC<IProps> = ({ name, isAgentLoading, isSettingsLoading 
     </span>
   );
 };
+

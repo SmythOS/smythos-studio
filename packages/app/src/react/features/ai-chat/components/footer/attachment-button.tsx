@@ -1,9 +1,9 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { ChangeEvent, FC, RefObject, useCallback } from 'react';
 
-import { AttachmentIcon } from '@react/features/ai-chat/components/common/icons';
+import { AttachmentIcon } from '@react/features/ai-chat/components';
 import { CHAT_ACCEPTED_FILE_TYPES } from '@react/features/ai-chat/constants';
-import { FILE_LIMITS } from '@react/features/ai-chat/utils/file';
+import { FILE_LIMITS } from '@react/features/ai-chat/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
 
 interface IProps {
   fileInputRef: RefObject<HTMLInputElement | null>;

@@ -1,13 +1,13 @@
 import { FC } from 'react';
-import { Skeleton } from '..';
-import { DEFAULT_AVATAR_URL } from '../../constants';
+import { Skeleton } from '@react/features/ai-chat/components';
+import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 
-interface AgentAvatarProps {
+type TAgentAvatarProps = {
   avatar: string | undefined;
   isLoading: boolean;
-}
+};
 
-export const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
+export const AgentAvatar: FC<TAgentAvatarProps> = ({ avatar, isLoading }) => (
   <figure>
     {isLoading ? (
       <Skeleton className="size-8 rounded-full" />
@@ -20,3 +20,4 @@ export const AgentAvatar: FC<AgentAvatarProps> = ({ avatar, isLoading }) => (
     )}
   </figure>
 );
+

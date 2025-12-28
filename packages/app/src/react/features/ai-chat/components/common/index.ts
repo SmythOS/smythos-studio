@@ -1,2 +1,2 @@
-export * from './FileItemPreview';
+export * from './file-item-preview';
 export * from './icons';

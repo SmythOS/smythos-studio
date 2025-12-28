@@ -1,4 +1,4 @@
-import { cn } from '@src/react/shared/utils/general';
+import { cn } from '@react/shared/utils/general';
 import { FC } from 'react';
 
 export const Skeleton: FC<{ className?: string }> = ({ className }) => (

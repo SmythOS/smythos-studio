@@ -1,13 +1,13 @@
+import { FileItemPreview } from '@react/features/ai-chat/components';
+import type { TAttachment } from '@react/features/ai-chat/types';
 import { FC } from 'react';
-import { TAttachment } from '../../types';
-import { FileItemPreview } from '../common/FileItemPreview';
 
-interface IProps {
+type TUserMessageProps = {
   message: string;
   files?: TAttachment[];
-}
+};
 
-export const UserMessage: FC<IProps> = ({ message, files }) => {
+export const UserMessage: FC<TUserMessageProps> = ({ message, files }) => {
   const hasFiles = files && files.length > 0;
 
   return (
