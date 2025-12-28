@@ -12,9 +12,9 @@ import {
   IStreamConfig,
 } from '@react/features/ai-chat/types/chat.types';
 import { performanceMonitor } from '@react/features/ai-chat/utils/chat-performance-monitor';
-import { processStreamChunk, splitJSONStream } from '@react/features/ai-chat/utils/stream.utils';
 import { CreateChatRequest } from '@react/shared/types/api-payload.types';
 import { CreateChatsResponse } from '@react/shared/types/api-results.types';
+import { processStreamChunk, splitJSONStream } from '@src/react/features/ai-chat/utils/stream';
 
 /**
  * Default configuration for the Chat API Client

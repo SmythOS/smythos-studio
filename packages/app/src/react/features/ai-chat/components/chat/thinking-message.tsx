@@ -1,7 +1,7 @@
 import {
   createThinkingManager,
   formatStatusMessage,
-} from '@react/features/ai-chat/utils/stream.utils';
+} from '@src/react/features/ai-chat/utils/stream';
 import { FC, useEffect, useRef, useState } from 'react';
 import { IMetaMessages } from '../../types/chat';
 

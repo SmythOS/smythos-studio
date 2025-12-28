@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useState } from 'react';
 
-import { scrollManager } from '@react/features/ai-chat/utils/scroll-utils';
+import { scrollManager } from '@src/react/features/ai-chat/utils/scroll';
 
 export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
   const [showScrollButton, setShowScrollButton] = useState(false);

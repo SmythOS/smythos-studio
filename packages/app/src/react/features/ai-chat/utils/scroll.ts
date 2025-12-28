@@ -1,5 +1,5 @@
 /**
- * Professional scroll utilities for chat interface
+ * Scroll utilities for chat interface
  * Provides smooth, performant, and reliable scrolling behavior
  */
 
@@ -15,15 +15,15 @@ interface ScrollToBottomOptions extends ScrollOptions {
 }
 
 /**
- * Professional scroll-to-bottom utility with multiple strategies
+ * Scroll-to-bottom utility with multiple strategies
  */
 export class ScrollManager {
   private static instance: ScrollManager;
   private scrollContainer: HTMLElement | null = null;
-  private isScrolling = false;
   private scrollTimeout: number | null = null;
   private lastForceScrollTime = 0;
 
+  /** Returns singleton instance of ScrollManager */
   static getInstance(): ScrollManager {
     if (!ScrollManager.instance) {
       ScrollManager.instance = new ScrollManager();
@@ -31,23 +31,17 @@ export class ScrollManager {
     return ScrollManager.instance;
   }
 
-  /**
-   * Initialize scroll manager with container element
-   */
+  /** Initialize scroll manager with container element */
   init(container: HTMLElement | null): void {
     this.scrollContainer = container;
   }
 
-  /**
-   * Get the current scroll container
-   */
+  /** Get the current scroll container */
   getContainer(): HTMLElement | null {
     return this.scrollContainer || this.findScrollContainer();
   }
 
-  /**
-   * Find scroll container automatically
-   */
+  /** Find scroll container automatically */
   private findScrollContainer(): HTMLElement | null {
     const selectors = [
       '.overflow-auto',
@@ -66,41 +60,32 @@ export class ScrollManager {
 
   /**
    * Check if user is near bottom of scroll container
-   *
-   * ULTRA-AGGRESSIVE: Very forgiving threshold for smooth streaming
-   * - 200px threshold (was 150px) - more aggressive auto-scroll
-   * - Math.ceil for more lenient calculation
-   * - Better for long chats and rapid content growth
+   * Uses 200px threshold for aggressive auto-scroll during streaming
    */
   isNearBottom(threshold: number = 200): boolean {
     const container = this.getContainer();
     if (!container) return true;
 
     const { scrollTop, scrollHeight, clientHeight } = container;
-    // Use Math.ceil for more lenient behavior (rounds up distance)
     const distanceFromBottom = Math.ceil(scrollHeight - scrollTop - clientHeight);
     return distanceFromBottom <= threshold;
   }
 
-  /**
-   * Professional scroll to bottom with multiple strategies
-   */
+  /** Scroll to bottom with configurable options */
   scrollToBottom(options: ScrollToBottomOptions = {}): Promise<void> {
     return new Promise((resolve) => {
       const { behavior = 'smooth', force = false, delay = 0 } = options;
 
-      // Prevent too frequent force scrolls (reduced cooldown for better UX)
+      // Prevent too frequent force scrolls (100ms cooldown)
       if (force) {
         const now = Date.now();
         if (now - this.lastForceScrollTime < 100) {
-          // 100ms cooldown (reduced from 500ms)
           resolve();
           return;
         }
         this.lastForceScrollTime = now;
       }
 
-      // Clear any existing scroll timeout
       if (this.scrollTimeout) {
         clearTimeout(this.scrollTimeout);
       }
@@ -113,44 +98,22 @@ export class ScrollManager {
           return;
         }
 
-        /**
-         * ULTRA-AGGRESSIVE SCROLL: Maximum responsiveness
-         *
-         * - force=true: Always scroll (no questions asked)
-         * - force=false: Very lenient 200px threshold
-         * - Result: User rarely loses scroll tracking
-         *
-         * Philosophy: During streaming, keeping content visible is
-         * more important than respecting small scroll-up movements
-         */
+        // Skip if not near bottom and not forced
         if (!force && !this.isNearBottom(200)) {
-          // Ultra-forgiving 200px threshold
           resolve();
           return;
         }
 
-        this.isScrolling = true;
-
-        /**
-         * PERFORMANCE: Direct scrollTo for instant response
-         * - No animation delay
-         * - Maximum responsiveness
-         * - Perfect for streaming
-         */
         container.scrollTo({
           top: container.scrollHeight,
           behavior: behavior === 'instant' ? 'auto' : behavior,
         });
 
-        // Reset scrolling flag
         if (behavior === 'smooth') {
           this.scrollTimeout = window.setTimeout(() => {
-            this.isScrolling = false;
             resolve();
           }, 300);
         } else {
-          // Instant scroll - no delay needed
-          this.isScrolling = false;
           resolve();
         }
       };
@@ -158,54 +121,40 @@ export class ScrollManager {
       if (delay > 0) {
         this.scrollTimeout = window.setTimeout(performScroll, delay);
       } else {
-        // Use requestAnimationFrame for better performance
         requestAnimationFrame(performScroll);
       }
     });
   }
 
-  /**
-   * Force scroll to bottom bypassing cooldown (for user-initiated scrolls)
-   */
+  /** Force scroll to bottom bypassing cooldown (for user-initiated scrolls) */
   forceScrollToBottomImmediate(options: ScrollToBottomOptions = {}): Promise<void> {
     const originalCooldown = this.lastForceScrollTime;
-    this.lastForceScrollTime = 0; // Reset cooldown
+    this.lastForceScrollTime = 0;
 
-    // Explicitly set force to true and ensure it's not overridden
     const forceOptions: ScrollToBottomOptions = {
       ...options,
       force: true,
     };
 
     return this.scrollToBottom(forceOptions).finally(() => {
-      this.lastForceScrollTime = originalCooldown; // Restore original cooldown
+      this.lastForceScrollTime = originalCooldown;
     });
   }
 
-  /**
-   * Smart scroll that respects user's scroll position
-   */
+  /** Smart scroll that respects user's scroll position */
   smartScrollToBottom(options: ScrollToBottomOptions = {}): Promise<void> {
     return this.scrollToBottom({ ...options, force: false });
   }
 
-  /**
-   * Reset force scroll cooldown (useful for user-initiated scrolls)
-   */
+  /** Reset force scroll cooldown (useful for user-initiated scrolls) */
   resetForceScrollCooldown(): void {
     this.lastForceScrollTime = 0;
   }
 }
 
-// Export singleton instance
+// Singleton instance export
 export const scrollManager = ScrollManager.getInstance();
 
-// Convenience functions
-export const scrollToBottom = (options?: ScrollToBottomOptions) =>
-  scrollManager.scrollToBottom(options);
-
+// Convenience function for force scroll
 export const forceScrollToBottomImmediate = (options?: ScrollToBottomOptions) =>
   scrollManager.forceScrollToBottomImmediate(options);
-
-export const smartScrollToBottom = (options?: ScrollToBottomOptions) =>
-  scrollManager.smartScrollToBottom(options);

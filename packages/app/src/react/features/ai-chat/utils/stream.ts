@@ -1,15 +1,11 @@
 /* eslint-disable no-unused-vars */
 /**
  * Stream processing utilities for chat responses
- * Handles JSON parsing, message formatting, and status updates
- * Updated: callback signatures now include TThinkingType parameter
  */
 
 import { IStreamChunk, TThinkingType } from '@react/features/ai-chat/types/chat.types';
 
-/**
- * Function-specific thinking messages that cycle during function execution
- */
+/** Function-specific thinking messages that cycle during function execution */
 const FUNCTION_THINKING_MESSAGES = [
   'Using skill: {functionName}',
   'Still working on {functionName}',
@@ -19,9 +15,7 @@ const FUNCTION_THINKING_MESSAGES = [
   'This is taking longer than usual. You can try waiting, or refresh the page.',
 ];
 
-/**
- * General thinking messages that cycle during processing
- */
+/** General thinking messages that cycle during processing */
 const GENERAL_THINKING_MESSAGES = [
   'Thinking',
   'Still thinking',
@@ -33,40 +27,26 @@ const GENERAL_THINKING_MESSAGES = [
 
 /**
  * Splits concatenated JSON objects from stream
- * Handles edge cases like incomplete JSON, malformed chunks
- *
  * @param data - Raw string data from stream
  * @returns Array of parsed JSON objects
- *
- * @example
- * ```typescript
- * const data = '{"content":"Hello"}{"content":" World"}';
- * const chunks = splitJSONStream(data);
- * // Returns: [{ content: 'Hello' }, { content: ' World' }]
- * ```
  */
 export const splitJSONStream = (data: string): IStreamChunk[] => {
-  // Handle empty or invalid data
   if (!data || typeof data !== 'string') return [];
 
   const cleanData = data.trim();
   if (!cleanData) return [];
 
-  // Split by '}{' pattern - common in streaming JSON
   const jsonStrings = cleanData
     .split('}{')
     .map((str, index, array) => {
       let cleanStr = str.trim();
 
-      // Skip empty strings
       if (!cleanStr) return null;
 
-      // Add opening brace if not first element
       if (index !== 0 && !cleanStr.startsWith('{')) {
         cleanStr = '{' + cleanStr;
       }
 
-      // Add closing brace if not last element
       if (index !== array.length - 1 && !cleanStr.endsWith('}')) {
         cleanStr += '}';
       }
@@ -75,18 +55,15 @@ export const splitJSONStream = (data: string): IStreamChunk[] => {
     })
     .filter(Boolean) as string[];
 
-  // Parse each JSON string
   const parsedChunks = jsonStrings
     .map((str) => {
       try {
-        // Validate before parsing
         if (!str || str.length < 2 || !str.startsWith('{') || !str.endsWith('}')) {
           return null;
         }
 
         return JSON.parse(str) as IStreamChunk;
       } catch {
-        // Silently skip invalid JSON
         return null;
       }
     })
@@ -96,24 +73,13 @@ export const splitJSONStream = (data: string): IStreamChunk[] => {
 };
 
 /**
- * Formats function name from snake_case to Title Case for display
- *
+ * Formats function name from snake_case to Title Case
  * @param functionName - Raw function name
  * @returns Formatted function name
- *
- * @example
- * ```typescript
- * formatFunctionName('get_user_data');
- * // Returns: 'Get User Data'
- *
- * formatFunctionName('processPayment');
- * // Returns: 'Processpayment'
- * ```
  */
 export const formatFunctionName = (functionName: string): string => {
   if (!functionName) return '';
 
-  // Convert snake_case to Title Case
   return functionName
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -122,46 +88,30 @@ export const formatFunctionName = (functionName: string): string => {
 
 /**
  * Formats status message with proper function names and durations
- * Replaces placeholders in curly braces with formatted values
- *
  * @param statusMessage - Raw status message with placeholders
  * @returns Formatted status message
- *
- * @example
- * ```typescript
- * formatStatusMessage('Calling {get_user_data} took {250} ms');
- * // Returns: 'Calling Get User Data took 250 ms'
- * ```
  */
 export const formatStatusMessage = (statusMessage: string): string => {
   if (!statusMessage) return '';
 
   let formatted = statusMessage;
 
-  // Pattern to match function names in curly braces: {function_name} or {functionName}
   const functionPattern = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
   formatted = formatted.replace(functionPattern, (match, functionName) => {
-    // Check if this looks like a duration (contains numbers and time units)
     if (/^\d+\s*(ms|s|sec|seconds?|minutes?|mins?|hours?|hrs?)$/i.test(functionName)) {
-      // This is actually a duration, not a function name
       return functionName;
     }
-    // Format as function name
     return formatFunctionName(functionName);
   });
 
-  // Pattern to match durations in curly braces: {50 ms}, {2 seconds}, etc.
   const durationPattern =
     /\{(\d+(?:\.\d+)?\s*(?:ms|s|sec|seconds?|minutes?|mins?|hours?|hrs?))\}/gi;
   formatted = formatted.replace(durationPattern, (_match, duration) => {
-    // Clean up the duration formatting
     return duration.trim();
   });
 
-  // Pattern to match pure numbers in curly braces that might be durations: {50}
   const numberPattern = /\{(\d+(?:\.\d+)?)\}/g;
   formatted = formatted.replace(numberPattern, (_match, number) => {
-    // Assume it's milliseconds if it's just a number
     return `${number} ms`;
   });
 
@@ -169,7 +119,6 @@ export const formatStatusMessage = (statusMessage: string): string => {
 };
 
 /**
- * Unified thinking message manager
  * Manages cycling through thinking messages with priority system
  */
 class ThinkingMessageManager {
@@ -179,17 +128,8 @@ class ThinkingMessageManager {
   private toolName: string = '';
   private callback: (message: string) => void;
 
-  /**
-   * Starts thinking messages with priority system
-   * Priority: status (3) > function (2) > general (1)
-   *
-   * @param type - Type of thinking message
-   * @param callback - Callback to invoke with updated messages
-   * @param toolName - Function name for function type
-   * @param statusMessage - Status message for status type
-   */
+  /** Starts thinking messages with optional tool name */
   start(callback: (message: string) => void, toolName?: string): void {
-    // Stop any existing thinking before starting new one
     this.stop();
 
     this.currentType = toolName ? 'tools' : 'general';
@@ -200,11 +140,8 @@ class ThinkingMessageManager {
       this.toolName = formatFunctionName(toolName);
     }
 
-    // Show first message immediately
     const initialMessage = this.getCurrentMessage();
     callback(initialMessage);
-
-    // Start interval only for general and function types
 
     const intervalTime = this.currentType === 'tools' ? 5000 : 3000;
     this.intervalId = setInterval(() => {
@@ -214,9 +151,7 @@ class ThinkingMessageManager {
     }, intervalTime);
   }
 
-  /**
-   * Stops thinking messages and clears state
-   */
+  /** Stops thinking messages and clears state */
   stop(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -228,9 +163,6 @@ class ThinkingMessageManager {
     this.callback = () => {};
   }
 
-  /**
-   * Gets current message with placeholders replaced
-   */
   private getCurrentMessage(): string {
     const messages = this.getMessagesArray();
     const messageTemplate = messages[this.currentIndex];
@@ -242,9 +174,6 @@ class ThinkingMessageManager {
     return messageTemplate;
   }
 
-  /**
-   * Gets messages array for current type
-   */
   private getMessagesArray(): string[] {
     switch (this.currentType) {
       case 'tools':
@@ -256,19 +185,16 @@ class ThinkingMessageManager {
     }
   }
 }
-/**
- * Creates a singleton instance of ThinkingMessageManager
- */
+
+/** Creates a new ThinkingMessageManager instance */
 export const createThinkingManager = (): ThinkingMessageManager => new ThinkingMessageManager();
 
 /**
- * Processes a chunk from the stream and extracts relevant information
- *
+ * Processes a stream chunk and extracts relevant information
  * @param chunk - Stream chunk to process
- * @returns Processed information
+ * @returns Processed chunk data
  */
 export const processStreamChunk = (chunk: IStreamChunk) => {
-  // When isError is true, the error message is in the content field
   const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
 
   return {
