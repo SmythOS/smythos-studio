@@ -350,7 +350,6 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
     messages,
     setMessages,
     isStreaming,
-    setIsStreaming,
     sendMessage,
     stopStreaming,
     retryLastMessage,

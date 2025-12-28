@@ -28,16 +28,10 @@ export const useAgentSettings = (agentId: string) => {
   return queryResult;
 };
 
-export const useUpdateAgentSettingsMutation = () => {
+export const useSaveAgentSettings = () => {
   const queryClient = useQueryClient();
-
-  return useMutation(
-    (params: { agentId: string; settings: TAgentSetting }) =>
-      updateAgentSettings(params.agentId, params.settings),
-    {
-      onSuccess: (_, variables) => {
-        queryClient.invalidateQueries(['agent_settings', variables.agentId]);
-      },
-    },
-  );
+  type TParams = { agentId: string; settings: TAgentSetting };
+  return useMutation((params: TParams) => updateAgentSettings(params.agentId, params.settings), {
+    onSuccess: (_, { agentId }) => queryClient.invalidateQueries(['agent_settings', agentId]),
+  });
 };

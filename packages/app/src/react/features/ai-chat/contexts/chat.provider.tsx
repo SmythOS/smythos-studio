@@ -2,10 +2,10 @@ import { ChatContext, IChatContext } from '@react/features/ai-chat/contexts/chat
 import {
   useAgentSettings,
   useChatState,
-  useCreateChatMutation,
+  useCreateChat,
   useFileUpload,
+  useSaveAgentSettings,
   useScrollToBottom,
-  useUpdateAgentSettingsMutation,
 } from '@react/features/ai-chat/hooks';
 import type { TChildren } from '@react/features/ai-chat/types';
 import { useAgent } from '@react/shared/hooks/agent';
@@ -34,8 +34,8 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId);
   const agentSettings = settingsData?.settings;
 
-  const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChatMutation();
-  const { mutateAsync: updateAgentSettings } = useUpdateAgentSettingsMutation();
+  const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChat();
+  const { mutateAsync: updateAgentSettings } = useSaveAgentSettings();
   const fileUpload = useFileUpload({
     agentId: agentId || '',
     chatId: agentSettings?.lastConversationId || '',

@@ -1,24 +1,21 @@
+/* eslint-disable no-unused-vars */
 import type { Dispatch, RefObject, SetStateAction } from 'react';
-import type { TAttachment, TChatMessage } from './message';
-import type { TFileAttachment, TUploadStatus } from './file';
+import type { TAttachment, TChatMessage, TFileAttachment, TUploadStatus } from '.';
 
-export interface IFocusable {
-  focus: () => void;
-}
+export type TFocusable = { focus: () => void };
 
 export type TChatStateConfig = {
   agentId: string;
   chatId: string;
   modelId?: string;
   enableMetaMessages?: boolean;
-  inputRef?: RefObject<IFocusable | null>;
+  inputRef?: RefObject<TFocusable | null>;
 };
 
 export interface IChatState {
   messages: TChatMessage[];
   setMessages: Dispatch<SetStateAction<TChatMessage[]>>;
   isStreaming: boolean;
-  setIsStreaming: Dispatch<SetStateAction<boolean>>;
   sendMessage: (
     message: string,
     currentAttachments?: TAttachment[],
@@ -38,4 +35,3 @@ export interface IFileUpload {
   clear: (preserveBlobUrls?: boolean) => void;
   clearError: () => void;
 }
-
