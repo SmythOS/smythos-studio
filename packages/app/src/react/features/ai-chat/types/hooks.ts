@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import type { Dispatch, RefObject, SetStateAction } from 'react';
-import type { TAttachment, TChatMessage, TFileAttachment, TUploadStatus } from '.';
+import type { TAttachment, TChatMessage, TUploadStatus } from '.';
 
 export type TFocusable = { focus: () => void };
 
@@ -26,7 +26,7 @@ export interface IChatState {
 }
 
 export interface IFileUpload {
-  attachments: TFileAttachment[];
+  attachments: TAttachment[];
   status: Record<string, TUploadStatus>;
   uploading: boolean;
   errorMessage: string;

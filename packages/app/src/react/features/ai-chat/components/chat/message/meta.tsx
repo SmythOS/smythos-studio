@@ -1,5 +1,5 @@
 import { TMetaMessage } from '@react/features/ai-chat/types';
-import { createThinkingManager, formatStatusMessage } from '@react/features/ai-chat/utils';
+import { createThinkingManager, formatStatus } from '@react/features/ai-chat/utils';
 import { FC, useEffect, useRef, useState } from 'react';
 
 type TProps = {
@@ -21,7 +21,7 @@ export const Meta: FC<TProps> = ({ data, scrollToBottom }) => {
     const manager = thinkingManagerRef.current;
 
     if (metaMessages?.statusMessage) {
-      const formatted = formatStatusMessage(metaMessages.statusMessage);
+      const formatted = formatStatus(metaMessages.statusMessage);
       setThinkingMessage(formatted);
       manager.stop();
       return;

@@ -1,11 +1,6 @@
 /* eslint-disable no-unused-vars */
-/**
- * Stream processing utilities for chat responses
- */
-
 import { TStreamChunk, TThinkingType } from '@react/features/ai-chat/types';
 
-/** Function-specific thinking messages that cycle during function execution */
 const FUNCTION_THINKING_MESSAGES = [
   'Using skill: {functionName}',
   'Still working on {functionName}',
@@ -15,7 +10,6 @@ const FUNCTION_THINKING_MESSAGES = [
   'This is taking longer than usual. You can try waiting, or refresh the page.',
 ];
 
-/** General thinking messages that cycle during processing */
 const GENERAL_THINKING_MESSAGES = [
   'Thinking',
   'Still thinking',
@@ -25,12 +19,7 @@ const GENERAL_THINKING_MESSAGES = [
   'This is taking longer than usual. You can try waiting, or refresh the page.',
 ];
 
-/**
- * Splits concatenated JSON objects from stream
- * @param data - Raw string data from stream
- * @returns Array of parsed JSON objects
- */
-export const splitJSONStream = (data: string): TStreamChunk[] => {
+export const parseStreamChunks = (data: string): TStreamChunk[] => {
   if (!data || typeof data !== 'string') return [];
 
   const cleanData = data.trim();
@@ -72,12 +61,7 @@ export const splitJSONStream = (data: string): TStreamChunk[] => {
   return parsedChunks;
 };
 
-/**
- * Formats function name from snake_case to Title Case
- * @param functionName - Raw function name
- * @returns Formatted function name
- */
-export const formatFunctionName = (functionName: string): string => {
+export const toTitleCase = (functionName: string): string => {
   if (!functionName) return '';
 
   return functionName
@@ -86,12 +70,7 @@ export const formatFunctionName = (functionName: string): string => {
     .join(' ');
 };
 
-/**
- * Formats status message with proper function names and durations
- * @param statusMessage - Raw status message with placeholders
- * @returns Formatted status message
- */
-export const formatStatusMessage = (statusMessage: string): string => {
+export const formatStatus = (statusMessage: string): string => {
   if (!statusMessage) return '';
 
   let formatted = statusMessage;
@@ -101,7 +80,7 @@ export const formatStatusMessage = (statusMessage: string): string => {
     if (/^\d+\s*(ms|s|sec|seconds?|minutes?|mins?|hours?|hrs?)$/i.test(functionName)) {
       return functionName;
     }
-    return formatFunctionName(functionName);
+    return toTitleCase(functionName);
   });
 
   const durationPattern =
@@ -118,17 +97,13 @@ export const formatStatusMessage = (statusMessage: string): string => {
   return formatted;
 };
 
-/**
- * Manages cycling through thinking messages with priority system
- */
-class ThinkingMessageManager {
+class ThinkingManager {
   private currentType: TThinkingType | null = null;
   private currentIndex: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
   private toolName: string = '';
   private callback: (message: string) => void;
 
-  /** Starts thinking messages with optional tool name */
   start(callback: (message: string) => void, toolName?: string): void {
     this.stop();
 
@@ -137,7 +112,7 @@ class ThinkingMessageManager {
     this.currentIndex = 0;
 
     if (this.currentType === 'tools' && toolName) {
-      this.toolName = formatFunctionName(toolName);
+      this.toolName = toTitleCase(toolName);
     }
 
     const initialMessage = this.getCurrentMessage();
@@ -151,7 +126,6 @@ class ThinkingMessageManager {
     }, intervalTime);
   }
 
-  /** Stops thinking messages and clears state */
   stop(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -186,15 +160,9 @@ class ThinkingMessageManager {
   }
 }
 
-/** Creates a new ThinkingMessageManager instance */
-export const createThinkingManager = (): ThinkingMessageManager => new ThinkingMessageManager();
+export const createThinkingManager = (): ThinkingManager => new ThinkingManager();
 
-/**
- * Processes a stream chunk and extracts relevant information
- * @param chunk - Stream chunk to process
- * @returns Processed chunk data
- */
-export const processStreamChunk = (chunk: TStreamChunk) => {
+export const parseChunk = (chunk: TStreamChunk) => {
   const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
 
   return {

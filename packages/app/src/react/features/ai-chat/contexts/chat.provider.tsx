@@ -85,6 +85,7 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
 
       try {
         const attachments = fileUpload.attachments.map((f) => ({
+          id: f.id,
           name: f.name,
           type: f.type,
           size: f.size,

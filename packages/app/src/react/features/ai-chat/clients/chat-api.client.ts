@@ -4,17 +4,15 @@
  */
 
 import {
+  IStreamCallbacks,
   TAPIConfig,
   TChatError,
-  TFileAttachment,
-  IStreamCallbacks,
   TStreamChunk,
   TStreamConfig,
 } from '@react/features/ai-chat/types';
-import { performanceMonitor } from '@react/features/ai-chat/utils';
+import { parseChunk, parseStreamChunks, performanceMonitor } from '@react/features/ai-chat/utils';
 import { CreateChatRequest } from '@react/shared/types/api-payload.types';
 import { CreateChatsResponse } from '@react/shared/types/api-results.types';
-import { processStreamChunk, splitJSONStream } from '@src/react/features/ai-chat/utils/stream';
 
 /**
  * Default configuration for the Chat API Client
@@ -213,7 +211,7 @@ export class ChatAPIClient {
 
       // Parse JSON chunks
       const processingStart = performance.now();
-      const chunks = splitJSONStream(accumulatedData);
+      const chunks = parseStreamChunks(accumulatedData);
       const processingTime = performance.now() - processingStart;
 
       // Record processing time if we parsed chunks
@@ -244,7 +242,7 @@ export class ChatAPIClient {
     callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
     const { onContent, onMetaMessages } = callbacks;
-    const processed = processStreamChunk(chunk);
+    const processed = parseChunk(chunk);
 
     // Extract conversation turn ID from chunk
     const turnId = chunk.conversationTurnId;
@@ -369,58 +367,5 @@ export class ChatAPIClient {
     }
 
     return response.json() as Promise<CreateChatsResponse>;
-  }
-
-  /**
-   * Uploads a file for chat attachment
-   *
-   * @param file - File to upload
-   * @param agentId - Agent ID
-   * @param chatId - Optional conversation ID
-   * @returns File attachment metadata
-   *
-   * @example
-   * ```typescript
-   * const attachment = await client.uploadFile(file, 'agent-123');
-   * // Use attachment.url in chat message
-   * ```
-   */
-  async uploadFile(file: File, agentId: string, chatId?: string): Promise<TFileAttachment> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const headers: Record<string, string> = {
-      'X-AGENT-ID': agentId,
-      ...(chatId ? { 'x-conversation-id': chatId } : {}),
-    };
-
-    try {
-      const url = `${this.config.baseUrl}/upload`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-
-      const data = await response.json();
-
-      // Handle different response structures (same as utils/file.ts pattern)
-      const runtimeFile = data?.files?.[0];
-      const fileUrl = runtimeFile?.url || data?.file?.url || data.url || data.publicUrl;
-      const fileType = runtimeFile?.mimetype || data?.file?.type || file.type;
-
-      return {
-        url: fileUrl || '',
-        name: file.name,
-        type: fileType,
-        size: file.size,
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
   }
 }

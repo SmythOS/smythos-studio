@@ -21,6 +21,7 @@ export type TMetaMessage = {
 };
 
 export type TAttachment = {
+  id: string;
   name: string;
   type: string;
   size: number;

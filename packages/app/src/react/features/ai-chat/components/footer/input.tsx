@@ -4,9 +4,9 @@ import { AttachmentButton, FileItemPreview, SendButton } from '@react/features/a
 import { useChatStores, useClipboardPaste } from '@react/features/ai-chat/hooks';
 import {
   adjustTextareaHeight,
-  createFileFromText,
   forceScrollToBottomImmediate,
   scrollManager,
+  textToFile,
 } from '@react/features/ai-chat/utils';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@react/shared/constants';
 import { cn } from '@react/shared/utils/general';
@@ -96,7 +96,7 @@ export const ChatInput = () => {
     onFilePaste: addFiles,
     targetRef: inputRef,
     largeTextThreshold: LARGE_TEXT_THRESHOLD,
-    onLargeTextPaste: (text) => addFiles([createFileFromText(text).file]),
+    onLargeTextPaste: (text) => addFiles([textToFile(text).file]),
   });
 
   const isMaxLengthReached = message.length === maxLength;

@@ -15,7 +15,7 @@ export const Chat: FC<IProps> = memo((props) => {
 
   switch (type) {
     case MESSAGE_TYPES.USER:
-      return <User message={content} files={attachments} />;
+      return <User message={content} attachments={attachments} />;
     case MESSAGE_TYPES.LOADING:
       return <Loading />;
     case MESSAGE_TYPES.META:

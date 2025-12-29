@@ -4,20 +4,20 @@ import { FC } from 'react';
 
 type TProps = {
   message: string;
-  files?: TAttachment[];
+  attachments?: TAttachment[];
 };
 
-export const User: FC<TProps> = ({ message, files }) => {
-  const hasFiles = files && files.length > 0;
+export const User: FC<TProps> = ({ message, attachments }) => {
+  const hasAttachments = attachments && attachments.length > 0;
   const hasMessage = message.trim().length > 0;
 
-  if (!hasFiles && !hasMessage) return null;
+  if (!hasAttachments && !hasMessage) return null;
 
   return (
     <div className="break-all flex flex-col items-end">
-      {hasFiles && (
+      {hasAttachments && (
         <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto">
-          {files.map((attachment) => (
+          {attachments.map((attachment) => (
             <FileItemPreview
               key={attachment.blobUrl || attachment.url || attachment.name}
               attachment={attachment}

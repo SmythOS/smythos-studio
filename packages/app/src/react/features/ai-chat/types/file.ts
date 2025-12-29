@@ -14,16 +14,6 @@ export type TUploadFile = {
   };
 };
 
-export type TFileAttachment = {
-  id: string;
-  file: File;
-  blobUrl: string | null;
-  name: string;
-  type: string;
-  size: number;
-  url?: string;
-};
-
 export type TUploadStatus = {
   status: 'uploading' | 'completed' | 'error';
   progress: number;
