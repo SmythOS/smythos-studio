@@ -25,6 +25,7 @@ import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
 import { closeTwDialog, twEditValuesWithCallback } from '../ui/tw-dialogs';
 import { delay, getVaultData, handleKvFieldEditBtn, handleKvFieldEditBtnForParams } from '../utils';
+import { attachTooltipV2 } from '../utils/tooltip-wrapper-v2';
 import { Workspace } from '../workspace/Workspace.class';
 import { Component } from './Component.class';
 
@@ -138,7 +139,7 @@ export class APICall extends Component {
         label: 'Headers',
         readonly: true,
         help: 'Add keys the service needs, like Authorization or Content-Type.<br /><a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-2-add-headers-and-body" target="_blank" class="text-blue-600 hover:text-blue-800">See header usage</a>',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-52',
         arrowClasses: '-ml-13',
         validate: `custom=isValidJson`,
         validateMessage: 'Provide a Valid JSON with non-empty keys',
@@ -183,7 +184,7 @@ export class APICall extends Component {
         label: 'Body',
         attributes: { 'data-template-vars': 'true', 'data-vault': `${COMP_NAMES.apiCall},All` },
         help: 'Write what you want to send and use variables from earlier steps.',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-60',
         arrowClasses: '-ml-17',
         actions: [
           {
@@ -349,6 +350,7 @@ export class APICall extends Component {
         label: 'Proxy URLs',
         section: 'Advanced',
         help: 'Send calls through a proxy if your network or vendor asks for it.',
+        tooltipClasses: 'w-56',
         validateMessage: `Enter your proxy URLs in the following format:<br/>
                 [scheme]://[username]:[password]@[host]:[port]<br/><br/>
                 For multiple URLs, place each one in a new line.<br/><br/>
@@ -1416,13 +1418,13 @@ export class APICall extends Component {
 
   public async checkSettings() {
     this.clearComponentMessages();
-    this.addComponentMessage('Checking Auth Info...', 'info text-center');
+    this.addComponentMessage('Checking Auth Info...', 'auth-info-message info text-center');
 
     // Call parent class validation
     await super.checkSettings();
 
     // Replace temporary status with the final state
-    this.clearComponentMessages();
+    this.clearComponentMessage('.auth-info-message');
 
     // Update component-level button based on current OAuth connection's auth state
     // Use the centralized updateAuthenticationButton method which handles both sidebar and component buttons
@@ -2222,6 +2224,16 @@ export class APICall extends Component {
     }
     if (scopeInput && currentOauthInfo.scope) {
       scopeInput.value = currentOauthInfo.scope;
+    }
+
+    // Attach tooltip to scope info icon
+    const scopeTooltipIcon = dialog.querySelector('#scope-label') as HTMLElement;
+    if (scopeTooltipIcon) {
+      attachTooltipV2(scopeTooltipIcon, {
+        text: 'Enter scopes separated by spaces (e.g., read write profile)',
+        position: 'right',
+        delayDuration: 300,
+      });
     }
 
     // Comprehensive update field visibility function

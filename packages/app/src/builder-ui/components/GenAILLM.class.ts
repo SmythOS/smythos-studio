@@ -510,6 +510,7 @@ export class GenAILLM extends Component {
         validateMessage: `Please provide a prompt. It's required!`,
         value: defaultPromptValue,
         help: 'Write clear instructions with placeholders (e.g., {{input}}) and state the expected format. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=prompt#step-2-write-your-prompt" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
+        tooltipClasses: 'w-56 ',
         hintPosition: 'after_label',
         attributes: {
           'data-template-vars': 'true',

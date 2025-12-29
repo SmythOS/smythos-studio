@@ -235,8 +235,8 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
           <DialogHeader>
             <DialogTitle>Create Data Space</DialogTitle>
             <p className="text-sm text-gray-600 mt-1">
-              Set up a Data Space to unlock your agents&apos; ability to search, automate, and learn
-              from your data — using RAG and other tools
+              Set up a Data Space to unlock your agents' ability to search, automate, and learn from
+              your data — using RAG and other tools
             </p>
           </DialogHeader>
 
@@ -398,7 +398,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                       <TooltipTrigger asChild>
                         <Info className="w-4 h-4 cursor-help ml-1" />
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="w-[200px] text-center">
+                      <TooltipContent side="right" className="max-w-[200px] text-center text-wrap">
                         <p>
                           The dimension should match the one configured in your vector database
                           provider.

@@ -499,7 +499,7 @@ function PostDeploymentModal({
                             <TooltipTrigger asChild>
                               <Info className="w-4 h-4 text-[#515151] cursor-pointer" />
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="w-56 text-center">
+                            <TooltipContent side="top" className="max-w-[240px] text-center text-wrap">
                               {setting.embDescription}
                             </TooltipContent>
                           </Tooltip>
@@ -517,7 +517,7 @@ function PostDeploymentModal({
                             <FaLock className="text-gray-400 cursor-pointer" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top">
+                        <TooltipContent side="top" className="max-w-[240px] text-center text-wrap">
                           <p>Premium Embodiment. Upgrade your plan</p>
                         </TooltipContent>
                       </Tooltip>

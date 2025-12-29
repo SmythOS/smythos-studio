@@ -1396,10 +1396,26 @@ export function createInfoButton(
 
   // Render the Tooltip component wrapped in TooltipProvider
   const root = createRoot(tooltipContainer);
+
+  // When tooltipClasses is provided (like 'w-56'), extract width and apply via inline style
+  const widthClassName = tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`);
+
+  let tooltipStyle: React.CSSProperties | undefined;
+  if (tooltipClasses && tooltipClasses.includes('w-')) {
+    const widthMatch = tooltipClasses.match(/w-(\d+)/);
+    if (widthMatch) {
+      tooltipStyle = {
+        width: `${parseInt(widthMatch[1], 10) * 0.25}rem`,
+      };
+    }
+  }
+
   root.render(
     React.createElement(
       TooltipProvider,
-      { delayDuration: 300, skipDelayDuration: 100 },
+      { delayDuration: 300, skipDelayDuration: 100 } as React.ComponentProps<
+        typeof TooltipProvider
+      >,
       React.createElement(
         Tooltip,
         {},
@@ -1411,10 +1427,18 @@ export function createInfoButton(
             className:
               clsHint +
               ' whitespace-normal text-xs ' +
-              (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
+              widthClassName +
               ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+            style: tooltipStyle,
+            ref: (element: HTMLElement | null) => {
+              // Override text-balance to ensure text fills width evenly
+              if (element) {
+                element.style.setProperty('text-wrap', 'wrap', 'important');
+              }
+            },
           },
           React.createElement('div', {
+            style: { width: '100%', display: 'block' },
             dangerouslySetInnerHTML: { __html: sanitizedText },
           }),
         ),

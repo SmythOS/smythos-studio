@@ -212,12 +212,11 @@ const FormPreviewDialog = ({
                                   <TooltipTrigger asChild>
                                     <Info className="w-5 h-5 ml-1 cursor-pointer" />
                                   </TooltipTrigger>
-                                  <TooltipContent className="w-60 text-center">
+                                  <TooltipContent className="max-w-[240px] text-center text-wrap">
                                     <div>
                                       Restrict form preview to specific domains.
                                       <br /> Use commas to separate multiple domains (e.g.,
                                       example.com, mysite.org).
-                                      <br /> Leave empty for no restrictions.
                                     </div>
                                   </TooltipContent>
                                 </Tooltip>
@@ -291,7 +290,7 @@ const FormPreviewDialog = ({
                                   <TooltipTrigger asChild>
                                     <Info className="w-5 h-5 ml-1 cursor-pointer" />
                                   </TooltipTrigger>
-                                  <TooltipContent className="w-60 text-center">
+                                  <TooltipContent className="max-w-[240px] text-center text-wrap">
                                     <div>
                                       Enabling output preview will hide the download and copy
                                       options for the output.

@@ -8,6 +8,7 @@ export class FileStore extends Component {
         type: 'input',
         label: 'File Name',
         help: 'Name the download and include an extension like .json or .png for easy use. <a href="https://smythos.com/docs/agent-studio/components/base/filestore/?utm_source=studio&utm_medium=tooltip&utm_campaign=filestore&utm_content=file-name#step-1-define-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See naming tips</a>',
+        tooltipClasses: 'w-64',
         validate: `maxlength=50 custom=isValidS3FileName`,
         validateMessage: `Only alphanumeric characters, '-', '_' and '.' are allowed.`,
         value: '',

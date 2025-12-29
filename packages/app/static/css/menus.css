@@ -126,6 +126,15 @@
   font-weight: bold;
   background-color: #8ad0ff;
 }
+
+/* Empty section state message for search results */
+.empty-section-message {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+}
 /* top menu -----------------------------------------------*/
 #top-menu {
   display: block;

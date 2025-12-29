@@ -63,6 +63,7 @@ export class MCPClient extends Component {
         validate: `required`,
         validateMessage: 'Prompt is required',
         help: 'Tell the tool what to do and what to return; name the tool and key parameters. <a href="https://smythos.com/docs/agent-studio/components/tools/mcp-client/?utm_source=studio&utm_medium=tooltip&utm_campaign=mcp-client&utm_content=prompt#step-3-provide-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt patterns</a>',
+        tooltipClasses: 'w-64',
         attributes: {
           'data-template-vars': 'true',
           'data-template-excluded-vars': 'Attachment',
@@ -82,6 +83,7 @@ export class MCPClient extends Component {
         expandable: true,
         label: 'System Prompt',
         help: 'Set rules for all calls, like allowed tools, tone, and required output format.',
+        tooltipClasses: 'w-64',
         section: 'Advanced',
         value: this.descForModel,
         validate: `maxlength=5000`,
