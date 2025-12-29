@@ -4,7 +4,70 @@ import * as React from 'react';
 
 import { cn } from '@react/shared/utils/general';
 
-const Select = SelectPrimitive.Root;
+/**
+ * Props for the Select component with data-* attribute support on hidden native select
+ */
+interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  /** Data attribute for QA/testing - applied to hidden native select */
+  'data-qa'?: string;
+  /** Data attribute for testing libraries - applied to hidden native select */
+  'data-testid'?: string;
+  /** Allow any other data-* attributes */
+  [key: `data-${string}`]: string | undefined;
+}
+
+/**
+ * Select component wrapper that supports data-* attributes on the hidden native select
+ * Radix UI's Select.Root doesn't render DOM, so we wrap it to apply attributes to the hidden select
+ *
+ * @example
+ * <Select data-qa="my-select" data-testid="test-select" value={value} onValueChange={onChange}>
+ *   <SelectTrigger>...</SelectTrigger>
+ *   <SelectContent>...</SelectContent>
+ * </Select>
+ */
+const Select = React.forwardRef<HTMLDivElement, SelectProps>((props, forwardedRef) => {
+  const internalRef = React.useRef<HTMLDivElement>(null);
+  const ref = (forwardedRef as React.RefObject<HTMLDivElement>) ?? internalRef;
+
+  // Memoize separated props to avoid unnecessary re-renders
+  const { dataAttributes, selectProps } = React.useMemo(() => {
+    const data: Record<string, string> = {};
+    const select: Record<string, unknown> = {};
+
+    Object.entries(props).forEach(([key, value]) => {
+      if (key.startsWith('data-') && value !== undefined && value !== null) {
+        data[key] = String(value);
+      } else if (key !== 'children') {
+        select[key] = value;
+      }
+    });
+
+    return { dataAttributes: data, selectProps: select };
+  }, [props]);
+
+  /**
+   * Apply data-* attributes to the hidden native select element
+   * Radix creates this internally for accessibility/form submission
+   */
+  React.useEffect(() => {
+    if (Object.keys(dataAttributes).length > 0 && ref && 'current' in ref && ref.current) {
+      const hiddenSelect = ref.current.querySelector('select');
+      if (hiddenSelect) {
+        Object.entries(dataAttributes).forEach(([key, value]) => {
+          hiddenSelect.setAttribute(key, value);
+        });
+      }
+    }
+  }, [dataAttributes, ref]);
+
+  return (
+    <div ref={ref}>
+      <SelectPrimitive.Root {...selectProps}>{props.children}</SelectPrimitive.Root>
+    </div>
+  );
+});
+Select.displayName = 'Select';
 
 const SelectValue = SelectPrimitive.Value;
 

@@ -79,7 +79,7 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
     if (droppedFile) {
       validateAndSetFile(droppedFile);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateAndSetFile = (selectedFile: File) => {
     const allowedTypes = [
@@ -170,7 +170,8 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
         datasourceLabel: datasourceLabel.trim(),
         file: fileToUpload,
         chunkSize: !isNaN(parsedChunkSize) && parsedChunkSize > 0 ? parsedChunkSize : undefined,
-        chunkOverlap: !isNaN(parsedChunkOverlap) && parsedChunkOverlap >= 0 ? parsedChunkOverlap : undefined,
+        chunkOverlap:
+          !isNaN(parsedChunkOverlap) && parsedChunkOverlap >= 0 ? parsedChunkOverlap : undefined,
         metadata: parsedMetadata,
       });
       successToast('Datasource uploaded successfully');
@@ -190,12 +191,11 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   const isValid =
-    datasourceLabel.trim() !== '' &&
-    (mode === 'file' ? file !== null : rawText.trim() !== '');
+    datasourceLabel.trim() !== '' && (mode === 'file' ? file !== null : rawText.trim() !== '');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -272,17 +272,16 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
                   }`}
                 >
                   <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-gray-700 font-medium mb-1">
-                    Drag and drop your file here
-                  </p>
+                  <p className="text-gray-700 font-medium mb-1">Drag and drop your file here</p>
                   <p className="text-sm text-gray-500 mb-3">or</p>
                   <label className="inline-block">
                     <input
                       type="file"
                       className="hidden"
+                      disabled={isUploading}
                       accept=".txt,.pdf,.docx"
                       onChange={handleFileSelect}
-                      disabled={isUploading}
+                      data-qa="file-dropzone-input"
                     />
                     <span className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer inline-block">
                       Browse Files
@@ -333,9 +332,7 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
                 // make font size smaller: font-size-sm
                 className="w-full h-64 px-3 py-2 border text-sm border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none font-light"
               />
-              <p className="text-xs text-gray-500">
-                This text will be saved as a .txt file
-              </p>
+              <p className="text-xs text-gray-500">This text will be saved as a .txt file</p>
             </div>
           )}
 
@@ -367,9 +364,7 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
                       placeholder="1000"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                     />
-                    <p className="text-xs text-gray-500">
-                      Maximum characters per chunk
-                    </p>
+                    <p className="text-xs text-gray-500">Maximum characters per chunk</p>
                   </div>
 
                   {/* Chunk Overlap */}
@@ -383,14 +378,14 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
                       min="0"
                       max="1000"
                       value={chunkOverlap}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setChunkOverlap(e.target.value)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setChunkOverlap(e.target.value)
+                      }
                       disabled={isUploading}
                       placeholder="200"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                     />
-                    <p className="text-xs text-gray-500">
-                      Overlapping characters between chunks 
-                    </p>
+                    <p className="text-xs text-gray-500">Overlapping characters between chunks</p>
                   </div>
                 </div>
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -410,13 +405,17 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
                 <JsonEditor
                   value={metadata}
                   onChange={setMetadata}
-                  placeholder={'{\n  "author": "John Doe",\n  "category": "research",\n  "tags": ["ai", "ml"]\n}'}
+                  placeholder={
+                    '{\n  "author": "John Doe",\n  "category": "research",\n  "tags": ["ai", "ml"]\n}'
+                  }
                   disabled={isUploading}
                   height="150px"
                 />
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-xs text-amber-800">
-                    <strong>📝 Note:</strong> Add custom metadata as JSON to enrich your datasource with additional information. This is optional and can be used for filtering and organization.
+                    <strong>📝 Note:</strong> Add custom metadata as JSON to enrich your datasource
+                    with additional information. This is optional and can be used for filtering and
+                    organization.
                   </p>
                 </div>
               </div>
@@ -446,4 +445,3 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
     </Dialog>
   );
 };
-

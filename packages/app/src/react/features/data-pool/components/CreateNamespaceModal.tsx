@@ -140,7 +140,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
       successToast('Data space created successfully');
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       const errorMessage = err?.message || 'Failed to create data space. Please try again.';
       setError(errorMessage);
       errorToast(errorMessage);
@@ -253,6 +253,7 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                   Vector Database Provider <span className="text-red-500 ml-1">*</span>
                 </label>
                 <Select
+                  data-qa="provider-select"
                   value={selectedCredentialId}
                   onValueChange={handleCredentialChange}
                   disabled={credentialsLoading || isCreating}
@@ -359,11 +360,12 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
                   </label>
                   <Select
                     value={selectedModelId}
+                    data-qa="embedding-model-select"
+                    disabled={isLoadingModels || isCreating}
                     onValueChange={(value) => {
                       setSelectedModelId(value);
                       handleDimentionDynamicChange('embedding_model', value);
                     }}
-                    disabled={isLoadingModels || isCreating}
                   >
                     <SelectTrigger className="w-full" disabled={isLoadingModels || isCreating}>
                       <SelectValue placeholder="Select an embedding model" />
