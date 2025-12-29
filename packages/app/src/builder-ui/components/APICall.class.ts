@@ -25,6 +25,7 @@ import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
 import { closeTwDialog, twEditValuesWithCallback } from '../ui/tw-dialogs';
 import { delay, getVaultData, handleKvFieldEditBtn, handleKvFieldEditBtnForParams } from '../utils';
+import { attachTooltipV2 } from '../utils/tooltip-wrapper-v2';
 import { Workspace } from '../workspace/Workspace.class';
 import { Component } from './Component.class';
 
@@ -2223,6 +2224,16 @@ export class APICall extends Component {
     }
     if (scopeInput && currentOauthInfo.scope) {
       scopeInput.value = currentOauthInfo.scope;
+    }
+
+    // Attach tooltip to scope info icon
+    const scopeTooltipIcon = dialog.querySelector('#scope-label') as HTMLElement;
+    if (scopeTooltipIcon) {
+      attachTooltipV2(scopeTooltipIcon, {
+        text: 'Enter scopes separated by spaces (e.g., read write profile)',
+        position: 'right',
+        delayDuration: 300,
+      });
     }
 
     // Comprehensive update field visibility function
