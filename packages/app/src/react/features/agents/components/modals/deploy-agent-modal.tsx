@@ -571,7 +571,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                               <Info className="w-4 h-4 text-gray-500 text-lg" />
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent className="w-60">
+                          <TooltipContent className="max-w-[240px] text-center text-wrap">
                             <div style={{ whiteSpace: 'normal' }}>
                               Deploy your agent to make it live and ready to integrate into your
                               workflow. Use SmythOS's default subdomain or configure a custom one.{' '}

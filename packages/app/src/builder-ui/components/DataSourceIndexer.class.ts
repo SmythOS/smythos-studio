@@ -50,6 +50,7 @@ export class DataSourceIndexer extends Component {
         label: 'data space',
         help: 'Select the memory bucket where this source is stored; keep staging and production separate.',
         options: this.namespaces,
+        tooltipClasses: 'w-56',
       },
 
       id: {
@@ -59,6 +60,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `custom=isValidId`,
         validateMessage: `It should contain only 'a-z', 'A-Z', '0-9', '-', '_', '.' `,
+        tooltipClasses: 'w-56',
       },
       name: {
         type: 'input',
@@ -67,6 +69,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `maxlength=50`,
         validateMessage: 'Enter a non-empty label, not more than 50 characters.',
+        tooltipClasses: 'w-56',
       },
       metadata: {
         type: 'textarea',
@@ -74,7 +77,7 @@ export class DataSourceIndexer extends Component {
         code: { mode: 'json', theme: 'chrome' },
         label: `Metadata`,
         help: 'Optional JSON or text with author, tags, and timestamps to improve search and filtering.',
-        tooltipClasses: 'w-44',
+        tooltipClasses: 'w-56',
         arrowClasses: '-ml-11',
         value: '',
         validate: `maxlength=500000`,

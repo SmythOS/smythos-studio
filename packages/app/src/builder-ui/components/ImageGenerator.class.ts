@@ -190,6 +190,7 @@ export class ImageGenerator extends Component {
         class: 'mt-1',
         value: '{{Prompt}}',
         help: 'Describe what to generate by describing the subject, style, and constraints. <a href="https://smythos.com/docs/agent-studio/components/base/image-generator/?utm_source=studio&utm_medium=tooltip&utm_campaign=image-generator&utm_content=prompt#step-2-define-inputs" target="_blank" class="text-blue-600 hover:text-blue-800">See prompt tips</a>',
+        tooltipClasses: 'w-56',
         attributes: {
           'data-template-vars': 'true',
           'data-template-excluded-vars': 'Attachment',

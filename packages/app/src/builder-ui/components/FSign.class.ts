@@ -13,6 +13,7 @@ export class FSign extends FunctionComponent {
         help: 'Choose HMAC with a shared secret or RSA with a private key.',
         value: 'HMAC',
         options: ['HMAC', 'RSA'],
+        tooltipClasses: 'w-56',
       },
       dataTransform: {
         type: 'select',
@@ -21,6 +22,7 @@ export class FSign extends FunctionComponent {
         //hint: 'Action to perform',
         value: 'Stringify',
         options: ['Stringify', 'Querystring'],
+        tooltipClasses: 'w-56',
       },
       key: {
         type: 'textarea',
@@ -29,6 +31,7 @@ export class FSign extends FunctionComponent {
         attributes: { 'data-template-vars': 'true', 'data-vault': `APICall,ALL_NON_GLOBAL_KEYS` },
         help: 'Provide the signing secret or private key; store in <a href="/vault" target="_blank" class="text-blue-600 hover:text-blue-800">Vault</a>, not in code.',
         value: '',
+        tooltipClasses: 'w-56',
       },
       keyMessage: {
         type: 'div',
@@ -41,6 +44,7 @@ export class FSign extends FunctionComponent {
         value: 'md5',
         options: ['md5', 'sha1', 'sha256', 'sha512'],
         help: 'Select the digest used inside the method, for example SHA-256.',
+        tooltipClasses: 'w-56',
       },
       RSA_padding: {
         type: 'select',
@@ -61,6 +65,7 @@ export class FSign extends FunctionComponent {
         help: 'Choose how the signature is returned: hex, Base64, or Base64URL.',
         value: 'hex',
         options: ['hex', 'base64', 'base64url', 'latin1', 'utf8'],
+        tooltipClasses: 'w-60',
       },
     };
 

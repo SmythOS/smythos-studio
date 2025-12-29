@@ -155,7 +155,7 @@ export function UserCustomModels({ pageAccess }: { pageAccess: { write: boolean 
             <TooltipTrigger asChild>
               <Info className="w-4 h-4 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="w-72 text-center">
+            <TooltipContent className="max-w-[240px] text-center text-wrap">
               <p>
                 Custom models allow you to connect to your own LLM instances running locally or on
                 your infrastructure

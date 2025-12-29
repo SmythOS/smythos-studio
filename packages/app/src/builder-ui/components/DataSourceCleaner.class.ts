@@ -49,6 +49,7 @@ export class DataSourceCleaner extends Component {
         help: 'Select the data space that contains the source to remove.',
         value: '',
         options: this.namespaces,
+        tooltipClasses: 'w-56',
       },
 
       id: {
@@ -59,6 +60,7 @@ export class DataSourceCleaner extends Component {
         validate: `custom=isValidId`,
         validateMessage: `It should contain only 'a-z', 'A-Z', '0-9', '-', '_', '.', `,
         attributes: { 'data-template-vars': 'true' },
+        tooltipClasses: 'w-56',
       },
     };
 

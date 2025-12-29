@@ -138,7 +138,7 @@ export class APICall extends Component {
         label: 'Headers',
         readonly: true,
         help: 'Add keys the service needs, like Authorization or Content-Type.<br /><a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-2-add-headers-and-body" target="_blank" class="text-blue-600 hover:text-blue-800">See header usage</a>',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-52',
         arrowClasses: '-ml-13',
         validate: `custom=isValidJson`,
         validateMessage: 'Provide a Valid JSON with non-empty keys',
@@ -183,7 +183,7 @@ export class APICall extends Component {
         label: 'Body',
         attributes: { 'data-template-vars': 'true', 'data-vault': `${COMP_NAMES.apiCall},All` },
         help: 'Write what you want to send and use variables from earlier steps.',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-60',
         arrowClasses: '-ml-17',
         actions: [
           {
@@ -349,6 +349,7 @@ export class APICall extends Component {
         label: 'Proxy URLs',
         section: 'Advanced',
         help: 'Send calls through a proxy if your network or vendor asks for it.',
+        tooltipClasses: 'w-56',
         validateMessage: `Enter your proxy URLs in the following format:<br/>
                 [scheme]://[username]:[password]@[host]:[port]<br/><br/>
                 For multiple URLs, place each one in a new line.<br/><br/>
