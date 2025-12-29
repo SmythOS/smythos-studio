@@ -1416,13 +1416,13 @@ export class APICall extends Component {
 
   public async checkSettings() {
     this.clearComponentMessages();
-    this.addComponentMessage('Checking Auth Info...', 'info text-center');
+    this.addComponentMessage('Checking Auth Info...', 'auth-info-message info text-center');
 
     // Call parent class validation
     await super.checkSettings();
 
     // Replace temporary status with the final state
-    this.clearComponentMessages();
+    this.clearComponentMessage('.auth-info-message');
 
     // Update component-level button based on current OAuth connection's auth state
     // Use the centralized updateAuthenticationButton method which handles both sidebar and component buttons

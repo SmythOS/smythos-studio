@@ -522,7 +522,18 @@ export class Component extends EventEmitter {
   }
 
   public async checkSettings() {
-    this.clearComponentMessages();
+    // Only clear messages if there are no important messages (like missing keys)
+    // This prevents clearing important messages that were just added by concurrent checkSettings calls
+    const messagesContainer = this.domElement.querySelector('.messages-container') as HTMLElement;
+    const hasImportantMessages =
+      messagesContainer &&
+      Array.from(messagesContainer.children).some((msg: Element) => {
+        return msg.classList.contains('alert') || msg.textContent?.includes('Missing Key');
+      });
+
+    if (!hasImportantMessages) {
+      this.clearComponentMessages();
+    }
 
     //#region Get vault data
     const { data: vaultData } = await getVaultData({
@@ -1893,7 +1904,10 @@ export class Component extends EventEmitter {
   }
 
   public clearComponentMessages() {
-    this.domElement.querySelector('.messages-container').innerHTML = '';
+    const messagesContainer = this.domElement.querySelector('.messages-container') as HTMLElement;
+    if (messagesContainer) {
+      messagesContainer.innerHTML = '';
+    }
   }
   /**
    * Adds a message to the component's message container.
@@ -1922,12 +1936,14 @@ export class Component extends EventEmitter {
       msg.addEventListener('click', onClick);
     }
 
-    attachTooltipV2WithHTML(msg, {
-      text: tooltipText || '',
-      position: 'bottom',
-      delayDuration: 300,
-      className: 'text-left text-xs',
-    });
+    if (tooltipText) {
+      attachTooltipV2WithHTML(msg, {
+        text: tooltipText || '',
+        position: 'bottom',
+        delayDuration: 300,
+        className: 'text-left text-xs',
+      });
+    }
 
     this.domElement.querySelector('.messages-container').appendChild(msg);
     return msg;
