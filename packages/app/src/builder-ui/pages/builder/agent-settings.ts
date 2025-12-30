@@ -1319,6 +1319,18 @@ export async function openAlexaEmbodiment() {
   );
 }
 
+async function generateInternalToken(agentId: string) {
+  try {
+    const response = await fetch(`/oauth/token/${agentId}`);
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error('Error generating internal token:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function openChatbotEmbodiment() {
   // Observability.observeInteraction('chatbot_embodiment_click', { position: 'top right of builder inside dropdown' });
   const { dev: testDomain, scheme } = builderStore.getState().agentDomains;
@@ -1327,7 +1339,8 @@ export async function openChatbotEmbodiment() {
   if (modalBox) {
     modalBox.style.width = '600px';
   }
-
+  // Track if the iframe has been initialized, used for bypassing auth only once
+  let isInitialized = false;
   let iframe = document.querySelector('#chatbot-iframe') as HTMLIFrameElement;
   let content;
   let actions = {};
@@ -1363,6 +1376,7 @@ export async function openChatbotEmbodiment() {
     actions = {
       Refresh: {
         click: async (div) => {
+          isInitialized = false;
           const refreshBtnContainer = document.querySelector('.refresh-chat-btn') as HTMLElement;
           const iframe = document.querySelector('#chatbot-iframe') as HTMLIFrameElement;
           // Check if refresh is already in progress
@@ -1433,6 +1447,38 @@ export async function openChatbotEmbodiment() {
         },
         ['chatbot'],
       );
+
+      // Only run initialization logic (token/auth) on first load
+      if (!isInitialized) {
+        EmbodimentRPCManager.send(
+          {
+            function: 'bypassAuth',
+            args: [workspace.agent.id],
+          },
+          ['chatbot'],
+        );
+        // Receive only from chatbot iframe
+        const unsubscribeChatbot = EmbodimentRPCManager.receive(
+          async (msg) => {
+            if (msg?.data?.request === 'issue-token') {
+              const response = await generateInternalToken(workspace.agent.id);
+              if (response?.success && response?.token) {
+                EmbodimentRPCManager.send(
+                  {
+                    function: 'issueToken',
+                    args: [response.token],
+                  },
+                  ['chatbot'],
+                );
+                unsubscribeChatbot();
+              }
+            }
+          },
+          ['chatbot'],
+        );
+
+        isInitialized = true;
+      }
     });
   }
 }

@@ -44,13 +44,16 @@ export class oAuthSettings {
 
     // Show temporary checking status while verifying auth
     this.component.clearComponentMessages();
-    this.component.addComponentMessage('Checking Auth Info...', 'info text-center');
+    this.component.addComponentMessage(
+      'Checking Auth Info...',
+      'auth-info-message info text-center',
+    );
 
     // If authenticated, ensure no redundant component-level button remains
     const authed = await this.checkAuthentication();
 
     // Clear the temporary message
-    this.component.clearComponentMessages();
+    this.component.clearComponentMessage('.auth-info-message');
 
     if (authed) {
       return;

@@ -379,6 +379,11 @@ async function onSave(values) {
     for (let name in component.settings) {
       component.data[name] = settingsValues[name];
     }
+
+    // Always copy templateVarToggleStates if it exists (auto-injected field)
+    if (settingsValues.hasOwnProperty('templateVarToggleStates')) {
+      component.data.templateVarToggleStates = settingsValues.templateVarToggleStates;
+    }
   } else {
     //if it's a template we match template variables to their respective values ==> they will be replaced in the backend
     const tplSettings = component.templateSettings;
@@ -392,6 +397,11 @@ async function onSave(values) {
     component.data._templateVars = {};
     for (let name in tplSettings) {
       component.data._templateVars[name] = settingsValues[name];
+    }
+
+    // Always copy templateVarToggleStates if it exists (auto-injected field)
+    if (settingsValues.hasOwnProperty('templateVarToggleStates')) {
+      component.data.templateVarToggleStates = settingsValues.templateVarToggleStates;
     }
   }
 
@@ -518,6 +528,14 @@ export async function closeSettings(component: Component, force = false) {
 }
 export async function editSettings(component: Component) {
   Component.curComponentSettings = component;
+
+  // Expose Component.curComponentSettings on window so form fields can access it
+  if (typeof window !== 'undefined') {
+    if (!(window as any).Component) {
+      (window as any).Component = {};
+    }
+    (window as any).Component.curComponentSettings = component;
+  }
   component.workspace.domElement
     .querySelectorAll('.component.active')
     .forEach((component: HTMLElement) => {
@@ -933,6 +951,12 @@ export async function editSettings(component: Component) {
                     for (let name in component.settings) {
                       component.data[name] = settingsValues[name];
                     }
+
+                    // Always copy templateVarToggleStates if it exists (auto-injected field)
+                    if (settingsValues.hasOwnProperty('templateVarToggleStates')) {
+                      component.data.templateVarToggleStates =
+                        settingsValues.templateVarToggleStates;
+                    }
                   } else {
                     //if it's a template we match template variables to their respective values ==> they will be replaced in the backend
                     const tplSettings = component.templateSettings;
@@ -949,6 +973,12 @@ export async function editSettings(component: Component) {
                       templateData[name] = settingsValues[name];
                     }
                     //component.data._templateData = JSON.stringify(templateData);
+
+                    // Always copy templateVarToggleStates if it exists (auto-injected field)
+                    if (settingsValues.hasOwnProperty('templateVarToggleStates')) {
+                      component.data.templateVarToggleStates =
+                        settingsValues.templateVarToggleStates;
+                    }
                   }
 
                   console.log('template save settings', component.settings);

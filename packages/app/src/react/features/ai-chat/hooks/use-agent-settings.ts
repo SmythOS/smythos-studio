@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { updateAgentSettings } from '@react/features/ai-chat/clients';
-import { TUAgentSettings } from '@react/features/ai-chat/types/chat.types';
+import { TAgentSetting } from '@react/features/ai-chat/types';
 import { AgentSettings } from '@react/shared/types/agent-data.types';
 
 export const useAgentSettings = (agentId: string) => {
@@ -28,16 +28,10 @@ export const useAgentSettings = (agentId: string) => {
   return queryResult;
 };
 
-export const useUpdateAgentSettingsMutation = () => {
+export const useSaveAgentSettings = () => {
   const queryClient = useQueryClient();
-
-  return useMutation(
-    (params: { agentId: string; settings: TUAgentSettings }) =>
-      updateAgentSettings(params.agentId, params.settings),
-    {
-      onSuccess: (_, variables) => {
-        queryClient.invalidateQueries(['agent_settings', variables.agentId]);
-      },
-    },
-  );
+  type TParams = { agentId: string; settings: TAgentSetting };
+  return useMutation((params: TParams) => updateAgentSettings(params.agentId, params.settings), {
+    onSuccess: (_, { agentId }) => queryClient.invalidateQueries(['agent_settings', agentId]),
+  });
 };

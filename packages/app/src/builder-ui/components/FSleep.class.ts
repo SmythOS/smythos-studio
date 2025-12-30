@@ -9,6 +9,7 @@ export class FSleep extends FunctionComponent {
         type: 'range',
         label: 'Delay',
         help: 'Pause for the set seconds, then continue; input passes through unchanged. <a href="https://smythos.com/docs/agent-studio/components/advanced/sleep/?utm_source=studio&utm_medium=tooltip&utm_campaign=sleep&utm_content=component-header#step-1-set-the-delay-duration" target="_blank" class="text-blue-600 hover:text-blue-800">See dynamic delays and limits</a>',
+        tooltipClasses: 'w-52',
         min: 1,
         max: 3600,
         value: 1,

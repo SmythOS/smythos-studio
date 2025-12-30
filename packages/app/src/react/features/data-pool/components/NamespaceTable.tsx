@@ -82,7 +82,7 @@ export const NamespaceTable: FC<NamespaceTableProps> = ({ namespaces, onDelete }
                 key={namespace.label}
                 className="border-b hover:bg-gray-100 cursor-pointer transition-colors text-left"
                 onClick={() =>
-                  navigate(`/data-pool/${encodeURIComponent(namespace.label)}/datasources`)
+                  navigate(`/data/${encodeURIComponent(namespace.label)}/datasources`)
                 }
               >
                 {/* Name with Embeddings Badge */}

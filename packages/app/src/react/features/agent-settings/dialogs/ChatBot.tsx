@@ -423,12 +423,11 @@ const ChatBotDialog = ({
                                     <TooltipTrigger asChild>
                                       <Info className="w-5 h-5 ml-1" />
                                     </TooltipTrigger>
-                                    <TooltipContent className="w-52 text-center">
+                                    <TooltipContent className="max-w-[240px] text-center text-wrap">
                                       <div>
                                         Restrict chatbot to specific domains.
                                         <br /> Use commas to separate multiple domains (e.g.,
                                         example.com, mysite.org).
-                                        <br /> Leave empty for no restrictions.
                                       </div>
                                     </TooltipContent>
                                   </Tooltip>

@@ -41,6 +41,7 @@ export class MemoryWriteObject extends Component {
         type: 'select',
         label: 'TTL',
         help: 'Sets how long a TTL value remains available before automatic deletion.',
+        tooltipClasses: 'w-56',
         value: '300',
         options: [
           { value: '300', text: '5 minutes' },

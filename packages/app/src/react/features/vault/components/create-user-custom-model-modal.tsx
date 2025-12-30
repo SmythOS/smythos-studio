@@ -483,7 +483,7 @@ export function CreateUserCustomModelModal({
                       className="w-4 h-4 text-gray-400"
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="w-[182px] text-center">
+                  <TooltipContent side="right" className="max-w-[200px] text-center text-wrap">
                     <p>The name that will appear in the model dropdown list</p>
                   </TooltipContent>
                 </Tooltip>
@@ -511,7 +511,7 @@ export function CreateUserCustomModelModal({
                       className="w-4 h-4 text-gray-400"
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="w-[220px] text-center">
+                  <TooltipContent side="right" className="max-w-[240px] text-center text-wrap">
                     <p>
                       The exact model identifier used by your LLM provider (e.g.,
                       llama-3.1-8b-instant, qwen2.5-7b-instruct-1m)
@@ -542,7 +542,7 @@ export function CreateUserCustomModelModal({
                       className="w-4 h-4 text-gray-400"
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="w-[280px] text-center">
+                  <TooltipContent side="right" className="max-w-[280px] text-center text-wrap">
                     <p>
                       The API endpoint URL for your LLM service. For OpenAI compatible APIs, include
                       `/v1` in the URL (e.g., http://127.0.0.1:1234/v1,
@@ -575,7 +575,7 @@ export function CreateUserCustomModelModal({
                       className="w-4 h-4 text-gray-400"
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="w-[220px] text-center">
+                  <TooltipContent side="right" className="max-w-[240px] text-center text-wrap">
                     <p>
                       The SDK/API format your model uses. Select OpenAI for OpenAI-compatible APIs
                       or Ollama for Ollama-compatible APIs
@@ -609,7 +609,7 @@ export function CreateUserCustomModelModal({
                       className="w-4 h-4 text-gray-400"
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="w-[240px] text-center">
+                  <TooltipContent side="right" className="max-w-[240px] text-center text-wrap">
                     <p>
                       Optional API key for your custom model. The key will be securely stored in
                       your team vault. Leave empty if your model does not require authentication.
@@ -728,7 +728,7 @@ export function CreateUserCustomModelModal({
                         className="w-4 h-4 text-gray-400"
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="w-[220px] text-center">
+                    <TooltipContent side="right" className="max-w-[240px] text-center text-wrap">
                       <p>
                         Configure advanced settings like context window, output limits, fallback
                         models, and supported features
@@ -769,7 +769,7 @@ export function CreateUserCustomModelModal({
                             className="w-4 h-4 text-gray-400"
                           />
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="w-[200px] text-center">
+                        <TooltipContent side="right" className="max-w-[200px] text-center text-wrap">
                           <p>
                             The total number of tokens the model can process, including input and
                             output
@@ -808,7 +808,7 @@ export function CreateUserCustomModelModal({
                             className="w-4 h-4 text-gray-400"
                           />
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="w-[200px] text-center">
+                        <TooltipContent side="right" className="max-w-[200px] text-center text-wrap">
                           <p>
                             The maximum number of tokens the model can generate in a single response
                           </p>
@@ -845,7 +845,7 @@ export function CreateUserCustomModelModal({
                             className="w-4 h-4 text-gray-400"
                           />
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="w-[220px] text-center">
+                        <TooltipContent side="right" className="max-w-[240px] text-center text-wrap">
                           <p>
                             Select a fallback model from your available models. This model will be
                             used automatically when your custom model is unavailable
@@ -880,7 +880,7 @@ export function CreateUserCustomModelModal({
                             className="w-4 h-4 text-gray-400"
                           />
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="w-[220px] text-center">
+                        <TooltipContent side="right" className="max-w-[280px] text-center text-wrap">
                           <p>
                             Select the capabilities your model supports: Text Completion for
                             generating text, and Function calling/Tool Use for executing functions

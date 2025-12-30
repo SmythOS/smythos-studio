@@ -11,6 +11,7 @@ export class JSONFilter extends Component {
         validate: `maxlength=1000`,
         validateMessage: `Maximun 1000 characters`,
         help: 'List the paths to keep, like user.email, id, or items[0].name; anything not listed is removed. <a href="https://smythos.com/docs/agent-studio/components/advanced/json-filter/?utm_source=studio&utm_medium=tooltip&utm_campaign=json-filter&utm_content=fields#step-1-define-filter-parameters" target="_blank" class="text-blue-600 hover:text-blue-800">See path rules and nested keys</a>',
+        tooltipClasses: 'w-64',
         attributes: { 'data-template-vars': '' },
       },
     };

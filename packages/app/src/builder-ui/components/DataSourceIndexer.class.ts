@@ -1,57 +1,56 @@
-import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceIndexer extends Component {
-  private namespaces: string[] = [];
-  private isNewComponent: boolean = false;
+  private namespaces: { value: string; text: string; __legacy_id: string }[] = [];
 
   protected async prepare(): Promise<any> {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    const eligibleForV2 =
-      builderStore.getState().serverStatus.edition === 'enterprise' &&
-      !window.location.hostname.includes('smythos.com');
-
-    const componentVersion =
-      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
-
-    if (this.isNewComponent && eligibleForV2) {
-      this.data.version = componentVersion;
-    }
-
-    this.updateSettings();
+    this.updateSettings().then(() => {
+      // if the current value does not match anything
+      const isUnableToMatchNsRecord =
+        this.data['namespace'] &&
+        !this.namespaces.find((ns) => ns.value === this.data['namespace']);
+      if (isUnableToMatchNsRecord) {
+        // try two cases, case where teamid is stripped, and case of original id
+        const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespace']}`;
+        const ns = this.data['namespace'];
+        const matching = this.namespaces.find(
+          (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+        );
+        if (matching) {
+          this.data['namespace'] = matching.value;
+        } else {
+          console.log('WE are not able to map the old name');
+        }
+      }
+    });
 
     return new Promise((resolve) => resolve(true));
   }
 
   protected async updateSettings() {
-    if (!this.data.version || this.data.version === 'v1') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    } else if (this.data.version === 'v2') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    }
+    const result = await fetch(
+      `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+    );
+    const namespaces = await result.json();
+    this.namespaces = namespaces.map((item) => ({
+      value: item.label,
+      text: item.label,
+      __legacy_id: item.__legacy_id,
+    }));
+    this.settings.namespace.options = this.namespaces;
+    if (this.settingsOpen) this.refreshSettingsSidebar();
   }
 
   protected async init() {
     this.settings = {
       namespace: {
         type: 'select',
-        label: 'namespace',
+        label: 'data space',
         help: 'Select the memory bucket where this source is stored; keep staging and production separate.',
         options: this.namespaces,
+        tooltipClasses: 'w-56',
       },
 
       id: {
@@ -61,6 +60,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `custom=isValidId`,
         validateMessage: `It should contain only 'a-z', 'A-Z', '0-9', '-', '_', '.' `,
+        tooltipClasses: 'w-56',
       },
       name: {
         type: 'input',
@@ -69,6 +69,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `maxlength=50`,
         validateMessage: 'Enter a non-empty label, not more than 50 characters.',
+        tooltipClasses: 'w-56',
       },
       metadata: {
         type: 'textarea',
@@ -76,7 +77,7 @@ export class DataSourceIndexer extends Component {
         code: { mode: 'json', theme: 'chrome' },
         label: `Metadata`,
         help: 'Optional JSON or text with author, tags, and timestamps to improve search and filtering.',
-        tooltipClasses: 'w-44',
+        tooltipClasses: 'w-56',
         arrowClasses: '-ml-11',
         value: '',
         validate: `maxlength=500000`,
@@ -86,27 +87,28 @@ export class DataSourceIndexer extends Component {
         },
       },
 
-      ...(this.data.version === 'v2'
-        ? {
-            chunkSize: {
-              type: 'input',
-              label: 'chunk size',
-              help: 'The size of the chunks to split the data into.',
-              value: 1000,
-            },
-            chunkOverlap: {
-              type: 'input',
-              label: 'chunk overlap',
-              help: 'The overlap of the chunks to split the data into.',
-              value: 100,
-            },
-          }
-        : {}),
+      chunkSize: {
+        type: 'input',
+        label: 'chunk size',
+        help: 'The size of the chunks to split the data into.',
+        value: 1000,
+      },
+      chunkOverlap: {
+        type: 'input',
+        label: 'chunk overlap',
+        help: 'The overlap of the chunks to split the data into.',
+        value: 100,
+      },
     };
 
     const dataEntries = ['namespace'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    }
+
+    const chunkFields = ['chunkSize', 'chunkOverlap'];
+    for (let item of chunkFields) {
+      if (!this.data[item]) this.data[item] = this.settings[item].value;
     }
 
     this.properties.defaultInputs = ['Source'];
@@ -134,7 +136,7 @@ export class DataSourceIndexer extends Component {
       if (!namespaces[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
-          `Missing Namespace<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
+          `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
         );
       }

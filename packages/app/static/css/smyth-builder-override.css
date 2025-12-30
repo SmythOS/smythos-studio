@@ -1350,12 +1350,6 @@ body.locked nav #builder-button svg {
   display: none;
 }
 
-.agent-card-tooltip {
-  max-width: 280px;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  word-break: normal;
-}
 /* Test button icon hover state */
 #btn-emb-chatbot-main-wrapper:hover svg path {
   stroke: white !important;

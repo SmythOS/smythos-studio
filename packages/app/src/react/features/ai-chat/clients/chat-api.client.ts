@@ -4,22 +4,20 @@
  */
 
 import {
-  IAPIConfig,
-  IChatError,
-  IFileAttachment,
   IStreamCallbacks,
-  IStreamChunk,
-  IStreamConfig,
-} from '@react/features/ai-chat/types/chat.types';
-import { performanceMonitor } from '@react/features/ai-chat/utils/chat-performance-monitor';
-import { processStreamChunk, splitJSONStream } from '@react/features/ai-chat/utils/stream.utils';
+  TAPIConfig,
+  TChatError,
+  TStreamChunk,
+  TStreamConfig,
+} from '@react/features/ai-chat/types';
+import { parseChunk, parseStreamChunks, performanceMonitor } from '@react/features/ai-chat/utils';
 import { CreateChatRequest } from '@react/shared/types/api-payload.types';
 import { CreateChatsResponse } from '@react/shared/types/api-results.types';
 
 /**
  * Default configuration for the Chat API Client
  */
-const DEFAULT_CONFIG: IAPIConfig = {
+const DEFAULT_CONFIG: TAPIConfig = {
   baseUrl: '/api/page/chat',
   defaultHeaders: { 'Content-Type': 'application/json' },
 };
@@ -29,7 +27,7 @@ const DEFAULT_CONFIG: IAPIConfig = {
  * Handles all communication with the chat service including streaming responses
  */
 export class ChatAPIClient {
-  private config: IAPIConfig;
+  private config: TAPIConfig;
 
   /**
    * Creates a new ChatAPIClient instance
@@ -44,7 +42,7 @@ export class ChatAPIClient {
    * });
    * ```
    */
-  constructor(config: Partial<IAPIConfig> = {}) {
+  constructor(config: Partial<TAPIConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
@@ -73,26 +71,26 @@ export class ChatAPIClient {
    * );
    * ```
    */
-  async streamChat(streamConfig: IStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
+  async streamChat(streamConfig: TStreamConfig, callbacks: IStreamCallbacks): Promise<void> {
     const { agentId, chatId, message, modelId, attachments, signal, headers = {} } = streamConfig;
     const { onContent, onMetaMessages, onError, onStart, onComplete } = callbacks;
 
-    // Validate required parameters
-    // Message can be empty if attachments are provided
-    if (!agentId || !chatId || (!message && (!attachments || attachments.length === 0))) {
-      const error: IChatError = {
-        message: 'Missing required parameters: agentId, chatId, or message',
-        type: 'system',
-      };
-      onError(error);
-      return Promise.reject(error);
-    }
-
     // State management for stream processing
     let accumulatedData = ''; // eslint-disable-line prefer-const
-    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
+    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>> | undefined;
 
     try {
+      // Validate required parameters
+      // Message can be empty if attachments are provided
+      if (!agentId || !chatId || (!message && (!attachments || attachments.length === 0))) {
+        const error: TChatError = {
+          message: 'Missing required parameters: agentId, chatId, or message',
+          type: 'system',
+        };
+        // Throw to be handled by catch block
+        throw error;
+      }
+
       // Start performance monitoring
       performanceMonitor.startStream();
 
@@ -104,12 +102,11 @@ export class ChatAPIClient {
         ...this.config.defaultHeaders,
         'X-AGENT-ID': agentId,
         'x-conversation-id': chatId,
-        'x-enable-meta-messages': 'true',
         ...(modelId ? { 'x-model-id': modelId } : {}), // Include model override if provided
         ...headers,
       };
 
-      const requestBody = { message, attachments };
+      const requestBody = { message, attachments, enableMetaMessages: true };
 
       // Make streaming request
       const response = await fetch(`${this.config.baseUrl}/stream`, {
@@ -122,30 +119,29 @@ export class ChatAPIClient {
       // Handle HTTP errors
       if (!response.ok) {
         const errorData = await this.parseErrorResponse(response);
-        const error: IChatError = {
+        const error: TChatError = {
           message: errorData.message || `HTTP ${response.status}: Failed to get response`,
           type: 'network',
         };
-        onError(error);
-        return Promise.reject(error);
+        // Don't call onError here - let the catch block handle it to avoid duplicate error handling
+        throw error;
       }
 
       // Get stream reader
       reader = response.body?.getReader();
       if (!reader) {
-        const error: IChatError = {
+        const error: TChatError = {
           message: 'Failed to get response reader - response body is null',
           type: 'stream',
         };
-        onError(error);
-        return Promise.reject(error);
+        // Don't call onError here - let the catch block handle it to avoid duplicate error handling
+        throw error;
       }
 
       // Process stream
       await this.processStream(reader, signal, accumulatedData, {
         onContent,
         onMetaMessages,
-        onError,
       });
 
       // End performance monitoring
@@ -159,7 +155,7 @@ export class ChatAPIClient {
       // End performance monitoring on error
       performanceMonitor.endStream();
 
-      // Notify error callback
+      // Notify error callback (single point of error notification)
       onError(chatError);
 
       // Clean up reader
@@ -187,9 +183,9 @@ export class ChatAPIClient {
     reader: ReadableStreamDefaultReader<Uint8Array>,
     signal: AbortSignal,
     accumulatedData: string,
-    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
-    const { onContent, onMetaMessages, onError } = callbacks;
+    const { onContent, onMetaMessages } = callbacks;
     const decoder = new TextDecoder();
 
     while (true) {
@@ -215,7 +211,7 @@ export class ChatAPIClient {
 
       // Parse JSON chunks
       const processingStart = performance.now();
-      const chunks = splitJSONStream(accumulatedData);
+      const chunks = parseStreamChunks(accumulatedData);
       const processingTime = performance.now() - processingStart;
 
       // Record processing time if we parsed chunks
@@ -227,7 +223,7 @@ export class ChatAPIClient {
 
       // Process each chunk
       for (const chunk of chunks) {
-        await this.processChunk(chunk, { onContent, onMetaMessages, onError });
+        await this.processChunk(chunk, { onContent, onMetaMessages });
       }
 
       // Clear accumulated data after successful processing
@@ -242,24 +238,23 @@ export class ChatAPIClient {
    * @param callbacks - Event callbacks
    */
   private async processChunk(
-    chunk: IStreamChunk,
-    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages' | 'onError'>,
+    chunk: TStreamChunk,
+    callbacks: Pick<IStreamCallbacks, 'onContent' | 'onMetaMessages'>,
   ): Promise<void> {
-    const { onContent, onMetaMessages, onError } = callbacks;
-    const processed = processStreamChunk(chunk);
+    const { onContent, onMetaMessages } = callbacks;
+    const processed = parseChunk(chunk);
 
     // Extract conversation turn ID from chunk
     const turnId = chunk.conversationTurnId;
 
-    // Handle errors
+    // Handle errors - throw to stop stream processing, catch block will handle error notification
     if (processed.hasError) {
-      const error: IChatError = {
+      const error: TChatError = {
         type: 'stream',
         turnId, // Include turn ID in error
         message: processed.error || 'Unknown error occurred',
       };
-      onError(error);
-      return;
+      throw error;
     }
 
     // Handle status messages (highest priority)
@@ -282,7 +277,7 @@ export class ChatAPIClient {
    * @param signal - Abort signal to check for user cancellation
    * @returns Structured chat error
    */
-  private handleStreamError(error: unknown, signal: AbortSignal): IChatError {
+  private handleStreamError(error: unknown, signal: AbortSignal): TChatError {
     // Check if this is an abort error
     if (error instanceof DOMException && error.name === 'AbortError') {
       return {
@@ -372,58 +367,5 @@ export class ChatAPIClient {
     }
 
     return response.json() as Promise<CreateChatsResponse>;
-  }
-
-  /**
-   * Uploads a file for chat attachment
-   *
-   * @param file - File to upload
-   * @param agentId - Agent ID
-   * @param chatId - Optional conversation ID
-   * @returns File attachment metadata
-   *
-   * @example
-   * ```typescript
-   * const attachment = await client.uploadFile(file, 'agent-123');
-   * // Use attachment.url in chat message
-   * ```
-   */
-  async uploadFile(file: File, agentId: string, chatId?: string): Promise<IFileAttachment> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const headers: Record<string, string> = {
-      'X-AGENT-ID': agentId,
-      ...(chatId ? { 'x-conversation-id': chatId } : {}),
-    };
-
-    try {
-      const url = `${this.config.baseUrl}/upload`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-
-      const data = await response.json();
-
-      // Handle different response structures (same as utils/file.ts pattern)
-      const runtimeFile = data?.files?.[0];
-      const fileUrl = runtimeFile?.url || data?.file?.url || data.url || data.publicUrl;
-      const fileType = runtimeFile?.mimetype || data?.file?.type || file.type;
-
-      return {
-        url: fileUrl || '',
-        name: file.name,
-        type: fileType,
-        size: file.size,
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
   }
 }

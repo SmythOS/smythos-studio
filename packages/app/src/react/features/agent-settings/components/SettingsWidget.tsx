@@ -2,8 +2,8 @@ import { useWidgetsContext } from '@react/features/agent-settings/components/Ove
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { TextArea as CustomTextarea } from '@react/shared/components/ui/newDesign/textarea';
 import { SkeletonLoader } from '@src/react/shared/components/ui/skeleton-loader';
-import { Modal } from 'flowbite-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import { Modal } from 'flowbite-react';
 import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -83,7 +83,7 @@ const SettingsWidget = () => {
                 <TooltipTrigger asChild>
                   <Info className="w-4 h-4 mt-[-2px]" />
                 </TooltipTrigger>
-                <TooltipContent className="w-52 text-center">
+                <TooltipContent className="max-w-[240px] text-center text-wrap">
                   <div>
                     Primary language model
                     <br />
