@@ -1009,7 +1009,7 @@ export class GenAILLM extends Component {
         datalistId: 'timezone-datalist',
         attributes: {
           ...openAIAttributes,
-          placeholder: 'America/Chicago.',
+          placeholder: 'America/Chicago',
           'data-template-vars': '{"enabled": true, "singleOnly": true}',
           'data-template-excluded-vars': 'Attachment',
         },
