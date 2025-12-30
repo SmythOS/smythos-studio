@@ -1,14 +1,12 @@
-import { ErrorInfoIcon, RetryIcon } from '@react/features/ai-chat/components';
+import { InfoIcon, RetryIcon } from '@react/features/ai-chat/components';
+import { TMessageProps } from '@react/features/ai-chat/types';
 import { FC } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-type TProps = {
-  message: string;
-  onRetryClick: () => void;
-};
+type TProps = TMessageProps & { retry: () => void };
 
-export const Error: FC<TProps> = ({ message, onRetryClick }) => {
+export const Error: FC<TProps> = ({ message, retry }) => {
   const isApiKeyError =
     message.includes('Incorrect API key provided') ||
     (message.includes('401') &&
@@ -20,7 +18,7 @@ export const Error: FC<TProps> = ({ message, onRetryClick }) => {
       <div className="rounded-lg bg-pink-50 border border-pink-200 p-4 max-w-screen-md flex justify-between items-center gap-5">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-0.5">
-            <ErrorInfoIcon />
+            <InfoIcon className="text-red-500" />
           </div>
 
           <div className="flex-1 text-red-700 text-sm leading-relaxed">
@@ -43,9 +41,9 @@ export const Error: FC<TProps> = ({ message, onRetryClick }) => {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
           </div>
         </div>
-        {onRetryClick && (
+        {retry && (
           <button
-            onClick={onRetryClick}
+            onClick={retry}
             className="inline-flex items-center px-4 gap-x-1 py-2 border border-gray-300 text-sm font-medium rounded-[18px] text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             <RetryIcon />

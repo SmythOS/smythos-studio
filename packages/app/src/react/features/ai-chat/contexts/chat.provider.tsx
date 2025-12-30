@@ -115,6 +115,20 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createSession, setMessages, fileUpload, stopStreaming]);
 
+  // Display informational message when chatbot is disabled
+  useEffect(() => {
+    if (agentSettings?.chatbot === 'false') {
+      setMessages([
+        {
+          id: new Date().getTime(),
+          content:
+            'The chatbot feature is currently turned off. Enable it in agent settings or contact the owner.',
+          type: 'info',
+        },
+      ]);
+    }
+  }, [agentSettings?.chatbot, setMessages]);
+
   // Session tracking
   useEffect(() => {
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);

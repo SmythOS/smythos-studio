@@ -21,13 +21,14 @@ export const ChatInput = () => {
   const inputRef = refs?.input;
 
   const { isChatCreating } = chat || {};
-  const { isLoading, data: agentData } = agent || {};
   const { isStreaming, sendMessage, stopStreaming } = chat || {};
+  const { isLoading, data: agentData, settings: agentSettings } = agent || {};
   const { attachments, status, addFiles, remove, clear, uploading } = filesData || {};
 
   const maxLength = MAX_CHAT_MESSAGE_LENGTH;
   const isMaxFilesUploaded = attachments.length >= 10;
-  const isDisabled = isChatCreating || isLoading.agent;
+  const isChatbotDisabled = agentSettings?.chatbot === 'false';
+  const isDisabled = isChatCreating || isLoading.agent || isChatbotDisabled;
 
   // Adjust textarea height when message changes (chatbot pattern)
   useEffect(() => {
@@ -43,6 +44,7 @@ export const ChatInput = () => {
   );
 
   const handleSubmit = useCallback((): void => {
+    if (isChatbotDisabled) return;
     if (isStreaming) return stopStreaming();
 
     const trimmedMessage = message.trim();
@@ -72,7 +74,16 @@ export const ChatInput = () => {
         forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
       }, 150);
     }
-  }, [isStreaming, stopStreaming, message, attachments.length, sendMessage, clear, inputRef]);
+  }, [
+    isChatbotDisabled,
+    isStreaming,
+    stopStreaming,
+    message,
+    attachments.length,
+    sendMessage,
+    clear,
+    inputRef,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -155,7 +166,12 @@ export const ChatInput = () => {
           {message.length}/{maxLength}
         </div>
 
-        <div onClick={(e) => e.stopPropagation()}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          data-disabled={isDisabled || isStreaming}
+          aria-disabled={isDisabled || isStreaming}
+          className="data-[disabled=true]:cursor-not-allowed"
+        >
           <AttachmentButton
             onFilesAdd={addFiles}
             fileInputRef={fileInputRef}
@@ -164,7 +180,12 @@ export const ChatInput = () => {
           />
         </div>
 
-        <div onClick={(e) => e.stopPropagation()}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          data-disabled={isDisabled || isStreaming}
+          aria-disabled={isDisabled || isStreaming}
+          className="data-[disabled=true]:cursor-not-allowed"
+        >
           <SendButton
             onClick={handleSubmit}
             isStreaming={isStreaming}
