@@ -3543,7 +3543,7 @@ function addMissingKey({
     apiKey: {
       label: 'Key',
       type: 'textarea',
-      fieldCls: 'max-h-64 min-h-[34px] h-[34px] px-3 py-1',
+      fieldCls: 'configure-api-key-textarea px-3 py-2',
       class: 'w-3/5',
       validate: 'required maxlength=10000',
       validateMessage: 'API Key is required',
