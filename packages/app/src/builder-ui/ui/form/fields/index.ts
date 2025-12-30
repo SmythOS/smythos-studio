@@ -9,6 +9,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../../utils';
 import { handleKvFieldEditBtn, handleVaultBtn } from '../../../utils/component.utils';
+import { isTemplateVarsEnabled } from '../../../utils/form.utils';
 import { addBracketSelection, handleTemplateVars } from '../misc';
 
 declare var Metro;
@@ -796,7 +797,9 @@ function setupTemplateVarsIfNeeded(
   modalTextareaInDialog: TextAreaWithEditor,
   currentComponent: { _uid: string } | null,
 ): void {
-  const hasTemplateVars = modalTextareaInDialog.getAttribute('data-template-vars') === 'true';
+  const hasTemplateVars = isTemplateVarsEnabled(
+    modalTextareaInDialog.getAttribute('data-template-vars'),
+  );
   const hasAgentVars = modalTextareaInDialog.getAttribute('data-agent-vars') === 'true';
 
   if (!hasTemplateVars && !hasAgentVars) {
