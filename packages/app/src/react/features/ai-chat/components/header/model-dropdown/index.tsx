@@ -34,7 +34,10 @@ export const ModelDropdown: FC<IProps> = (props) => {
       .getState()
       .init()
       .finally(() => {
-        const models: Array<TLLMModel> = LLMRegistry.getSortedModelsByFeatures('tools').map(
+        const models: Array<TLLMModel> = LLMRegistry.getSortedModelsByFeatures({
+          features: 'tools',
+          selectedModel: currentModel,
+        }).map(
           (model) => ({
             label: model.label,
             value: model.entryId,
