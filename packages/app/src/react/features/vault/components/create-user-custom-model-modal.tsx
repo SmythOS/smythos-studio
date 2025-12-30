@@ -146,7 +146,10 @@ export function CreateUserCustomModelModal({
   const prevIsOpenRef = useRef(isOpen);
 
   const fallbackOptions = useMemo(() => {
-    return LLMRegistry.getSortedModelsByFeatures('tools').map((model) => {
+    return LLMRegistry.getSortedModelsByFeatures({
+      features: 'tools',
+      selectedModel: editModel?.fallbackLLM,
+    }).map((model) => {
       let badge = getTempBadge(model.tags);
       badge = badge ? ' (' + badge + ')' : '';
       return {
@@ -154,7 +157,7 @@ export function CreateUserCustomModelModal({
         name: model.label + badge, // Add tags like "(Personal)" as shown in Default LLM section
       };
     });
-  }, []);
+  }, [editModel?.fallbackLLM]);
 
   /**
    * Memoize serialized editModel to properly track deep changes

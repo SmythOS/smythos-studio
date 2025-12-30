@@ -320,11 +320,17 @@ export class LLMFormController {
    *  - badge: HTML string with both status and capability badges
    *  - tags: Array of model tags for sorting/filtering```````````````````
    */
-  public static prepareModelSelectOptionsByFeatures(targetFeatures: string[]) {
+  public static prepareModelSelectOptionsByFeatures(
+    targetFeatures: string[],
+    selectedModel?: string,
+  ) {
     try {
       let modelOptions = [];
 
-      const models = LLMRegistry.getSortedModelsByFeatures(targetFeatures);
+      const models = LLMRegistry.getSortedModelsByFeatures({
+        features: targetFeatures,
+        selectedModel,
+      });
 
       for (const model of models) {
         let tags = model?.tags || [];
@@ -344,7 +350,6 @@ export class LLMFormController {
           badge: `<span class="model-name-badge"><span class="model-name">${model?.label}</span> <span class="all-badges">${statusBadges}</span></span> <span class="float-right">${capabilityBadges}</span>`,
           tags,
           default: model?.default || false,
-          hidden: model?.hidden || false,
         });
       }
 

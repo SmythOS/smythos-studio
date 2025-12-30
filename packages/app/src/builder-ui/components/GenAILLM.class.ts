@@ -52,23 +52,19 @@ export class GenAILLM extends Component {
   private gptSearchModels: string[];
 
   protected async prepare() {
-    const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
-      'text',
-      'image',
-      'audio',
-      'video',
-      'document',
-      'tools',
-      'search',
-      'reasoning',
-    ]);
+    const model = this.data.model || this.defaultModel;
+
+    const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures(
+      ['text', 'image', 'audio', 'video', 'document', 'tools', 'search', 'reasoning'],
+      model,
+    );
 
     this.defaultModel = LLMFormController.getDefaultModel(modelOptions);
 
-    this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures(
-      'reasoning',
-      'anthropic',
-    ).map((m) => m.entryId);
+    this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures({
+      features: 'reasoning',
+      providers: 'anthropic',
+    }).map((m) => m.entryId);
     this.openaiReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'openai').map(
       (m) => m.entryId,
     );
@@ -87,7 +83,6 @@ export class GenAILLM extends Component {
     );
 
     modelOptions.unshift('Echo');
-    const model = this.data.model || this.defaultModel;
 
     //prevent losing the previously set model
     if (model && ![...modelOptions.map((item) => item?.value || item)].includes(model)) {
@@ -101,15 +96,7 @@ export class GenAILLM extends Component {
     // TODO: set warning if the model is not available
 
     //remove undefined models
-    this.modelOptions = modelOptions.filter((item) => {
-      if (!item) return false;
-
-      // Keep the currently selected model even if it's hidden
-      if (item?.value === model) return true;
-
-      // Otherwise, filter out hidden models
-      return !item?.hidden;
-    });
+    this.modelOptions = modelOptions.filter((item) => item);
 
     this.setModelParams(model);
 

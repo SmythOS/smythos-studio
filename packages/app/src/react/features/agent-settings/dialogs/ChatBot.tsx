@@ -33,12 +33,6 @@ import { Observability } from '@src/shared/observability';
 import classNames from 'classnames';
 import { Info } from 'lucide-react';
 
-// const CHATGPT_MODELS_V2 = LLMRegistry.getSortedModelsByFeatures('tools').map((model) => ({
-//   name: model.label,
-//   value: model.entryId,
-//   tags: model.tags,
-// }));
-
 // #region Temporary Badges
 const TEMP_BADGES = {
   enterprise: true,
