@@ -192,33 +192,28 @@ async function resolveNoteCollisions(
   for (const noteGroup of noteGroups) {
     const noteBounds = getElementBounds(noteGroup.noteElement);
     const noteRightEdge = noteBounds.left + noteBounds.width;
-    let minOverlapX = Infinity;
-    let hasOverlap = false;
 
-    // Find minimum X of overlapping components
+    // Collect only components that actually overlap with this Note
+    const overlappingComponents: Array<{ element: HTMLElement; bounds: Bounds }> = [];
+
     for (const compEl of allComponents) {
       if (originallyContainedIds.has(compEl.id)) continue;
 
       const compBounds = getElementBounds(compEl);
       if (rectanglesOverlap(noteBounds, compBounds)) {
-        hasOverlap = true;
-        minOverlapX = Math.min(minOverlapX, compBounds.left);
+        overlappingComponents.push({ element: compEl, bounds: compBounds });
       }
     }
 
-    if (!hasOverlap) continue;
+    // Skip if no actual overlaps with this Note
+    if (overlappingComponents.length === 0) continue;
 
-    const shiftAmount = noteRightEdge + padding - minOverlapX;
-    if (shiftAmount <= 0) continue;
-
-    // Shift all components at or beyond the overlap point
-    for (const compEl of allComponents) {
-      if (originallyContainedIds.has(compEl.id)) continue;
-
-      const compLeft = parseFloat(compEl.style.left) || 0;
-      if (compLeft >= minOverlapX) {
-        compEl.style.transition = '0.2s ease-in-out';
-        compEl.style.left = `${~~(compLeft + shiftAmount)}px`;
+    // Shift only the components that actually overlap with the Note
+    for (const { element, bounds } of overlappingComponents) {
+      const shiftAmount = noteRightEdge + padding - bounds.left;
+      if (shiftAmount > 0) {
+        element.style.transition = '0.2s ease-in-out';
+        element.style.left = `${~~(bounds.left + shiftAmount)}px`;
       }
     }
   }
