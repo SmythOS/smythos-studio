@@ -1135,6 +1135,11 @@ code.language-plan.done::before {
   overflow: hidden;
 }
 
+.dlg-form .textarea .configure-api-key-textarea {
+  min-height: 36px !important;
+  height: 36px !important;
+}
+
 .smyth-dialog #expanded-textarea {
   max-height: none !important;
 }
