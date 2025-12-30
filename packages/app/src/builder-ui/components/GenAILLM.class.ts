@@ -977,7 +977,7 @@ export class GenAILLM extends Component {
         datalistId: 'country-datalist',
         attributes: {
           ...openAIAttributes,
-          placeholder: 'US',
+          placeholder: 'Type country name or code (e.g., United States or US) to search.',
           'data-template-vars': '{"enabled": true, "singleOnly": true}',
           'data-template-excluded-vars': 'Attachment',
         },
@@ -1009,7 +1009,7 @@ export class GenAILLM extends Component {
         datalistId: 'timezone-datalist',
         attributes: {
           ...openAIAttributes,
-          placeholder: 'America/Chicago',
+          placeholder: 'Type to search timezones (e.g., America/Chicago)',
           'data-template-vars': '{"enabled": true, "singleOnly": true}',
           'data-template-excluded-vars': 'Attachment',
         },
@@ -1171,7 +1171,7 @@ export class GenAILLM extends Component {
         datalistId: 'country-datalist',
         attributes: {
           ...xAIAttributes,
-          placeholder: 'US',
+          placeholder: 'Type country name or code (e.g., United States or US) to search.',
           'data-template-vars': '{"enabled": true, "singleOnly": true}',
           'data-template-excluded-vars': 'Attachment',
         },
