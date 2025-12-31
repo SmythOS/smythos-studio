@@ -368,4 +368,68 @@ export class ChatAPIClient {
 
     return response.json() as Promise<CreateChatsResponse>;
   }
+
+  /**
+   * Stops the current stream and cleans up incomplete messages on server
+   * This mimics ChatGPT/Claude behavior where stopping discards partial AI responses
+   * but keeps the user message that triggered the generation
+   *
+   * @param agentId - The agent ID for routing to correct server
+   * @param conversationId - The conversation ID to clean up
+   * @param turnId - Optional specific turn ID to clean up
+   * @returns Promise resolving to cleanup result
+   *
+   * @example
+   * ```typescript
+   * // Stop stream and clean up incomplete messages
+   * const result = await client.stopStream('agent-123', 'conv-123');
+   * console.log(`Removed ${result.removedCount} incomplete messages`);
+   *
+   * // With specific turn ID
+   * const result = await client.stopStream('agent-123', 'conv-123', 'turn_1234567890_abc');
+   * ```
+   */
+  async stopStream(
+    agentId: string,
+    conversationId: string,
+    turnId?: string,
+  ): Promise<{
+    success: boolean;
+    removedCount?: number;
+    keptUserMessage?: boolean;
+    message?: string;
+  }> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/stream/stop`, {
+        method: 'POST',
+        headers: {
+          ...this.config.defaultHeaders,
+          'x-agent-id': agentId,
+          'x-conversation-id': conversationId,
+        },
+        body: JSON.stringify({ conversationId, turnId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await this.parseErrorResponse(response);
+        // Don't throw - just return failure result
+        // eslint-disable-next-line no-console
+        console.warn('Failed to stop stream:', errorData.message);
+        return { success: false, message: errorData.message };
+      }
+
+      return (await response.json()) as {
+        success: boolean;
+        removedCount?: number;
+        keptUserMessage?: boolean;
+        message?: string;
+      };
+    } catch (error) {
+      // Network or other errors - don't throw, just log and return failure
+      // This is a cleanup operation and shouldn't block the UI
+      // eslint-disable-next-line no-console
+      console.error('Error stopping stream:', error);
+      return { success: false, message: 'Failed to contact server' };
+    }
+  }
 }

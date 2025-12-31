@@ -215,6 +215,7 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
                 attachments:
                   currentAttachments.length > 0
                     ? currentAttachments.map((a) => ({
+                        id: a.id,
                         name: a.name,
                         type: a.type,
                         size: a.size,
@@ -282,7 +283,16 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
           },
         );
       } catch (error) {
-        console.error('Error in sendMessage:', error); // eslint-disable-line no-console
+        // Don't log abort errors - they're expected when user stops streaming
+        // Check isAborted first since TChatError is a plain object, not an Error instance
+        const isAbortError =
+          (error as { isAborted?: boolean })?.isAborted === true ||
+          (error instanceof Error && error.name === 'AbortError');
+
+        if (!isAbortError) {
+          // eslint-disable-next-line no-console
+          console.error('Error in sendMessage:', error);
+        }
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
@@ -301,9 +311,25 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
     ],
   );
 
+  /**
+   * Stops the current streaming response
+   * This function:
+   * 1. Aborts the HTTP request immediately (client-side)
+   * 2. Updates UI state to remove loading/meta messages
+   * 3. Cleans up server-side conversation store (background)
+   *
+   * Mimics ChatGPT/Claude behavior where:
+   * - User message is kept
+   * - Partial AI response is discarded
+   * - "Interrupted" message is shown
+   */
   const stopStreaming = useCallback((): void => {
-    if (abortRef.current) abortRef.current.abort();
+    // 1. Abort the HTTP fetch request immediately
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
 
+    // 2. Update UI state immediately for responsive UX
     setIsStreaming(false);
 
     setMessages((prev) => {
@@ -322,14 +348,25 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
       return [...filtered, errorMessage];
     });
 
-    // Scroll to bottom to show error message
+    // 3. Clean up server-side conversation store (background, non-blocking)
+    // This ensures the persisted conversation doesn't have incomplete data
+    // We don't await this - it runs in background and shouldn't block UI
+    if (agentId && chatId) {
+      chatClient.stopStream(agentId, chatId).catch((error) => {
+        // Log but don't throw - this is a cleanup operation
+        // eslint-disable-next-line no-console
+        console.warn('Failed to cleanup server conversation:', error);
+      });
+    }
+
+    // 4. Scroll to bottom to show error message
     setTimeout(() => {
       forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
     }, 100);
 
-    // Auto-focus input after stopping stream
+    // 5. Auto-focus input after stopping stream
     inputRef?.current?.focus();
-  }, [inputRef]);
+  }, [agentId, chatId, chatClient, inputRef]);
 
   const retryLastMessage = useCallback(() => {
     const lastUserMessage = messages.filter((msg) => msg.type === MESSAGE_TYPES.USER).pop();

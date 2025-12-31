@@ -104,18 +104,39 @@ router.post('/stream', async (req, res) => {
   }
 });
 
-router.get('/list', async (req, res) => {
+/**
+ * POST /stream/stop
+ * Stops an active stream and cleans up incomplete messages from conversation store
+ * Forwards request to embodiment server /v1/emb/chat/stream/stop
+ */
+router.post('/stream/stop', async (req, res) => {
+  const userId = req._user?.id;
+  const teamId = req._team?.id;
+  const token = req.user.accessToken;
+  const agentId = req.headers['x-agent-id'];
+  const conversationId = req.headers['x-conversation-id'];
+
   try {
-    const { isOwner, page, limit } = req.query;
-    const response = await smythAPIReq.get(
-      `/chats?isOwner=${isOwner}&page=${page.toString()}&limit=${limit.toString()}`,
-      await authHeaders(req),
+    const response = await axios.post(
+      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stream/stop',
+      { ...req.body },
+      {
+        headers: {
+          ...includeAxiosAuth(token).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
+          'x-agent-id': agentId,
+          'x-conversation-id': conversationId,
+          'x-smyth-team-id': teamId,
+        },
+      },
     );
 
     return res.json(response.data);
   } catch (error) {
-    console.log(error.message);
-    return res.status(500).json({ error: 'Something went wrong while fetching the chat list' });
+    return res
+      .status(500)
+      .json({ error: error.message || 'Something went wrong while stopping the stream' });
   }
 });
 
@@ -146,6 +167,21 @@ router.post('/new', async (req, res) => {
     return res.json(response.data);
   } catch (error) {
     return res.status(500).json({ error: 'Something went wrong while creating a new chat' });
+  }
+});
+
+router.get('/list', async (req, res) => {
+  try {
+    const { isOwner, page, limit } = req.query;
+    const response = await smythAPIReq.get(
+      `/chats?isOwner=${isOwner}&page=${page.toString()}&limit=${limit.toString()}`,
+      await authHeaders(req),
+    );
+
+    return res.json(response.data);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: 'Something went wrong while fetching the chat list' });
   }
 });
 
