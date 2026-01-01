@@ -400,7 +400,7 @@ export class ChatAPIClient {
     message?: string;
   }> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/stream/stop`, {
+      const response = await fetch(`${this.config.baseUrl}/stop`, {
         method: 'POST',
         headers: {
           ...this.config.defaultHeaders,

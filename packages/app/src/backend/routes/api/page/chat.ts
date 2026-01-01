@@ -105,11 +105,11 @@ router.post('/stream', async (req, res) => {
 });
 
 /**
- * POST /stream/stop
+ * POST /stop
  * Stops an active stream and cleans up incomplete messages from conversation store
- * Forwards request to embodiment server /v1/emb/chat/stream/stop
+ * Forwards request to embodiment server /v1/emb/chat/stop
  */
-router.post('/stream/stop', async (req, res) => {
+router.post('/stop', async (req, res) => {
   const userId = req._user?.id;
   const teamId = req._team?.id;
   const token = req.user.accessToken;
@@ -118,7 +118,7 @@ router.post('/stream/stop', async (req, res) => {
 
   try {
     const response = await axios.post(
-      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stream/stop',
+      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stop',
       { ...req.body },
       {
         headers: {
