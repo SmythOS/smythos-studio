@@ -342,7 +342,7 @@ include('partials/studio/feedback-modal') -%>
       // Calculate the right edge position: viewport width minus right sidebar (if open) and its right offset
       // The right sidebar container is positioned with right-4 (16px from right edge)
       const RIGHT_SIDEBAR_OFFSET = 16; // right-4 class = 1rem = 16px
-      const rightEdge = viewportWidth - (isRightSidebarOpen ? rightSidebarWidth + RIGHT_SIDEBAR_OFFSET : 0);
+      const rightEdge = viewportWidth - (isRightSidebarOpen ? rightSidebarWidth + RIGHT_SIDEBAR_OFFSET : RIGHT_SIDEBAR_OFFSET);
       
       // Calculate the container width: space between left position and right edge
       const bottomContainerWidth = rightEdge - leftPosition;
