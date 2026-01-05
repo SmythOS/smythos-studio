@@ -125,7 +125,7 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
             handleClick={handleSubmit}
             disabled={isSaveDisabled}
             label={isLoading ? 'Saving...' : 'Save'}
-            className={cn('w-[100px] rounded-lg')}
+            className={cn('w-[100px] rounded-sm')}
           />
         </DialogFooter>
       </DialogContent>

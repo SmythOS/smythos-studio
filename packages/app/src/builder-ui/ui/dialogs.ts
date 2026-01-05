@@ -1443,7 +1443,7 @@ export function confirm(
       btnYes.className += ` ${btnYesClass}`;
 
       if (btnYesType === 'danger') {
-        btnYes.className += ` bg-smyth-red-500 border-smyth-red-500 rounded-lg px-8 hover:bg-red-600`;
+        btnYes.className += ` bg-smyth-red-500 border-smyth-red-500 rounded-sm px-8 hover:bg-red-600`;
         btnYes.classList.remove(
           'bg-smythos-blue-500',
           'border-smythos-blue-500',
@@ -1525,7 +1525,7 @@ export function modalDialog(
     const button = document.createElement('button');
     button.setAttribute(
       'class',
-      `text-center text-sm font-medium py-1.5 px-3 w-40 rounded-lg border hover:opacity-75 focus:ring-4 focus:outline-none ${cls}`,
+      `text-center text-sm font-medium py-1.5 px-3 w-40 rounded-sm border hover:opacity-75 focus:ring-4 focus:outline-none ${cls}`,
     );
     button.innerHTML = label;
     button.onclick = () => {

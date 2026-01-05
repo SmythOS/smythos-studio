@@ -1166,7 +1166,7 @@ const ChatBotDialog = ({
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                              className="px-8 rounded-lg"
+                              className="px-8 rounded-sm"
                             />
                           </div>
                         </Form>
