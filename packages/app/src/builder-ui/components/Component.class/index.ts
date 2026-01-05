@@ -536,7 +536,7 @@ export class Component extends EventEmitter {
     const hasImportantMessages =
       messagesContainer &&
       Array.from(messagesContainer.children).some((msg: Element) => {
-        return msg.classList.contains('alert') || msg.textContent?.includes('Missing Key');
+        return msg.classList.contains('alert') && msg.textContent?.includes('Missing Key');
       });
 
     if (!hasImportantMessages) {

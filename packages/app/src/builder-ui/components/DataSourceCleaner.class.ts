@@ -39,6 +39,7 @@ export class DataSourceCleaner extends Component {
     }));
     this.settings.namespaceId.options = this.namespaces;
     if (this.settingsOpen) this.refreshSettingsSidebar();
+    await this.validateNamespaceSelection();
   }
 
   protected async init() {
@@ -83,20 +84,41 @@ export class DataSourceCleaner extends Component {
   protected async checkSettings() {
     super.checkSettings();
 
-    if (!this.namespaces || this.namespaces.length == 0) await delay(3000);
+    await this.validateNamespaceSelection();
+  }
 
-    const namespaces = {};
-    this.namespaces.forEach((ns: any) => {
-      namespaces[ns.value] = ns.text;
+  /**
+   * Validates that the selected namespace exists in the available namespaces list.
+   * If the namespace is missing, displays an alert message prompting the user to create one.
+   * If the namespace is valid, clears any previously displayed alert messages.
+   */
+  private async validateNamespaceSelection(): Promise<void> {
+    // Wait for namespaces to load if not yet available
+    if (!this.namespaces || this.namespaces.length === 0) {
+      await delay(3000);
+    }
+
+    // Build a lookup map of available namespaces
+    const namespacesMap: Record<string, string> = {};
+    this.namespaces.forEach((ns) => {
+      namespacesMap[ns.value] = ns.text;
     });
-    if (this.data['namespaceId']) {
-      const nsId = this.data['namespaceId'];
-      if (!namespaces[nsId]) {
+
+    // Validate the selected namespace
+    const nsId = this.data['namespaceId'] as string | undefined;
+    if (nsId) {
+      const messageCssClass = nsId.replace(/ /g, '-');
+
+      if (!namespacesMap[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
           `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
+          null,
+          messageCssClass,
         );
+      } else {
+        this.clearComponentMessage(`.messages-container .${messageCssClass}`);
       }
     }
   }
