@@ -170,13 +170,11 @@
 
   function openFeedbackModal() {
     feedbackModal?.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
     updateSubmitButton();
   }
 
   function closeFeedbackModal() {
     feedbackModal?.classList.add('hidden');
-    document.body.style.overflow = 'auto';
     resetFeedbackForm();
   }
 
