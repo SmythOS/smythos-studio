@@ -2526,7 +2526,7 @@ export class Component extends EventEmitter {
             'Are you sure you want to close this without saving?',
             {
               btnYesLabel: 'Discard Changes',
-              btnYesClass: 'rounded-lg px-8',
+              btnYesClass: 'rounded-sm px-8',
               btnNoClass: 'hidden',
             },
           );
