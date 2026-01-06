@@ -3,12 +3,13 @@ import { createThinkingManager, formatStatus } from '@react/features/ai-chat/uti
 import { FC, useEffect, useRef, useState } from 'react';
 
 type TProps = {
-  scrollToBottom: () => void;
-  data: { avatar?: string; metaMessages?: TMetaMessage };
+  avatar?: string;
+  metaMessages?: TMetaMessage;
+  scrollToBottom?: () => void;
 };
 
-export const Meta: FC<TProps> = ({ data, scrollToBottom }) => {
-  const { avatar, metaMessages } = data;
+export const Meta: FC<TProps> = (props) => {
+  const { avatar, metaMessages, scrollToBottom } = props || {};
 
   const [thinkingMessage, setThinkingMessage] = useState<string>('');
   const thinkingManagerRef = useRef(createThinkingManager());

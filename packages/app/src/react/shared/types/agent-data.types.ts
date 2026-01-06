@@ -1,14 +1,22 @@
 export interface AgentSettings {
   id: number;
-  key: string;
-  value: string;
+  API: string;
+  'agent-auth-data': string;
+  alexa: string;
   avatar: string;
   chatGptModel: string;
+  chatbot: string;
+  chatgpt: string;
   lastConversationId: string;
+  llm: string;
+  mcp: string;
+  key: string;
+  value: string;
   aiAgentId: string;
   createdAt: string;
   updatedAt: string;
 }
+
 interface Domain {
   name: string;
 }
