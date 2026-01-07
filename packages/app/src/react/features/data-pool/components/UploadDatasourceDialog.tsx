@@ -426,7 +426,7 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
           {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <CustomButton
             variant="primary"
             label={isUploading ? 'Uploading...' : 'Upload'}
