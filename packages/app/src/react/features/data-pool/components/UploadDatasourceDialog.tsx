@@ -428,12 +428,6 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
 
         <DialogFooter>
           <CustomButton
-            variant="secondary"
-            label="Cancel"
-            handleClick={onClose}
-            disabled={isUploading}
-          />
-          <CustomButton
             variant="primary"
             label={isUploading ? 'Uploading...' : 'Upload'}
             handleClick={handleUpload}
