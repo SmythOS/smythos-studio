@@ -122,7 +122,7 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
         {
           id: new Date().getTime(),
           content:
-            'The chatbot feature is currently turned off. Enable it in agent settings or contact the owner.',
+            'This feature is disabled for your SmythOS Agent. \n\n To enable it, go to ***Agent Settings > Deployments*** and turn on ***"Chatbot"***',
           type: 'info',
         },
       ]);
