@@ -241,6 +241,11 @@ export class GenAILLM extends Component {
     const currentModel = modelSelect?.value || this.data.model;
     const provider = LLMRegistry.getModelProvider(currentModel);
 
+    // Update context size to ensure maxContextWindowLength has proper max value
+    if (modelSelect) {
+      LLMFormController.updateContextSize(modelSelect);
+    }
+
     // Automatically switch search options based on provider
     this.autoSwitchSearchOptions(provider, form);
 

@@ -288,6 +288,28 @@ export class LLMFormController {
     }
     // #endregion
 
+    // #region update the max context window length field
+    const maxContextWindowLengthElm = formElm.querySelector(
+      '#maxContextWindowLength',
+    ) as HTMLInputElement;
+
+    if (maxContextWindowLengthElm && allowedMaxContextTokens) {
+      const currentValue = maxContextWindowLengthElm.valueAsNumber || 0;
+
+      // Update the max attribute for the range input
+      this.replaceValidationRules({
+        fieldElm: maxContextWindowLengthElm,
+        attribute: 'max',
+        targetValue: allowedMaxContextTokens,
+        inputType: 'range',
+      });
+
+      // Ensure current value doesn't exceed the new max
+      const validMaxContextWindowLength = Math.min(allowedMaxContextTokens, currentValue);
+      this.setRangeInputValue(formElm, 'maxContextWindowLength', `${validMaxContextWindowLength}`);
+    }
+    // #endregion
+
     // #region update the web search context size information
     const allowedWebSearchContextTokens = LLMRegistry.getWebSearchContextTokens(model);
 
