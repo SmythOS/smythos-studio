@@ -209,12 +209,11 @@ const VoiceDialog = ({
                                   <TooltipTrigger asChild>
                                     <Info className="w-5 h-5 ml-1 cursor-pointer" />
                                   </TooltipTrigger>
-                                  <TooltipContent className="w-60 text-center">
+                                  <TooltipContent className="max-w-[240px] text-center text-wrap">
                                     <div>
                                       Restrict voice to specific domains.
                                       <br /> Use commas to separate multiple domains (e.g.,
                                       example.com, mysite.org).
-                                      <br /> Leave empty for no restrictions.
                                     </div>
                                   </TooltipContent>
                                 </Tooltip>
@@ -286,7 +285,7 @@ const VoiceDialog = ({
                               Icon={<Spinner classes="w-4 h-4 mr-2" />}
                               disabled={isSubmitting}
                               type="submit"
-                              className="px-8 rounded-lg"
+                              className="px-8 rounded-sm"
                             />
                           </div>
                         </Form>

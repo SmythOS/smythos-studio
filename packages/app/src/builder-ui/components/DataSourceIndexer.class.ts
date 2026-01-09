@@ -41,6 +41,7 @@ export class DataSourceIndexer extends Component {
     }));
     this.settings.namespace.options = this.namespaces;
     if (this.settingsOpen) this.refreshSettingsSidebar();
+    await this.validateNamespaceSelection();
   }
 
   protected async init() {
@@ -50,6 +51,7 @@ export class DataSourceIndexer extends Component {
         label: 'data space',
         help: 'Select the memory bucket where this source is stored; keep staging and production separate.',
         options: this.namespaces,
+        tooltipClasses: 'w-56',
       },
 
       id: {
@@ -59,6 +61,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `custom=isValidId`,
         validateMessage: `It should contain only 'a-z', 'A-Z', '0-9', '-', '_', '.' `,
+        tooltipClasses: 'w-56',
       },
       name: {
         type: 'input',
@@ -67,6 +70,7 @@ export class DataSourceIndexer extends Component {
         attributes: { 'data-template-vars': 'true' },
         validate: `maxlength=50`,
         validateMessage: 'Enter a non-empty label, not more than 50 characters.',
+        tooltipClasses: 'w-56',
       },
       metadata: {
         type: 'textarea',
@@ -74,7 +78,7 @@ export class DataSourceIndexer extends Component {
         code: { mode: 'json', theme: 'chrome' },
         label: `Metadata`,
         help: 'Optional JSON or text with author, tags, and timestamps to improve search and filtering.',
-        tooltipClasses: 'w-44',
+        tooltipClasses: 'w-56',
         arrowClasses: '-ml-11',
         value: '',
         validate: `maxlength=500000`,
@@ -122,20 +126,41 @@ export class DataSourceIndexer extends Component {
   protected async checkSettings() {
     super.checkSettings();
 
-    if (!this.namespaces || this.namespaces.length == 0) await delay(3000);
+    await this.validateNamespaceSelection();
+  }
 
-    const namespaces = {};
-    this.namespaces.forEach((ns: any) => {
-      namespaces[ns.value] = ns.text;
+  /**
+   * Validates that the selected namespace exists in the available namespaces list.
+   * If the namespace is missing, displays an alert message prompting the user to create one.
+   * If the namespace is valid, clears any previously displayed alert messages.
+   */
+  private async validateNamespaceSelection(): Promise<void> {
+    // Wait for namespaces to load if not yet available
+    if (!this.namespaces || this.namespaces.length === 0) {
+      await delay(3000);
+    }
+
+    // Build a lookup map of available namespaces
+    const namespacesMap: Record<string, string> = {};
+    this.namespaces.forEach((ns) => {
+      namespacesMap[ns.value] = ns.text;
     });
-    if (this.data['namespace']) {
-      const nsId = this.data['namespace'];
-      if (!namespaces[nsId]) {
+
+    // Validate the selected namespace
+    const nsId = this.data['namespace'] as string | undefined;
+    if (nsId) {
+      const messageCssClass = nsId.replace(/ /g, '-');
+
+      if (!namespacesMap[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
           `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
+          null,
+          messageCssClass,
         );
+      } else {
+        this.clearComponentMessage(`.messages-container .${messageCssClass}`);
       }
     }
   }

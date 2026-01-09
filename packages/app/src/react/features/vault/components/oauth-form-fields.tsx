@@ -1,6 +1,6 @@
 /**
  * OAuth Form Fields Component
- * 
+ *
  * Renders the appropriate OAuth form fields based on the selected service type.
  * Separated into its own component for better modularity and maintainability.
  */
@@ -9,13 +9,15 @@ import { Input } from '@src/react/shared/components/ui/input';
 import { Label } from '@src/react/shared/components/ui/label';
 import { TextArea } from '@src/react/shared/components/ui/newDesign/textarea';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@src/react/shared/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { OAUTH_SERVICES } from '@src/shared/helpers/oauth/oauth.utils';
+import { Info } from 'lucide-react';
 import React from 'react';
 import type { OAuthConnectionFormData } from '../types/oauth-connection';
 
@@ -27,57 +29,59 @@ interface OAuthFormFieldsProps {
    * The current form data
    */
   formData: Partial<OAuthConnectionFormData>;
-  
+
   /**
    * The currently selected OAuth service
    */
   selectedService: string;
-  
+
   /**
    * Whether the form is currently being processed
    */
   isProcessing: boolean;
-  
+
   /**
    * Whether vault keys are currently being resolved
    */
   isResolvingVaultKeys: boolean;
-  
+
   /**
    * Whether to show OAuth 2.0 specific fields
    */
   showOAuth2Fields: boolean;
-  
+
   /**
    * Whether to show OAuth 1.0a specific fields
    */
   showOAuth1Fields: boolean;
-  
+
   /**
    * Whether to show Client Credentials specific fields
    */
   showClientCredentialsFields: boolean;
-  
+
   /**
    * Whether to show the scope field
    */
   showScopeField: boolean;
-  
+
   /**
    * The OAuth 2.0 callback URL (for display only)
    */
   oauth2CallbackURL?: string;
-  
+
   /**
    * The OAuth 1.0a callback URL (for display only)
    */
   oauth1CallbackURL?: string;
-  
+
   /**
    * Handler for input field changes
    */
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-  
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => void;
+
   /**
    * Handler for select field changes
    */
@@ -334,14 +338,24 @@ export function OAuthFormFields({
           {/* Scope Field (Common for most OAuth2 flows) */}
           {showScopeField && (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="scope">Scopes</Label>
+              <div className="flex items-center">
+                <Label htmlFor="scope">Scopes</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 cursor-help ml-2" />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-52 text-center" side="right">
+                    <p>Enter scopes separated by spaces (e.g., read write profile)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <div className="col-span-3">
                 <TextArea
                   id="scope"
                   name="scope"
                   value={formData.scope || ''}
                   onChange={handleChange}
-                  placeholder="Enter scopes separated by space"
+                  placeholder="Enter scopes separated by spaces (e.g., read write profile)"
                   disabled={isDisabled}
                   fullWidth={true}
                 />
@@ -353,4 +367,3 @@ export function OAuthFormFields({
     </>
   );
 }
-

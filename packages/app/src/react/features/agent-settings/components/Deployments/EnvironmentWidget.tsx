@@ -2,9 +2,9 @@ import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
 import { CopyKeyIcon } from '@react/shared/components/svgs';
 import { Button } from '@react/shared/components/ui/newDesign/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { FaUpRightFromSquare } from 'react-icons/fa6';
@@ -106,7 +106,7 @@ const DomainRow = ({
                       <span className="text-sm">API</span>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="min-w-max w-[223px]">
+                  <TooltipContent side="top">
                     <p>API calls and endpoint testing</p>
                   </TooltipContent>
                 </Tooltip>
@@ -121,7 +121,7 @@ const DomainRow = ({
                   <FaUpRightFromSquare className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="min-w-max w-[145px]">
+              <TooltipContent side="top">
                 <p>Open in a new tab</p>
               </TooltipContent>
             </Tooltip>
@@ -207,7 +207,7 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
     const filteredDomains = domainData
       ?.filter((d) => d.aiAgent == null || d.aiAgent.id === agentId)
       ?.map((item) => item.name);
-    let prodDomain = `${agentId}.${
+    const prodDomain = `${agentId}.${
       workspace?.serverData?.prod_agent_domain || serverData?.prod_agent_domain || ''
     }`;
 
@@ -366,7 +366,7 @@ const EnvironmentWidget = ({ isWriteAccess, isDeployed }: Props) => {
 
         {/* Test Domain */}
         <DomainRow
-          label={`Test Domain`}
+          label={'Test Domain'}
           value={testDomainUrl}
           onCopyClick={(domain) => {
             navigator.clipboard.writeText(ensureHttps(domain));

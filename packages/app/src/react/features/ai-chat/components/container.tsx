@@ -1,7 +1,9 @@
-import { IChildren } from '@react/features/ai-chat/types/chat.types';
+import type { TChildren } from '@react/features/ai-chat/types';
 import { FC, useCallback, useEffect, useRef } from 'react';
 
-export const Container: FC<IChildren> = ({ children }) => {
+import '../styles/index.css';
+
+export const Container: FC<TChildren> = ({ children }) => {
   const parentElementRef = useRef<HTMLElement | null>(null);
   const originalStateRef = useRef<{ className: string; maxWidth: string } | null>(null);
 
@@ -12,13 +14,11 @@ export const Container: FC<IChildren> = ({ children }) => {
     const parent = containerElement.parentElement;
     parentElementRef.current = parent;
 
-    // Store original state
     originalStateRef.current = {
       className: parent.className,
       maxWidth: parent.style.maxWidth,
     };
 
-    // Override max-width constraint
     parent.classList.remove('max-w-[1224px]');
     parent.classList.add('max-w-none');
     parent.style.maxWidth = 'none';

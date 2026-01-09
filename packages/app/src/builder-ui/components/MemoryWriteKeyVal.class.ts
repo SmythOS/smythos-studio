@@ -69,6 +69,7 @@ export class MemoryWriteKeyVal extends Component {
           { value: '604800', text: '1 week' },
         ],
         help: 'Sets how long a TTL value remains available before automatic deletion.',
+        tooltipClasses: 'w-56',
       },
     };
 

@@ -24,8 +24,15 @@ export class APIEndpoint extends Component {
   private formPreviewButton: HTMLElement | null = null;
 
   protected async init() {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    // if it is a new component, it is on easy mode by default otherwise, if the advancedModeEnabled is not set, it is on advanced mode (for retro compatibility)
+    // Check if this is a new component by filtering out auto-initialized properties
+    // like 'templateVarToggleStates' which is added by the base Component class
+    const dataKeysExcludingAutoInit = Object.keys(this.data).filter(
+      (key) => key !== 'templateVarToggleStates',
+    );
+    this.isNewComponent = dataKeysExcludingAutoInit.length === 0;
+
+    // If it is a new component, default to easy mode (advanced mode OFF).
+    // Otherwise, use the saved advancedModeEnabled value, or default to true for retro compatibility.
     this.isOnAdvancedMode = this.isNewComponent
       ? false
       : typeof this.data.advancedModeEnabled === 'boolean'

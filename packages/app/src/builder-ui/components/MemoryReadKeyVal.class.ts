@@ -12,6 +12,7 @@ export class MemoryReadKeyVal extends Component {
         validateMessage: 'Enter a non-empty name, not more than 100 characters.',
         attributes: { 'data-template-vars': 'true' },
         help: 'Tells the component which namespace to search so it finds the value you wrote.',
+        tooltipClasses: 'w-56',
       },
       key: {
         type: 'input',
@@ -20,6 +21,7 @@ export class MemoryReadKeyVal extends Component {
         validate: `maxlength=50`,
         attributes: { 'data-template-vars': 'true' },
         help: 'Targets the exact item to retrieve using its saved identifier.',
+        tooltipClasses: 'w-56',
       },
       // scope: {
       //   type: 'select',

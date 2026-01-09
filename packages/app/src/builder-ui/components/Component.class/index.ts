@@ -262,6 +262,14 @@ export class Component extends EventEmitter {
 
     this.data = this.properties.data || {};
 
+    // Auto-initialize templateVarToggleStates for template variable toggle functionality
+    if (
+      !this.data.templateVarToggleStates ||
+      typeof this.data.templateVarToggleStates !== 'object'
+    ) {
+      this.data.templateVarToggleStates = {};
+    }
+
     if (this.properties.template) {
       const template = this.properties.template;
       this.properties.inputs = [
@@ -522,7 +530,18 @@ export class Component extends EventEmitter {
   }
 
   public async checkSettings() {
-    this.clearComponentMessages();
+    // Only clear messages if there are no important messages (like missing keys)
+    // This prevents clearing important messages that were just added by concurrent checkSettings calls
+    const messagesContainer = this.domElement.querySelector('.messages-container') as HTMLElement;
+    const hasImportantMessages =
+      messagesContainer &&
+      Array.from(messagesContainer.children).some((msg: Element) => {
+        return msg.classList.contains('alert') && msg.textContent?.includes('Missing Key');
+      });
+
+    if (!hasImportantMessages) {
+      this.clearComponentMessages();
+    }
 
     //#region Get vault data
     const { data: vaultData } = await getVaultData({
@@ -1893,7 +1912,10 @@ export class Component extends EventEmitter {
   }
 
   public clearComponentMessages() {
-    this.domElement.querySelector('.messages-container').innerHTML = '';
+    const messagesContainer = this.domElement.querySelector('.messages-container') as HTMLElement;
+    if (messagesContainer) {
+      messagesContainer.innerHTML = '';
+    }
   }
   /**
    * Adds a message to the component's message container.
@@ -1922,12 +1944,14 @@ export class Component extends EventEmitter {
       msg.addEventListener('click', onClick);
     }
 
-    attachTooltipV2WithHTML(msg, {
-      text: tooltipText || '',
-      position: 'bottom',
-      delayDuration: 300,
-      className: 'text-left text-xs',
-    });
+    if (tooltipText) {
+      attachTooltipV2WithHTML(msg, {
+        text: tooltipText || '',
+        position: 'bottom',
+        delayDuration: 300,
+        className: 'text-left text-xs',
+      });
+    }
 
     this.domElement.querySelector('.messages-container').appendChild(msg);
     return msg;
@@ -2502,7 +2526,7 @@ export class Component extends EventEmitter {
             'Are you sure you want to close this without saving?',
             {
               btnYesLabel: 'Discard Changes',
-              btnYesClass: 'rounded-lg px-8',
+              btnYesClass: 'rounded-sm px-8',
               btnNoClass: 'hidden',
             },
           );
@@ -3519,7 +3543,7 @@ function addMissingKey({
     apiKey: {
       label: 'Key',
       type: 'textarea',
-      fieldCls: 'max-h-64 min-h-[34px] h-[34px] px-3 py-1',
+      fieldCls: 'configure-api-key-textarea px-3 py-2',
       class: 'w-3/5',
       validate: 'required maxlength=10000',
       validateMessage: 'API Key is required',

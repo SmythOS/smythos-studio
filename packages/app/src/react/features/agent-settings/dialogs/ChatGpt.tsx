@@ -519,7 +519,7 @@ const ChatGptDialog = ({
 
                           <div className="mt-8 flex justify-end w-full">
                             <Button
-                              className="w-[100px] rounded-lg"
+                              className="w-[100px] rounded-sm"
                               handleClick={() => submitForm(props.values)}
                               label="Save"
                               addIcon={isSubmitting}

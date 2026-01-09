@@ -9,6 +9,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { delay } from '../../../utils';
 import { handleKvFieldEditBtn, handleVaultBtn } from '../../../utils/component.utils';
+import { isTemplateVarsEnabled } from '../../../utils/form.utils';
 import { addBracketSelection, handleTemplateVars } from '../misc';
 
 declare var Metro;
@@ -796,7 +797,9 @@ function setupTemplateVarsIfNeeded(
   modalTextareaInDialog: TextAreaWithEditor,
   currentComponent: { _uid: string } | null,
 ): void {
-  const hasTemplateVars = modalTextareaInDialog.getAttribute('data-template-vars') === 'true';
+  const hasTemplateVars = isTemplateVarsEnabled(
+    modalTextareaInDialog.getAttribute('data-template-vars'),
+  );
   const hasAgentVars = modalTextareaInDialog.getAttribute('data-agent-vars') === 'true';
 
   if (!hasTemplateVars && !hasAgentVars) {
@@ -1047,10 +1050,6 @@ async function handleExpandTextarea(
   if (hasVaultAttribute) {
     // Copy vault attribute to modal textarea
     modalTextarea.setAttribute('data-vault', hasVaultAttribute);
-
-    // Mark this textarea as coming from expanded/modal view
-    // This is used to hide the "Add Key" option in the vault dropdown
-    modalTextarea.setAttribute('data-vault-from-modal', 'true');
 
     // Create vault button for modal
     const modalVaultButton = createVaultButton();
@@ -1396,14 +1395,32 @@ export function createInfoButton(
   // Sanitize the HTML content to prevent XSS attacks
   // DOMPurify's default configuration already allows all safe HTML tags
   // and blocks dangerous elements like <script>, event handlers, etc.
-  const sanitizedText = DOMPurify.sanitize(text);
+  const sanitizedText = DOMPurify.sanitize(text, {
+    ADD_ATTR: ['target'], // We need to allow target attribute for external links
+  });
 
   // Render the Tooltip component wrapped in TooltipProvider
   const root = createRoot(tooltipContainer);
+
+  // When tooltipClasses is provided (like 'w-56'), extract width and apply via inline style
+  const widthClassName = tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`);
+
+  let tooltipStyle: React.CSSProperties | undefined;
+  if (tooltipClasses && tooltipClasses.includes('w-')) {
+    const widthMatch = tooltipClasses.match(/w-(\d+)/);
+    if (widthMatch) {
+      tooltipStyle = {
+        width: `${parseInt(widthMatch[1], 10) * 0.25}rem`,
+      };
+    }
+  }
+
   root.render(
     React.createElement(
       TooltipProvider,
-      { delayDuration: 300, skipDelayDuration: 100 },
+      { delayDuration: 300, skipDelayDuration: 100 } as React.ComponentProps<
+        typeof TooltipProvider
+      >,
       React.createElement(
         Tooltip,
         {},
@@ -1415,10 +1432,18 @@ export function createInfoButton(
             className:
               clsHint +
               ' whitespace-normal text-xs ' +
-              (tooltipClasses || (hasLinks ? `min-w-52 max-w-96` : `w-${estimatedWidth}`)) +
+              widthClassName +
               ' [&_a]:whitespace-nowrap [&_a]:inline-block',
+            style: tooltipStyle,
+            ref: (element: HTMLElement | null) => {
+              // Override text-balance to ensure text fills width evenly
+              if (element) {
+                element.style.setProperty('text-wrap', 'wrap', 'important');
+              }
+            },
           },
           React.createElement('div', {
+            style: { width: '100%', display: 'block' },
             dangerouslySetInnerHTML: { __html: sanitizedText },
           }),
         ),

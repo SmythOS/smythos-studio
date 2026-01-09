@@ -6,6 +6,7 @@ declare global {
   }
 }
 
+import { isTemplateVarsEnabled } from '../utils/form.utils';
 import { addBracketSelection } from './form/misc';
 
 export function setCaratAtEnd(element) {
@@ -125,7 +126,8 @@ export function setCodeEditor(
   textAreas?.forEach((textArea) => {
     if (textArea?.tagName !== 'TEXTAREA') return;
     const isReadOnly = textArea?.hasAttribute('readonly');
-    const hasDataTempVarsTrue = textArea && textArea?.getAttribute('data-template-vars') === 'true';
+    const hasDataTempVarsTrue =
+      textArea && isTemplateVarsEnabled(textArea.getAttribute('data-template-vars'));
     const dataAttr = textArea?.getAttribute('data-hide-line-numbers');
     const scrollMarginTop = textArea?.getAttribute('data-scroll-margin-top') || 20;
     const scrollMarginBottom = textArea?.getAttribute('data-scroll-margin-bottom') || 20;
@@ -240,9 +242,11 @@ export function setCodeEditor(
       Object.values(errorTooltips).forEach((tooltip: any) => (tooltip.style.display = 'none'));
 
       // Hide all tooltips from other editors to prevent duplicates
-      document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`).forEach((tooltip: any) => {
-        tooltip.style.display = 'none';
-      });
+      document
+        .querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`)
+        .forEach((tooltip: any) => {
+          tooltip.style.display = 'none';
+        });
 
       const row = e.getDocumentPosition().row;
       const gutterRegion = e.domEvent.target.className;
@@ -255,8 +259,9 @@ export function setCodeEditor(
 
         // Check if this editor has internal scrolling enabled (maxLines !== Infinity)
         // Only apply scroll offset for editors with internal scrolling
-        const hasInternalScrolling = editor.getOption('maxLines') === null || editor.getOption('maxLines') === undefined;
-        const scrollTop = hasInternalScrolling ? (editor.renderer.scrollTop || 0) : 0;
+        const hasInternalScrolling =
+          editor.getOption('maxLines') === null || editor.getOption('maxLines') === undefined;
+        const scrollTop = hasInternalScrolling ? editor.renderer.scrollTop || 0 : 0;
 
         // Temporarily display the tooltip to measure its dimensions
         tooltip.style.visibility = 'hidden';
@@ -300,9 +305,11 @@ export function setCodeEditor(
       if (!e.domEvent.target.className.includes('ace_gutter-cell')) {
         // Hide all tooltips from this editor and other editors
         Object.values(errorTooltips)?.forEach((tooltip: any) => (tooltip.style.display = 'none'));
-        document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`).forEach((tooltip: any) => {
-          tooltip.style.display = 'none';
-        });
+        document
+          .querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`)
+          .forEach((tooltip: any) => {
+            tooltip.style.display = 'none';
+          });
       }
     });
 
@@ -320,9 +327,11 @@ export function setCodeEditor(
         Object?.values(errorTooltips)?.forEach?.(
           (tooltip: any) => (tooltip.style.display = 'none'),
         );
-        document.querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`)?.forEach((tooltip: any) => {
-          tooltip.style.display = 'none';
-        });
+        document
+          .querySelectorAll(`.ace_tooltip:not([data-editor-tooltip-id="${editorTooltipId}"])`)
+          ?.forEach((tooltip: any) => {
+            tooltip.style.display = 'none';
+          });
       }
     });
 
