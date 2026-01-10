@@ -50,3 +50,38 @@
 .smooth-blink-text {
     animation: smoothBlink 1.5s ease-in-out infinite;
 }
+
+/* File attachment enter animation */
+@keyframes fileItemEnter {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.file-item-enter {
+    animation: fileItemEnter 0.2s ease-out forwards;
+}
+
+/* Attachments container animation */
+@keyframes attachmentsContainerEnter {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 120px;
+    }
+}
+
+.attachments-container-enter {
+    animation: attachmentsContainerEnter 0.25s ease-out forwards;
+    overflow: hidden;
+}

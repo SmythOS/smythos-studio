@@ -1,4 +1,4 @@
-const DEFAULT_TEXTAREA_MAX_HEIGHT = 160;
+const DEFAULT_TEXTAREA_MAX_HEIGHT = 384;
 
 export const adjustTextareaHeight = (
   textarea: HTMLTextAreaElement | null,

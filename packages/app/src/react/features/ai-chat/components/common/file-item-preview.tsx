@@ -1,3 +1,4 @@
+import type { TAttachment } from '@react/features/ai-chat/types';
 import { memo, useEffect, useMemo, useState, type FC, type ReactElement } from 'react';
 import {
   FaRegFileAudio,
@@ -9,7 +10,6 @@ import {
   FaRegFileWord,
   FaXmark,
 } from 'react-icons/fa6';
-import type { TAttachment } from '@react/features/ai-chat/types';
 
 const FILE_ICONS: Record<string, ReactElement> = {
   pdf: <FaRegFilePdf className="text-white text-xl" />,
@@ -139,13 +139,16 @@ export const FileItemPreview: FC<TFileItemPreviewProps> = memo(
 
     if (isImage) {
       return (
-        <div className="relative inline-block size-16 min-w-16 min-h-16 group mt-4">
+        <div
+          style={{ border: '1px solid #E5E7EB' }}
+          className="relative size-16 min-w-16 min-h-16 group rounded-lg mt-2 file-item-enter"
+        >
           {preview ? (
             <img
-              src={preview}
               alt={name}
-              className="w-full h-full object-cover rounded-lg"
+              src={preview}
               onError={handleImageError}
+              className="w-full h-full object-cover rounded-lg"
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-lg flex flex-col items-center justify-center">
@@ -158,7 +161,7 @@ export const FileItemPreview: FC<TFileItemPreviewProps> = memo(
             </div>
           )}
           {onRemove && (
-            <div className="absolute -top-2 -right-2 group-hover:[&>button]:opacity-100">
+            <div className="absolute z-10 -top-2 -right-2 group-hover:[&>button]:opacity-100">
               <RemoveButton onRemove={onRemove} />
             </div>
           )}
@@ -167,16 +170,19 @@ export const FileItemPreview: FC<TFileItemPreviewProps> = memo(
     }
 
     return (
-      <div className="relative inline-block group mt-4">
+      <div
+        style={{ border: '1px solid #E5E7EB' }}
+        className="relative group mt-4 rounded-lg file-item-enter"
+      >
         {onRemove && (
           <div className="absolute -top-2 -right-2 z-10 group-hover:[&>button]:opacity-100">
             <RemoveButton onRemove={onRemove} />
           </div>
         )}
-        <div className="flex items-center gap-4 text-sm bg-white rounded-lg border border-[#E5E7EB] px-2 py-1 overflow-hidden w-40 min-w-32 max-h-[52px]">
+        <div className="flex items-center gap-4 text-sm bg-white rounded-lg  px-2 py-1 overflow-hidden w-40 min-w-32 max-h-[52px]">
           <div className="flex items-center justify-center bg-primary-100 rounded-lg p-2 flex-shrink-0">
             {isUploading ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-solid border-2 border-white border-t-transparent" />
+              <div className="animate-spin rounded-full size-6 border-solid border-2 border-white border-t-transparent" />
             ) : (
               fileIcon
             )}
@@ -194,4 +200,3 @@ export const FileItemPreview: FC<TFileItemPreviewProps> = memo(
 );
 
 FileItemPreview.displayName = 'FileItemPreview';
-

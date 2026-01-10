@@ -1,6 +1,7 @@
-import { ChatInput, ErrorToast, ScrollToBottomButton } from '@react/features/ai-chat/components';
+import { ErrorToast, ScrollToBottomButton } from '@react/features/ai-chat/components';
 import { useChatStores } from '@react/features/ai-chat/hooks';
 import { FC } from 'react';
+import ClaudeInput from './claude-input';
 
 export const Footer: FC = () => {
   const { files, scroll } = useChatStores();
@@ -8,11 +9,13 @@ export const Footer: FC = () => {
   const { showScrollButton, scrollToBottom } = scroll || {};
 
   return (
-    <div className="w-full max-w-4xl pt-2.5">
+    <div className="w-full max-w-4xl pt-5">
       {errorMessage && <ErrorToast message={errorMessage} onClose={clearError} />}
       <div className="relative">
         {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom()} />}
-        <ChatInput />
+        <ClaudeInput />
+        {/* <GptInput /> */}
+        {/* <ChatInput /> */}
       </div>
 
       <h6 className="py-4 text-center text-xs text-gray-500">
