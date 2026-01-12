@@ -62,31 +62,4 @@
     </div>
 </nav>
 
-<script>
-// dropdown toggle for data-dropdown-toggle
-(function() {
-  if (window.__dropdownInit) return;
-  window.__dropdownInit = true;
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-dropdown-toggle]').forEach(function(btn) {
-      var dropdownId = btn.getAttribute('data-dropdown-toggle');
-      var dropdown = document.getElementById(dropdownId);
-      if (!dropdown) return;
-
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('hidden');
-      });
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('[data-dropdown-toggle], [id$="-dropdown"]')) {
-        document.querySelectorAll('[id$="-dropdown"]').forEach(function(d) {
-          d.classList.add('hidden');
-        });
-      }
-    });
-  });
-})();
-</script>
+<%- include('../dropdown-toggle'); -%>
