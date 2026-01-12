@@ -1,10 +1,9 @@
 <div class="relative">
   <button
     type="button"
-    class="flex text-sm rounded-full cursor-pointer"
+    class="flex text-sm rounded-full"
     id="user-menu-button"
     aria-expanded="false"
-    aria-haspopup="true"
     data-dropdown-toggle="<%= dropdownId %>"
     data-dropdown-placement="bottom"
   >
@@ -28,8 +27,6 @@
   <div
     class="hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
     id="<%= dropdownId %>"
-    role="menu"
-    aria-labelledby="user-menu-button"
   >
     <div class="px-4 pt-3 pb-1">
       <span class="block text-sm text-gray-900"><%= user?.name %></span>

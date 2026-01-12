@@ -826,103 +826,28 @@
     }
   }
 
-  /**
-   * Initializes dropdown toggle functionality for elements with data-dropdown-toggle attribute.
-   * This handles click events on dropdown trigger buttons and closes dropdowns when clicking outside.
-   */
-  (function initDropdownToggles() {
-    'use strict';
-
-    // Skip if already initialized (prevents duplicate initialization)
-    if (window.__dropdownTogglesInitialized) {
-      return;
-    }
-    window.__dropdownTogglesInitialized = true;
-
-    /**
-     * Toggles the visibility of a dropdown menu.
-     * @param {HTMLElement} dropdown - The dropdown element to toggle
-     * @param {HTMLElement} button - The button that triggered the toggle
-     * @param {boolean} show - Whether to show (true) or hide (false) the dropdown
-     */
-    function toggleDropdown(dropdown, button, show) {
-      if (show) {
-        dropdown.classList.remove('hidden');
-        button.setAttribute('aria-expanded', 'true');
-      } else {
-        dropdown.classList.add('hidden');
-        button.setAttribute('aria-expanded', 'false');
-      }
-    }
-
-    /**
-     * Checks if a dropdown is currently visible.
-     * @param {HTMLElement} dropdown - The dropdown element to check
-     * @returns {boolean} True if the dropdown is visible
-     */
-    function isDropdownVisible(dropdown) {
-      return !dropdown.classList.contains('hidden');
-    }
-
-    /**
-     * Closes all open dropdowns except the one specified.
-     * @param {HTMLElement|null} exceptDropdown - Dropdown to exclude from closing (optional)
-     */
-    function closeAllDropdowns(exceptDropdown) {
-      var buttons = document.querySelectorAll('[data-dropdown-toggle]');
-      buttons.forEach(function(btn) {
-        var targetId = btn.getAttribute('data-dropdown-toggle');
-        var dropdown = document.getElementById(targetId);
-        if (dropdown && dropdown !== exceptDropdown && isDropdownVisible(dropdown)) {
-          toggleDropdown(dropdown, btn, false);
-        }
-      });
-    }
-
-    // Initialize click handlers for all dropdown toggle buttons
+  // dropdown toggle for data-dropdown-toggle
+  (function() {
+    if (window.__dropdownInit) return;
+    window.__dropdownInit = true;
+    
     document.addEventListener('DOMContentLoaded', function() {
-      var toggleButtons = document.querySelectorAll('[data-dropdown-toggle]');
+      document.querySelectorAll('[data-dropdown-toggle]').forEach(function(btn) {
+        var dropdownId = btn.getAttribute('data-dropdown-toggle');
+        var dropdown = document.getElementById(dropdownId);
+        if (!dropdown) return;
 
-      toggleButtons.forEach(function(button) {
-        var targetId = button.getAttribute('data-dropdown-toggle');
-        var dropdown = document.getElementById(targetId);
-
-        if (!dropdown) {
-          console.warn('Dropdown target not found:', targetId);
-          return;
-        }
-
-        // Handle button click to toggle dropdown
-        button.addEventListener('click', function(event) {
-          event.preventDefault();
-          event.stopPropagation();
-
-          var shouldShow = !isDropdownVisible(dropdown);
-
-          // Close other dropdowns first
-          closeAllDropdowns(dropdown);
-
-          // Toggle this dropdown
-          toggleDropdown(dropdown, button, shouldShow);
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          dropdown.classList.toggle('hidden');
         });
       });
 
-      // Close dropdowns when clicking outside
-      document.addEventListener('click', function(event) {
-        var target = event.target;
-
-        // Check if click is inside any dropdown or toggle button
-        var clickedInsideDropdown = target.closest('[data-dropdown-toggle], [id$="-dropdown"]');
-
-        if (!clickedInsideDropdown) {
-          closeAllDropdowns(null);
-        }
-      });
-
-      // Close dropdowns when pressing Escape key
-      document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-          closeAllDropdowns(null);
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('[data-dropdown-toggle], [id$="-dropdown"]')) {
+          document.querySelectorAll('[id$="-dropdown"]').forEach(function(d) {
+            d.classList.add('hidden');
+          });
         }
       });
     });
