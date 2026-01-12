@@ -212,7 +212,6 @@ export const PAGE_TITLE_MAP: Record<string, string> = {
   '/my-plan': 'Manage Subscription',
   '/data': 'Data Pool',
   '/vault': 'Vault',
-  '/telemetry': 'Telemetry & Logs',
   '/account': 'Account',
   '/teams/roles': 'Team Roles',
   '/teams/members': 'User Management',

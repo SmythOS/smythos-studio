@@ -15,6 +15,7 @@ export const hasAnyAccess = (currentAcls: object) => {
   return aclsArray.some((acl) => acl.access !== '');
 };
 
+
 export const getInitials = (name: string, email: string) => {
   return name ? name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase();
 };
@@ -84,68 +85,3 @@ export function isProdEnv() {
   // this comes from rollup-fe.config.mjs
   return process.env.NODE_ENV === 'production';
 }
-
-/**
- * Supported query param value types for safe URL serialization.
- *
- * Notes:
- * - Arrays/objects are intentionally not supported to avoid ambiguous encoding.
- * - `null`/`undefined` values should typically be omitted from query strings.
- */
-export type QueryParamValue = string | number | boolean | null | undefined;
-
-/**
- * Plain query params object shape.
- */
-export type QueryParams = Record<string, QueryParamValue>;
-
-/**
- * Builds a query string from a params object while omitting unset or invalid values.
- *
- * Omits:
- * - `undefined` and `null`
- * - empty strings (including whitespace-only)
- * - literal strings 'undefined' and 'null' (common accidental coercions)
- *
- * @param params - Plain query params object.
- * @returns Serialized query string WITHOUT the leading '?'.
- */
-export const buildQueryString = (params: QueryParams | undefined): string => {
-  if (!params) return '';
-
-  const searchParams = new URLSearchParams();
-
-  for (const [key, rawValue] of Object.entries(params)) {
-    if (rawValue === undefined || rawValue === null) continue;
-
-    if (typeof rawValue === 'string') {
-      const trimmed = rawValue.trim();
-      if (trimmed.length === 0 || trimmed === 'undefined' || trimmed === 'null') continue;
-      searchParams.set(key, trimmed);
-      continue;
-    }
-
-    // Numbers/booleans are safe to stringify.
-    searchParams.set(key, `${rawValue}`);
-  }
-
-  return searchParams.toString();
-};
-
-/**
- * Returns a URL with the provided query params appended (if any).
- *
- * - Uses `buildQueryString` to omit unset/invalid values.
- * - Preserves existing query params on the base URL by appending with '&'.
- *
- * @param baseUrl - URL path or full URL.
- * @param params - Query params to append.
- * @returns `baseUrl` if no query params remain after sanitization; otherwise `baseUrl` with query.
- */
-export const withQueryParams = (baseUrl: string, params: QueryParams | undefined): string => {
-  const queryString = buildQueryString(params);
-  if (queryString.length === 0) return baseUrl;
-
-  const joiner = baseUrl.includes('?') ? '&' : '?';
-  return `${baseUrl}${joiner}${queryString}`;
-};
