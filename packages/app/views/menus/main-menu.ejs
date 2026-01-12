@@ -38,9 +38,10 @@
     <div class="relative">
       <button
         type="button"
-        class="flex text-sm rounded-full"
+        class="flex text-sm rounded-full ring-2 ring-transparent hover:ring-gray-200 focus:ring-primary-100 transition-all duration-150 cursor-pointer"
         id="user-menu-button"
         aria-expanded="false"
+        aria-haspopup="true"
         data-dropdown-toggle="user-dropdown"
         data-dropdown-placement="bottom"
       >
@@ -62,8 +63,10 @@
       </button>
 
       <div
-        class="hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        class="hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg border border-gray-100"
         id="user-dropdown"
+        role="menu"
+        aria-labelledby="user-menu-button"
       >
         <div class="px-4 pt-3 pb-1">
           <span class="block text-sm text-gray-900"><%= user?.name %></span>
@@ -86,9 +89,10 @@
     <div class="relative xl:hidden">
       <button
         type="button"
-        class="flex xl:hidden text-sm p-1 border-2 border-solid border-transparent focus:border-primary-100 rounded-lg focus:ring-0"
+        class="flex xl:hidden text-sm p-1 border-2 border-solid border-transparent hover:border-gray-200 focus:border-primary-100 rounded-lg focus:ring-0 transition-all duration-150 cursor-pointer"
         id="hamburger-menu-button"
         aria-expanded="false"
+        aria-haspopup="true"
         data-dropdown-toggle="hamburger-dropdown"
         data-dropdown-placement="bottom"
       >
@@ -111,8 +115,10 @@
       </button>
 
       <div
-        class="hidden xl:hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow"
+        class="hidden xl:hidden absolute right-0 z-50 mt-2 w-48 text-base text-left list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg border border-gray-100"
         id="hamburger-dropdown"
+        role="menu"
+        aria-labelledby="hamburger-menu-button"
       >
         <ul class="block py-2">
           <% navPages?.forEach(page => { %>
@@ -127,3 +133,101 @@
     </div>
   </div>
 </nav>
+
+<script>
+/**
+ * Initializes dropdown toggle functionality for elements with data-dropdown-toggle attribute.
+ * This handles click events on dropdown trigger buttons and closes dropdowns when clicking outside.
+ */
+(function initDropdownToggles() {
+  'use strict';
+
+  /**
+   * Toggles the visibility of a dropdown menu.
+   * @param {HTMLElement} dropdown - The dropdown element to toggle
+   * @param {HTMLElement} button - The button that triggered the toggle
+   * @param {boolean} show - Whether to show (true) or hide (false) the dropdown
+   */
+  function toggleDropdown(dropdown, button, show) {
+    if (show) {
+      dropdown.classList.remove('hidden');
+      button.setAttribute('aria-expanded', 'true');
+    } else {
+      dropdown.classList.add('hidden');
+      button.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  /**
+   * Checks if a dropdown is currently visible.
+   * @param {HTMLElement} dropdown - The dropdown element to check
+   * @returns {boolean} True if the dropdown is visible
+   */
+  function isDropdownVisible(dropdown) {
+    return !dropdown.classList.contains('hidden');
+  }
+
+  /**
+   * Closes all open dropdowns except the one specified.
+   * @param {HTMLElement|null} exceptDropdown - Dropdown to exclude from closing (optional)
+   */
+  function closeAllDropdowns(exceptDropdown) {
+    var buttons = document.querySelectorAll('[data-dropdown-toggle]');
+    buttons.forEach(function(btn) {
+      var targetId = btn.getAttribute('data-dropdown-toggle');
+      var dropdown = document.getElementById(targetId);
+      if (dropdown && dropdown !== exceptDropdown && isDropdownVisible(dropdown)) {
+        toggleDropdown(dropdown, btn, false);
+      }
+    });
+  }
+
+  // Initialize click handlers for all dropdown toggle buttons
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggleButtons = document.querySelectorAll('[data-dropdown-toggle]');
+
+    toggleButtons.forEach(function(button) {
+      var targetId = button.getAttribute('data-dropdown-toggle');
+      var dropdown = document.getElementById(targetId);
+
+      if (!dropdown) {
+        console.warn('Dropdown target not found:', targetId);
+        return;
+      }
+
+      // Handle button click to toggle dropdown
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var shouldShow = !isDropdownVisible(dropdown);
+
+        // Close other dropdowns first
+        closeAllDropdowns(dropdown);
+
+        // Toggle this dropdown
+        toggleDropdown(dropdown, button, shouldShow);
+      });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      var target = event.target;
+
+      // Check if click is inside any dropdown or toggle button
+      var clickedInsideDropdown = target.closest('[data-dropdown-toggle], [id$="-dropdown"]');
+
+      if (!clickedInsideDropdown) {
+        closeAllDropdowns(null);
+      }
+    });
+
+    // Close dropdowns when pressing Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeAllDropdowns(null);
+      }
+    });
+  });
+})();
+</script>
