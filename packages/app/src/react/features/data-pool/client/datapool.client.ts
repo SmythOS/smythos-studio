@@ -174,8 +174,9 @@ export const dataPoolClient = {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      if (error instanceof Error) throw error;
+      if (error.status === 403) {
+        throw new Error("You don't have permission to delete this data space");
       }
       throw new Error('Failed to delete namespace');
     }
