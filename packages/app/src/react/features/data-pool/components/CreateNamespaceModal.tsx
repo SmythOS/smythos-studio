@@ -235,8 +235,8 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
           <DialogHeader>
             <DialogTitle>Create Data Space</DialogTitle>
             <p className="text-sm text-gray-600 mt-1">
-              Set up a Data Space to unlock your agents' ability to search, automate, and learn from
-              your data — using RAG and other tools
+              Set up a Data Space to unlock your agents&apos; ability to search, automate, and learn
+              from your data — using RAG and other tools
             </p>
           </DialogHeader>
 
@@ -420,13 +420,6 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
             </div>
 
             <DialogFooter>
-              <CustomButton
-                variant="secondary"
-                type="button"
-                label="Cancel"
-                handleClick={onClose}
-                disabled={isCreating}
-              />
               <CustomButton
                 variant="primary"
                 type="submit"
