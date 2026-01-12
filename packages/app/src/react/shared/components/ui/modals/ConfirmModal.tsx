@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+ 
 import classNames from 'classnames';
 import { ReactNode } from 'react';
 
@@ -75,7 +75,7 @@ const ConfirmModal = (props: Props) => {
             <Button
               handleClick={props.handleConfirm}
               loading={props.isLoading}
-              className={classNames('px-8 rounded-lg', props.confirmBtnClasses)}
+              className={classNames('px-8 rounded-sm', props.confirmBtnClasses)}
             >
               {props.label || 'Confirm'}
             </Button>

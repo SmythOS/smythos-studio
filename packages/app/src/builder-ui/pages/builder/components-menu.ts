@@ -503,16 +503,50 @@ export function setupSearch(config: SearchConfig): void {
           groupTitleElement.innerHTML = categoryName;
         }
 
-        // Handle container visibility
-        if (hasMatchingItems) {
+        // Handle empty state message for sections that match by name but have no components
+        let emptyStateMessage = container.querySelector(
+          '.empty-section-message',
+        ) as HTMLElement | null;
+
+        // Determine if section should be visible: either has matching items OR category name matches
+        const shouldShowContainer = hasMatchingItems || categoryMatches;
+
+        // Handle container visibility - show if items match OR category name matches
+        if (shouldShowContainer) {
           container.classList.remove('hidden');
 
           // Force expand only during search
           if (alpine.enabled && (window as any).Alpine) {
             (window as any).Alpine.evaluate(container, 'open = true');
           }
+
+          // Show empty state message if category matches but no items
+          if (categoryMatches && !hasMatchingItems) {
+            if (!emptyStateMessage) {
+              // Create empty state message as a sibling to the items list
+              // so it's visible even when Alpine.js hides the ul (hasItems=false)
+              emptyStateMessage = document.createElement('div');
+              emptyStateMessage.className =
+                'empty-section-message text-sm text-gray-500 italic px-4 py-2';
+              emptyStateMessage.textContent = 'No components available';
+              // Append to container after the group button
+              const groupBtn = container.querySelector('.group-btn');
+              if (groupBtn && groupBtn.nextSibling) {
+                container.insertBefore(emptyStateMessage, groupBtn.nextSibling);
+              } else {
+                container.appendChild(emptyStateMessage);
+              }
+            }
+            emptyStateMessage.classList.remove('hidden');
+          } else if (emptyStateMessage) {
+            emptyStateMessage.classList.add('hidden');
+          }
         } else {
           container.classList.add('hidden');
+          // Hide empty state message when container is hidden
+          if (emptyStateMessage) {
+            emptyStateMessage.classList.add('hidden');
+          }
         }
       });
     } else {
@@ -525,6 +559,12 @@ export function setupSearch(config: SearchConfig): void {
         const groupTitleElement = container.querySelector('.name');
         if (groupTitleElement) {
           groupTitleElement.textContent = groupTitleElement.textContent; // This removes any HTML formatting
+        }
+
+        // Hide any empty state messages when search is cleared
+        const emptyStateMessage = container.querySelector('.empty-section-message');
+        if (emptyStateMessage) {
+          emptyStateMessage.classList.add('hidden');
         }
 
         // Restore original collapse state when search is cleared

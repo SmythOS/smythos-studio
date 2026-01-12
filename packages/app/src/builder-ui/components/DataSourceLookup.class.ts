@@ -1,54 +1,55 @@
-import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceLookup extends Component {
-  private namespaces: string[] = [];
-  private isNewComponent: boolean = false;
-  private componentVersion: string = 'v1';
-
+  private namespaces: { value: string; text: string; __legacy_id: string }[] = [];
   protected async prepare(): Promise<any> {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    const eligibleForV2 =
-      builderStore.getState().serverStatus.edition === 'enterprise' &&
-      !window.location.hostname.includes('smythos.com');
+    // this.isNewComponent = Object.keys(this.data).length === 0;
 
-    const componentVersion =
-      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
-
-    if (this.isNewComponent && eligibleForV2) {
-      this.data.version = componentVersion;
-    }
-    this.updateSettings();
+    this.updateSettings().then(() => {
+      // if the current value does not match anything
+      const isUnableToMatchNsRecord =
+        this.data['namespace'] &&
+        !this.namespaces.find((ns) => ns.value === this.data['namespace']);
+      if (isUnableToMatchNsRecord) {
+        // try two cases, case where teamid is stripped, and case of original id
+        const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespace']}`;
+        const ns = this.data['namespace'];
+        const matching = this.namespaces.find(
+          (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+        );
+        if (matching) {
+          this.data['namespace'] = matching.value;
+        } else {
+          console.log('WE are not able to map the old name');
+        }
+      }
+    });
   }
 
   protected async updateSettings() {
-    if (!this.data.version || this.data.version === 'v1') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    } else if (this.data.version === 'v2') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
-      this.settings.namespace.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    }
+    const result = await fetch(
+      `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+    );
+    const namespaces = await result.json();
+    this.namespaces = namespaces.map((item) => ({
+      value: item.label,
+      text: item.label,
+      __legacy_id: item.__legacy_id,
+    }));
+    this.settings.namespace.options = this.namespaces;
+    if (this.settingsOpen) this.refreshSettingsSidebar();
+    await this.validateNamespaceSelection();
   }
 
   protected async init() {
     this.settings = {
       namespace: {
         type: 'select',
-        label: 'namespace',
-        help: 'Select the memory bucket to search, matching the namespace used when indexing. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=namespace#step-1-define-the-search-scope" target="_blank" class="text-blue-600 hover:text-blue-800">See namespace mapping</a>',
+        label: 'Data Space',
+        help: 'Select the memory bucket to search, matching the data space used when indexing. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=namespace#step-1-define-the-search-scope" target="_blank" class="text-blue-600 hover:text-blue-800">See namespace mapping</a>',
+        tooltipClasses: 'w-56',
         options: this.namespaces,
       },
       topK: {
@@ -58,12 +59,14 @@ export class DataSourceLookup extends Component {
         value: 3,
         validate: `required min=0 custom=isValidInteger`,
         validateMessage: `Please enter a positive number`,
+        tooltipClasses: 'w-56',
       },
       includeMetadata: {
         type: 'checkbox',
         label: 'Include metadata',
         help: 'Return stored fields like title, URL, tags, and timestamps with each result.',
         value: false,
+        tooltipClasses: 'w-56',
       },
       scoreThreshold: {
         type: 'range',
@@ -73,18 +76,37 @@ export class DataSourceLookup extends Component {
         max: 1,
         step: 0.01,
         help: 'Hide items below this 0–1 relevance score; higher keeps only strong matches. <a href="https://smythos.com/docs/agent-studio/components/rag-data/rag-search/?utm_source=studio&utm_medium=tooltip&utm_campaign=rag-search&utm_content=score-threshold#step-2-filter-and-format-the-output" target="_blank" class="text-blue-600 hover:text-blue-800">See threshold examples</a>',
+        tooltipClasses: 'w-56',
       },
       includeScore: {
         type: 'checkbox',
         label: 'Include score',
         help: 'Add the similarity score to each item for sorting and debugging.',
         value: false,
+        tooltipClasses: 'w-56',
       },
     };
 
     const dataEntries = ['namespace', 'topK', 'scoreThreshold', 'includeScore'];
     for (let item of dataEntries) {
       if (typeof this.data[item] === 'undefined') this.data[item] = this.settings[item].value;
+    }
+
+    // if the current value does not match anything
+    const isUnableToMatchNsRecord =
+      this.data['namespace'] && !this.namespaces.find((ns) => ns.value === this.data['namespace']);
+    if (isUnableToMatchNsRecord) {
+      // try two cases, case where teamid is stripped, and case of original id
+      const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespace']}`;
+      const ns = this.data['namespace'];
+      const matching = this.namespaces.find(
+        (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+      );
+      if (matching) {
+        this.data['namespace'] = matching.value;
+      } else {
+        console.log('WE are not able to map the old name');
+      }
     }
 
     this.properties.defaultInputs = ['Query'];
@@ -101,20 +123,41 @@ export class DataSourceLookup extends Component {
   protected async checkSettings() {
     super.checkSettings();
 
-    if (!this.namespaces || this.namespaces.length == 0) await delay(3000);
+    await this.validateNamespaceSelection();
+  }
 
-    const namespaces = {};
-    this.namespaces.forEach((ns: any) => {
-      namespaces[ns.value] = ns.text;
+  /**
+   * Validates that the selected namespace exists in the available namespaces list.
+   * If the namespace is missing, displays an alert message prompting the user to create one.
+   * If the namespace is valid, clears any previously displayed alert messages.
+   */
+  private async validateNamespaceSelection(): Promise<void> {
+    // Wait for namespaces to load if not yet available
+    if (!this.namespaces || this.namespaces.length === 0) {
+      await delay(3000);
+    }
+
+    // Build a lookup map of available namespaces
+    const namespacesMap: Record<string, string> = {};
+    this.namespaces.forEach((ns) => {
+      namespacesMap[ns.value] = ns.text;
     });
-    if (this.data['namespace']) {
-      const nsId = this.data['namespace'];
-      if (!namespaces[nsId]) {
+
+    // Validate the selected namespace
+    const nsId = this.data['namespace'] as string | undefined;
+    if (nsId) {
+      const messageCssClass = nsId.replace(/ /g, '-');
+
+      if (!namespacesMap[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
-          `Missing Namespace<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
+          `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
+          null,
+          messageCssClass,
         );
+      } else {
+        this.clearComponentMessage(`.messages-container .${messageCssClass}`);
       }
     }
   }

@@ -1,20 +1,3 @@
-.type-effect:after {
-    content: ' ';
-    animation: blink 200ms linear infinite alternate;
-    border-left: 2px solid #444;
-    margin-left: 1px;
-}
-
-@keyframes blink {
-    0% {
-        opacity: 0.2;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
 .type-writer-text {
     white-space: nowrap;
     position: relative;
@@ -38,11 +21,6 @@
     animation: type-write-scroll infinite linear;
 }
 
-.type-writer-scroll {
-    width: 100%;
-    display: flex;
-    overflow: hidden;
-}
 
 @keyframes type-write-scroll {
     0% {
@@ -54,46 +32,21 @@
     }
 }
 
-/* agent-chat-style scrollbar */
-.scrollbar-hide::-webkit-scrollbar {
-    width: 8px;
+/* Smooth blink animation for thinking/loading states */
+@keyframes smoothBlink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
-.scrollbar-hide::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-}
-
-.scrollbar-hide::-webkit-scrollbar-thumb {
-    background-color: rgb(162, 158, 159);
-    border-radius: 5px;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-.scrollbar-hide {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(162, 158, 159) #f1f1f1;
-}
-
-.conversation-title {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    display: flex;
-}
-
-.query-input {
-    display: block;
-    width: 100%;
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    cursor: text;
-}
-
-.query-input:empty::before {
-    content: attr(data-placeholder);
-    display: block;
-    height: 100%;
-    color: #777;
-    font-size: 14px;
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-weight: 300;
+.smooth-blink-text {
+    animation: smoothBlink 1.5s ease-in-out infinite;
 }

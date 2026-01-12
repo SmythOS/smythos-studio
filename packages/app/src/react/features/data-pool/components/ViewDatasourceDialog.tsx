@@ -5,10 +5,10 @@
  */
 
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@src/react/shared/components/ui/dialog';
 import { Tooltip } from 'flowbite-react';
 import { Calendar, Database, FileText, Hash } from 'lucide-react';
@@ -49,7 +49,7 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
 
   const formatSize = (sizeMb: number | undefined): string => {
     if (!sizeMb) return '0 B';
-    
+
     if (sizeMb < 0.001) {
       // Less than 1 KB, show in Bytes
       return `${Math.round(sizeMb * 1024 * 1024)} B`;
@@ -105,7 +105,11 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
                 <FileText className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-blue-900">Name</span>
               </div>
-              <p className="text-lg font-semibold text-blue-900 truncate" title={datasource.name}>
+              <p
+                title={datasource.name}
+                data-qa="datasource-name"
+                className="text-lg font-semibold text-blue-900 truncate"
+              >
                 {datasource.name}
               </p>
             </div>
@@ -128,7 +132,7 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
                 <span className="text-sm font-medium text-green-900">Size</span>
               </div>
               <p className="text-lg font-semibold text-green-900">
-                {formatSize(datasource.datasourceSizeMb)}
+                {datasource.datasourceSizeMb ? formatSize(datasource.datasourceSizeMb) : '-'}
               </p>
             </div>
 
@@ -154,16 +158,21 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
                 {datasource.chunkSize !== undefined && (
                   <div>
                     <span className="text-xs text-indigo-600 font-medium">Chunk Size</span>
-                    <p className="text-lg font-semibold text-indigo-900 mt-1">
-                      {datasource.chunkSize.toLocaleString()} <span className="text-sm font-normal">chars</span>
+                    <p data-qa="chunk-size" className="text-lg font-semibold text-indigo-900 mt-1">
+                      {datasource.chunkSize.toLocaleString()}{' '}
+                      <span className="text-sm font-normal">chars</span>
                     </p>
                   </div>
                 )}
                 {datasource.chunkOverlap !== undefined && (
                   <div>
                     <span className="text-xs text-indigo-600 font-medium">Chunk Overlap</span>
-                    <p className="text-lg font-semibold text-indigo-900 mt-1">
-                      {datasource.chunkOverlap.toLocaleString()} <span className="text-sm font-normal">chars</span>
+                    <p
+                      data-qa="chunk-overlap"
+                      className="text-lg font-semibold text-indigo-900 mt-1"
+                    >
+                      {datasource.chunkOverlap.toLocaleString()}{' '}
+                      <span className="text-sm font-normal">chars</span>
                     </p>
                   </div>
                 )}
@@ -172,42 +181,45 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
           )}
 
           {/* Metadata Section */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-900">Metadata</h3>
-            <div className="relative bg-[#282c34] border border-gray-700 rounded-lg overflow-hidden">
-              <div className="absolute top-3 right-3 z-10">
-                <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="top">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(metadata, null, 2));
-                      setCopied(true);
-                    }}
-                    className="p-2 hover:bg-gray-700 rounded transition-colors"
-                  >
-                    <FaRegCopy className="w-4 h-4 text-gray-300" />
-                  </button>
-                </Tooltip>
-              </div>
-              <Suspense fallback={<div className="p-4 text-sm text-gray-300">Loading...</div>}>
-                <div className="overflow-x-auto">
-                  <SyntaxHighlighter
-                    language="json"
-                    style={atomOneDark}
-                    customStyle={{
-                      margin: 0,
-                      padding: '1rem',
-                      fontSize: '0.875rem',
-                      backgroundColor: '#282c34',
-                      borderRadius: '0.5rem',
-                    }}
-                    wrapLongLines={true}
-                  >
-                    {JSON.stringify(metadata, null, 2)}
-                  </SyntaxHighlighter>
+          {metadata && (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">Metadata</h3>
+              <div className="relative bg-[#282c34] border border-gray-700 rounded-lg overflow-hidden">
+                <div className="absolute top-3 right-3 z-10">
+                  <Tooltip content={copied ? 'Copied!' : 'Copy'} placement="top">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(metadata, null, 2));
+                        setCopied(true);
+                      }}
+                      className="p-2 hover:bg-gray-700 rounded transition-colors"
+                    >
+                      <FaRegCopy className="w-4 h-4 text-gray-300" />
+                    </button>
+                  </Tooltip>
                 </div>
-              </Suspense>
+                <Suspense fallback={<div className="p-4 text-sm text-gray-300">Loading...</div>}>
+                  <div className="overflow-x-auto">
+                    <SyntaxHighlighter
+                      language="json"
+                      data-qa="metadata"
+                      style={atomOneDark}
+                      customStyle={{
+                        margin: 0,
+                        padding: '1rem',
+                        fontSize: '0.875rem',
+                        backgroundColor: '#282c34',
+                        borderRadius: '0.5rem',
+                      }}
+                      wrapLongLines={true}
+                    >
+                      {JSON.stringify(metadata, null, 2)}
+                    </SyntaxHighlighter>
+                  </div>
+                </Suspense>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Source Text Section */}
           {datasource.text && (
@@ -259,4 +271,3 @@ export const ViewDatasourceDialog: FC<ViewDatasourceDialogProps> = ({
     </Dialog>
   );
 };
-

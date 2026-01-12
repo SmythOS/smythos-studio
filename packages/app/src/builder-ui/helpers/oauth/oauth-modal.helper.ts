@@ -103,8 +103,15 @@ export function generateOAuthModalHTML(
             <div class="col-span-3"><input type="password" id="clientSecret" name="clientSecret" value="${currentOauthInfo.clientSecret || ''}" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
           </div>
            <div class="grid grid-cols-4 items-center gap-4 form-group" data-oauth-field="scope">
-            <label for="scope" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Scopes</label>
-            <div class="col-span-3"><textarea id="scope" name="scope" class="input w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 text-sm px-3 py-2 border-gray-300 focus:border-b-2 focus:border-b-blue-500 min-h-[70px] resize-none">${currentOauthInfo.scope || ''}</textarea></div>
+            <label id="scope-label" for="scope" class="w-fit text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center">
+              Scopes
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2 cursor-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+            </label>
+            <div class="col-span-3"><textarea id="scope" name="scope" placeholder="Enter scopes separated by spaces (e.g., read write profile)" class="input w-full bg-white border text-gray-900 rounded block outline-none focus:outline-none focus:ring-0 text-sm px-3 py-2 border-gray-300 focus:border-b-2 focus:border-b-blue-500 min-h-[70px] resize-none">${currentOauthInfo.scope || ''}</textarea></div>
           </div>
       </div>
 

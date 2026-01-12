@@ -1,7 +1,7 @@
 import WidgetCard from '@react/features/agent-settings/components/WidgetCard';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
-import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@react/shared/constants/style';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@react/shared/components/ui/tooltip';
+import { PRIMARY_BUTTON_STYLE, SECONDARY_BUTTON_STYLE } from '@react/shared/constants/style';
 import { useAuthCtx } from '@react/shared/contexts/auth.context';
 import { Observability } from '@src/shared/observability';
 import { EVENTS } from '@src/shared/posthog/constants/events';
@@ -75,7 +75,7 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
                   <TooltipTrigger asChild>
                     <Info className="w-4 h-4" />
                   </TooltipTrigger>
-                  <TooltipContent className="w-52 text-center">
+                  <TooltipContent className="max-w-[240px] text-center text-wrap">
                     <p>Interact directly with your agent through a conversational interface.</p>
                   </TooltipContent>
                 </Tooltip>
@@ -95,9 +95,12 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
                       `${isAgentDeployed ? PRIMARY_BUTTON_STYLE : SECONDARY_BUTTON_STYLE}`,
                     )}
                     onClick={(e) => {
-                      Observability.observeInteraction(EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent, {
-                        source: 'agent settings',
-                      });
+                      Observability.observeInteraction(
+                        EVENTS.AGENT_SETTINGS_EVENTS.app_chat_with_agent,
+                        {
+                          source: 'agent settings',
+                        },
+                      );
                       !isAgentDeployed && e.preventDefault();
                     }}
                     target="_blank"
@@ -107,8 +110,8 @@ const ChatWithAgentWidget = ({ isWriteAccess, isAgentDeployed }: Props) => {
                   </Link>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="top" className="min-w-[280px] text-center">
-                <div>
+              <TooltipContent side="top" className="max-w-[240px] text-center text-wrap">
+                <div style={{ width: '100%' }}>
                   To chat with your agent, please deploy to production.{' '}
                   <Link
                     to={`/builder/${agentId}`}

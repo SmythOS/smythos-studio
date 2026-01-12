@@ -125,7 +125,7 @@ function SetupModal({ isOpen, onClose, model, existingKey, isEdit }: SetupModalP
             handleClick={handleSubmit}
             disabled={isSaveDisabled}
             label={isLoading ? 'Saving...' : 'Save'}
-            className={cn('w-[100px] rounded-lg')}
+            className={cn('w-[100px] rounded-sm')}
           />
         </DialogFooter>
       </DialogContent>
@@ -235,7 +235,7 @@ export function UserModels({ pageAccess }: { pageAccess: { write: boolean } }) {
             <TooltipTrigger asChild>
               <Info className="w-4 h-4 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="w-72 text-center">
+            <TooltipContent className="max-w-[240px] text-center text-wrap">
               <p>
                 Bring and maintain your own AI models by adding API keys for OpenAI, Google,
                 Anthropic, and other providers

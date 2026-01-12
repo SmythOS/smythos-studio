@@ -1,65 +1,58 @@
-import { IMessageFile } from '@react/features/ai-chat/types/chat.types';
+import { ALLOWED_FILE_SIZE, MAX_UPLOADS } from '@react/features/ai-chat/constants';
+import type { TUploadFile } from '@react/features/ai-chat/types';
 
-/**
- * Constants for file upload limitations
- */
 export const FILE_LIMITS = {
-  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB in bytes
-  MAX_ATTACHED_FILES: 5,
-  ACCEPTED_TYPES: ['*/*'], // Accept all file types like chatbot
+  MAX_ATTACHED_FILES: MAX_UPLOADS,
+  MAX_FILE_SIZE: ALLOWED_FILE_SIZE,
 } as const;
 
-/**
- * Gets local preview URL for a file if possible
- * @param {File} file - File to get preview for
- * @returns {string | null} Preview URL or null if preview not possible
- */
-export const getLocalPreviewUrl = (file: File): string | null => {
-  return file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+export const textToFile = (content: string): TUploadFile => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const name = `text-${timestamp}.txt`;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const file = new File([blob], name, { type: 'text/plain' });
+  const id = `text-${timestamp}`;
+
+  return { file, metadata: { fileType: 'text/plain', isUploading: false }, id };
 };
 
-/**
- * Validates a single file against size constraints only
- * @param file The file to validate
- * @returns An error message if validation fails, null if validation passes
- */
-export const validateSingleFile = (file: File): string | null => {
-  if (file.size > FILE_LIMITS.MAX_FILE_SIZE) {
-    return 'File size exceeds 5MB limit';
+export const validateFile = (file: File): string | undefined => {
+  if (file.size > ALLOWED_FILE_SIZE) {
+    return `File "${file.name}" exceeds 5MB size limit`;
+  }
+  return undefined;
+};
+
+export const createFileId = (file: File): string => {
+  const timestamp = Date.now();
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  return `${file.name}-${timestamp}-${randomSuffix}`;
+};
+
+type TUploadConfig = { files: File[]; agentId?: string; chatId?: string };
+type TUploadResult = { files?: Array<{ url: string; name?: string; mimetype?: string }> };
+
+export const uploadFiles = async (config: TUploadConfig): Promise<TUploadResult> => {
+  const { files, agentId, chatId } = config;
+
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('file', file);
+  });
+
+  const headers: Record<string, string> = {};
+  if (agentId) headers['X-AGENT-ID'] = agentId;
+  if (chatId) headers['x-conversation-id'] = chatId;
+
+  const response = await fetch('/api/page/chat/upload', {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`);
   }
 
-  // Accept all file types - no file type validation needed
-  // Since we're accepting */* all file types are allowed
-
-  return null;
+  return response.json() as Promise<TUploadResult>;
 };
-
-/**
- * Deletes a file from the server
- * @param key The file key to delete
- */
-export const deleteFile = async (key: string): Promise<boolean> => {
-  try {
-    const response = await fetch(`/api/page/chat/deleteFile?key=${encodeURIComponent(key)}`, {
-      method: 'DELETE',
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-};
-
-// Helper function to generate a unique ID for each file
-export const generateUniqueFileId = (file: File): string => {
-  return `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-/**
- * Creates file metadata object from a file
- * @param file The file to create metadata for
- * @returns FileWithMetadata object
- */
-export const createFileMetadata = (file: File): IMessageFile => ({
-  file,
-  id: generateUniqueFileId(file),
-  metadata: { fileType: file.type, previewUrl: getLocalPreviewUrl(file), isUploading: true },
-});

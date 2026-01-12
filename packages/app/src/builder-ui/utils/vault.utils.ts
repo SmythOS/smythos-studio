@@ -340,6 +340,11 @@ const _innerLink = (targetField: HTMLInputElement, message: string = '', keyName
     actionBtn.appendChild(spinner);
     actionBtn.disabled = true;
 
+    const existingDropdown = document.getElementById('vault-keys-dropdown-menu');
+    if (existingDropdown) {
+      existingDropdown.remove();
+    }
+
     try {
       let selectedText = '';
 
@@ -393,14 +398,10 @@ export const renderVaultKeyBtnItems = ({
   const keyNames = keyBtns.map((item) => item.textContent);
   const keyNameToAdd = keyNamesInTheTargetField.find((name) => !keyNames.includes(name));
 
-  // Check if vault is opened from expanded textarea modal
-  const isFromModal = targetField.getAttribute('data-vault-from-modal') === 'true';
-
   // Show the link to add a new key only if:
   // 1. The scope is not global
-  // 2. The vault is NOT opened from an expanded textarea modal
   const scope = targetField.getAttribute('data-vault') || 'All';
-  if (scope !== 'global' && !isFromModal) {
+  if (scope !== 'global') {
     const msgElm = _innerLink(targetField, !!keyBtns?.length ? '' : 'No Keys found ', keyNameToAdd);
 
     dropdownContent.appendChild(msgElm);

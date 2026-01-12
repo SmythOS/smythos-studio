@@ -5,6 +5,7 @@ import {
   handleVaultBtn,
   isValidJson,
 } from '../../utils';
+import { isTemplateVarsEnabled } from '../../utils/form.utils';
 import {
   attachTooltipV2,
   mapMetroClassesToTooltipV2,
@@ -21,6 +22,7 @@ import {
   createHint,
   createInfoButton,
   createInput,
+  createMultiSelectBox,
   createRadio,
   createRangeInput,
   createSelectBox,
@@ -72,6 +74,10 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   let subFields = [];
   let isDropdown = false;
   let isTagInput = false;
+  let templateVarInput: HTMLInputElement | null = null;
+  let templateVarToggle: HTMLInputElement | null = null;
+  let templateVarModeDefault = false;
+  let hasTemplateVarToggle = false;
 
   switch (entry.type) {
     case 'select':
@@ -83,6 +89,43 @@ export default function createFormField(entry, displayType = 'block', entryIndex
       if (entry.readonly) {
         formElement.setAttribute('disabled', 'disabled');
       }
+
+      isDropdown = true;
+      hasTemplateVarToggle = isTemplateVarsEnabled(attributes?.['data-template-vars']);
+
+      break;
+
+    case 'select-multiple':
+    case 'SELECT-MULTIPLE':
+      /**
+       * Native HTML multi-select field
+       * Supports multiple selections and search functionality
+       * Value should be an array of selected values
+       * createMultiSelectBox returns a container div with a nested select element
+       */
+      const multiSelectContainer = createMultiSelectBox(
+        entry.options,
+        Array.isArray(value) ? value : [],
+        entry?.dropdownHeight,
+      );
+
+      /**
+       * Get the actual select element from the container
+       * The container has a _selectElement property that references the select
+       */
+      const actualSelect = (multiSelectContainer as any)._selectElement as HTMLSelectElement;
+
+      if (entry.readonly && actualSelect) {
+        actualSelect.setAttribute('disabled', 'disabled');
+      }
+
+      /**
+       * Set formElement to the container, but store a reference to the select
+       * This allows the form system to work with the container while
+       * still being able to access the select for value retrieval
+       */
+      formElement = multiSelectContainer;
+      (formElement as any)._selectElement = actualSelect;
 
       isDropdown = true;
 
@@ -190,8 +233,16 @@ export default function createFormField(entry, displayType = 'block', entryIndex
         formElement.addEventListener('created', async () => {
           const mode = entry?.code?.mode;
           const theme = entry?.code?.theme || 'tomorrow';
-          setCodeEditor(formElement, mode, theme, entry?.code?.disableWorker);
+          const editors = setCodeEditor(formElement, mode, theme, entry?.code?.disableWorker);
           (<any>formElement)._editor.setValue((<any>formElement).value);
+
+          if (entry?.code?.editorHeight) {
+            editors?.forEach((editor: any) => {
+              editor?.setOptions({
+                maxLines: entry?.code?.editorHeight,
+              });
+            });
+          }
         });
       }
       if (entry?.toggle?.toLowerCase() === 'json') {
@@ -310,7 +361,9 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
     case 'hidden':
     case 'HIDDEN':
-      formElement = createHiddenInput(value);
+      // Serialize objects to JSON string for hidden fields (they only accept strings)
+      const serializedValue = typeof value === 'object' ? JSON.stringify(value) : value;
+      formElement = createHiddenInput(serializedValue);
 
       break;
 
@@ -416,17 +469,57 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   formElement.classList.add(`smt-input-${entry.type}`);
   formElement.className += ` text-gray-900 border border-gray-200 sm:text-md ${fieldClasses}`;
 
-  if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
-    formElement.setAttribute('id', entry.name);
-    if (entry.name) formElement.setAttribute('name', entry.name);
+  if (templateVarInput) {
+    // Don't add Metro UI classes, use clean Tailwind styling instead
+    templateVarInput.className += ` text-gray-900 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldClasses}`;
+  }
 
-    // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
-    for (let attr in attributes) {
-      if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
-        formElement.setAttribute('disabled', 'disabled');
+  if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
+    // For non-select-multiple fields, apply id/name/attributes directly
+    if (entry?.type?.toLowerCase() !== 'select-multiple') {
+      formElement.setAttribute('id', entry.name);
+      if (entry.name) formElement.setAttribute('name', entry.name);
+
+      // We configure attributes for 'key-value' type fields separately in the '_createKvInputField()' function in the file 'src/frontend/ui/form/keyValueField.ts'.
+      for (let attr in attributes) {
+        if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
+          formElement.setAttribute('disabled', 'disabled');
+        }
+
+        formElement.setAttribute(attr, attributes[attr]);
       }
 
-      formElement.setAttribute(attr, attributes[attr]);
+      // Automatically set autocomplete="off" for fields that support variable insertion
+      // data-template-vars can be "true" or an object like '{"enabled": true, "singleOnly": true}'
+      const hasTemplateVars = isTemplateVarsEnabled(formElement.getAttribute('data-template-vars'));
+
+      if (
+        (hasTemplateVars ||
+          attributes['data-agent-vars'] === 'true' ||
+          attributes['data-trigger-vars'] === 'true') &&
+        !attributes['autocomplete']
+      ) {
+        formElement.setAttribute('autocomplete', 'off');
+      }
+    }
+
+    if (templateVarInput) {
+      // Selectively copy attributes, excluding Metro UI and style-related attributes
+      const excludedAttrs = ['data-role', 'data-template-vars', 'disabled', 'readonly'];
+
+      for (let attr in attributes) {
+        // Skip Metro UI and excluded attributes
+        if (excludedAttrs.includes(attr)) {
+          continue;
+        }
+
+        // Don't set disabled even for vault-exclusive
+        if (attr === 'data-vault-exclusive') {
+          continue;
+        }
+
+        templateVarInput.setAttribute(attr, attributes[attr]);
+      }
     }
   }
 
@@ -445,6 +538,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   //formElement.setAttribute('data-prepend', entry.label || entry.name); //
 
   if (entry.readonly) formElement.setAttribute('readonly', '');
+  if (templateVarInput && entry.readonly) templateVarInput.setAttribute('readonly', '');
   if (entry.validate) {
     if (entry.doNotValidateOnLoad) {
       // Store validation rules but don't apply them yet
@@ -471,13 +565,24 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     */
   if (entry.smythValidate) formElement.setAttribute('data-smyth-validate', entry.smythValidate);
 
+  /**
+   * For select-multiple fields, the formElement is a container/wrapper div that contains a nested select element.
+   * We need to attach events to the nested select element (not the wrapper) so that events fire correctly.
+   * configureSelectMultiple sets up attributes on the nested select and returns it for event attachment.
+   * For other field types, formElement is the actual input/select element, so we use it directly.
+   */
+  let eventTarget: HTMLElement = formElement;
+  if (entry?.type?.toLowerCase() === 'select-multiple') {
+    eventTarget = configureSelectMultiple(formElement, entry, attributes, events);
+  }
+
   // Handle events for tag inputs differently
   if (isTagInput && Object.keys(events).length > 0) {
     // Store events to be attached after MetroUI initialization
     formElement.setAttribute('data-deferred-events', JSON.stringify(events));
   } else {
     // Add events for non-tag inputs
-    for (let event in events) formElement.addEventListener(event, events[event]);
+    for (let event in events) eventTarget.addEventListener(event, events[event]);
   }
 
   // add template variables
@@ -516,6 +621,7 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
 
   let labelElement = null;
+  let labelWrapper = null;
   if (label /*&& displayType !== 'inline'*/) {
     labelElement = document.createElement('label');
     labelElement.className = `form-label text-[#1E1E1E] text-sm font-medium mb-1.5 ${
@@ -614,8 +720,22 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     }
   });
 
-  if (labelElement) {
-    div.appendChild(labelElement);
+  // Create template variable toggle if needed
+  if (hasTemplateVarToggle && labelElement) {
+    const toggleResult = createTemplateVarToggle(entry, value, formElement, events);
+    templateVarInput = toggleResult.templateVarInput;
+    templateVarToggle = toggleResult.templateVarToggle;
+    templateVarModeDefault = toggleResult.templateVarModeDefault;
+
+    labelWrapper = document.createElement('div');
+    labelWrapper.className = 'flex items-center justify-between gap-2 mb-0.5';
+    labelWrapper.appendChild(labelElement);
+    labelWrapper.appendChild(toggleResult.toggleWrapper);
+  }
+
+  const labelContainer = labelWrapper || labelElement;
+  if (labelContainer) {
+    div.appendChild(labelContainer);
   }
 
   if (entry?.loading) {
@@ -625,9 +745,62 @@ export default function createFormField(entry, displayType = 'block', entryIndex
 
   //inject bracket selection event to the input element
   addBracketSelection(formElement);
+  if (templateVarInput) {
+    addBracketSelection(templateVarInput);
+  }
 
   // Determine which element to append (wrapper container or direct formElement)
-  const elementToAppend = textareaWrapper || formElement;
+  let elementToAppend = textareaWrapper || formElement;
+
+  if (templateVarInput) {
+    const templateVarContainer = document.createElement('div');
+    templateVarContainer.appendChild(formElement);
+
+    // Create wrapper for template input with clear button
+    const templateInputWrapper = document.createElement('div');
+    templateInputWrapper.className = 'relative';
+    templateInputWrapper.style.display = 'none';
+
+    templateInputWrapper.appendChild(templateVarInput);
+
+    // Create clear button for template variable input
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className =
+      'absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors';
+    clearButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+    clearButton.title = 'Clear template variables';
+    clearButton.style.display = 'none';
+
+    clearButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      templateVarInput.value = '';
+      clearButton.style.display = 'none';
+      templateVarInput.dispatchEvent(new Event('input', { bubbles: true }));
+      templateVarInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    // Show/hide clear button based on input value
+    const updateClearButton = () => {
+      clearButton.style.display = templateVarInput.value ? '' : 'none';
+    };
+
+    templateVarInput.addEventListener('input', updateClearButton);
+    templateVarInput.addEventListener('change', updateClearButton);
+
+    // Initial check
+    updateClearButton();
+
+    templateInputWrapper.appendChild(clearButton);
+    templateVarContainer.appendChild(templateInputWrapper);
+
+    // Store reference to wrapper for visibility toggling
+    (templateVarInput as HTMLInputElement & { wrapper?: HTMLElement }).wrapper =
+      templateInputWrapper;
+
+    elementToAppend = templateVarContainer;
+  }
 
   if (additionalFormElement) {
     /*
@@ -660,7 +833,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   if (hintElm) {
     if (entry?.hintPosition === 'after_label') {
       hintElm.classList.add('mb-2', 'mt-0');
-      labelElement.insertAdjacentElement('afterend', hintElm);
+      if (labelContainer) {
+        labelContainer.insertAdjacentElement('afterend', hintElm);
+      } else {
+        div.appendChild(hintElm);
+      }
     } else {
       div.appendChild(hintElm);
     }
@@ -718,6 +895,252 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
 
   return div;
+}
+
+/**
+ * Creates template variable toggle UI and logic for select fields
+ * Uses native HTML input (no Metro UI) for better control and performance
+ * @param entry - The form field entry configuration
+ * @param value - The current value of the field
+ * @param formElement - The main form element (select)
+ * @param events - Event handlers to attach to template input
+ * @returns Object containing template input, toggle elements, and default state
+ */
+function createTemplateVarToggle(
+  entry: any,
+  value: any,
+  formElement: HTMLElement,
+  events: Record<string, Function>,
+) {
+  // Create native HTML input (no Metro UI) for template variables
+  const templateVarInput = document.createElement('input');
+  templateVarInput.type = 'text';
+  templateVarInput.value = value || '';
+  templateVarInput.placeholder = 'Click to select a template variable';
+  templateVarInput.autocomplete = 'off';
+  templateVarInput.classList.add('template-var-input');
+  templateVarInput.style.paddingRight = '36px';
+  templateVarInput.style.backgroundColor = '#ffffff';
+  templateVarInput.style.cursor = 'pointer';
+  templateVarInput.style.opacity = '1';
+
+  // Copy template-related attributes from entry for variable filtering
+  const attributes = entry.attributes || {};
+
+  // Preserve the original data-template-vars value to support singleOnly and other configs
+  if (attributes['data-template-vars']) {
+    templateVarInput.setAttribute('data-template-vars', attributes['data-template-vars']);
+  } else {
+    templateVarInput.setAttribute('data-template-vars', 'true');
+  }
+  if (attributes['data-template-excluded-vars']) {
+    templateVarInput.setAttribute(
+      'data-template-excluded-vars',
+      attributes['data-template-excluded-vars'],
+    );
+  }
+  if (attributes['data-template-excluded-var-types']) {
+    templateVarInput.setAttribute(
+      'data-template-excluded-var-types',
+      attributes['data-template-excluded-var-types'],
+    );
+  }
+
+  // Prevent keyboard input - users should only insert template variables via buttons
+  templateVarInput.addEventListener('keydown', (e) => {
+    const allowedKeys = [
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'Tab',
+      'Backspace',
+      'Delete',
+    ];
+    const isCtrlCmd = e.ctrlKey || e.metaKey;
+    const isSelectionKey =
+      isCtrlCmd && (e.key === 'a' || e.key === 'A' || e.key === 'c' || e.key === 'C');
+
+    if (!allowedKeys.includes(e.key) && !isSelectionKey) {
+      e.preventDefault();
+    }
+  });
+
+  templateVarInput.addEventListener('paste', (e) => {
+    e.preventDefault();
+  });
+
+  // Attach events to template input
+  for (let event in events) {
+    templateVarInput.addEventListener(event, events[event] as EventListener);
+  }
+
+  // Get saved toggle state from component data
+  const currentComponent = (window as any).Component?.curComponentSettings;
+  const savedToggleState = currentComponent?.data?.templateVarToggleStates?.[entry.name];
+  const templateVarModeDefault =
+    savedToggleState !== undefined
+      ? savedToggleState
+      : typeof value === 'string' && /{{.*?}}/.test(value);
+
+  // Create toggle checkbox
+  const templateVarToggle = document.createElement('input');
+  templateVarToggle.type = 'checkbox';
+  templateVarToggle.className = 'sr-only peer';
+  templateVarToggle.title = 'Use template variable';
+  templateVarToggle.setAttribute('aria-label', 'Use template variable');
+  templateVarToggle.id = `template-toggle-${entry.name}`;
+  templateVarToggle.checked = templateVarModeDefault;
+  templateVarToggle.disabled = entry.readonly;
+
+  // Create toggle UI elements
+  const toggleLabel = document.createElement('label');
+  toggleLabel.className =
+    'text-xs font-medium text-gray-600 cursor-pointer select-none hover:text-gray-800 transition-colors';
+  toggleLabel.textContent = 'Use Template Vars';
+  toggleLabel.htmlFor = `template-toggle-${entry.name}`;
+
+  const toggleSwitch = document.createElement('div');
+  toggleSwitch.className =
+    'relative w-8 h-4 bg-gray-300 rounded-full cursor-pointer transition-all duration-300 shadow-inner hover:shadow-md';
+  toggleSwitch.setAttribute('role', 'presentation');
+
+  const toggleThumb = document.createElement('div');
+  toggleThumb.className =
+    'absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-300 transform';
+  toggleSwitch.appendChild(toggleThumb);
+
+  const toggleWrapper = document.createElement('div');
+  toggleWrapper.className = 'flex items-center gap-2';
+  toggleWrapper.appendChild(toggleLabel);
+  toggleWrapper.appendChild(templateVarToggle);
+  toggleWrapper.appendChild(toggleSwitch);
+
+  // Initialize toggle appearance
+  if (templateVarModeDefault) {
+    toggleSwitch.classList.remove('bg-gray-300');
+    toggleSwitch.classList.add('bg-blue-500');
+    toggleThumb.classList.add('translate-x-4');
+    toggleThumb.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.2)';
+  }
+
+  // Update toggle switch appearance on change
+  templateVarToggle.addEventListener('change', () => {
+    if (templateVarToggle.checked) {
+      toggleSwitch.classList.remove('bg-gray-300');
+      toggleSwitch.classList.add('bg-blue-500');
+      toggleThumb.classList.add('translate-x-4');
+      toggleThumb.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.2)';
+    } else {
+      toggleSwitch.classList.add('bg-gray-300');
+      toggleSwitch.classList.remove('bg-blue-500');
+      toggleThumb.classList.remove('translate-x-4');
+      toggleThumb.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
+    }
+
+    // Update hidden form field for persistence
+    const form = templateVarToggle.closest('form');
+    const hiddenField = form?.querySelector(
+      'input[name="templateVarToggleStates"]',
+    ) as HTMLInputElement;
+
+    if (hiddenField) {
+      try {
+        const currentStates = hiddenField.value ? JSON.parse(hiddenField.value) : {};
+        currentStates[entry.name] = templateVarToggle.checked;
+        hiddenField.value = JSON.stringify(currentStates);
+      } catch (e) {
+        console.error('[Template Vars] Failed to update hidden field:', e);
+      }
+    }
+  });
+
+  // Make the switch clickable
+  toggleSwitch.addEventListener('click', () => {
+    templateVarToggle.click();
+  });
+
+  // Create visibility toggle logic
+  let lastSelectValue = value;
+  const templateVarOnlyPattern = /^\s*{{[^{}]+}}\s*$/;
+
+  const setSelectVisibility = (useTemplateInput: boolean) => {
+    const selectWrapper =
+      formElement.closest('label.select') || formElement.closest('.select') || formElement;
+    if (selectWrapper instanceof HTMLElement) {
+      selectWrapper.style.display = useTemplateInput ? 'none' : '';
+    }
+    const inputWrapper = (templateVarInput as HTMLInputElement & { wrapper?: HTMLElement }).wrapper;
+    if (inputWrapper) {
+      inputWrapper.style.display = useTemplateInput ? '' : 'none';
+    } else {
+      templateVarInput.style.display = useTemplateInput ? '' : 'none';
+    }
+
+    if (useTemplateInput) {
+      const currentValue = templateVarInput.value.trim();
+      const isCurrentValueValid =
+        currentValue.length === 0 || templateVarOnlyPattern.test(currentValue);
+
+      if (!isCurrentValueValid && !templateVarModeDefault) {
+        templateVarInput.value = '';
+      } else if (!templateVarInput.value && templateVarModeDefault) {
+        templateVarInput.value = String(value ?? '');
+      }
+
+      const trimmedValue = templateVarInput.value.trim();
+      const isValid = trimmedValue.length === 0 || templateVarOnlyPattern.test(trimmedValue);
+      templateVarInput.classList.toggle('invalid', !isValid);
+      templateVarInput.setAttribute('name', entry.name);
+      templateVarInput.setAttribute('id', entry.name);
+      formElement.removeAttribute('name');
+      formElement.removeAttribute('id');
+    } else {
+      templateVarInput.classList.remove('invalid');
+      formElement.setAttribute('name', entry.name);
+      formElement.setAttribute('id', entry.name);
+      templateVarInput.removeAttribute('name');
+      templateVarInput.removeAttribute('id');
+
+      const selectElement = formElement as HTMLSelectElement;
+      const nextValue =
+        selectElement.options &&
+        [...selectElement.options].some((opt) => opt.value === lastSelectValue)
+          ? lastSelectValue
+          : selectElement.value;
+      selectElement.value = nextValue;
+    }
+  };
+
+  // Track select changes
+  formElement.addEventListener('change', () => {
+    lastSelectValue = (formElement as HTMLSelectElement).value;
+  });
+
+  // Set up toggle change handler
+  templateVarToggle.addEventListener('change', () => {
+    setSelectVisibility(templateVarToggle.checked);
+  });
+
+  // Set up input validation
+  templateVarInput.addEventListener('input', () => {
+    if (!templateVarToggle?.checked) return;
+    const trimmedValue = templateVarInput.value.trim();
+    const isValid = trimmedValue.length === 0 || templateVarOnlyPattern.test(trimmedValue);
+    templateVarInput.classList.toggle('invalid', !isValid);
+  });
+
+  // Initialize visibility
+  setTimeout(() => setSelectVisibility(templateVarModeDefault), 0);
+
+  return {
+    templateVarInput,
+    templateVarToggle,
+    toggleWrapper,
+    templateVarModeDefault,
+  };
 }
 
 /**
@@ -1022,4 +1445,96 @@ function applyTooltipConfig(actionBtn, action) {
     className: mapMetroClassesToTooltipV2(tooltipConfig.classes),
     delayDuration: 300,
   });
+}
+
+/**
+ * Configures all select-multiple specific attributes and behaviors.
+ * For select-multiple fields, the formElement is a container div, but we need to apply
+ * form-related attributes to the actual select element for proper form submission and validation.
+ *
+ * @param formElement - The container element for select-multiple
+ * @param entry - The form field entry configuration
+ * @param attributes - Custom attributes to apply
+ * @param events - Event handlers to attach (unused, kept for consistency)
+ * @returns The actual select element for event listener attachment
+ */
+function configureSelectMultiple(
+  formElement: HTMLElement,
+  entry: any,
+  attributes: Record<string, any>,
+  events: Record<string, (e: Event) => void>,
+): HTMLElement {
+  const actualSelect = (formElement as any)._selectElement as HTMLSelectElement;
+  if (!actualSelect) {
+    return formElement;
+  }
+
+  /**
+   * Apply id, name, and custom attributes to the actual select element
+   */
+  if (entry?.type?.toLowerCase() !== 'key-value' && entry?.type?.toLowerCase() !== 'table') {
+    actualSelect.setAttribute('id', entry.name);
+    if (entry.name) {
+      actualSelect.setAttribute('name', entry.name);
+    }
+
+    // Apply custom attributes
+    for (const attr in attributes) {
+      if (attr === 'data-vault-exclusive' && [true, 'true'].includes(attributes[attr])) {
+        actualSelect.setAttribute('disabled', 'disabled');
+      }
+      actualSelect.setAttribute(attr, attributes[attr]);
+    }
+  }
+
+  /**
+   * Copy readonly attribute from container to the actual select element
+   */
+  const containerReadonly = formElement.getAttribute('readonly');
+  if (containerReadonly !== null) {
+    actualSelect.setAttribute('readonly', containerReadonly);
+  }
+
+  /**
+   * Copy validation attributes from container to the actual select element
+   */
+  if (entry.validate) {
+    if (entry.doNotValidateOnLoad) {
+      const containerRules = formElement.getAttribute('data-validate-rules');
+      if (containerRules) {
+        actualSelect.setAttribute('data-validate-rules', containerRules);
+      }
+      // Re-attach validation event listeners to the actual select element
+      const enableValidation = () => {
+        actualSelect.setAttribute('data-validate', entry.validate);
+        actualSelect.removeAttribute('data-validate-rules');
+        actualSelect.removeEventListener('focus', enableValidation);
+        actualSelect.removeEventListener('input', enableValidation);
+        actualSelect.removeEventListener('change', enableValidation);
+      };
+      actualSelect.addEventListener('focus', enableValidation, { once: true });
+      actualSelect.addEventListener('input', enableValidation, { once: true });
+      actualSelect.addEventListener('change', enableValidation, { once: true });
+    } else {
+      const containerValidate = formElement.getAttribute('data-validate');
+      if (containerValidate) {
+        actualSelect.setAttribute('data-validate', containerValidate);
+      }
+    }
+  }
+
+  /**
+   * Copy smythValidate attribute to the actual select element
+   */
+  if (entry.smythValidate) {
+    const containerSmythValidate = formElement.getAttribute('data-smyth-validate');
+    if (containerSmythValidate) {
+      actualSelect.setAttribute('data-smyth-validate', containerSmythValidate);
+    }
+  }
+
+  /**
+   * Return the actual select element for event listener attachment
+   */
+  return actualSelect;
 }

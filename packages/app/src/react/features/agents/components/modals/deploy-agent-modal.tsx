@@ -571,7 +571,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                               <Info className="w-4 h-4 text-gray-500 text-lg" />
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent className="w-60">
+                          <TooltipContent className="max-w-[240px] text-center text-wrap">
                             <div style={{ whiteSpace: 'normal' }}>
                               Deploy your agent to make it live and ready to integrate into your
                               workflow. Use SmythOS's default subdomain or configure a custom one.{' '}
@@ -760,7 +760,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                           <Button
                             type="submit"
                             loading={isInProgress}
-                            className="px-8 rounded-lg ml-auto"
+                            className="px-8 rounded-sm ml-auto"
                           >
                             Deploy
                           </Button>
@@ -768,24 +768,24 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       </form>
                     </TabsContent>
                     <TabsContent value="enterprise">
-                      <div className="space-y-6">
+                      <div className="space-y-8">
                         <p className="text-xs text-gray-600">
                           Deploy on-prem or to enterprise cloud with enterprise security and
                           unlimited task options available. Great for enterprise.
                         </p>
-                        <Button className="rounded-lg ml-auto" handleClick={handleContactSales}>
+                        <Button className="rounded-sm ml-auto" handleClick={handleContactSales}>
                           Contact sales
                         </Button>
                       </div>
                     </TabsContent>
                     <TabsContent value="deploy-locally">
-                      <div className="space-y-6">
+                      <div className="space-y-8">
                         <p className="text-xs text-gray-600">
                           Export your AI agent with Control+ Shift+E, then run it locally with our
                           local runtime for Mac, Windows, Linux.
                         </p>
                         <Button
-                          className="px-8 rounded-lg ml-auto"
+                          className="px-8 rounded-sm ml-auto"
                           handleClick={() => handleDeploy('locally')}
                         >
                           Download SRE

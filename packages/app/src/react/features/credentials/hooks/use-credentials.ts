@@ -10,6 +10,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { credentialsClient } from '../clients/credentials.client';
 import type { CredentialConnection } from '../components/create-credentials.modal';
 
+const INTERNAL_CREDENTIALS = {
+  vector_db_creds: [
+    {
+      id: '__smythos_vectordb_cred__',
+      name: 'SmythOS Pinecone 1536d',
+      provider: 'Pinecone',
+      credentials: {},
+      createdAt: '2024-11-26T17:59:56.212Z',
+      updatedAt: '2024-11-26T17:59:56.213Z',
+      isReadOnly: true,
+      isManaged: true,
+    },
+  ],
+};
+
 /**
  * Custom hook to fetch and manage credential connections
  *
@@ -41,7 +56,8 @@ export function useCredentials(group: string) {
 
     try {
       const data = await credentialsClient.fetchCredentials(group);
-      setCredentials(data);
+      const internalCreds = INTERNAL_CREDENTIALS[group];
+      setCredentials([...internalCreds, ...data]);
     } catch (err: any) {
       console.error('Error fetching credentials:', err);
       setError(err.message || 'Failed to fetch credentials');
