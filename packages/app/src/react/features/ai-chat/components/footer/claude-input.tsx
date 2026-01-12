@@ -115,6 +115,22 @@ const ClaudeInput = () => {
     onLargeTextPaste: (text) => addFiles([textToFile(text).file]),
   });
 
+  // Keyboard shortcut: Ctrl+U to add files
+  useEffect(() => {
+    const handleKeyboardShortcut = (e: globalThis.KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+          fileInputRef.current.click();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboardShortcut);
+    return () => window.removeEventListener('keydown', handleKeyboardShortcut);
+  }, []);
+
   const toggleMenu = useCallback(() => {
     setIsMenuOpen((prev) => !prev);
   }, []);
