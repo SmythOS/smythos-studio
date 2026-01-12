@@ -33,16 +33,17 @@ export const Sidebar: React.FC = () => {
   const { data: userSettings, isLoading: isUserSettingsLoading } = useGetUserSettings(
     userSettingKeys.USER_TEAM,
   );
-  const access = {};
-  access['/vault'] = getPageAccess('/vault')?.read;
-  access['/agents'] = getPageAccess('/agents')?.read;
-  access['/templates'] = getPageAccess('/templates')?.read;
-  access['/domains'] = getPageAccess('/domains')?.read;
-  access['/data/'] = getPageAccess('/data')?.read;
-  access['/data-pool'] = getPageAccess('/data')?.read;
-  // access['/data-pool'] = getPageAccess('/data-pool')?.read || true; // Default to true for community edition
-  access['/analytics'] = getPageAccess('/analytics')?.read;
-  access['/teams/settings'] = getPageAccess('/teams/members')?.read;
+  const resolveAccessPath = (url: string) => {
+    // Normalize trailing slashes (e.g. '/data/' should match '/data' ACL)
+    const normalized = url.endsWith('/') && url.length > 1 ? url.slice(0, -1) : url;
+
+    // Some UI routes map to different ACL keys
+    if (normalized === '/teams/settings') return '/teams/members';
+    if (normalized === '/data-pool') return '/data';
+
+    return normalized;
+  };
+
 
   const currentTeam = userTeams?.find((team) => team.id === userSettings?.userSelectedTeam);
   const { data: companyLogo } = useGetTeamSettings(teamSettingKeys.COMPANY_LOGO);
@@ -50,13 +51,14 @@ export const Sidebar: React.FC = () => {
     currentTeam?.parentId && companyLogo?.url && getPageAccess('/teams/members')?.read;
 
   const menuItems = getSidebarMenuItems().filter((item) => {
+    const canRead = getPageAccess(resolveAccessPath(item.url))?.read;
     const isVisible =
       typeof item.visible === 'boolean'
         ? item.visible
         : typeof item.visible === 'function'
           ? item.visible(currentTeam)
           : true;
-    return access[item.url] && isVisible;
+    return Boolean(canRead) && isVisible;
   });
   // if (currentTeam && currentTeam.parentId) {
   //   // if it is SUBTEAM team, add subTeamsMenuItems to menuItems
