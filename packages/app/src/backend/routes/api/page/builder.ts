@@ -17,6 +17,7 @@ import { getIntegrations } from '../../router.utils/templates.utils';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import rateLimit from 'express-rate-limit';
 import { jsonrepair } from 'jsonrepair';
+import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { RedisStore } from 'rate-limit-redis';
 import {
@@ -530,28 +531,6 @@ router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
   }
 
   let agentData: any;
-  // if (version == 'latest') {
-  //   let deploymentResponse: AxiosResponse;
-  //   try {
-  //     deploymentResponse = await smythAPI.get(
-  //       `/ai-agent/${agentId}/deployments/latest`,
-  //       await authHeaders(req),
-  //     );
-  //   } catch (e) {
-  //     return res.status(e.response.status).send({
-  //       success: false,
-  //       error: e.response.data || 'Failed to get latest deployment',
-  //     });
-  //   }
-  //   const latestDeployment = deploymentResponse.data?.deployment;
-  //   if (!latestDeployment) {
-  //     return res.status(400).send({ success: false, error: 'Agent deployment not found' });
-  //   }
-  //   if (!latestDeployment.aiAgentData) {
-  //     return res.status(400).send({ success: false, error: 'Agent deployment not found' });
-  //   }
-  //   agentData = latestDeployment.aiAgentData;
-  // } else if (version == 'dev') {
   let agentResponse: AxiosResponse;
   try {
     agentResponse = await smythAPI.get(`/ai-agent/${agentId}`, await authHeaders(req));
@@ -562,7 +541,6 @@ router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
     });
   }
   agentData = agentResponse?.data?.agent?.data;
-  // }
 
   if (!agentData) {
     return res.status(400).send({ success: false, error: 'Agent data not found' });
@@ -571,7 +549,6 @@ router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
   const component = (agentData as any).components.find((c) => c.id === componentId);
 
   if (!component) {
-    // throw new ApiError(httpStatus.NOT_FOUND, 'Component not found');
     return res.status(400).send({ success: false, error: 'Component not found' });
   }
 
@@ -585,6 +562,7 @@ router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
     endpoint: component.data.endpoint!,
     method: component?.data.method ? component.data.method.toUpperCase() : 'POST',
     agentId,
+    teamId: agentData?.teamId,
     headers,
   });
 
@@ -596,12 +574,14 @@ async function fetchAgentSkill({
   endpoint,
   method,
   agentId,
+  teamId,
   headers,
 }: {
   values: any;
   endpoint: string;
   method: string;
   agentId: string;
+  teamId: string;
   headers?: { [key: string]: string | string[] };
 }) {
   const _method = method.toUpperCase();
@@ -615,6 +595,16 @@ async function fetchAgentSkill({
 
   request.body = JSON.stringify(values);
 
+  const token = jwt.sign(
+    {
+      agentId: agentId,
+      teamId: teamId,
+      exp: Math.floor(Date.now() / 1000) + 60, // 60 min expiry
+    },
+    config.env.INTERNAL_TRUSTED_SECRET, // Shared secret between services
+    { algorithm: 'HS256' },
+  );
+
   request.headers = {
     ...(headers || {}),
     ...(_method === 'POST' && { 'Content-Type': 'application/json' }),
@@ -623,6 +613,7 @@ async function fetchAgentSkill({
     'X-AGENT-ID': agentId,
     'x-smyth-debug': 'true',
     'X-DEBUG-read': '',
+    'X-AUTH-TOKEN': 'Bearer ' + token,
   };
 
   try {
