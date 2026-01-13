@@ -13,6 +13,7 @@ export const profilePages = [
   { url: '/account', name: 'Account' },
   { url: '/teams/members', name: 'User Management' },
   { url: '/my-plan', name: 'My Plan', reload: true },
+  { url: '/teams/settings', name: 'User Management' },
 ];
 
 export const getNavPages = (getPageAccess, pageAcl, apiAcl) => {
