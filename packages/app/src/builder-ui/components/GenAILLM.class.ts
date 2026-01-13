@@ -52,23 +52,19 @@ export class GenAILLM extends Component {
   private gptSearchModels: string[];
 
   protected async prepare() {
-    const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
-      'text',
-      'image',
-      'audio',
-      'video',
-      'document',
-      'tools',
-      'search',
-      'reasoning',
-    ]);
+    const model = this.data.model || this.defaultModel;
+
+    const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures(
+      ['text', 'image', 'audio', 'video', 'document', 'tools', 'search', 'reasoning'],
+      model,
+    );
 
     this.defaultModel = LLMFormController.getDefaultModel(modelOptions);
 
-    this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures(
-      'reasoning',
-      'anthropic',
-    ).map((m) => m.entryId);
+    this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures({
+      features: 'reasoning',
+      providers: 'anthropic',
+    }).map((m) => m.entryId);
     this.openaiReasoningModels = LLMRegistry.getModelsByFeatures('reasoning', 'openai').map(
       (m) => m.entryId,
     );
@@ -87,7 +83,6 @@ export class GenAILLM extends Component {
     );
 
     modelOptions.unshift('Echo');
-    const model = this.data.model || this.defaultModel;
 
     //prevent losing the previously set model
     if (model && ![...modelOptions.map((item) => item?.value || item)].includes(model)) {
@@ -101,15 +96,7 @@ export class GenAILLM extends Component {
     // TODO: set warning if the model is not available
 
     //remove undefined models
-    this.modelOptions = modelOptions.filter((item) => {
-      if (!item) return false;
-
-      // Keep the currently selected model even if it's hidden
-      if (item?.value === model) return true;
-
-      // Otherwise, filter out hidden models
-      return !item?.hidden;
-    });
+    this.modelOptions = modelOptions.filter((item) => item);
 
     this.setModelParams(model);
 
@@ -485,8 +472,12 @@ export class GenAILLM extends Component {
           {
             label: '$ View Pricing',
             icon: 'dollar-sign',
-            classes: 'text-gray-600 top-[-8px] right-6 hover:underline _model_pricing_link hidden',
-            tooltip: 'SmythOS charges based on input and output tokens',
+            classes:
+              'text-gray-600 top-[-8px] right-[-80px] shadow-none hover:underline _model_pricing_link hidden',
+            tooltip: {
+              text: 'SmythOS charges based on input and output tokens',
+              position: 'left',
+            },
             events: {
               click: () => {
                 window.open(
@@ -506,6 +497,7 @@ export class GenAILLM extends Component {
         validateMessage: `Please provide a prompt. It's required!`,
         value: defaultPromptValue,
         help: 'Write clear instructions with placeholders (e.g., {{input}}) and state the expected format. <a href="https://smythos.com/docs/agent-studio/components/base/gen-ai-llm/?utm_source=studio&utm_medium=tooltip&utm_campaign=genai-llm&utm_content=prompt#step-2-write-your-prompt" target="_blank" class="text-blue-600 hover:text-blue-800">Go to Docs</a>',
+        tooltipClasses: 'w-56 ',
         hintPosition: 'after_label',
         attributes: {
           'data-template-vars': 'true',
@@ -954,11 +946,11 @@ export class GenAILLM extends Component {
       },
       locationTitle: {
         type: 'div',
-        html: `<h3 class="font-bold text-md __fields_group_title">User Location</h3>`,
+        html: `<h3 class="font-bold text-md m-0 __fields_group_title">User Location</h3>
+        <p class="text-sm text-gray-500">To refine search results based on geography, you can specify an approximate user location using country, city, region, and/or timezone.</p>`,
         value: '',
         attributes: openAIAttributes,
         class: 'mb-0 hidden',
-        help: 'To refine search results based on geography, you can specify an approximate user location using country, city, region, and/or timezone.',
         section: 'Advanced',
         fieldsGroup: 'Location',
       },
@@ -966,7 +958,11 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'City',
         value: '',
-        attributes: openAIAttributes,
+        attributes: {
+          ...openAIAttributes,
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
+        },
         class: 'hidden',
         help: "The city: free text strings, like 'Minneapolis'.",
         validate: 'maxlength=100',
@@ -981,11 +977,12 @@ export class GenAILLM extends Component {
         datalistId: 'country-datalist',
         attributes: {
           ...openAIAttributes,
-          placeholder: 'Type country name or code (e.g., United States or US)',
-          autocomplete: 'off',
+          placeholder: 'Type country name or code (e.g., United States or US) to search.',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
-        help: "Country: type the full country name or two-letter ISO code, like 'United States' or 'US'. Select from the dropdown to confirm.",
+        help: `Two-letter <a href="https://en.wikipedia.org/wiki/ISO_3166-1" target="_blank" rel="noopener noreferrer" class="text-underline">ISO country code</a>, like US. <br/>Type to search.`,
         section: 'Advanced',
         fieldsGroup: 'Location',
       },
@@ -993,7 +990,11 @@ export class GenAILLM extends Component {
         type: 'text',
         label: 'Region',
         value: '',
-        attributes: openAIAttributes,
+        attributes: {
+          ...openAIAttributes,
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
+        },
         class: 'hidden',
         help: "Region: free text strings, like 'Minnesota'.",
         validate: 'maxlength=100',
@@ -1009,10 +1010,11 @@ export class GenAILLM extends Component {
         attributes: {
           ...openAIAttributes,
           placeholder: 'Type to search timezones (e.g., America/Chicago)',
-          autocomplete: 'off',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
-        help: 'Timezone: an IANA timezone like America/Chicago. Type to search.',
+        help: `An <a href="https://timeapi.io/documentation/iana-timezones" target="_blank" rel="noopener noreferrer" class="text-underline">IANA timezone</a> like America/Chicago. <br/>Type to search.`,
         section: 'Advanced',
         fieldsGroup: 'Location',
       },
@@ -1169,11 +1171,12 @@ export class GenAILLM extends Component {
         datalistId: 'country-datalist',
         attributes: {
           ...xAIAttributes,
-          placeholder: 'Type country name or code (e.g., United States or US)',
-          autocomplete: 'off',
+          placeholder: 'Type country name or code (e.g., United States or US) to search.',
+          'data-template-vars': '{"enabled": true, "singleOnly": true}',
+          'data-template-excluded-vars': 'Attachment',
         },
         class: 'hidden',
-        help: 'Country: type the full country name or two-letter ISO code to limit search results. Select from the dropdown to confirm.',
+        help: `Two-letter <a href="https://en.wikipedia.org/wiki/ISO_3166-1" target="_blank" rel="noopener noreferrer" class="text-underline">ISO country code</a>, like US. <br/>Type to search.`,
         section: 'Advanced',
         fieldsGroup: 'Data Sources',
       },

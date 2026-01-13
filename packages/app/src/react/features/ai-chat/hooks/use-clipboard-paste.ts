@@ -1,13 +1,12 @@
-/* eslint-disable no-unused-vars */
 import { RefObject, useCallback, useEffect } from 'react';
 
-interface UseClipboardPasteOptions {
+type TClipboardPasteConfig = {
   onFilePaste: (files: File[]) => void;
   enabled?: boolean;
   targetRef?: RefObject<HTMLTextAreaElement | HTMLElement>;
   largeTextThreshold?: number;
   onLargeTextPaste?: (text: string) => void;
-}
+};
 
 /**
  * Custom hook to handle clipboard paste events for files, images, and large text
@@ -53,7 +52,7 @@ export const useClipboardPaste = ({
   targetRef,
   largeTextThreshold,
   onLargeTextPaste,
-}: UseClipboardPasteOptions) => {
+}: TClipboardPasteConfig) => {
   const handlePaste = useCallback(
     (event: ClipboardEvent) => {
       if (!event.clipboardData) return;

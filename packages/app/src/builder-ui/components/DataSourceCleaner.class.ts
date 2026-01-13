@@ -1,56 +1,56 @@
-import { builderStore } from '@src/shared/state_stores/builder/store';
 import { delay } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // @ts-ignore
 export class DataSourceCleaner extends Component {
-  private namespaces: string[] = [];
-  private isNewComponent: boolean = false;
+  private namespaces: { value: string; text: string; __legacy_id: string }[] = [];
 
   protected async prepare(): Promise<any> {
-    this.isNewComponent = Object.keys(this.data).length === 0;
-    const eligibleForV2 =
-      builderStore.getState().serverStatus.edition === 'enterprise' &&
-      !window.location.hostname.includes('smythos.com');
-
-    const componentVersion =
-      this.data.version ?? (this.isNewComponent && eligibleForV2 ? 'v2' : 'v1');
-
-    if (this.isNewComponent && eligibleForV2) {
-      this.data.version = componentVersion;
-    }
-
-    this.updateSettings();
+    this.updateSettings().then(() => {
+      // if the current value does not match anything
+      const isUnableToMatchNsRecord =
+        this.data['namespaceId'] &&
+        !this.namespaces.find((ns) => ns.value === this.data['namespaceId']);
+      if (isUnableToMatchNsRecord) {
+        // try two cases, case where teamid is stripped, and case of original id
+        const nsWithTeamId = `${window.workspace.teamData.id}_${this.data['namespaceId']}`;
+        const ns = this.data['namespaceId'];
+        const matching = this.namespaces.find(
+          (_nsRec) => _nsRec.__legacy_id === ns || _nsRec.__legacy_id === nsWithTeamId,
+        );
+        if (matching) {
+          this.data['namespaceId'] = matching.value;
+        } else {
+          console.log('WE are not able to map the old name');
+        }
+      }
+    });
   }
 
   protected async updateSettings() {
-    if (!this.data.version || this.data.version === 'v1') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.id, text: item.name }));
-      this.settings.namespaceId.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    } else if (this.data.version === 'v2') {
-      const result = await fetch(
-        `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
-      );
-      const namespaces = await result.json();
-      this.namespaces = namespaces.map((item) => ({ value: item.label, text: item.label }));
-      this.settings.namespaceId.options = this.namespaces;
-      if (this.settingsOpen) this.refreshSettingsSidebar();
-    }
+    const result = await fetch(
+      `${this.workspace.server}/api/component/DataSourceIndexer/v2/namespaces`,
+    );
+    const namespaces = await result.json();
+    this.namespaces = namespaces.map((item) => ({
+      value: item.label,
+      text: item.label,
+      __legacy_id: item.__legacy_id,
+    }));
+    this.settings.namespaceId.options = this.namespaces;
+    if (this.settingsOpen) this.refreshSettingsSidebar();
+    await this.validateNamespaceSelection();
   }
 
   protected async init() {
     this.settings = {
       namespaceId: {
         type: 'select',
-        label: 'namespace',
-        help: 'Select the namespace that contains the source to remove.',
+        label: 'data space',
+        help: 'Select the data space that contains the source to remove.',
         value: '',
         options: this.namespaces,
+        tooltipClasses: 'w-56',
       },
 
       id: {
@@ -61,6 +61,7 @@ export class DataSourceCleaner extends Component {
         validate: `custom=isValidId`,
         validateMessage: `It should contain only 'a-z', 'A-Z', '0-9', '-', '_', '.', `,
         attributes: { 'data-template-vars': 'true' },
+        tooltipClasses: 'w-56',
       },
     };
 
@@ -83,20 +84,41 @@ export class DataSourceCleaner extends Component {
   protected async checkSettings() {
     super.checkSettings();
 
-    if (!this.namespaces || this.namespaces.length == 0) await delay(3000);
+    await this.validateNamespaceSelection();
+  }
 
-    const namespaces = {};
-    this.namespaces.forEach((ns: any) => {
-      namespaces[ns.value] = ns.text;
+  /**
+   * Validates that the selected namespace exists in the available namespaces list.
+   * If the namespace is missing, displays an alert message prompting the user to create one.
+   * If the namespace is valid, clears any previously displayed alert messages.
+   */
+  private async validateNamespaceSelection(): Promise<void> {
+    // Wait for namespaces to load if not yet available
+    if (!this.namespaces || this.namespaces.length === 0) {
+      await delay(3000);
+    }
+
+    // Build a lookup map of available namespaces
+    const namespacesMap: Record<string, string> = {};
+    this.namespaces.forEach((ns) => {
+      namespacesMap[ns.value] = ns.text;
     });
-    if (this.data['namespace']) {
-      const nsId = this.data['namespace'];
-      if (!namespaces[nsId]) {
+
+    // Validate the selected namespace
+    const nsId = this.data['namespaceId'] as string | undefined;
+    if (nsId) {
+      const messageCssClass = nsId.replace(/ /g, '-');
+
+      if (!namespacesMap[nsId]) {
         console.log('Namespace Missing', nsId);
         this.addComponentMessage(
-          `Missing Namespace<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
+          `Missing Data Space<br /><a href="/data" target="_blank" style="color:#33b;text-decoration:underline">Create one</a> then configure it for this component`,
           'alert',
+          null,
+          messageCssClass,
         );
+      } else {
+        this.clearComponentMessage(`.messages-container .${messageCssClass}`);
       }
     }
   }

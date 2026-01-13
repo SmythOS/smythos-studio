@@ -1,6 +1,6 @@
 /**
  * VectorDatabases Component
- * 
+ *
  * Displays and manages vector database credential connections.
  * Features:
  * - List all vector database connections
@@ -9,14 +9,14 @@
  * - Delete connections
  * - Test connections
  * - Duplicate connections
- * 
+ *
  * @component
  */
 
 import { Button } from '@src/react/shared/components/ui/button';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { successToast } from '@src/shared/components/toast';
-import { Tooltip } from 'flowbite-react';
 import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -96,7 +96,7 @@ export function VectorDatabases() {
 
     // Reset state
     setEditingConnection(undefined);
-    
+
     // Refetch the credentials list
     refetch();
   };
@@ -131,7 +131,6 @@ export function VectorDatabases() {
     setDeletingConnection(undefined);
   };
 
-
   /**
    * Handle modal close
    */
@@ -142,18 +141,21 @@ export function VectorDatabases() {
 
   return (
     <div
-    id="vector-databases"
-    className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
+      id="vector-databases"
+      className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm"
+    >
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             Vector Databases
-            <Tooltip
-              className="w-72 text-center"
-              content="Manage connections to vector databases for storing and retrieving embeddings"
-            >
-              <Info className="w-4 h-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[240px] text-center text-wrap">
+                <p>Manage connections to vector databases for storing and retrieving embeddings</p>
+              </TooltipContent>
             </Tooltip>
           </h2>
         </div>
@@ -165,9 +167,7 @@ export function VectorDatabases() {
           ) : credentials.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-muted-foreground mb-2">No vector database connections found</p>
-              <p className="text-sm text-gray-500">
-                Get started by adding your first connection
-              </p>
+              <p className="text-sm text-gray-500">Get started by adding your first connection</p>
             </div>
           ) : (
             <table className="w-full min-w-[500px] text-sm text-left table-fixed">
@@ -219,34 +219,43 @@ export function VectorDatabases() {
                     </td>
 
                     {/* Actions */}
-                    
 
                     {!connection.isReadOnly && (
                       <td className="pl-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {/* Edit Button */}
-                        <Tooltip content="Edit">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditClick(connection)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </Tooltip>
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Edit Button */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditClick(connection)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit</p>
+                            </TooltipContent>
+                          </Tooltip>
 
-                        {/* Delete Button */}
-                        <Tooltip content="Delete">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteClick(connection)}
-                          >
-                            <Trash2 className="h-4 w-4 hover:text-red-500" />
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    </td>
+                          {/* Delete Button */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(connection)}
+                              >
+                                <Trash2 className="h-4 w-4 hover:text-red-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </td>
                     )}
                   </tr>
                 ))}
@@ -294,4 +303,3 @@ export function VectorDatabases() {
     </div>
   );
 }
-

@@ -26,9 +26,7 @@ import { BaseAgentSettingsTabs } from '../constants';
 
 const OPEN_TAB = 'Overview';
 
-type Props = {};
-
-export const AgentSettingsPage = (props: Props) => {
+export const AgentSettingsPage = () => {
   return (
     <TooltipProvider delayDuration={300} skipDelayDuration={100}>
       <AgentSettingsProvider>
@@ -103,7 +101,7 @@ export const AgentSettingTabs = () => {
     ],
   };
 
-  let mergedWidgets = { ...baseWidgets, ...pluginWidgets };
+  const mergedWidgets = { ...baseWidgets, ...pluginWidgets };
 
   // we need to make sure that the original widgets objects are not overridden by the plugin widgets if the same key exists
   Object.keys(baseWidgets).forEach((key) => {
@@ -133,7 +131,7 @@ export const AgentSettingTabs = () => {
         })}
       </div>
       <div className="grid grid-cols-1 gap-6">
-        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, any[]], index) =>
+        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, any[]]) =>
           widgetlist.map((widget, index) => (
             <div key={index} hidden={currentTab !== key}>
               {widget}
@@ -145,11 +143,25 @@ export const AgentSettingTabs = () => {
   );
 };
 
-export const AgentSettingsPageBody = (props: Props) => {
+export const AgentSettingsPageBody = () => {
   const { agentId, agentQuery, agentTestDomainQuery, settingsQuery } = useAgentSettingsCtx();
   const { userInfo } = useAuthCtx();
   const isOnPaidPlan = userInfo?.subs?.plan?.paid ?? false;
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    Observability.observeInteraction('upgrade_impression', {
+      page_url: '/agent_settings',
+      source: 'upgrade button displayed alongside My Workflow',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (agentQuery.isFetched && settingsQuery.isFetched) {
+      containerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }, [agentQuery.isFetched, settingsQuery.isFetched]);
+
   if (!agentQuery.isLoading && !agentTestDomainQuery.isLoading) {
     if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
       window.location.href = '/error/403';
@@ -168,7 +180,9 @@ export const AgentSettingsPageBody = (props: Props) => {
 
       {agentQuery.data?.name && (
         <Breadcrumb.Item>
-          <Link to={`/agent-settings/${agentId}`}>'{agentQuery.data?.name}' Settings</Link>
+          <Link to={`/agent-settings/${agentId}`}>
+            &apos;{agentQuery.data?.name}&apos; Settings
+          </Link>
         </Breadcrumb.Item>
       )}
     </Breadcrumb>
@@ -181,19 +195,6 @@ export const AgentSettingsPageBody = (props: Props) => {
     });
     window.location.href = config.env.IS_DEV ? '/plans' : PRICING_PLAN_REDIRECT;
   };
-
-  useEffect(() => {
-    Observability.observeInteraction('upgrade_impression', {
-      page_url: '/agent_settings',
-      source: 'upgrade button displayed alongside My Workflow',
-    });
-  }, []);
-
-  useEffect(() => {
-    if (agentQuery.isFetched && settingsQuery.isFetched) {
-      containerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-  }, [agentQuery.isFetched, settingsQuery.isFetched]);
 
   return (
     <div ref={containerRef} className="w-full max-w-[822px] m-auto pb-10 pl-[58px] md:pl-0">

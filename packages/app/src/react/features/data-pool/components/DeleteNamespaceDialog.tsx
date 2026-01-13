@@ -100,12 +100,6 @@ export const DeleteNamespaceDialog: FC<DeleteNamespaceDialogProps> = ({
 
         <DialogFooter>
           <CustomButton
-            variant="secondary"
-            label="Cancel"
-            handleClick={onClose}
-            disabled={isDeleting}
-          />
-          <CustomButton
             variant="primary"
             label={isDeleting ? 'Deleting...' : 'Delete Data Space'}
             handleClick={handleConfirm}
@@ -119,4 +113,3 @@ export const DeleteNamespaceDialog: FC<DeleteNamespaceDialogProps> = ({
     </Dialog>
   );
 };
-

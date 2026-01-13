@@ -1,4 +1,5 @@
 import { delay, isValidJson } from '../../utils';
+import { isTemplateVarsEnabled } from '../../utils/form.utils';
 import createFormField from './createFormField';
 import { createInfoButton } from './fields';
 import { generateKeyValuePairs, readKeyValueData } from './keyValueField';
@@ -94,6 +95,23 @@ export function createForm(entriesObject, displayType = 'block'): FormHTMLElemen
   form.setAttribute('class', 'form dlg-form w-full');
   if (Object.values(entriesObject).find((e: any) => e.validate))
     form.setAttribute('data-role', 'validator');
+
+  // Auto-inject templateVarToggleStates hidden field if any field has data-template-vars
+  const hasTemplateVarsField = Object.values(entriesObject).some(
+    (entry: any) => isTemplateVarsEnabled(entry?.attributes?.['data-template-vars']),
+  );
+
+  if (hasTemplateVarsField && !entriesObject['templateVarToggleStates']) {
+    // Get current component's templateVarToggleStates from window
+    const currentComponent = (window as any).Component?.curComponentSettings;
+    const templateVarToggleStates = currentComponent?.data?.templateVarToggleStates || {};
+
+    // Auto-inject the hidden field by directly mutating the object
+    entriesObject['templateVarToggleStates'] = {
+      type: 'hidden',
+      value: templateVarToggleStates,
+    };
+  }
 
   const sections = {};
   const sectionsHelp = {};
@@ -277,6 +295,16 @@ export function readFormValues(form, entriesObject) {
             .filter((checkbox) => checkbox.checked)
             .map((checkbox) => checkbox.value);
           break;
+        case 'select-multiple':
+        case 'SELECT-MULTIPLE':
+          /**
+           * For select-multiple, get all selected option values as an array
+           * The inputField is the hidden select element with multiple attribute
+           */
+          result[key] = Array.from(inputField.selectedOptions).map(
+            (option: HTMLOptionElement) => option.value,
+          );
+          break;
         case 'toggle':
           result[key] = inputField.checked;
           break;
@@ -307,6 +335,16 @@ export function readFormValues(form, entriesObject) {
         case 'div':
         case 'span':
         case 'p':
+          break;
+        case 'hidden':
+          // Deserialize JSON strings back to objects, fallback to raw string value
+          try {
+            const deserialized = JSON.parse(inputField.value);
+            result[key] = deserialized;
+          } catch (e) {
+            // Not valid JSON - use raw string value
+            result[key] = inputField.value;
+          }
           break;
         default:
           result[key] = inputField.value;
@@ -349,6 +387,17 @@ export function readFormValidation(form, entriesObject) {
         case 'checkbox':
         case 'toggle':
           result[key] = { value: inputField.checked };
+          break;
+        case 'select-multiple':
+        case 'SELECT-MULTIPLE':
+          /**
+           * For select-multiple validation, return array of selected values
+           */
+          result[key] = {
+            value: Array.from(inputField.selectedOptions).map(
+              (option: HTMLOptionElement) => option.value,
+            ),
+          };
           break;
         case 'number':
           // Convert string value to number for number fields

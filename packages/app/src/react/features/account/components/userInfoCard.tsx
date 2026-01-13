@@ -76,7 +76,7 @@ const UserInfoCard = () => {
       error: 'Your account cannot be deleted while you have active team members.',
       steps: [
         'Remove all team members from your account',
-        `Then cancel your subscription from <a href="/my-plan">My Plan page</a>`,
+        'Then cancel your subscription from <a href="/my-plan">My Plan page</a>',
         'Contact support if you need assistance',
       ],
     },
@@ -106,7 +106,7 @@ const UserInfoCard = () => {
 
   const deleteBtn = (
     <CustomButton
-      className="mt-5"
+      className="mt-5 rounded-sm"
       handleClick={() =>
         canDeleteAccount ? setDeleteAccountModalOpen(true) : setBlockAccountDeleteModalOpen(true)
       }

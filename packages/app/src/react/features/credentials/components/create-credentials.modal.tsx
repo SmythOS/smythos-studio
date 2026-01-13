@@ -1,10 +1,10 @@
 /**
  * CreateCredentialsModal Component
- * 
+ *
  * A two-step modal for creating and editing credentials:
  * - Step 1: Select provider from dropdown
  * - Step 2: Fill in dynamic form based on provider's schema
- * 
+ *
  * @component
  */
 
@@ -48,7 +48,6 @@ interface CredentialField {
  * Provider schema definition
  */
 interface ProviderSchema {
-  
   id: string;
   name: string;
   group: string;
@@ -86,9 +85,14 @@ export interface CredentialConnection {
 interface CreateCredentialsModalProps {
   isOpen: boolean;
   onClose: () => void;
-   
-   
-  onSuccess?: (data: { id?: string; name: string; provider: string; credentials: Record<string, string>; isEdit: boolean }) => void;
+
+  onSuccess?: (data: {
+    id?: string;
+    name: string;
+    provider: string;
+    credentials: Record<string, string>;
+    isEdit: boolean;
+  }) => void;
   group: string;
   editConnection?: CredentialConnection;
 }
@@ -147,7 +151,7 @@ export function CreateCredentialsModal({
 }: CreateCredentialsModalProps) {
   // Step management (1 = select provider, 2 = fill form)
   const [step, setStep] = useState<1 | 2>(1);
-  
+
   // Form state
   const [connectionName, setConnectionName] = useState<string>('');
   const [selectedProviderId, setSelectedProviderId] = useState<string>('');
@@ -162,9 +166,7 @@ export function CreateCredentialsModal({
 
   // Filter providers by group
   const availableProviders = useMemo(() => {
-    return (credentialsSchema as ProviderSchema[]).filter(
-      (provider) => provider.group === group
-    );
+    return (credentialsSchema as ProviderSchema[]).filter((provider) => provider.group === group);
   }, [group]);
 
   // Get selected provider schema
@@ -182,12 +184,12 @@ export function CreateCredentialsModal({
         if (isEditMode && editConnection) {
           // Edit mode: resolve vault keys and populate form
           setIsResolvingVaultKeys(true);
-          
+
           try {
             // Fetch credential with resolved vault keys
             const resolvedCredential = await credentialsClient.fetchCredentialForEdit(
               editConnection.id,
-              group
+              group,
             );
 
             setConnectionName(resolvedCredential.name);
@@ -254,7 +256,7 @@ export function CreateCredentialsModal({
    */
   const handleCredentialChange = (key: string, value: string) => {
     setCredentials((prev) => ({ ...prev, [key]: value }));
-    
+
     // Clear error for this field when user starts typing
     if (errors[key]) {
       setErrors((prev) => {
@@ -270,7 +272,7 @@ export function CreateCredentialsModal({
    */
   const handleBlur = (key: string) => {
     setTouched((prev) => ({ ...prev, [key]: true }));
-    
+
     // Validate field on blur
     if (selectedProvider) {
       const field = selectedProvider.fields.find((f) => f.key === key);
@@ -290,7 +292,7 @@ export function CreateCredentialsModal({
     if (!selectedProvider) return false;
 
     const newErrors: Record<string, string> = {};
-    
+
     // Validate connection name
     if (!connectionName.trim()) {
       newErrors.connectionName = 'Connection name is required';
@@ -305,7 +307,7 @@ export function CreateCredentialsModal({
     });
 
     setErrors(newErrors);
-    
+
     // Mark all fields as touched
     const allTouched: Record<string, boolean> = { connectionName: true };
     selectedProvider.fields.forEach((field) => {
@@ -321,7 +323,7 @@ export function CreateCredentialsModal({
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateAllFields()) {
       return;
     }
@@ -331,11 +333,11 @@ export function CreateCredentialsModal({
     }
 
     setIsProcessing(true);
-    
+
     try {
       // Transform credentials to include sensitivity metadata based on field types
       const credentialsWithMetadata: Record<string, { value: string; sensitive: boolean }> = {};
-      
+
       if (selectedProvider) {
         selectedProvider.fields.forEach((field) => {
           const value = credentials[field.key] || '';
@@ -376,9 +378,10 @@ export function CreateCredentialsModal({
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error submitting credentials:', error);
-      
+
       // Set error for connection name field to display to user
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save credential. Please try again.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to save credential. Please try again.';
       setErrors((prev) => ({
         ...prev,
         connectionName: errorMessage,
@@ -421,185 +424,191 @@ export function CreateCredentialsModal({
             <CredentialFormSkeleton />
           ) : (
             <div className="grid gap-4 py-4">
-            {/* Step 1: Provider Selection (only shown in create mode) */}
-            {step === 1 && !isEditMode && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-gray-700 mb-1 text-sm font-normal flex items-center">
-                    Select Provider <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <Select
-                    value={selectedProviderId}
-                    onValueChange={handleProviderSelect}
-                    disabled={isProcessing}
-                  >
-                    <SelectTrigger className="w-full" disabled={isProcessing || isResolvingVaultKeys}>
-                      <SelectValue placeholder="Choose a provider..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProviders.length === 0 ? (
-                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                          No providers available for this group
-                        </div>
-                      ) : (
-                        availableProviders.map((provider) => (
-                          <SelectItem key={provider.id} value={provider.id}>
-                            <div className="flex items-start gap-2">
-                              {provider.logo_url && (
-                                <img
-                                  src={provider.logo_url}
-                                  alt={provider.name}
-                                  className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
-                                />
-                              )}
-                              <div className="flex flex-col">
-                                <span className="font-medium">{provider.name}</span>
-                                {provider.description && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {provider.description}
-                                  </span>
+              {/* Step 1: Provider Selection (only shown in create mode) */}
+              {step === 1 && !isEditMode && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-gray-700 mb-1 text-sm font-normal flex items-center">
+                      Select Provider <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <Select
+                      disabled={isProcessing}
+                      data-qa="choose-provider"
+                      value={selectedProviderId}
+                      onValueChange={handleProviderSelect}
+                    >
+                      <SelectTrigger
+                        className="w-full"
+                        disabled={isProcessing || isResolvingVaultKeys}
+                      >
+                        <SelectValue placeholder="Choose a provider..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableProviders.length === 0 ? (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                            No providers available for this group
+                          </div>
+                        ) : (
+                          availableProviders.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.id}>
+                              <div className="flex items-start gap-2">
+                                {provider.logo_url && (
+                                  <img
+                                    src={provider.logo_url}
+                                    alt={provider.name}
+                                    className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
+                                  />
                                 )}
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{provider.name}</span>
+                                  {provider.description && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {provider.description}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Dynamic Form */}
+              {step === 2 && selectedProvider && (
+                <div className="space-y-4">
+                  {/* Connection Name */}
+                  <div>
+                    <Input
+                      label="Connection Name"
+                      required
+                      fullWidth
+                      placeholder="e.g., My Vector Database"
+                      value={connectionName}
+                      onChange={(e) => {
+                        setConnectionName(e.target.value);
+                        if (errors.connectionName) {
+                          setErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.connectionName;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                      onBlur={() => {
+                        setTouched((prev) => ({ ...prev, connectionName: true }));
+                        if (!connectionName.trim()) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            connectionName: 'Connection name is required',
+                          }));
+                        }
+                      }}
+                      error={touched.connectionName && !!errors.connectionName}
+                      errorMessage={errors.connectionName}
+                      disabled={isProcessing}
+                    />
+                  </div>
+
+                  {/* Provider Info */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-start gap-2">
+                        {selectedProvider.logo_url && (
+                          <img
+                            src={selectedProvider.logo_url}
+                            alt={selectedProvider.name}
+                            className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
+                          />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {selectedProvider.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {selectedProvider.description}
+                          </p>
+                        </div>
+                      </div>
+                      {selectedProvider.docs_url && (
+                        <a
+                          href={selectedProvider.docs_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Documentation
+                        </a>
                       )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
+                    </div>
+                  </div>
 
-            {/* Step 2: Dynamic Form */}
-            {step === 2 && selectedProvider && (
-              <div className="space-y-4">
-                {/* Connection Name */}
-                <div>
-                  <Input
-                    label="Connection Name"
-                    required
-                    fullWidth
-                    placeholder="e.g., My Vector Database"
-                    value={connectionName}
-                    onChange={(e) => {
-                      setConnectionName(e.target.value);
-                      if (errors.connectionName) {
-                        setErrors((prev) => {
-                          const newErrors = { ...prev };
-                          delete newErrors.connectionName;
-                          return newErrors;
-                        });
-                      }
-                    }}
-                    onBlur={() => {
-                      setTouched((prev) => ({ ...prev, connectionName: true }));
-                      if (!connectionName.trim()) {
-                        setErrors((prev) => ({
-                          ...prev,
-                          connectionName: 'Connection name is required',
-                        }));
-                      }
-                    }}
-                    error={touched.connectionName && !!errors.connectionName}
-                    errorMessage={errors.connectionName}
-                    disabled={isProcessing}
-                  />
-                </div>
-
-                {/* Provider Info */}
-                <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-2">
-                      {selectedProvider.logo_url && (
-                        <img
-                          src={selectedProvider.logo_url}
-                          alt={selectedProvider.name}
-                          className="w-5 h-5 mt-0.5 object-contain flex-shrink-0"
+                  {/* Dynamic Fields */}
+                  {selectedProvider.fields.map((field) => (
+                    <div key={field.key}>
+                      {field.type === 'textarea' ? (
+                        <TextArea
+                          label={field.label}
+                          required={field.required}
+                          fullWidth
+                          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                          value={credentials[field.key] || ''}
+                          onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                          onBlur={() => handleBlur(field.key)}
+                          error={touched[field.key] && !!errors[field.key]}
+                          errorMessage={errors[field.key]}
+                          disabled={isProcessing || isResolvingVaultKeys}
+                          rows={3}
+                          autoGrow={true}
+                          maxHeight={200}
+                        />
+                      ) : field.type === 'password' ? (
+                        <PasswordInput
+                          label={field.label}
+                          required={field.required}
+                          fullWidth
+                          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                          value={credentials[field.key] || ''}
+                          onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                          onBlur={() => handleBlur(field.key)}
+                          error={touched[field.key] && !!errors[field.key]}
+                          errorMessage={errors[field.key]}
+                          disabled={isProcessing || isResolvingVaultKeys}
+                        />
+                      ) : (
+                        <Input
+                          label={field.label}
+                          required={field.required}
+                          fullWidth
+                          type={getInputType(field.type)}
+                          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                          value={credentials[field.key] || ''}
+                          onChange={(e) => handleCredentialChange(field.key, e.target.value)}
+                          onBlur={() => handleBlur(field.key)}
+                          error={touched[field.key] && !!errors[field.key]}
+                          errorMessage={errors[field.key]}
+                          disabled={isProcessing || isResolvingVaultKeys}
                         />
                       )}
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {selectedProvider.name}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {selectedProvider.description}
-                        </p>
-                      </div>
                     </div>
-                    {selectedProvider.docs_url && (
-                      <a
-                        href={selectedProvider.docs_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800 underline"
-                      >
-                        Documentation
-                      </a>
-                    )}
-                  </div>
+                  ))}
+
+                  {selectedProvider.metadata?.callback_path && (
+                    <div>
+                      <p className="mt-2 text-sm">
+                        <span className="font-medium">Callback Path: </span>
+                        <span className="text-gray-500">
+                          {parseCredsShemaPlaceholders(selectedProvider.metadata.callback_path)}
+                        </span>
+                      </p>
+                    </div>
+                  )}
                 </div>
-
-                {/* Dynamic Fields */}
-                {selectedProvider.fields.map((field) => (
-                  <div key={field.key}>
-                    {field.type === 'textarea' ? (
-                      <TextArea
-                        label={field.label}
-                        required={field.required}
-                        fullWidth
-                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                        value={credentials[field.key] || ''}
-                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
-                        onBlur={() => handleBlur(field.key)}
-                        error={touched[field.key] && !!errors[field.key]}
-                        errorMessage={errors[field.key]}
-                        disabled={isProcessing || isResolvingVaultKeys}
-                        rows={3}
-                        autoGrow={true}
-                        maxHeight={200}
-                      />
-                    ) : field.type === 'password' ? (
-                      <PasswordInput
-                        label={field.label}
-                        required={field.required}
-                        fullWidth
-                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                        value={credentials[field.key] || ''}
-                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
-                        onBlur={() => handleBlur(field.key)}
-                        error={touched[field.key] && !!errors[field.key]}
-                        errorMessage={errors[field.key]}
-                        disabled={isProcessing || isResolvingVaultKeys}
-                      />
-                    ) : (
-                      <Input
-                        label={field.label}
-                        required={field.required}
-                        fullWidth
-                        type={getInputType(field.type)}
-                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-                        value={credentials[field.key] || ''}
-                        onChange={(e) => handleCredentialChange(field.key, e.target.value)}
-                        onBlur={() => handleBlur(field.key)}
-                        error={touched[field.key] && !!errors[field.key]}
-                        errorMessage={errors[field.key]}
-                        disabled={isProcessing || isResolvingVaultKeys}
-                      />
-                    )}
-                  </div>
-                ))}
-
-                {selectedProvider.metadata?.callback_path && (
-                  <div>
-                    <p className='mt-2 text-sm'>
-                      <span className="font-medium">Callback Path: </span>
-                       <span className="text-gray-500">{parseCredsShemaPlaceholders(selectedProvider.metadata.callback_path)}</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           )}
 
           <DialogFooter>
@@ -630,4 +639,3 @@ export function CreateCredentialsModal({
     </Dialog>
   );
 }
-

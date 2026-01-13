@@ -80,6 +80,20 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
+}
+
+/* Hide browser's default clear button for template variable inputs */
+.template-var-input::-webkit-search-decoration,
+.template-var-input::-webkit-search-cancel-button,
+.template-var-input::-webkit-search-results-button,
+.template-var-input::-webkit-search-results-decoration,
+.template-var-input::-ms-clear,
+.template-var-input::-ms-reveal {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
 }

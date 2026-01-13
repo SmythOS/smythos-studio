@@ -36,7 +36,9 @@ const WidgetCard = ({ hasBorder = true, ...props }: Props) => {
     props.isWriteAccess !== null ? (
     <Tooltip>
       <TooltipTrigger asChild>
-        <WidgetCardChild hasBorder={hasBorder} {...props} />
+        <div>
+          <WidgetCardChild hasBorder={hasBorder} {...props} />
+        </div>
       </TooltipTrigger>
       <TooltipContent side="top">
         <p>You do not have permission to make changes to this widget</p>

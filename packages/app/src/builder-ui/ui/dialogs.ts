@@ -143,35 +143,13 @@ export async function createRightSidebar(title?, content?, actions?, trActions?,
 
       // Add data attributes directly to the button
       if (btn === 'help') {
-        button.setAttribute('data-tooltip-target', 'tooltip-help-sidebar');
-        button.setAttribute('data-tooltip-placement', 'left');
-
-        // Create and append tooltip
-        const tooltip = document.createElement('div');
-        tooltip.id = 'tooltip-help-sidebar';
-        tooltip.setAttribute('role', 'tooltip');
-        tooltip.className =
-          'tooltip absolute z-50 inline-block text-xs w-max bg-gray-900 shadow-lg text-white py-1.5 px-3 rounded-md opacity-0 invisible';
-        tooltip.style.fontFamily = 'Inter, sans-serif';
-        tooltip.style.transform = 'translate3d(-100%, 0px, 0px)';
-        if (action.tooltip) {
-          tooltip.style.maxWidth = '200px';
-        }
-        tooltip.textContent = action.tooltip || 'Help';
-
-        // Add event listeners to the button
-        button.addEventListener('mouseenter', () => {
-          tooltip.classList.remove('invisible', 'opacity-0');
-          tooltip.classList.add('visible', 'opacity-100');
-        });
-
-        button.addEventListener('mouseleave', () => {
-          tooltip.classList.add('invisible', 'opacity-0');
-          tooltip.classList.remove('visible', 'opacity-100');
+        attachTooltipV2(button, {
+          text: action.tooltip || 'Help',
+          position: action.tooltip ? 'bottom-left' : 'left',
+          delayDuration: 300,
         });
 
         titleLeftActions.appendChild(button);
-        titleLeftActions.appendChild(tooltip);
       } else {
         if (action.click) button.addEventListener('click', action.click);
         titleLeftActions.appendChild(button);
@@ -1465,7 +1443,7 @@ export function confirm(
       btnYes.className += ` ${btnYesClass}`;
 
       if (btnYesType === 'danger') {
-        btnYes.className += ` bg-smyth-red-500 border-smyth-red-500 rounded-lg px-8 hover:bg-red-600`;
+        btnYes.className += ` bg-smyth-red-500 border-smyth-red-500 rounded-sm px-8 hover:bg-red-600`;
         btnYes.classList.remove(
           'bg-smythos-blue-500',
           'border-smythos-blue-500',
@@ -1547,7 +1525,7 @@ export function modalDialog(
     const button = document.createElement('button');
     button.setAttribute(
       'class',
-      `text-center text-sm font-medium py-1.5 px-3 w-40 rounded-lg border hover:opacity-75 focus:ring-4 focus:outline-none ${cls}`,
+      `text-center text-sm font-medium py-1.5 px-3 w-40 rounded-sm border hover:opacity-75 focus:ring-4 focus:outline-none ${cls}`,
     );
     button.innerHTML = label;
     button.onclick = () => {

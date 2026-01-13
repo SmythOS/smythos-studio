@@ -81,7 +81,7 @@ const defaultRoutes: Route[] = [
   {
     rootPath: ['/voice', '/emb/voice'],
     route: voiceRouter,
-},
+  },
 ];
 
 const devRoutes: Route[] = [];

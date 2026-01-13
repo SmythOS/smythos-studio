@@ -92,6 +92,7 @@ export class LLMRegistry {
   public static getModelsByFeatures(
     features: string | string[],
     providers?: string | string[],
+    selectedModel?: string,
   ): LLMModel[] {
     const models = this.getModels();
     const targetFeatures = Array.isArray(features) ? features : [features];
@@ -110,6 +111,12 @@ export class LLMRegistry {
         'features' in model &&
         Array.isArray(model.features)
       ) {
+        // We need to hide the model if it is hidden, but not the selected one.
+        if (model?.hidden && selectedModel !== model.modelId) {
+          continue;
+        }
+
+        // #region Features filtering
         // Check if model supports at least one of the target features
         const hasRequiredFeature = targetFeatures.some((feature) =>
           (model.features as string[]).includes(feature),
@@ -118,7 +125,9 @@ export class LLMRegistry {
         if (!hasRequiredFeature) {
           continue;
         }
+        // #endregion Features filtering
 
+        // #region Providers filtering
         // If no providers specified, include all models with the feature(s)
         if (!normalizedProviders) {
           modelEntries.push([key, model]);
@@ -130,6 +139,7 @@ export class LLMRegistry {
         if (normalizedProviders.includes(modelProvider)) {
           modelEntries.push([key, model]);
         }
+        // #endregion Providers filtering
       }
     }
 
@@ -149,11 +159,16 @@ export class LLMRegistry {
    *                   Can be a single provider string or array of providers.
    * @returns Sorted array of LLMModel objects that support the specified feature(s)
    */
-  public static getSortedModelsByFeatures(
-    features: string | string[],
-    providers?: string | string[],
-  ): LLMModel[] {
-    const models = this.getModelsByFeatures(features, providers);
+  public static getSortedModelsByFeatures({
+    features,
+    providers,
+    selectedModel,
+  }: {
+    features: string | string[];
+    providers?: string | string[];
+    selectedModel?: string;
+  }): LLMModel[] {
+    const models = this.getModelsByFeatures(features, providers, selectedModel);
     return this.sortModels(models);
   }
 

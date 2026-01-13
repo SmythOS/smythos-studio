@@ -136,7 +136,7 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
   }
 
   const chatTooltipContent = (
-    <>
+    <div style={{ width: '100%' }}>
       To chat with your agent, please deploy to production.{' '}
       <>
         <Link to={`/builder/${agent.id}`} className="underline" reloadDocument>
@@ -144,7 +144,7 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
         </Link>{' '}
         your agent now.
       </>
-    </>
+    </div>
   );
 
   const userName = agentData?.userName?.split('@')[0];
@@ -207,175 +207,175 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                 {(agentData.permissions.canEdit ||
                   agentData.permissions.canRead ||
                   isStaffUser) && (
-                    <Menu as="div" className="relative">
-                      {({ open }) => {
-                        // Track dropdown state for tooltip visibility
-                        if (dropdownOpenRef.current !== open) {
-                          dropdownOpenRef.current = open;
-                          // Use setTimeout to avoid setState during render
-                          setTimeout(() => {
-                            cardState.setIsActionDropdownVisible(open);
-                          }, 0);
-                        }
+                  <Menu as="div" className="relative">
+                    {({ open }) => {
+                      // Track dropdown state for tooltip visibility
+                      if (dropdownOpenRef.current !== open) {
+                        dropdownOpenRef.current = open;
+                        // Use setTimeout to avoid setState during render
+                        setTimeout(() => {
+                          cardState.setIsActionDropdownVisible(open);
+                        }, 0);
+                      }
 
-                        return (
-                          <>
-                            <Menu.Button
-                              className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                              onClick={(e) => e.stopPropagation()}
-                              data-qa="agent-card-ellipsis-button"
-                            >
-                              <FaEllipsisVertical className="w-4 h-4" />
-                            </Menu.Button>
+                      return (
+                        <>
+                          <Menu.Button
+                            className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            onClick={(e) => e.stopPropagation()}
+                            data-qa="agent-card-ellipsis-button"
+                          >
+                            <FaEllipsisVertical className="w-4 h-4" />
+                          </Menu.Button>
 
-                            <Menu.Items className="absolute right-0 top-6 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                              <div className="py-1">
-                                {/* Pin/Unpin */}
-                                {agentData.permissions.canDuplicate && (
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          handlePinAgent();
-                                          // Don't close menu immediately - let handlePinAgent control it
-                                        }}
-                                        disabled={cardState.isPinning}
-                                        className={classNames(
-                                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                          'group flex items-center px-4 py-2 text-sm w-full text-left',
-                                          { 'opacity-50 cursor-not-allowed': cardState.isPinning },
-                                        )}
-                                      >
-                                        {cardState.isPinning ? (
-                                          <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
-                                        ) : (
-                                          <div className="relative mr-3 h-4 w-4">
-                                            {agent.isPinned ? (
-                                              <UnPinIcon className="h-4 w-4" />
-                                            ) : (
-                                              <PinIcon className="h-4 w-4" />
-                                            )}
-                                          </div>
-                                        )}
-                                        {cardState.isPinning
-                                          ? agent.isPinned
-                                            ? 'Unpinning...'
-                                            : 'Pinning...'
-                                          : agent.isPinned
-                                            ? 'Unpin Agent'
-                                            : 'Pin Agent'}
-                                      </button>
-                                    )}
-                                  </Menu.Item>
-                                )}
-                                {/* Duplicate */}
-                                {agentData.permissions.canDuplicate && (
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          handleDuplicateAgent();
-                                          // Don't close menu immediately - let handleDuplicateAgent control it
-                                        }}
-                                        disabled={cardState.isDuplicating}
-                                        className={classNames(
-                                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                          'group flex items-center px-4 py-2 text-sm w-full text-left',
-                                          {
-                                            'opacity-50 cursor-not-allowed': cardState.isDuplicating,
-                                          },
-                                        )}
-                                      >
-                                        {cardState.isDuplicating ? (
-                                          <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
-                                        ) : (
-                                          <FaRegCopy className="mr-3 h-4 w-4" />
-                                        )}
-                                        {cardState.isDuplicating ? 'Duplicating...' : 'Duplicate'}
-                                      </button>
-                                    )}
-                                  </Menu.Item>
-                                )}
+                          <Menu.Items className="absolute right-0 top-6 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                            <div className="py-1">
+                              {/* Pin/Unpin */}
+                              {agentData.permissions.canDuplicate && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handlePinAgent();
+                                        // Don't close menu immediately - let handlePinAgent control it
+                                      }}
+                                      disabled={cardState.isPinning}
+                                      className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                        { 'opacity-50 cursor-not-allowed': cardState.isPinning },
+                                      )}
+                                    >
+                                      {cardState.isPinning ? (
+                                        <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <div className="relative mr-3 h-4 w-4">
+                                          {agent.isPinned ? (
+                                            <UnPinIcon className="h-4 w-4" />
+                                          ) : (
+                                            <PinIcon className="h-4 w-4" />
+                                          )}
+                                        </div>
+                                      )}
+                                      {cardState.isPinning
+                                        ? agent.isPinned
+                                          ? 'Unpinning...'
+                                          : 'Pinning...'
+                                        : agent.isPinned
+                                          ? 'Unpin Agent'
+                                          : 'Pin Agent'}
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
+                              {/* Duplicate */}
+                              {agentData.permissions.canDuplicate && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleDuplicateAgent();
+                                        // Don't close menu immediately - let handleDuplicateAgent control it
+                                      }}
+                                      disabled={cardState.isDuplicating}
+                                      className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                        {
+                                          'opacity-50 cursor-not-allowed': cardState.isDuplicating,
+                                        },
+                                      )}
+                                    >
+                                      {cardState.isDuplicating ? (
+                                        <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <FaRegCopy className="mr-3 h-4 w-4" />
+                                      )}
+                                      {cardState.isDuplicating ? 'Duplicating...' : 'Duplicate'}
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
 
-                                {/* Contributors */}
-                                {agent.contributors && agent.contributors.length > 0 && (
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setIsContributorsModalOpen(true);
-                                        }}
-                                        className={classNames(
-                                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                          'group flex items-center px-4 py-2 text-sm w-full text-left',
-                                        )}
-                                      >
-                                        <FaUsers className="mr-3 h-4 w-4" />
-                                        Contributors
-                                      </button>
-                                    )}
-                                  </Menu.Item>
-                                )}
+                              {/* Contributors */}
+                              {agent.contributors && agent.contributors.length > 0 && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsContributorsModalOpen(true);
+                                      }}
+                                      className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                      )}
+                                    >
+                                      <FaUsers className="mr-3 h-4 w-4" />
+                                      Contributors
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
 
-                                {/* Activity */}
-                                {(featureFlagPayload as { showActivity?: boolean })?.showActivity && (
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setIsActivityModalOpen(true);
-                                        }}
-                                        className={classNames(
-                                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                          'group flex items-center px-4 py-2 text-sm w-full text-left',
-                                        )}
-                                      >
-                                        <FaClockRotateLeft className="mr-3 h-4 w-4" />
-                                        Activity
-                                      </button>
-                                    )}
-                                  </Menu.Item>
-                                )}
+                              {/* Activity */}
+                              {(featureFlagPayload as { showActivity?: boolean })?.showActivity && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsActivityModalOpen(true);
+                                      }}
+                                      className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                      )}
+                                    >
+                                      <FaClockRotateLeft className="mr-3 h-4 w-4" />
+                                      Activity
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
 
-                                {/* Delete */}
-                                {agentData.permissions.canDelete && (
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setShowDeleteConfirmationModal(true);
-                                        }}
-                                        disabled={cardState.isDeleting}
-                                        className={classNames(
-                                          active ? 'bg-red-100 text-red-900' : 'text-red-700',
-                                          'group flex items-center px-4 py-2 text-sm w-full text-left',
-                                          { 'opacity-50 cursor-not-allowed': cardState.isDeleting },
-                                        )}
-                                      >
-                                        {cardState.isDeleting ? (
-                                          <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
-                                        ) : (
-                                          <FaTrash className="mr-3 h-4 w-4" />
-                                        )}
-                                        {cardState.isDeleting ? 'Deleting...' : 'Delete'}
-                                      </button>
-                                    )}
-                                  </Menu.Item>
-                                )}
-                              </div>
-                            </Menu.Items>
-                          </>
-                        );
-                      }}
-                    </Menu>
-                  )}
+                              {/* Delete */}
+                              {agentData.permissions.canDelete && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeleteConfirmationModal(true);
+                                      }}
+                                      disabled={cardState.isDeleting}
+                                      className={classNames(
+                                        active ? 'bg-red-100 text-red-900' : 'text-red-700',
+                                        'group flex items-center px-4 py-2 text-sm w-full text-left',
+                                        { 'opacity-50 cursor-not-allowed': cardState.isDeleting },
+                                      )}
+                                    >
+                                      {cardState.isDeleting ? (
+                                        <FaCircleNotch className="mr-3 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <FaTrash className="mr-3 h-4 w-4" />
+                                      )}
+                                      {cardState.isDeleting ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
+                            </div>
+                          </Menu.Items>
+                        </>
+                      );
+                    }}
+                  </Menu>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -453,7 +453,7 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
                     </TooltipTrigger>
                     <TooltipContent
                       side={cardState.tooltipPosition === 'bottom' ? 'top' : 'bottom'}
-                      className="min-w-[280px] text-center"
+                      className="max-w-[240px] text-center text-wrap"
                     >
                       {chatTooltipContent}
                     </TooltipContent>
@@ -502,7 +502,7 @@ export function AgentCard({ agent, loadAgents, updateAgentInPlace }: AgentCardPr
         </TooltipTrigger>
         <TooltipContent
           side={cardState.tooltipPosition}
-          className="opacity-100 text-center agent-card-tooltip"
+          className="opacity-100 text-center max-w-[240px] text-wrap"
         >
           <p>{agentData.description}</p>
         </TooltipContent>

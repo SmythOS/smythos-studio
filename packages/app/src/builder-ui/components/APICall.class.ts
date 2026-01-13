@@ -19,6 +19,7 @@ import { createBadge } from '../ui/badges'; // *** ADDED: Import createBadge ***
 import { destroyCodeEditor, toggleMode } from '../ui/dom';
 import { renderOAuthCredentialsModal } from '../ui/react-injects';
 import { delay, getVaultData, handleKvFieldEditBtn, handleKvFieldEditBtnForParams } from '../utils';
+import { attachTooltipV2 } from '../utils/tooltip-wrapper-v2';
 import { Workspace } from '../workspace/Workspace.class';
 import { Component } from './Component.class';
 
@@ -128,7 +129,7 @@ export class APICall extends Component {
         label: 'Headers',
         readonly: true,
         help: 'Add keys the service needs, like Authorization or Content-Type.<br /><a href="${SMYTHOS_DOCS_URL}/agent-studio/components/advanced/api-call/?utm_source=studio&utm_medium=tooltip&utm_campaign=api-call&utm_content=url#step-2-add-headers-and-body" target="_blank" class="text-blue-600 hover:text-blue-800">See header usage</a>',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-52',
         arrowClasses: '-ml-13',
         validate: `custom=isValidJson`,
         validateMessage: 'Provide a Valid JSON with non-empty keys',
@@ -173,7 +174,7 @@ export class APICall extends Component {
         label: 'Body',
         attributes: { 'data-template-vars': 'true', 'data-vault': `${COMP_NAMES.apiCall},All` },
         help: 'Write what you want to send and use variables from earlier steps.',
-        tooltipClasses: 'w-64',
+        tooltipClasses: 'w-60',
         arrowClasses: '-ml-17',
         actions: [
           {
@@ -339,6 +340,7 @@ export class APICall extends Component {
         label: 'Proxy URLs',
         section: 'Advanced',
         help: 'Send calls through a proxy if your network or vendor asks for it.',
+        tooltipClasses: 'w-56',
         validateMessage: `Enter your proxy URLs in the following format:<br/>
                 [scheme]://[username]:[password]@[host]:[port]<br/><br/>
                 For multiple URLs, place each one in a new line.<br/><br/>
@@ -1387,13 +1389,13 @@ export class APICall extends Component {
 
   public async checkSettings() {
     this.clearComponentMessages();
-    this.addComponentMessage('Checking Auth Info...', 'info text-center');
+    this.addComponentMessage('Checking Auth Info...', 'auth-info-message info text-center');
 
     // Call parent class validation
     await super.checkSettings();
 
     // Replace temporary status with the final state
-    this.clearComponentMessages();
+    this.clearComponentMessage('.auth-info-message');
 
     // Update component-level button based on current OAuth connection's auth state
     // Use the centralized updateAuthenticationButton method which handles both sidebar and component buttons
@@ -1956,5 +1958,163 @@ export class APICall extends Component {
 
     oauth_button.innerHTML = isAuthenticated ? 'Sign Out' : 'Authenticate';
     oauth_button.disabled = false;
+  }
+
+  /**
+   * Sets up the OAuth modal handlers (field visibility, change events, etc.)
+   * Extracted from onDOMReady to allow reuse after vault key resolution
+   */
+  private setupOAuthModalHandlers(
+    dialog: HTMLElement,
+    currentOauthInfo: any,
+    consumerKeyValue: string,
+    consumerSecretValue: string,
+  ) {
+    // Get all containers
+    const oauth1Container = dialog.querySelector('#oauth1-fields');
+    const oauth2Container = dialog.querySelector('#oauth2-fields');
+    const callbackDisplayContainer = dialog.querySelector('#callback-url-display');
+    const serviceSelect = dialog.querySelector('#oauthService') as HTMLSelectElement;
+    const initialServiceValue = serviceSelect?.value || 'None';
+
+    // Force-set OAuth1 fields (our working fix)
+    const consumerKeyInput = dialog.querySelector('#consumerKey') as HTMLInputElement;
+    const consumerSecretInput = dialog.querySelector('#consumerSecret') as HTMLInputElement;
+    if (consumerKeyInput && consumerKeyValue) {
+      consumerKeyInput.value = consumerKeyValue;
+    }
+    if (consumerSecretInput && consumerSecretValue) {
+      consumerSecretInput.value = consumerSecretValue;
+    }
+
+    // Force-set OAuth2 fields the same way
+    const clientIDInput = dialog.querySelector('#clientID') as HTMLInputElement;
+    const clientSecretInput = dialog.querySelector('#clientSecret') as HTMLInputElement;
+    const tokenURLInput = dialog.querySelector('#tokenURL') as HTMLInputElement;
+    const authURLInput = dialog.querySelector('#authorizationURL') as HTMLInputElement;
+    const scopeInput = dialog.querySelector('#scope') as HTMLTextAreaElement;
+
+    if (clientIDInput && currentOauthInfo.clientID) {
+      clientIDInput.value = currentOauthInfo.clientID;
+    }
+    if (clientSecretInput && currentOauthInfo.clientSecret) {
+      clientSecretInput.value = currentOauthInfo.clientSecret;
+    }
+    if (tokenURLInput && currentOauthInfo.tokenURL) {
+      tokenURLInput.value = currentOauthInfo.tokenURL;
+    }
+    if (authURLInput && currentOauthInfo.authorizationURL) {
+      authURLInput.value = currentOauthInfo.authorizationURL;
+    }
+    if (scopeInput && currentOauthInfo.scope) {
+      scopeInput.value = currentOauthInfo.scope;
+    }
+
+    // Attach tooltip to scope info icon
+    const scopeTooltipIcon = dialog.querySelector('#scope-label') as HTMLElement;
+    if (scopeTooltipIcon) {
+      attachTooltipV2(scopeTooltipIcon, {
+        text: 'Enter scopes separated by spaces (e.g., read write profile)',
+        position: 'right',
+        delayDuration: 300,
+      });
+    }
+
+    // Comprehensive update field visibility function
+    const updateFieldVisibility = (selectedValue: string) => {
+      const isOAuth2 = ['Google', 'LinkedIn', 'Custom OAuth2.0'].includes(selectedValue);
+      const isOAuth1 = ['Twitter', 'Custom OAuth1.0'].includes(selectedValue);
+      const isClientCreds = selectedValue === 'OAuth2 Client Credentials';
+
+      // Show/hide main containers
+      oauth1Container?.classList.toggle('hidden', !isOAuth1);
+      oauth2Container?.classList.toggle('hidden', !(isOAuth2 || isClientCreds));
+
+      // Toggle specific fields within OAuth2
+      const scopeGroup = dialog.querySelector('[data-oauth-field="scope"]');
+      const authURLGroup = dialog.querySelector('#authorizationURL')?.closest('.form-group');
+
+      if (scopeGroup) {
+        scopeGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
+      }
+      if (authURLGroup) {
+        authURLGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
+      }
+
+      // Handle callback URL display
+      callbackDisplayContainer?.classList.toggle(
+        'hidden',
+        isClientCreds || (!isOAuth2 && !isOAuth1),
+      );
+      if (!callbackDisplayContainer?.classList.contains('hidden')) {
+        const callbackUrlDiv = callbackDisplayContainer?.querySelector('div.col-span-3');
+        const service = selectedValue === 'None' ? '' : selectedValue;
+        let callbackURL = '';
+
+        try {
+          const baseUrl = window.location.origin;
+          const serviceInternal = APICall.prototype.mapServiceNameToInternal.call(this, service);
+          if (serviceInternal && serviceInternal !== 'none') {
+            callbackURL = `${baseUrl}/oauth/${serviceInternal}/callback`;
+          }
+        } catch (e) {
+          console.error('Error creating callback URL:', e);
+        }
+
+        if (callbackUrlDiv) {
+          callbackUrlDiv.textContent = callbackURL;
+        }
+      }
+    };
+
+    // Apply initial visibility
+    updateFieldVisibility(initialServiceValue);
+
+    // Re-add change handler
+    if (serviceSelect) {
+      serviceSelect.addEventListener('change', (e) => {
+        const target = e.target as HTMLSelectElement;
+        updateFieldVisibility(target.value);
+
+        // Add this code to prefill values when service changes
+        const selectedService = target.value;
+        if (['Google', 'Twitter', 'LinkedIn'].includes(selectedService)) {
+          // Get default configuration for selected service
+          const baseUrl = window.location.origin;
+          const service = this.mapServiceNameToInternal(selectedService);
+          const callbackUrl = `${baseUrl}/oauth/${service}/callback`;
+
+          // Set default values based on service
+          if (selectedService === 'Google') {
+            (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
+              'https://accounts.google.com/o/oauth2/v2/auth';
+            (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
+              'https://oauth2.googleapis.com/token';
+            (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
+              'https://www.googleapis.com/auth/gmail.readonly';
+          } else if (selectedService === 'LinkedIn') {
+            (dialog.querySelector('#authorizationURL') as HTMLInputElement).value =
+              'https://www.linkedin.com/oauth/v2/authorization';
+            (dialog.querySelector('#tokenURL') as HTMLInputElement).value =
+              'https://www.linkedin.com/oauth/v2/accessToken';
+            (dialog.querySelector('#scope') as HTMLTextAreaElement).value =
+              'r_liteprofile r_emailaddress';
+          } else if (selectedService === 'Twitter') {
+            (dialog.querySelector('#requestTokenURL') as HTMLInputElement).value =
+              'https://api.twitter.com/oauth/request_token';
+            (dialog.querySelector('#accessTokenURL') as HTMLInputElement).value =
+              'https://api.twitter.com/oauth/access_token';
+            (dialog.querySelector('#userAuthorizationURL') as HTMLInputElement).value =
+              'https://api.twitter.com/oauth/authorize';
+          }
+
+          // Update callback URL display
+          const callbackUrlDiv = callbackDisplayContainer?.querySelector('div.col-span-3');
+          if (callbackUrlDiv) {
+            callbackUrlDiv.textContent = callbackUrl;
+          }
+        }
+      });
+    }
   }
 }
