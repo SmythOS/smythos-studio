@@ -53,6 +53,12 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
     scrollManager.smartScrollToBottom({ behavior: smooth ? 'smooth' : 'auto', delay: 0 });
   }, []);
 
+  /**
+   * Hides the scroll button
+   * Used when resetting chat session
+   */
+  const hideScrollButton = useCallback(() => setShowScrollButton(false), []);
+
   // Attach scroll event listener
   useEffect(() => {
     const container = ref.current;
@@ -67,5 +73,6 @@ export const useScrollToBottom = (ref: RefObject<HTMLElement>) => {
     handleScroll,
     scrollToBottom,
     smartScrollToBottom,
+    hideScrollButton,
   };
 };
