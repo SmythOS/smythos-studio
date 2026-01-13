@@ -107,13 +107,14 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
     stopStreaming();
     setMessages([]);
     fileUpload.clear();
+    scroll.hideScrollButton();
     await createSession();
 
     inputRef.current?.focus();
 
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
-  }, [createSession, setMessages, fileUpload, stopStreaming]);
+  }, [createSession, setMessages, fileUpload, stopStreaming, scroll]);
 
   // Display informational message when chatbot is disabled
   useEffect(() => {

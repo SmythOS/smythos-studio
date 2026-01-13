@@ -28,6 +28,7 @@ export interface IChatContext {
     handleScroll: () => void;
     scrollToBottom: (smooth?: boolean) => void;
     smartScrollToBottom: (smooth?: boolean) => void;
+    hideScrollButton: () => void;
   };
   modelOverride: string | null;
   setModelOverride: (model: string | null) => void;
@@ -60,6 +61,7 @@ export const ChatContext = createContext<IChatContext>({
     handleScroll: () => {},
     scrollToBottom: () => {},
     smartScrollToBottom: () => {},
+    hideScrollButton: () => {},
   },
   modelOverride: null,
   setModelOverride: () => {},
