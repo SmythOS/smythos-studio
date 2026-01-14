@@ -17,7 +17,6 @@ import { getIntegrations } from '../../router.utils/templates.utils';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import rateLimit from 'express-rate-limit';
 import { jsonrepair } from 'jsonrepair';
-import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { RedisStore } from 'rate-limit-redis';
 import {
@@ -524,7 +523,7 @@ router.post('/data/generate-form-data', generateFormDataRateLim, async (req, res
 });
 
 router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
-  const { componentId, payload, version } = req.body;
+  const { componentId, payload, version, domain } = req.body;
   const agentId = req.params.agentId;
   if (!agentId || !componentId || !payload) {
     return res.status(400).send({ success: false, error: 'Missing required fields' });
@@ -564,6 +563,7 @@ router.post('/ai-agent/:agentId/skill-call', async (req, res) => {
     agentId,
     teamId: agentData?.teamId,
     headers,
+    domain: domain || '',
   });
 
   return res.status(200).send({ success: true, response: result });
@@ -576,6 +576,7 @@ async function fetchAgentSkill({
   agentId,
   teamId,
   headers,
+  domain,
 }: {
   values: any;
   endpoint: string;
@@ -583,10 +584,11 @@ async function fetchAgentSkill({
   agentId: string;
   teamId: string;
   headers?: { [key: string]: string | string[] };
+  domain: string;
 }) {
   const _method = method.toUpperCase();
 
-  const RUNTIME_AGENT_URL = config.env.API_SERVER;
+  const RUNTIME_AGENT_URL = domain || config.env.API_SERVER;
 
   const request: {
     body: string | null;
@@ -594,16 +596,6 @@ async function fetchAgentSkill({
   } = { body: null, headers: {} };
 
   request.body = JSON.stringify(values);
-
-  const token = jwt.sign(
-    {
-      agentId: agentId,
-      teamId: teamId,
-      exp: Math.floor(Date.now() / 1000) + 60, // 60 min expiry
-    },
-    config.env.INTERNAL_TRUSTED_SECRET, // Shared secret between services
-    { algorithm: 'HS256' },
-  );
 
   request.headers = {
     ...(headers || {}),
@@ -613,7 +605,6 @@ async function fetchAgentSkill({
     'X-AGENT-ID': agentId,
     'x-smyth-debug': 'true',
     'X-DEBUG-read': '',
-    'X-AUTH-TOKEN': 'Bearer ' + token,
   };
 
   try {
