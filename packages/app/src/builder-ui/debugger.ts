@@ -347,7 +347,9 @@ export async function init() {
         dbgStatus.classList.add('hidden');
       }
     });
-    workspace.saveAgent();
+    // Use debounced save to handle rapid toggling - only the final state will be saved
+    // This prevents race conditions and reduces API calls while ensuring data consistency
+    workspace.saveAgentDebounced();
     setTimeout(() => {
       //workspace.redraw();
       repaintDebugComponentsAfter();
