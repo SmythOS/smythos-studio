@@ -15,15 +15,8 @@ const TEST_FORM_TRY_DEBUG_BUTTON_EXPERIMENT_VARIANTS = {
 } as const;
 
 const ResponseView = () => {
-  const {
-    callSkillMutation,
-    lastFormValues,
-    abortController,
-    lastResponse,
-    mode,
-    agentSkillErrors,
-    selectedSkill,
-  } = useEndpointFormPreview();
+  const { callSkillMutation, lastFormValues, lastResponse, mode, agentSkillErrors, selectedSkill } =
+    useEndpointFormPreview();
 
   const handleDebugClick = async () => {
     // Toggle debug bar
@@ -39,7 +32,6 @@ const ResponseView = () => {
       const component = componentElement['_control'];
       if (component && typeof component.openDebugDialog === 'function') {
         // Fire telemetry event
-        const { PostHog } = await import('@src/shared/posthog');
         Observability.observeInteraction('debug_modal_opened', {
           source: 'test_as_form',
         });
@@ -153,18 +145,6 @@ const ResponseView = () => {
 
   return (
     <div>
-      {callSkillMutation.isLoading && (
-        // option to cancel the request
-        <button
-          onClick={() => {
-            abortController.current?.abort();
-          }}
-          className="bg-transparent font-bold border border-gray-300 text-gray-500 px-4 py-3 rounded-md w-full mt-4"
-        >
-          Stop Testing
-        </button>
-      )}
-
       {agentSkillErrors.length > 0 && (
         <div className="flex flex-col gap-2 mt-4">
           {agentSkillErrors.map((error) => (
