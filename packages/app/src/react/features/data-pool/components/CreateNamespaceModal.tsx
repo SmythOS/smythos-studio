@@ -142,7 +142,6 @@ export const CreateNamespaceModal: FC<CreateNamespaceModalProps> = ({
       onClose();
     } catch (err) {
       const errorMessage = err?.message || 'Failed to create data space. Please try again.';
-      setError(errorMessage);
       errorToast(errorMessage);
     } finally {
       setIsCreating(false);

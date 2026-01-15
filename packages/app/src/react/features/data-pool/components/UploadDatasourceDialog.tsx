@@ -180,7 +180,6 @@ export const UploadDatasourceDialog: FC<UploadDatasourceDialogProps> = ({
     } catch (error: unknown) {
       const errorMessage = (error as Error)?.message || 'Failed to upload datasource';
       errorToast(errorMessage);
-      setError(errorMessage);
     } finally {
       setIsUploading(false);
     }
