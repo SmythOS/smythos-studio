@@ -802,7 +802,8 @@ input:disabled {
 
 .notify-container > div.success-toast,
 .notify-container > div.warning-toast,
-.notify-container > div.error-toast {
+.notify-container > div.error-toast,
+.notify-container > div.info-toast {
   border-bottom: none !important;
   border-radius: 4px !important;
   padding: 12px !important;

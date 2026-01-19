@@ -1,10 +1,11 @@
 import { DuplicateAgentResponse, IAgent } from '@react/features/agents/components/agentCard/types';
 import { accquireLock } from '@react/features/agents/utils';
 import { Agent, AgentData } from '@src/react/shared/types/agent-data.types';
+import { errorToast, successToast } from '@src/shared/components/toast';
 import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { toast } from 'react-toastify';
+
 
 interface UseAgentOperationsProps {
   agent: IAgent;
@@ -164,14 +165,14 @@ export function useAgentOperations({
       const result = await createDuplicateAgent();
 
       if (result.success) {
-        toast.success(result.message);
+        successToast(result.message);
         onAgentDuplicated?.();
       } else {
-        toast.error(result.message);
+        errorToast(result.message);
       }
     } catch (error) {
       console.error('Failed to duplicate agent:', error);
-      toast.error('Failed to duplicate agent');
+      errorToast('Failed to duplicate agent');
     }
   }, [createDuplicateAgent, onAgentDuplicated]);
 
@@ -191,18 +192,18 @@ export function useAgentOperations({
       console.error('Lock acquisition failed:', error);
 
       if (error && typeof error === 'object' && 'status' in error && error.status === 403) {
-        toast.error('You do not have access to delete this agent.');
+        errorToast('You do not have access to delete this agent.');
       } else if (
         error &&
         typeof error === 'object' &&
         'error' in error &&
         error.error === 'Request failed with status code 409'
       ) {
-        toast.error(
+        errorToast(
           'Failed to delete agent as the agent is being edited by another user. Please try again later.',
         );
       } else {
-        toast.error('Unable to delete agent. Please try again later.');
+        errorToast('Unable to delete agent. Please try again later.');
       }
       return;
     }
@@ -215,14 +216,14 @@ export function useAgentOperations({
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Agent deleted successfully');
+        successToast('Agent deleted successfully');
         onAgentDeleted?.();
       } else {
-        toast.error('Failed to delete agent');
+        errorToast('Failed to delete agent');
       }
     } catch (error) {
       console.error('Failed to delete agent:', error);
-      toast.error('Failed to delete agent');
+      errorToast('Failed to delete agent');
     }
   }, [agent.id, onAgentDeleted]);
 
@@ -257,7 +258,7 @@ export function useAgentOperations({
         isPinned: newPinnedState,
       };
 
-      toast.success(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
+      successToast(`Agent ${newPinnedState ? 'pinned' : 'unpinned'} successfully`);
       // Update the agent in place instead of reloading the entire list
       onAgentPinned?.(updatedAgent);
     } catch (error) {
@@ -265,9 +266,9 @@ export function useAgentOperations({
 
       // Check if error has a message, if not use generic error
       if (error && typeof error === 'object' && 'message' in error) {
-        toast.error(error.message);
+        errorToast(error.message);
       } else {
-        toast.error(`Failed to ${actionText} agent. Please try again.`);
+        errorToast(`Failed to ${actionText} agent. Please try again.`);
       }
     }
   }, [agent, onAgentPinned]);

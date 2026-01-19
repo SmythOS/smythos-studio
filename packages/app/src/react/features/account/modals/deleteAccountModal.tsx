@@ -3,9 +3,9 @@ import { Input as CustomInput } from '@src/react/shared/components/ui/input';
 import Modal from '@src/react/shared/components/ui/modals/Modal';
 import { Button as CustomButton } from '@src/react/shared/components/ui/newDesign/button';
 import { SmythAPIError } from '@src/react/shared/types/api-results.types';
+import { errorToast, successToast } from '@src/shared/components/toast';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
 
 type Props = {
   onClose: () => void;
@@ -19,11 +19,11 @@ const DeleteAccountModal = ({ onClose }: Props) => {
     mutationFn: deleteAccount,
 
     onError: (error: SmythAPIError) => {
-      toast.error(error.error.message ?? 'Error deleting account');
+      errorToast(error.error.message ?? 'Error deleting account');
       console.log(error);
     },
     onSuccess: () => {
-      toast.success('Account deleted successfully');
+      successToast('Account deleted successfully');
     },
   });
 
