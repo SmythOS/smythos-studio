@@ -52,7 +52,7 @@ export const Input = () => {
   );
 
   const handleSubmit = useCallback((): void => {
-    if (isChatbotDisabled) return;
+    if (isChatbotDisabled || uploading) return;
     if (isStreaming) return stopStreaming();
 
     const trimmedMessage = message.trim();
