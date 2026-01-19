@@ -9,11 +9,6 @@ import { twModalDialog } from './ui/tw-dialogs';
 import { delay } from './utils';
 import { getFileCategory, getMimeTypeFromUrl, isURL } from './utils/general.utils';
 import { Workspace } from './workspace/Workspace.class';
-// import microlight from 'microlight';
-// import hljs from 'highlight.js/lib/core';
-// import hljs_json from 'highlight.js/lib/languages/json';
-// import 'highlight.js/styles/atom-one-dark.css';
-// hljs.registerLanguage('json', hljs_json);
 
 import Prism from 'prismjs';
 import 'prismjs/components/prism-json.js';
@@ -208,20 +203,6 @@ function handleDebugButtons(variant: string) {
 
     applyDebugButtonStyles(debugLogBtn, fixWithAIBtn);
 
-    // if (debugBtn) {
-    //   debugBtn.classList.add('text-sm', 'flex');
-    // }
-
-    // debugBar.classList.add(
-    //   'cursor-pointer',
-    //   'w-[90%]',
-    //   'mx-auto',
-    //   'text-white',
-    //   'variant_2',
-    //   'rounded-lg',
-    //   'bg-smythos-green-500',
-    // );
-
     const btnDebug: HTMLElement = debugBar.querySelector('.btn-debug');
     if (btnDebug) {
       if (variant === DEBUG_INJECT_TEXT_EXPERIMENT_VARIANTS.VARIANT_1) {
@@ -287,11 +268,6 @@ export async function init() {
   //updateServerStatus(false);
 
   await workspace.waitUnlock(120_000); // 120 seconds max wait time
-  // if (workspace?.locked) {
-  //     //retry in 3s
-  //     setTimeout(init, 3000);
-  //     return false;
-  // }
 
   initialized = true;
   console.log('Initializing debugger');
@@ -384,11 +360,6 @@ export async function init() {
         runFixWithAIEExperiment();
         fixWithAIEExperimentRun = true;
       }
-
-      //disabled auto-attach on startup
-      // if (workspace?.agent?.id) {
-      //   attachLiveDebugSession(workspace?.agent?.id, 1);
-      // }
     }, 500);
   }
 
@@ -522,18 +493,6 @@ export async function init() {
       errorToast('Failed to attach debugger', 'No active session found');
       log('Failed to attach debugger, No active session found');
     }
-
-    // const sessionID = await prompt('Enter debug session ID');
-    // if (!sessionID) return;
-    // //first we stop the current debug session
-    // //TODO : ask the user before stopping the current session
-    // workspace.debugger.stopDebugSession();
-    // const result = await workspace.debugger.readDebugStep(workspace.agent.id, sessionID);
-    // if (!result.attached) {
-    //     toast('Cannot attach to this session.<br />Make sure that the session ID is valid and that the corresponding agent is loaded', 'warning');
-    // }
-
-    // AttachedAgent = workspace.agent.id;
   });
 
   document.getElementById('debug-menubtn-stop').addEventListener('click', async (e) => {
@@ -728,7 +687,6 @@ function handleEmbodimentRPCDebug() {
           updateChatbotStatus(
             'Debug is attached. Interact with the debug controls to proceed with debugging your agent',
           );
-          //toast('Successfully attached to action');
           log('Successfully attached to action');
         } else {
           errorToast('Failed to attach debugger', 'No active session found');
@@ -1241,7 +1199,7 @@ function showPreviewDialog(content: string) {
     {
       Close: {
         class: 'border border-gray-700 hover:opacity-75',
-        handler: () => {},
+        handler: () => { },
       },
     },
     {
@@ -1553,11 +1511,6 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
   console.log('processDebugStep', agentID, sessionID);
 
   if (!sessionID) sessionID = debugSessions?.[agentID]?.sessionID;
-
-  //if a session is present disable debug inject buttons, otherwise enable them
-  // document
-  //   .querySelectorAll('.title-bar button.btn-debug')
-  //   .forEach((btn: HTMLButtonElement) => (btn.disabled = sessionID ? true : true));
 
   //ensure that the sessionID is properly stored in case of debug session attach
   if (!debugSessions[agentID]) debugSessions[agentID] = {};
@@ -2096,12 +2049,6 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
       .querySelectorAll('.dbg-running')
       ?.forEach((item) => item?.classList.remove('dbg-running'));
 
-    // const runningAsync = [...document.querySelectorAll('.dbg-async')].map((c) => c.id);
-    // if (runningAsync.length > 0) {
-    //     toast('Waiting for Async jobs to finish ...', '', 'info');
-    //     await waitPendingAsyncComponents();
-    // } else {
-
     if (errorOccurred) {
       errorToast('Debug encountered an error. Please check the logs for details.', 'Debug Error');
       log('Debug session failed: Check the debug log for error details');
@@ -2281,17 +2228,6 @@ export async function injectComponentDebugInfo(agentID, componentID, { input, ou
 
   debugSessions[agentID].sessionID = result.dbgSession;
 
-  // ! Deprecated: will be removed (we handle debug controls in the - src/frontend/components/Component.class/index.ts)
-  // runBtn.removeAttribute('disabled');
-  // stepBtn.removeAttribute('disabled');
-  // attachBtn.removeAttribute('disabled');
-  // stopBtn.removeAttribute('disabled');
-
-  //disable debug inject buttons
-  // document
-  //   .querySelectorAll('.title-bar button.btn-debug')
-  //   .forEach((btn: HTMLButtonElement) => (btn.disabled = true));
-
   return result;
 }
 
@@ -2401,11 +2337,6 @@ function stopDebugUI(clearInfo = true) {
   });
 
   resetComponentsState({ resetPinned: true });
-
-  //enable debug inject buttons
-  // document
-  //   .querySelectorAll('.title-bar button.btn-debug')
-  //   .forEach((btn: HTMLButtonElement) => (btn.disabled = false));
 
   if (clearInfo) {
     workspace.domElement.querySelectorAll('.pinned').forEach((el: HTMLElement) => {
@@ -2917,7 +2848,7 @@ export function createDebugInjectDialog(
         callback: (dialog) => handleDebugAction(component, dialog, 'run'),
       },
     ],
-    onCloseClick: () => {},
+    onCloseClick: () => { },
     onDOMReady: function (dialog) {
       if (debugInputs[component.uid]?.inputs) {
         //console.log('debugInputs', debugInputs[component.uid]?.inputs);
@@ -3086,135 +3017,6 @@ export function createDebugInjectDialog(
       }
     },
   });
-
-  // modalDialog(
-  //     'Debug Inject',
-  //     content,
-  //     {
-  //         Cancel: {
-  //             class: 'text-gray-700 border-gray-700',
-  //             handler: function (dialog) {
-  //                 // Do nothing, just close the dialog
-  //             },
-  //         },
-  //         Run: {
-  //             class: 'text-white border-smyth-emerald-400 bg-smyth-emerald-400',
-  //             handler: function (dialog) {
-  //                 debugInputs[component.uid] = {
-  //                     inputs: {},
-  //                 };
-  //                 const input = Array.from(dialog.querySelectorAll('.inputs-input.input')).reduce((obj, el: any, index) => {
-  //                     let val;
-  //                     try {
-  //                         if (inputFileValue[index]) {
-  //                             val = inputFileValue[index].value || undefined;
-  //                         } else {
-  //                             const isDisabled = el.getAttribute('disabled');
-  //                             val = isDisabled ? undefined : JSON.parse(el.value);
-  //                         }
-  //                     } catch (e) {
-  //                         val = el.value;
-  //                     }
-  //                     obj[inputs[index].name] = val;
-
-  //                     const inputVal = typeof val != 'string' ? JSON.stringify(val, null, 2) : val;
-  //                     debugInputs[component.uid].inputs[inputs[index].name] = inputVal;
-  //                     return obj;
-  //                 }, {});
-
-  //                 const output = Array.from(dialog.querySelectorAll('.outputs-input.input')).reduce((obj, el: any, index) => {
-  //                     let val;
-  //                     try {
-  //                         if (outputFileValue[index]) {
-  //                             val = outputFileValue[index].value;
-  //                         } else {
-  //                             val = JSON.parse(el.value);
-  //                         }
-  //                     } catch (e) {
-  //                         val = el.value;
-  //                     }
-  //                     obj[outputs[index].name] = val;
-  //                     return obj;
-  //                 }, {});
-
-  //                 if (typeof callback === 'function') callback({ input, output });
-  //             },
-  //         },
-  //     },
-  //     {
-  //         onShow: function (dialog) {
-  //             if (debugInputs[component.uid]?.inputs) {
-  //                 //console.log('debugInputs', debugInputs[component.uid]?.inputs);
-  //                 for (let inputName in debugInputs[component.uid]?.inputs) {
-  //                     const inputElement: HTMLInputElement = dialog.querySelector(`.inputs-input[name="${inputName}"]`);
-
-  //                     if (!inputElement) continue;
-
-  //                     // setting value to the file type input leads to error
-  //                     if (inputElement.type !== 'file') {
-  //                         const value = debugInputs[component.uid]?.inputs[inputName];
-  //                         inputElement.value = value;
-  //                     }
-  //                 }
-  //             }
-
-  //             const checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
-  //             [...checkboxes].forEach((checkbox: any) => {
-  //                 const rel = checkbox.getAttribute('rel');
-  //                 const input: HTMLTextAreaElement = dialog.querySelector(`#${rel}`);
-  //                 if (!input) return;
-  //                 checkbox.addEventListener('change', (e) => {
-  //                     const isChecked = e.target.checked;
-  //                     if (isChecked) {
-  //                         input.removeAttribute('disabled');
-
-  //                         input.style.opacity = '1';
-  //                     } else {
-  //                         input.setAttribute('disabled', 'true');
-  //                         input.value = '';
-  //                         input.style.opacity = '0.5';
-  //                     }
-  //                 });
-  //             });
-  //             const inputsContainer = dialog.querySelector('#inputs');
-  //             const outputsContainer = dialog.querySelector('#outputs');
-
-  //             inputs.forEach((input, index) => {
-  //                 if (input.type === 'file') {
-  //                     const inputFile = inputsContainer.querySelector(`#inputs-input-${index}`);
-  //                     const element = { domElement: inputFile, value: null, file: null };
-  //                     inputFileValue[index] = element;
-  //                     inputFile.addEventListener('change', (e: any) => {
-  //                         const file = e.target.files[0];
-  //                         element.file = file;
-  //                         const reader = new FileReader();
-  //                         reader.onload = (e) => {
-  //                             element.value = e.target.result;
-  //                         };
-  //                         reader.readAsDataURL(file);
-  //                     });
-  //                 }
-  //             });
-
-  //             outputs.forEach((output, index) => {
-  //                 if (output.type === 'file') {
-  //                     const outputFile = outputsContainer.querySelector(`#outputs-input-${index}`);
-  //                     const element = { domElement: outputFile, value: null, file: null };
-  //                     outputFileValue[index] = element;
-  //                     outputFile.addEventListener('change', (e: any) => {
-  //                         const file = e.target.files[0];
-  //                         element.file = file;
-  //                         const reader = new FileReader();
-  //                         reader.onload = (e) => {
-  //                             element.value = e.target.result;
-  //                         };
-  //                         reader.readAsDataURL(file);
-  //                     });
-  //                 }
-  //             });
-  //         },
-  //     },
-  // );
 
   return;
 }
