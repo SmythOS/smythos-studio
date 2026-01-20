@@ -150,9 +150,11 @@ const DeleteUserModelKeyDialog = ({
       { modelId: apiKey },
       {
         onSuccess: () => {
+          successToast('API key deleted successfully');
           onClose();
         },
         onError: (error) => {
+          errorToast('Failed to delete API key');
           console.error('Failed to delete API key:', error);
         },
       },
