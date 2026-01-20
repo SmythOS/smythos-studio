@@ -82,22 +82,26 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const sendMessage = useCallback(
     async (message: string) => {
       if (!message.trim() && fileUpload.attachments.length === 0) return;
+      if (fileUpload.uploading) return;
+
+      // Capture the IDs of attachments being sent
+      const sentIds = new Set(fileUpload.attachments.map((f) => f.id));
+
+      const attachments = fileUpload.attachments.map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        size: f.size,
+        url: f.url,
+        blobUrl: f.blobUrl,
+        file: f.file,
+      }));
 
       try {
-        const attachments = fileUpload.attachments.map((f) => ({
-          id: f.id,
-          name: f.name,
-          type: f.type,
-          size: f.size,
-          url: f.url,
-          blobUrl: f.blobUrl,
-          file: f.file,
-        }));
-
         await addMessage(message, attachments);
-        fileUpload.clear();
-      } catch (error) {
-        console.error('Failed to send message:', error); // eslint-disable-line no-console
+      } finally {
+        // Only clear attachments that were actually sent, keep any new ones added during streaming
+        fileUpload.removeByIds(sentIds);
       }
     },
     [fileUpload, addMessage],

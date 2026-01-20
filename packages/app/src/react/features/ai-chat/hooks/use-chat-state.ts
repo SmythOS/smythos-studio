@@ -215,6 +215,7 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
                 attachments:
                   currentAttachments.length > 0
                     ? currentAttachments.map((a) => ({
+                        id: a.id,
                         name: a.name,
                         type: a.type,
                         size: a.size,

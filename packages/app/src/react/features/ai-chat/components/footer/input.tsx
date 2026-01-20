@@ -52,7 +52,7 @@ export const Input = () => {
   );
 
   const handleSubmit = useCallback((): void => {
-    if (isChatbotDisabled) return;
+    if (isChatbotDisabled || uploading) return;
     if (isStreaming) return stopStreaming();
 
     const trimmedMessage = message.trim();
@@ -80,16 +80,7 @@ export const Input = () => {
         forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
       }, 150);
     }
-  }, [
-    isChatbotDisabled,
-    isStreaming,
-    stopStreaming,
-    message,
-    attachments.length,
-    sendMessage,
-    clear,
-    inputRef,
-  ]);
+  }, [isChatbotDisabled, uploading, isStreaming, stopStreaming, message, attachments.length, sendMessage, clear, inputRef]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
