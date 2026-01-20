@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify';
+import { errorToast } from '@src/shared/components/toast';
 import { ERR_MSG_VAULT_KEY_NAME } from '../../../../shared/constants/general';
 import * as validate from './validate-form.helper';
 
@@ -57,8 +57,7 @@ export const isValid = async ({ field, value, keyId, functions }: IsValidParams)
           isValid = false;
         }
       } catch (error) {
-        // TODO: Show toast message
-        toast.error('Something went wrong. Please try again later.');
+        errorToast('Something went wrong. Please try again later.');
         console.error(error);
       }
 

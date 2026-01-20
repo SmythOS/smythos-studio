@@ -634,14 +634,10 @@ export function useInitiateOAuth() {
         // Add listener here or manage globally? Usually managed where the hook is called.
       } else {
         console.error('Authentication URL was not returned from the server.');
-        // Optionally show a toast message to the user
-        // toast({ title: 'Error', description: 'Could not start authentication.', variant: 'destructive' });
       }
     },
     onError: (error) => {
       console.error('Failed to initiate OAuth:', error);
-      // Optionally show a toast message to the user
-      // toast({ title: 'Error', description: `Authentication failed: ${error.message}`, variant: 'destructive' });
     },
   });
 }
@@ -742,8 +738,6 @@ export function useSignOutOAuth() {
     },
     onError: (error) => {
       console.error('Failed to sign out:', error);
-      // Optionally show a toast message to the user
-      // toast({ title: 'Error', description: `Sign out failed: ${error.message}`, variant: 'destructive' });
     },
   });
 }

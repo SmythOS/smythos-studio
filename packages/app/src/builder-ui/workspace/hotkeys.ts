@@ -175,26 +175,6 @@ export function registerHotkeys(workspace: Workspace) {
     await workspace.exportTemplate();
   });
 
-  // hotkey('ctrl+alt+t,command+alt.t', async (event, handler) => {
-  //     if (workspace.locked) return false;
-  //     console.log('exporting component template');
-  //     const elements = document.querySelectorAll('.component.selected, .component.active');
-  //     if (elements.length <= 0 || elements.length > 1) return;
-
-  //     const activeElement: any = elements[0];
-  //     const component = activeElement?._control;
-  //     if (!component) return;
-  //     const templateData = component.exportTemplate();
-  //     if (!templateData) return;
-  //     //let templateName = await prompt('Template name', 'Enter a name for the template');
-  //     //if (!templateName) templateName = component.constructor.name + ' template';
-  //     //templateData.name = templateName;
-  //     let textConfig = JSON.stringify(templateData);
-
-  //     workspace.writeToClipboard(textConfig);
-  //     toast('Component template copied to clipboard');
-  // });
-
   hotkey(keys.componentPriorityUp, (event, handler) => {
     if (workspace.locked) return false;
     if (

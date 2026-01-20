@@ -168,7 +168,6 @@ function createAgent() {
 
     const createAgentClick = async () => {
       newAgentModal.classList.add('hidden');
-      //toast('<b>Initializing Agent ...</b>', '');
 
       showOverlay('Creating Agent ...');
       const selectedTemplateId = agentTemplate.options[agentTemplate.options.selectedIndex].value;
@@ -181,7 +180,7 @@ function createAgent() {
           jsonData = JSON.parse(agentDescriptionTA.value);
           if (!jsonData?.components || !jsonData?.version) jsonData = null;
           jsonDescription = true;
-        } catch {}
+        } catch { }
       }
 
       await delay(200);
@@ -205,7 +204,6 @@ function createAgent() {
 
       if (result) {
         if (jsonData) {
-          //toast('Agent created<br /><b>Importing Template please wait...</b>', '');
           showOverlay('Loading Template Data ...');
           // * hide overlay will be called from workspace.import
         }
@@ -226,7 +224,7 @@ function createAgent() {
               try {
                 const item = JSON.parse(localStorage.getItem('chatMessage'));
                 if (item.ttl < Date.now()) localStorage.removeItem('chatMessage');
-              } catch {}
+              } catch { }
             },
             1000 * 60 * 3.1,
           );
@@ -240,7 +238,6 @@ function createAgent() {
         resolve(workspace.agent.id);
       } else {
         showOverlay('<span class="text-red-700/70">Could not create agent</span>');
-        //toast('Agent Creation failed', 'Info', 'alert');
       }
     };
 
@@ -370,9 +367,8 @@ async function handleAgentSettings(agentId) {
 
   // const agentTestDomainInput = document.querySelector('#agent-testdom-input') as HTMLInputElement;
   const agentTestDomainInput = workspace?.serverData?.agent_domain
-    ? `${new URL(workspace.serverData.frontUrl).protocol}//${workspace.agent.id}.${
-        workspace.serverData.agent_domain
-      }`
+    ? `${new URL(workspace.serverData.frontUrl).protocol}//${workspace.agent.id}.${workspace.serverData.agent_domain
+    }`
     : '';
   const agentTestDomainInputLabelLink = document.querySelector(
     'label[for="agent-testdom-input"] a.domain',
@@ -813,18 +809,16 @@ export async function openChatGPTEmbodiment() {
             <li>Click on "Configure" tab</li>
             <li>Enter your Custom GPT information: We recommend to copy the content of SmythOS Agent behavior inside "Instructions" area in order to have a consistent behavior</li>
             <li>Scroll down and Click on "Create new action" button.<br />
-            ${
-              testDomain
-                ? '<li>Click Import URL and enter the following URL if you want to use your test agent: ' +
-                  `<b>${scheme}://${testDomain}/api-docs/openapi-gpt.json</b></li>`
-                : ''
-            }
-            ${
-              prodDomain
-                ? '<li>Click Import URL and enter the following URL if you want to use your production agent: ' +
-                  `<b>${scheme}://${prodDomain}/api-docs/openapi-gpt.json</b></li>`
-                : ''
-            }
+            ${testDomain
+      ? '<li>Click Import URL and enter the following URL if you want to use your test agent: ' +
+      `<b>${scheme}://${testDomain}/api-docs/openapi-gpt.json</b></li>`
+      : ''
+    }
+            ${prodDomain
+      ? '<li>Click Import URL and enter the following URL if you want to use your production agent: ' +
+      `<b>${scheme}://${prodDomain}/api-docs/openapi-gpt.json</b></li>`
+      : ''
+    }
             </li>
             <li>Click on "Create" button on the top right</li>
             <li>Your custom GPT is ready, you can keep customizing it or just start using it</li>
@@ -1701,7 +1695,7 @@ function openVideoTutorialDialog(videoLink: string) {
   modalDialog('', content, {
     Close: {
       class: 'border border-gray-700 hover:opacity-75',
-      handler: () => {},
+      handler: () => { },
     },
     'Open in new tab': {
       class: 'text-white bg-v2-blue',
@@ -1782,33 +1776,29 @@ function initializeRecentAgentsDropdown() {
     const agentsHTML = agents
       .map(
         (agent) => `
-      <a href="/builder/${
-        agent.id
-      }" target="_blank" class="block p-2 hover:bg-gray-200 rounded-lg transition-colors bg-gray-50 border border-solid border-gray-200">
+      <a href="/builder/${agent.id
+          }" target="_blank" class="block p-2 hover:bg-gray-200 rounded-lg transition-colors bg-gray-50 border border-solid border-gray-200">
         <div class="flex items-center gap-2">
-          ${
-            getAgentAvatar(agent)
-              ? `<img src="${getAgentAvatar(agent)}" alt="${
-                  agent.name
-                }" class="w-8 h-8 rounded-full">`
-              : `<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-medium">
+          ${getAgentAvatar(agent)
+            ? `<img src="${getAgentAvatar(agent)}" alt="${agent.name
+            }" class="w-8 h-8 rounded-full">`
+            : `<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-medium">
                 ${agent.name?.charAt(0)?.toUpperCase()}
               </div>`
           }
           <div class="min-w-0 flex-1">
-            <div class="text-gray-900 truncate max-w-[200px]" title="${agent.name}">${
-              agent.name
-            }</div>
+            <div class="text-gray-900 truncate max-w-[200px]" title="${agent.name}">${agent.name
+          }</div>
             <div class="text-xs text-gray-500 truncate max-w-[200px]" ${(() => {
-              const userName = agent.contributors?.[0]?.user?.name;
-              const userEmail = agent.contributors?.[0]?.user?.email;
-              const displayName = userName || userEmail || 'Unknown';
-              const shortDisplayName = displayName.includes('@')
-                ? displayName.split('@')[0]
-                : displayName;
+            const userName = agent.contributors?.[0]?.user?.name;
+            const userEmail = agent.contributors?.[0]?.user?.email;
+            const displayName = userName || userEmail || 'Unknown';
+            const shortDisplayName = displayName.includes('@')
+              ? displayName.split('@')[0]
+              : displayName;
 
-              return `title="${displayName}">by ${shortDisplayName}`;
-            })()}</div>
+            return `title="${displayName}">by ${shortDisplayName}`;
+          })()}</div>
           </div>
         </div>
       </a>

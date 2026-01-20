@@ -22,3 +22,8 @@ export const ArrowRightSvg = `<svg class="ml-1" width="18" height="19" viewBox="
                             <path d="M9.57511 6.5H2.375" stroke="#3C89F9" stroke-width="0.75" stroke-linecap="square"/>
                             <path d="M6.85059 3.48828L9.87559 6.50028L6.85059 9.51278" stroke="#3C89F9" stroke-width="0.75" stroke-linecap="square"/>
                           </svg>`;
+
+// Info SVG content - blue themed
+export const InfoSvg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 0C12.4183 0 16 3.58172 16 8C16 12.4183 12.4183 16 8 16C3.58172 16 0 12.4183 0 8C0 3.58172 3.58172 0 8 0ZM8 7C7.58579 7 7.25 7.33579 7.25 7.75V11.25C7.25 11.6642 7.58579 12 8 12C8.41421 12 8.75 11.6642 8.75 11.25V7.75C8.75 7.33579 8.41421 7 8 7ZM8 4C7.44772 4 7 4.44772 7 5C7 5.55228 7.44772 6 8 6C8.55228 6 9 5.55228 9 5C9 4.44772 8.55228 4 8 4Z" fill="#0F6CBD"/>
+</svg>`;
