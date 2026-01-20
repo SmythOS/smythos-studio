@@ -80,16 +80,7 @@ export const Input = () => {
         forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
       }, 150);
     }
-  }, [
-    isChatbotDisabled,
-    isStreaming,
-    stopStreaming,
-    message,
-    attachments.length,
-    sendMessage,
-    clear,
-    inputRef,
-  ]);
+  }, [isChatbotDisabled, uploading, isStreaming, stopStreaming, message, attachments.length, sendMessage, clear, inputRef]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
