@@ -4,6 +4,7 @@ import {
   ArrowRightSvg,
   CloseSvg,
   ErrorSvg,
+  InfoSvg,
   SuccessSvg,
   WarningSvg,
 } from '../../../static/js/icons';
@@ -19,7 +20,7 @@ import {
  * @returns {HTMLElement} - The created toast element
  */
 export function toastWithIcon(
-  type: 'success' | 'warning' | 'error',
+  type: 'success' | 'warning' | 'error' | 'info',
   message: string,
   title: string,
   options: {
@@ -53,6 +54,12 @@ export function toastWithIcon(
       cls: 'error-toast',
       progressBarColor: '#C4314B',
       progressBarBackgroundColor: '#FCF4F6',
+    },
+    info: {
+      iconHtml: InfoSvg,
+      cls: 'info-toast',
+      progressBarColor: '#0F6CBD',
+      progressBarBackgroundColor: '#F0F9FF',
     },
   };
 
@@ -212,7 +219,12 @@ export function errorToast(message: string, title: string = 'Error', options = {
   return toastWithIcon('error', message, title, options);
 }
 
+export function infoToast(message: string, title: string = 'Info', options = {}) {
+  return toastWithIcon('info', message, title, options);
+}
+
 // Add to window object for global access
 window['successToast'] = successToast;
 window['warningToast'] = warningToast;
 window['errorToast'] = errorToast;
+window['infoToast'] = infoToast;

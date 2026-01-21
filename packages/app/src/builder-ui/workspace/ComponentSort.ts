@@ -1,3 +1,4 @@
+import { errorToast } from '@src/shared/components/toast';
 import { delay } from '../utils';
 
 declare var workspace: any;
@@ -295,21 +296,56 @@ export async function extractWorkflows(data) {
     return graph;
   }
 
-  // Perform Topological Sort and Calculate Levels
-  function calculateLevels(startId, graph) {
-    const levels = {};
+  // Check if the graph has a cycle starting from a given node
+  function hasCycle(startId, graph) {
     const visited = new Set();
+    const inStack = new Set();
 
-    // Initialize levels with 0
+    function dfs(nodeId) {
+      if (inStack.has(nodeId)) {
+        return true; // Cycle detected
+      }
+      if (visited.has(nodeId)) {
+        return false; // Already processed, no cycle from this path
+      }
+
+      visited.add(nodeId);
+      inStack.add(nodeId);
+
+      const neighbors = graph.get(nodeId) || [];
+      for (const neighbor of neighbors) {
+        if (dfs(neighbor)) {
+          return true;
+        }
+      }
+
+      inStack.delete(nodeId);
+      return false;
+    }
+
+    return dfs(startId);
+  }
+
+  // Perform Topological Sort and Calculate Levels
+  // Throws an error if a cycle is detected
+  function calculateLevels(startId, graph) {
+    // Check for cycles first - if found, throw error
+    const _hasCycle = hasCycle(startId, graph);
+
+    if (_hasCycle) {
+      throw new Error('Circular dependency detected in the workflow');
+    }
+
+    const levels = {};
+
+    // Initialize levels with 0 for APIEndpoint, 1 for others
     components.forEach((component) => {
       levels[component.id] = component.name === 'APIEndpoint' ? 0 : 1;
     });
 
     // Recursive DFS to calculate levels
+    // Since we already checked for cycles with hasCycle, this is safe
     function dfs(nodeId, currentLevel) {
-      //if (visited.has(nodeId)) return;
-
-      visited.add(nodeId);
       levels[nodeId] = Math.max(levels[nodeId], currentLevel);
 
       const neighbors = graph.get(nodeId) || [];
@@ -561,6 +597,7 @@ async function sortAll() {
     // Resolve collisions with components that weren't originally inside Notes
     await resolveNoteCollisions(noteGroups);
   } catch (error) {
+    errorToast(error instanceof Error ? error.message : 'Unknown error occurred', 'Prettify Failed');
     console.error('Error during sort:', error);
   } finally {
     workspace.unlock();

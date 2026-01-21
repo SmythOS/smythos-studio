@@ -155,6 +155,39 @@ export const useFileUpload = (options: TFileUploadConfig): IFileUpload => {
     [attachments],
   );
 
+  /**
+   * Removes attachments by their IDs.
+   * Only removes attachments that match the provided IDs, keeping any new ones.
+   */
+  const removeByIds = useCallback((ids: Set<string>) => {
+    setAttachments((prev) => {
+      const toRemove = prev.filter((a) => ids.has(a.id));
+      const toKeep = prev.filter((a) => !ids.has(a.id));
+
+      // Revoke blob URLs for removed attachments
+      toRemove.forEach((a) => {
+        if (a.blobUrl) {
+          URL.revokeObjectURL(a.blobUrl);
+          blobsRef.current.delete(a.blobUrl);
+        }
+      });
+
+      return toKeep;
+    });
+
+    setStatus((prev) => {
+      const next = { ...prev };
+      ids.forEach((id) => {
+        // Find attachment name by id to clean up status
+        const attachment = attachments.find((a) => a.id === id);
+        if (attachment) {
+          delete next[attachment.name];
+        }
+      });
+      return next;
+    });
+  }, [attachments]);
+
   const clear = useCallback(
     (preserveBlobUrls = false) => {
       if (preserveBlobUrls) {
@@ -187,6 +220,7 @@ export const useFileUpload = (options: TFileUploadConfig): IFileUpload => {
     errorMessage,
     addFiles,
     remove,
+    removeByIds,
     clear,
     clearError,
   };

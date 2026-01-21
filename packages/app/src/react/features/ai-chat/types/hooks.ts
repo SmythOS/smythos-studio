@@ -32,6 +32,7 @@ export interface IFileUpload {
   errorMessage: string;
   addFiles: (files: File[]) => Promise<void>;
   remove: (index: number) => void;
+  removeByIds: (ids: Set<string>) => void;
   clear: (preserveBlobUrls?: boolean) => void;
   clearError: () => void;
 }

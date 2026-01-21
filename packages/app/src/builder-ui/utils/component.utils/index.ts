@@ -254,14 +254,14 @@ export async function promptVaultInfo(
   if (!target) return;
 
   const formGroup = target.closest('.form-group');
-  const vaultToast = formGroup.querySelector('.toast-vault');
+  const vaultInfoMsg = formGroup.querySelector('.vault-info-msg');
 
   if (target.value && !isKeyTemplateVariable(target.value)) {
-    if (!vaultToast) {
+    if (!vaultInfoMsg) {
       // create the toast message to show the link to save Access Token in the Vault
-      const vaultToast = document.createElement('div');
-      vaultToast.classList.add('toast-vault');
-      vaultToast.textContent = 'To save your Access Token in the Vault - ';
+      const vaultInfoMsg = document.createElement('div');
+      vaultInfoMsg.classList.add('vault-info-msg');
+      vaultInfoMsg.textContent = 'To save your Access Token in the Vault - ';
 
       const link = document.createElement('a');
       link.href = '#';
@@ -298,8 +298,6 @@ export async function promptVaultInfo(
           console.log(error);
         } finally {
           spinner.remove();
-          if (saveBtn) saveBtn.disabled = false;
-
           // focus is required to check the value and show/hide the toast
           field.focus();
         }
@@ -309,11 +307,11 @@ export async function promptVaultInfo(
         target.removeAttribute('data-waiting');
       };
 
-      vaultToast.appendChild(link);
-      formGroup.appendChild(vaultToast);
+      vaultInfoMsg.appendChild(link);
+      formGroup.appendChild(vaultInfoMsg);
     }
   } else {
-    vaultToast?.remove();
+    vaultInfoMsg?.remove();
   }
 }
 
@@ -439,9 +437,8 @@ const _compMenuMarkup = ({ data, compName, placeholderLogo, compDisplayName }: C
   return `<div class="h-9">
         <a href="#"
         title="${data?.name}"
-        class="group flex items-center py-2 mx-2 pl-4 pr-2 text-sm text-black rounded-md bg-white ${
-          isDisabled ? 'disabled opacity-70' : ''
-        }"
+        class="group flex items-center py-2 mx-2 pl-4 pr-2 text-sm text-black rounded-md bg-white ${isDisabled ? 'disabled opacity-70' : ''
+    }"
         ${compAttr}
         data-label="${label}"
         smt-id="${data?.id}"
@@ -457,9 +454,8 @@ const _compMenuMarkup = ({ data, compName, placeholderLogo, compDisplayName }: C
 
 
             <span class="icon">
-                <img src="${
-                  data?.logoUrl || placeholderLogo
-                }" class=" w-6 h-6 rounded-lg border-solid border-gray-200" style="border-width:3px" onerror='this.setAttribute("src", "${placeholderLogo}")' />
+                <img src="${data?.logoUrl || placeholderLogo
+    }" class=" w-6 h-6 rounded-lg border-solid border-gray-200" style="border-width:3px" onerror='this.setAttribute("src", "${placeholderLogo}")' />
             </span>
 
 

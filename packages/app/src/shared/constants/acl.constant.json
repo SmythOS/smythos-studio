@@ -100,10 +100,6 @@
       "access": "",
       "name": "Data Pool"
     },
-    "/data-pool": {
-      "access": "",
-      "name": "Data Pool"
-    },
     "/vault": {
       "access": "",
       "name": "Vault"

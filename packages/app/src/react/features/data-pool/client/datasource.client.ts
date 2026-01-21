@@ -85,6 +85,9 @@ export const datasourceClient = {
       if (error instanceof Error) {
         throw error;
       }
+      if (error.status === 403) {
+        throw new Error('You don\'t have permission to create a new datasource');
+      }
       throw new Error(extractErrorMessage(error, 'Failed to create datasource'));
     }
   },
@@ -112,6 +115,9 @@ export const datasourceClient = {
     } catch (error) {
       if (error instanceof Error) {
         throw error;
+      }
+      if (error.status === 403) {
+        throw new Error('You don\'t have permission to delete this datasource');
       }
       throw new Error('Failed to delete datasource');
     }

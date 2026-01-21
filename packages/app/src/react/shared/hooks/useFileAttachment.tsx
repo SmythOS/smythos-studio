@@ -1,5 +1,5 @@
+import { errorToast } from '@src/shared/components/toast';
 import { ChangeEvent, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
 import { MAX_ATTACHMENT_SIZE } from '../../../shared/constants/general';
 
 interface UseFileAttachmentProps {
@@ -20,7 +20,7 @@ export const useFileAttachment = ({
 
   const handleFileSelect = (file: File) => {
     if (file.size > maxSize) {
-      toast('File exceeds 5MB size limit', { type: 'error' });
+      errorToast('File exceeds 5MB size limit');
       return false;
     }
 
@@ -30,7 +30,7 @@ export const useFileAttachment = ({
         return ext === '*' ? file.type.startsWith(category) : file.type === type;
       })
     ) {
-      toast('Unsupported file type', { type: 'error' });
+      errorToast('Unsupported file type');
       return false;
     }
 

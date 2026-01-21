@@ -79,6 +79,7 @@ export class GPTPlugin extends Component {
         value: this.descForModel,
         validate: `maxlength=5000`,
         validateMessage: 'Your text exceeds the 5,000 character limit.',
+        attributes: { 'data-template-vars': 'true' },
       },
     };
 

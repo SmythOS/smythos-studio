@@ -241,6 +241,11 @@ export class GenAILLM extends Component {
     const currentModel = modelSelect?.value || this.data.model;
     const provider = LLMRegistry.getModelProvider(currentModel);
 
+    // Update context size to ensure maxContextWindowLength has proper max value
+    if (modelSelect) {
+      LLMFormController.updateContextSize(modelSelect);
+    }
+
     // Automatically switch search options based on provider
     this.autoSwitchSearchOptions(provider, form);
 
@@ -1107,8 +1112,8 @@ export class GenAILLM extends Component {
         max: 100,
         value: 10,
         step: 1,
-        validate: 'min=1 max=50',
-        validateMessage: 'Allowed range 1 to 50',
+        validate: 'min=1 max=100',
+        validateMessage: 'Allowed range 1 to 100',
         attributes: xAIAttributes,
         class: 'hidden',
         help: 'Maximum number of search results to retrieve from the web.',
