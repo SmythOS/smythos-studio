@@ -2600,7 +2600,16 @@ export function createDebugInjectDialog(
     actionType: 'step' | 'run',
   ) {
     const agentData = (await workspace.export(false)) || workspace?.agent?.data;
-    const workflows = await extractWorkflows(agentData);
+
+    // Extract workflows and handle potential errors (e.g., cycle detection)
+    let workflows;
+    try {
+      workflows = await extractWorkflows(agentData);
+    } catch (error) {
+      console.error('Error extracting workflows:', error);
+      errorToast(error instanceof Error ? error.message : 'Unknown error occurred', 'Debug Failed');
+      return;
+    }
 
     const selectedWorkflow = workflows.filter((wf) =>
       wf.components.some((wc) => wc?.id === component?.uid),
