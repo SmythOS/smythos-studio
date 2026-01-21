@@ -241,13 +241,12 @@ function createAgent() {
       }
     };
 
-    // agentCreateBtn.onclick = createAgentClick; // * We'll remove the New Agent creation form
-    createAgentClick();
 
     if (templateId) {
       await delay(100);
-      createAgentClick();
     }
+    
+    createAgentClick();
   });
 }
 
