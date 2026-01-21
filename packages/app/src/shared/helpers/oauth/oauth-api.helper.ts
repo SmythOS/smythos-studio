@@ -283,7 +283,8 @@ export async function signOutOAuthConnection(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      oauth_keys_prefix: connectionId.replace('_TOKENS', ''),
+      // oauth_keys_prefix: connectionId.replace('_TOKENS', ''),
+      oauth_keys_prefix: connectionId,
       invalidateAuthentication,
     }),
   });

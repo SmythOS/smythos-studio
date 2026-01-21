@@ -75,7 +75,7 @@ export function useCredentials(group: string) {
   // Sort alphabetically by name
   const sortedCredentials = useMemo(() => {
     return [...credentials].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+      (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }),
     );
   }, [credentials]);
 
