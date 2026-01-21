@@ -384,7 +384,7 @@ router.get('/:provider/callback', async (req, res, next) => {
     req.session?.oauth_info?.authorizationURL?.includes('twitter.com');
 
   // Handle Twitter OAuth2
-  if (isTwitterAuth) {
+  if (isTwitterAuth && req.session.strategyType === 'oauth2') {
     // Verify state parameter
     if (!state || state !== req.session.oauth_state) {
       console.error('State parameter mismatch or missing');
