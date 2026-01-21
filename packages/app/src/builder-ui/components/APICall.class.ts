@@ -1023,7 +1023,7 @@ export class APICall extends Component {
 
     // Call backend checkAuth to get actual authentication status
     const authCheckPayload = {
-      oauth_conn_id: oauth_keys_prefix,
+      oauth_conn_id: connectionId,
     };
 
     // console.log(`[checkAuth] Sending auth check request for ${connectionId}`);

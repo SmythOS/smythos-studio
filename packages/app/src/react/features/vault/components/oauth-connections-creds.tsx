@@ -1,8 +1,8 @@
 /**
  * OAuthConnectionsCredentials Component
- * 
+ *
  * Main container for displaying and managing OAuth credential connections.
- * 
+ *
  * @component
  */
 
@@ -12,7 +12,7 @@ import { errorToast, successToast } from '@src/shared/components/toast';
 import { signOutOAuthConnection } from '@src/shared/helpers/oauth/oauth-api.helper';
 import { getBackendOrigin } from '@src/shared/helpers/oauth/oauth.utils';
 import { Info, PlusCircle } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CreateCredentialsModal,
   type CredentialConnection,
@@ -31,13 +31,23 @@ export function OAuthConnectionsCredentials() {
   const [editingConnection, setEditingConnection] = useState<CredentialConnection | undefined>();
   const [deletingConnection, setDeletingConnection] = useState<CredentialConnection | undefined>();
 
-  const { credentials, isLoading, refetch } = useCredentials('oauth_connections_creds');
+  const {
+    credentials: allCredentials,
+    isLoading,
+    refetch,
+  } = useCredentials('oauth_connections_creds');
+
+  const credentials = useMemo(() => {
+    if (!allCredentials) return [];
+
+    return allCredentials.filter((c) => !c.customProperties?._isHidden);
+  }, [allCredentials]);
 
   // --- Authentication Message Handler ---
   const handleAuthTabMessage = useCallback(
     (event: MessageEvent) => {
       const allowedOrigins = new Set([window.location.origin, getBackendOrigin()]);
-      
+
       if (!allowedOrigins.has(event.origin)) return;
 
       const { type, data } = event.data || {};
@@ -60,21 +70,20 @@ export function OAuthConnectionsCredentials() {
   }, [handleAuthTabMessage]);
 
   // --- Event Handlers ---
-  const handleSuccess = async (data: { 
-    id?: string; 
-    name: string; 
-    provider: string; 
-    credentials: Record<string, string>; 
-    isEdit: boolean 
+  const handleSuccess = async (data: {
+    id?: string;
+    name: string;
+    provider: string;
+    credentials: Record<string, string>;
+    isEdit: boolean;
   }) => {
-    successToast(data.isEdit ? 'Connection updated successfully.' : 'Connection created successfully.');
+    successToast(
+      data.isEdit ? 'Connection updated successfully.' : 'Connection created successfully.',
+    );
 
     if (data.isEdit) {
       // /signOut to let user authenticate again using the new credentials
-      await signOutOAuthConnection(
-        data.id,
-        true
-      );
+      await signOutOAuthConnection(data.id, true);
     }
     setEditingConnection(undefined);
     refetch();
@@ -105,7 +114,10 @@ export function OAuthConnectionsCredentials() {
 
   // --- Render ---
   return (
-    <div id="oauth-connections-credentials" className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm">
+    <div
+      id="oauth-connections-credentials"
+      className="rounded-lg bg-card text-card-foreground border border-solid border-gray-200 shadow-sm"
+    >
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 pr-2 flex-wrap">
