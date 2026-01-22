@@ -16,7 +16,7 @@ async function getUserLLMModels(req: Request) {
     const llmProvider = new LLMService();
     const LLMModels = await llmProvider.getModels(req);
 
-    const keys: any = await vault.get({ team, scope: ['global'] }, req);
+    const keys: any = (await vault.get({ team, scope: ['global'] }, req)) || {};
     const enabledSmythOSProviders = await _getEnabledSmythOSProviders(req);
 
     for (let modelEntryId in LLMModels) {
