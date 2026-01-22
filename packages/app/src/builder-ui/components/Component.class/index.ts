@@ -536,7 +536,7 @@ export class Component extends EventEmitter {
     const hasImportantMessages =
       messagesContainer &&
       Array.from(messagesContainer.children).some((msg: Element) => {
-        return msg.classList.contains('alert') || msg.textContent?.includes('Missing Key');
+        return msg.classList.contains('alert') && msg.textContent?.includes('Missing Key');
       });
 
     if (!hasImportantMessages) {
@@ -2526,7 +2526,7 @@ export class Component extends EventEmitter {
             'Are you sure you want to close this without saving?',
             {
               btnYesLabel: 'Discard Changes',
-              btnYesClass: 'rounded-lg px-8',
+              btnYesClass: 'rounded-sm px-8',
               btnNoClass: 'hidden',
             },
           );

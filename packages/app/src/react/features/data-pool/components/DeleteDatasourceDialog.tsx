@@ -100,12 +100,6 @@ export const DeleteDatasourceDialog: FC<DeleteDatasourceDialogProps> = ({
 
         <DialogFooter>
           <CustomButton
-            variant="secondary"
-            label="Cancel"
-            handleClick={onClose}
-            disabled={isDeleting}
-          />
-          <CustomButton
             variant="primary"
             label={isDeleting ? 'Deleting...' : 'Delete Datasource'}
             handleClick={handleConfirm}
@@ -118,4 +112,3 @@ export const DeleteDatasourceDialog: FC<DeleteDatasourceDialogProps> = ({
     </Dialog>
   );
 };
-

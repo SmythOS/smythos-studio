@@ -1395,7 +1395,9 @@ export function createInfoButton(
   // Sanitize the HTML content to prevent XSS attacks
   // DOMPurify's default configuration already allows all safe HTML tags
   // and blocks dangerous elements like <script>, event handlers, etc.
-  const sanitizedText = DOMPurify.sanitize(text);
+  const sanitizedText = DOMPurify.sanitize(text, {
+    ADD_ATTR: ['target'], // We need to allow target attribute for external links
+  });
 
   // Render the Tooltip component wrapped in TooltipProvider
   const root = createRoot(tooltipContainer);
