@@ -37,6 +37,7 @@ import {
   createActionButtonAfterDropdown,
   createHtmlElm,
 } from './misc';
+import { registerMutuallyExclusiveField } from './mutually-exclusive-fields';
 
 declare var workspace;
 declare var Metro;
@@ -596,6 +597,48 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     window['__FIELD_TEMPLATE_VARIABLES__'][entry?.name] = variables;
   }
 
+  // Register mutually exclusive fields
+  // When a field has data-mutually-exclusive attribute, it will be part of a group
+  // where only one field can have a non-default value at a time
+  // Format: { group: string, with?: string, reason?: string }
+  const mutuallyExclusiveAttr = attributes['data-mutually-exclusive'];
+  if (mutuallyExclusiveAttr) {
+    // Parse the config object from the attribute
+    let exclusiveConfig: { group: string; with?: string; reason?: string };
+    try {
+      exclusiveConfig = JSON.parse(mutuallyExclusiveAttr);
+    } catch {
+      // Fallback for legacy string format (just the group name)
+      exclusiveConfig = { group: mutuallyExclusiveAttr };
+    }
+
+    const { group, with: exclusiveWithFields, reason: exclusiveReason } = exclusiveConfig;
+
+    // Use the actual input element (eventTarget) for registration
+    // Store the default value from the entry for proper reset behavior
+    registerMutuallyExclusiveField(eventTarget, group, entry.value);
+
+    // Add a hint to indicate mutual exclusivity
+    let hintMessage: string;
+    if (exclusiveWithFields && exclusiveReason) {
+      hintMessage = `${exclusiveReason}. Changing this will reset ${exclusiveWithFields} to 0.`;
+    } else if (exclusiveWithFields) {
+      hintMessage = `Mutually exclusive with ${exclusiveWithFields}. Changing this will reset it to 0.`;
+    } else {
+      hintMessage = 'Only one field in this group can have a value at a time.';
+    }
+
+    const mutualExclusiveHint = document.createElement('div');
+    mutualExclusiveHint.className =
+      'mutual-exclusive-hint text-xs text-amber-500 mx-2';
+    mutualExclusiveHint.textContent = hintMessage;
+    // Store hint reference on the field element for later updates
+    (eventTarget as any)._mutualExclusiveHint = mutualExclusiveHint;
+    // Will be appended to div later (after the field is fully constructed)
+    div.setAttribute('data-has-mutual-exclusive-hint', 'true');
+    (div as any)._mutualExclusiveHint = mutualExclusiveHint;
+  }
+
   // Real-time validation - only clear error when field becomes valid
   if (
     (entry.validate?.includes('custom') || entry.smythValidate?.includes('func=')) &&
@@ -892,6 +935,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
   if (entry?.withoutSearch) {
     div.classList.add('without-search');
+  }
+
+  // Append mutual exclusive hint if present
+  if ((div as any)._mutualExclusiveHint) {
+    div.appendChild((div as any)._mutualExclusiveHint);
   }
 
   return div;

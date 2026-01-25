@@ -352,7 +352,7 @@ function _getModelInfoFields(
       label: 'Features',
       options: CUSTOM_LLM_FEATURES.map((feature) => {
         // ! TEMPORARY: All features are readonly
-        feature['readonly'] = true;
+        //feature['readonly'] = true;
         return feature;
       }),
       value: defaultFeatures,

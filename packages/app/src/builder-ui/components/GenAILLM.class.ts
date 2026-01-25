@@ -561,11 +561,18 @@ export class GenAILLM extends Component {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere,Ollama',
           'data-excluded-models': [
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          // Temperature and Top P are mutually exclusive sampling parameters
+          // Setting one will reset the other to its default value
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'sampling-params',
+            with: 'Top P',
+            reason: 'The selected model supports either Temperature or Top P',
+          }),
         },
         section: 'Advanced',
         help: hint.temperature,
@@ -629,9 +636,16 @@ export class GenAILLM extends Component {
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.groqReasoningModels,
           ].join(','),
+          // Temperature and Top P are mutually exclusive sampling parameters
+          // Setting one will reset the other to its default value
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'sampling-params',
+            with: 'Temperature',
+            reason: 'The selected model supports either Temperature or Top P',
+          }),
         },
         section: 'Advanced',
         help: 'Control variety by sampling from the smallest set of likely words that reach probability P.',
