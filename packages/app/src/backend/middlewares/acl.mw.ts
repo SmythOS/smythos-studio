@@ -119,14 +119,12 @@ export async function pageACLCheck(
   if (typeof rule?.redirect === 'string' && rule?.redirect) {
     console.log(
       'Redirecting to:',
-      `${rule.redirect}${
-        Object.keys(req.query).length ? `?${new URLSearchParams(req.query).toString()}` : ''
+      `${rule.redirect}${Object.keys(req.query).length ? `?${new URLSearchParams(req.query).toString()}` : ''
       }`,
     );
     return res.redirect(
       301,
-      `${rule.redirect}${
-        Object.keys(req.query).length ? `?${new URLSearchParams(req.query).toString()}` : ''
+      `${rule.redirect}${Object.keys(req.query).length ? `?${new URLSearchParams(req.query).toString()}` : ''
       }`,
     );
   }
@@ -141,7 +139,7 @@ export async function pageACLCheck(
 
 export const exactAPIUrls = ['/page/teams/subteams'];
 export const byPassPageRule = ['/user-settings/userTeam'];
-export const unrestrictedAPIUrls = ['/app/user-settings/userTeam', '/agent/request-access'];
+export const unrestrictedAPIUrls = ['/app/user-settings/userTeam', '/agent/request-access', '/app/user-settings/SEEN_AGENTS_PAGE_TUTORIAL',];
 
 export async function apiACLCheck(
   req: express.Request | any,
