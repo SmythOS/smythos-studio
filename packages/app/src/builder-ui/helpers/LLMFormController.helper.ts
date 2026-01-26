@@ -1,6 +1,10 @@
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
 import llmParams from '../params/LLM.params.json';
 import { generateModelCapabilityBadges, generateModelStatusBadges } from '../ui/badges';
+import {
+  updateInactiveEffectState,
+  updateMutualExclusiveHintsVisibility,
+} from '../ui/form/mutually-exclusive-fields';
 import { createSpinner } from '../utils/general.utils';
 
 declare var $;
@@ -70,6 +74,7 @@ export class LLMFormController {
 
     const {
       defaultTemperature,
+      minTemperature,
       maxTemperature,
       defaultTopP,
       minTopP,
@@ -87,7 +92,7 @@ export class LLMFormController {
     this.updateField({
       formElm,
       fieldElm: temperatureField,
-      minValue: 0,
+      minValue: minTemperature,
       maxValue: maxTemperature,
       defaultValue: defaultTemperature,
     });
@@ -148,6 +153,10 @@ export class LLMFormController {
     presencePenaltyField
       .closest('.form-group')
       .setAttribute('data-hint-text', hint.presencePenalty);
+
+    // Update mutual exclusive hints visibility based on the selected model
+    // Hints are only shown for models in the whitelist (e.g., Anthropic models)
+    updateMutualExclusiveHintsVisibility(formElm as HTMLFormElement);
   }
 
   // * N:B Need to invoke this function with .bind(this), .call(this) or .apply(this) to get the correct context
@@ -435,15 +444,67 @@ export class LLMFormController {
     }
   }
 
+  /**
+   * Updates a field's validation rules and value when switching between LLM models.
+   *
+   * This method handles two main scenarios:
+   * 1. **Standard fields**: Clamps values to new min/max range
+   * 2. **Mutually exclusive fields**: Resets to provider-specific defaults when applicable
+   *
+   * ## Mutually Exclusive Fields
+   *
+   * Some fields are mutually exclusive for certain providers (e.g., Anthropic's
+   * temperature and top_p). These fields are marked with `data-mutually-exclusive`
+   * attribute containing configuration:
+   *
+   * ```json
+   * {
+   *   "group": "sampling-params",
+   *   "models": ["claude-3-opus", "claude-3-sonnet"],
+   *   "reset": -0.01,
+   *   "reason": "..."
+   * }
+   * ```
+   *
+   * When switching models, if the new model is in the field's whitelist and the
+   * current value doesn't match the reset value, the field is reset to maintain
+   * proper mutual exclusivity.
+   *
+   * ### Example: OpenAI → Anthropic
+   * - OpenAI uses Top P = 1 (both temperature and top_p can be set)
+   * - Anthropic requires Top P = -0.01 (only temperature OR top_p)
+   * - When switching to Claude, Top P resets from 1 to -0.01 ("not set")
+   *
+   * @param formElm - Parent form element for context
+   * @param fieldElm - Input element to update
+   * @param minValue - New minimum value for the field
+   * @param maxValue - New maximum value for the field
+   * @param defaultValue - Default value for the new model
+   */
   private static updateField({ formElm, fieldElm, minValue, maxValue, defaultValue }) {
     const currentValue = parseFloat(fieldElm.value);
+    let newValue = currentValue;
 
-    if (currentValue > maxValue) {
-      fieldElm.value = maxValue;
+    // First, check for mutually exclusive field configuration
+    const shouldResetForMutualExclusivity = this.shouldResetMutuallyExclusiveField(
+      fieldElm,
+      formElm,
+      currentValue,
+      defaultValue,
+    );
+
+    if (shouldResetForMutualExclusivity) {
+      // Reset to the configured reset value (e.g., -0.01 for Anthropic)
+      newValue = defaultValue;
+    } else if (currentValue > maxValue) {
+      // Clamp to maximum if current value exceeds new range
+      newValue = maxValue;
     } else if (currentValue < minValue) {
-      fieldElm.value = minValue;
+      // Clamp to minimum if current value is below new range
+      newValue = minValue;
     }
 
+    // Update validation rules to reflect new model's constraints
     this.replaceValidationRules({
       fieldElm,
       attribute: 'min',
@@ -456,6 +517,78 @@ export class LLMFormController {
       targetValue: maxValue,
       inputType: 'range',
     });
-    this.setRangeInputValue(formElm, fieldElm.id, fieldElm.value || defaultValue);
+
+    // Apply the new value to both range and number inputs
+    this.setRangeInputValue(formElm, fieldElm.id, newValue);
+
+    // Update visual state (blur effect for negative/"not set" values)
+    updateInactiveEffectState(fieldElm);
+  }
+
+  /**
+   * Determines if a field should be reset based on mutually exclusive configuration.
+   *
+   * A field should be reset when:
+   * 1. It has a `data-mutually-exclusive` attribute
+   * 2. The current model is in the field's whitelist
+   * 3. The current value is not already the reset value (avoid unnecessary resets)
+   *
+   * @param fieldElm - The field element to check
+   * @param formElm - Parent form element (to get current model)
+   * @param currentValue - Current numeric value of the field
+   * @param resetValue - The value to reset to (from provider config)
+   * @returns true if field should be reset to resetValue
+   */
+  private static shouldResetMutuallyExclusiveField(
+    fieldElm: HTMLElement,
+    formElm: HTMLElement,
+    currentValue: number,
+    resetValue: number,
+  ): boolean {
+    // Check if field has mutually exclusive configuration
+    const mutualExclusiveAttr = fieldElm.getAttribute('data-mutually-exclusive');
+    if (!mutualExclusiveAttr) {
+      return false; // Not a mutually exclusive field
+    }
+
+    try {
+      const config = JSON.parse(mutualExclusiveAttr);
+
+      // Get the current model from the form
+      const modelSelector = formElm.querySelector('#model') as HTMLSelectElement;
+      if (!modelSelector) {
+        return false; // Can't determine model, skip reset
+      }
+
+      const currentModel = modelSelector.value?.toLowerCase();
+      if (!currentModel) {
+        return false;
+      }
+
+      // Check if current model is in the whitelist
+      const whitelistedModels = config.models || [];
+      const isModelApplicable =
+        whitelistedModels.length === 0 || // Empty whitelist = apply to all models
+        whitelistedModels.some((model: string) => model.toLowerCase() === currentModel);
+
+      if (!isModelApplicable) {
+        return false; // Model not in whitelist, don't reset
+      }
+
+      // Use the reset value from config if specified, otherwise use resetValue parameter
+      const targetResetValue = config.reset !== undefined ? config.reset : resetValue;
+
+      // Only reset if current value is different from target reset value
+      // This avoids unnecessary resets when value is already correct
+      // Use small epsilon for floating point comparison
+      const epsilon = 0.0001;
+      const isDifferent = Math.abs(currentValue - targetResetValue) > epsilon;
+
+      return isDifferent;
+    } catch (error) {
+      // If config parsing fails, don't reset (fail gracefully)
+      console.warn('Failed to parse data-mutually-exclusive config:', error);
+      return false;
+    }
   }
 }

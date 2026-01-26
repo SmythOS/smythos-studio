@@ -12,8 +12,10 @@
  *
  * Config object properties:
  * - group: string (required) - The group name for mutual exclusivity
- * - with: string (optional) - Display name of the related field(s) for the hint message
- * - reason: string (optional) - Explanation of why the fields are mutually exclusive
+ * - models: string[] (optional) - Whitelist of model IDs for which mutual exclusivity applies.
+ *   If omitted or empty, applies to all models. The form must have a #model selector.
+ * - reset: number (optional) - The value to reset to (e.g., -0.01 for Anthropic's "not set")
+ * - reason: string (required) - User-friendly explanation shown as hint (should include why and what happens)
  *
  * Example in field definition:
  * ```typescript
@@ -23,8 +25,9 @@
  *   attributes: {
  *     'data-mutually-exclusive': JSON.stringify({
  *       group: 'sampling-params',
- *       with: 'Top P',
- *       reason: 'The selected model supports either Temperature or Top P',
+ *       models: ['claude-3-opus', 'claude-3-sonnet'],
+ *       reset: -0.01,
+ *       reason: 'Anthropic models support either Temperature or Top P at a time. Setting Temperature will clear Top P.',
  *     }),
  *     // ... other attributes
  *   },
@@ -35,43 +38,28 @@
  *   attributes: {
  *     'data-mutually-exclusive': JSON.stringify({
  *       group: 'sampling-params',
- *       with: 'Temperature',
- *       reason: 'The selected model supports either Temperature or Top P',
+ *       models: ['claude-3-opus', 'claude-3-sonnet'],
+ *       reset: -0.01,
+ *       reason: 'Anthropic models support either Temperature or Top P at a time. Setting Top P will clear Temperature.',
  *     }),
  *     // ... other attributes
  *   },
  * },
  * ```
  *
- * When temperature is changed from its default, topP will be reset to -1, and vice versa.
- * A hint message will be displayed below each field explaining the mutual exclusivity.
- *
- * ## Data Serialization
- * **IMPORTANT**: Before sending form data to the backend API, you must normalize the values
- * to convert -1 sentinel values to undefined:
- *
- * ```typescript
- * import { normalizeMutuallyExclusiveParams } from './form';
- *
- * // When collecting form data:
- * const formData = {
- *   temperature: 0.7,
- *   topP: -1,        // This was reset by mutual exclusivity
- *   maxTokens: 1000
- * };
- *
- * // Normalize before sending to backend:
- * const normalizedData = normalizeMutuallyExclusiveParams(formData);
- * // Result: { temperature: 0.7, topP: undefined, maxTokens: 1000 }
- *
- * // The backend will then exclude undefined values automatically:
- * // if (params?.topP !== undefined) body.top_p = params.topP;
- * ```
- *
- * This approach keeps the backend simple - no changes needed to parameter handling!
+ * When temperature is changed, topP will be reset to its reset value (e.g., -0.01), and vice versa.
+ * A hint message is displayed below each field explaining the mutual exclusivity.
+ * Fields with negative/reset values appear dimmed until the user hovers over them.
  */
 
 declare var Metro: any;
+
+/**
+ * CSS class applied to form-group when field is reset due to mutual exclusivity.
+ * This creates a dimmed visual effect indicating the field is inactive.
+ * The effect is removed on hover/focus, allowing the user to activate the field.
+ */
+const MUTUAL_EXCLUSIVE_INACTIVE_CLASS = 'mutual-exclusive-inactive';
 
 /**
  * Registry to track mutually exclusive field groups within forms
@@ -87,72 +75,8 @@ const formGroupRegistry = new WeakMap<HTMLFormElement, Map<string, Set<HTMLEleme
 let isResetting = false;
 
 /**
- * Get the default value for a field element based on its type
- */
-function getFieldDefaultValue(fieldElement: HTMLElement): string | number | boolean {
-  const defaultValueAttr = fieldElement.getAttribute('data-default-value');
-  if (defaultValueAttr !== null) {
-    // Try to parse as JSON for complex types, otherwise use as string
-    try {
-      return JSON.parse(defaultValueAttr);
-    } catch {
-      return defaultValueAttr;
-    }
-  }
-
-  // Fallback defaults based on field type
-  const fieldType = fieldElement.getAttribute('type') || fieldElement.tagName.toLowerCase();
-
-  switch (fieldType) {
-    case 'checkbox':
-      return false;
-    case 'number':
-    case 'range':
-      return parseFloat(fieldElement.getAttribute('min') || '0');
-    case 'select':
-    case 'select-one':
-      const firstOption = (fieldElement as HTMLSelectElement).options?.[0];
-      return firstOption?.value || '';
-    default:
-      return '';
-  }
-}
-
-/**
- * Get the current value of a field element
- */
-function getFieldValue(fieldElement: HTMLElement): string | number | boolean {
-  const tagName = fieldElement.tagName.toLowerCase();
-
-  if (tagName === 'input') {
-    const inputElement = fieldElement as HTMLInputElement;
-    const inputType = inputElement.type;
-
-    switch (inputType) {
-      case 'checkbox':
-        return inputElement.checked;
-      case 'number':
-      case 'range':
-        return parseFloat(inputElement.value) || 0;
-      default:
-        return inputElement.value;
-    }
-  }
-
-  if (tagName === 'select') {
-    return (fieldElement as HTMLSelectElement).value;
-  }
-
-  if (tagName === 'textarea') {
-    return (fieldElement as HTMLTextAreaElement).value;
-  }
-
-  return '';
-}
-
-/**
  * Get the empty/cleared value for a field based on its type
- * - Numbers: -1 for mutually exclusive fields (to distinguish from valid 0 values), or min value otherwise
+ * - Numbers: Uses the 'reset' value from mutual exclusive config, or -1 as fallback, or min value for non-exclusive fields
  * - Strings: ''
  * - Booleans: false
  * - Select: first option value
@@ -167,10 +91,18 @@ function getEmptyValue(fieldElement: HTMLElement): string | number | boolean {
         return false;
       case 'number':
       case 'range':
-        // For mutually exclusive numeric fields, use -1 as sentinel value
-        // This allows distinguishing "unset" from valid 0 values in backend
-        const hasMutualExclusive = fieldElement.getAttribute('data-mutually-exclusive');
-        if (hasMutualExclusive) {
+        // For mutually exclusive numeric fields, use the reset value from config
+        const mutualExclusiveAttr = fieldElement.getAttribute('data-mutually-exclusive');
+        if (mutualExclusiveAttr) {
+          try {
+            const config = JSON.parse(mutualExclusiveAttr);
+            // Use the reset value from config if provided, otherwise fallback to -1
+            if (config.reset !== undefined) {
+              return config.reset;
+            }
+          } catch {
+            // Ignore parse errors
+          }
           return -1;
         }
         // For non-mutually-exclusive fields, use the min value (typically 0)
@@ -238,6 +170,9 @@ function clearField(fieldElement: HTMLElement): void {
     (fieldElement as HTMLTextAreaElement).value = '';
   }
 
+  // Apply visual inactive effect to the form-group container
+  applyInactiveEffect(fieldElement);
+
   // Note: We intentionally do NOT dispatch events here to avoid infinite loops
   // The visual update is sufficient for the reset behavior
 }
@@ -258,18 +193,143 @@ function updateRangeCompanion(rangeInput: HTMLInputElement): void {
 }
 
 /**
- * Check if a field's current value differs from its default value
+ * Check if a field has a negative value (representing "not set")
  */
-function hasNonDefaultValue(fieldElement: HTMLElement): boolean {
-  const currentValue = getFieldValue(fieldElement);
-  const defaultValue = getFieldDefaultValue(fieldElement);
+export function hasNegativeValue(fieldElement: HTMLElement): boolean {
+  const tagName = fieldElement.tagName.toLowerCase();
+  if (tagName === 'input') {
+    const inputType = (fieldElement as HTMLInputElement).type;
+    if (inputType === 'number' || inputType === 'range') {
+      const value = parseFloat((fieldElement as HTMLInputElement).value);
+      return value < 0;
+    }
+  }
+  return false;
+}
 
-  // Handle floating point comparison for numbers
-  if (typeof currentValue === 'number' && typeof defaultValue === 'number') {
-    return Math.abs(currentValue - defaultValue) > 0.0001;
+/**
+ * Apply visual inactive effect to a field's form-group container.
+ * Adds dimmed styling and sets up hover/focus listeners to temporarily show the field.
+ * The field stays inactive (blurred) as long as it has a negative value.
+ */
+export function applyInactiveEffect(fieldElement: HTMLElement): void {
+  const formGroup = fieldElement.closest('.form-group');
+  if (!formGroup) return;
+
+  // Add the inactive class for visual dimming
+  formGroup.classList.add(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
+
+  // Set up listeners for hover behavior
+  // Store references to allow cleanup
+  if (!(fieldElement as any)._inactiveEffectListeners) {
+    const onMouseEnter = () => {
+      // Temporarily remove inactive effect on hover
+      formGroup.classList.remove(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
+    };
+
+    const onMouseLeave = () => {
+      // Re-apply inactive effect if field still has negative value
+      if (hasNegativeValue(fieldElement)) {
+        formGroup.classList.add(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
+      }
+    };
+
+    const onFocus = () => {
+      // Temporarily remove inactive effect on focus
+      formGroup.classList.remove(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
+    };
+
+    const onBlur = () => {
+      // Re-apply inactive effect if field still has negative value
+      if (hasNegativeValue(fieldElement)) {
+        formGroup.classList.add(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
+      }
+    };
+
+    // Listen on the form-group for hover (covers label, input, etc.)
+    formGroup.addEventListener('mouseenter', onMouseEnter);
+    formGroup.addEventListener('mouseleave', onMouseLeave);
+    // Also listen for focus/blur on the field itself
+    fieldElement.addEventListener('focus', onFocus);
+    fieldElement.addEventListener('blur', onBlur);
+
+    // Store references for cleanup
+    (fieldElement as any)._inactiveEffectListeners = {
+      formGroup,
+      onMouseEnter,
+      onMouseLeave,
+      onFocus,
+      onBlur,
+    };
+  }
+}
+
+/**
+ * Remove the visual inactive effect from a field's form-group container.
+ * Called when the field becomes active (gets a valid non-negative value).
+ */
+export function removeInactiveEffect(fieldElement: HTMLElement): void {
+  const formGroup = fieldElement.closest('.form-group');
+  if (formGroup) {
+    formGroup.classList.remove(MUTUAL_EXCLUSIVE_INACTIVE_CLASS);
   }
 
-  return currentValue !== defaultValue;
+  // Clean up all listeners
+  const listeners = (fieldElement as any)._inactiveEffectListeners;
+  if (listeners) {
+    listeners.formGroup.removeEventListener('mouseenter', listeners.onMouseEnter);
+    listeners.formGroup.removeEventListener('mouseleave', listeners.onMouseLeave);
+    fieldElement.removeEventListener('focus', listeners.onFocus);
+    fieldElement.removeEventListener('blur', listeners.onBlur);
+    delete (fieldElement as any)._inactiveEffectListeners;
+  }
+}
+
+/**
+ * Update the visual state of a field based on its current value.
+ * If the field has a negative value, apply the inactive effect.
+ * If the field has a non-negative value, remove the inactive effect.
+ * Call this after programmatically changing a field's value.
+ */
+export function updateInactiveEffectState(fieldElement: HTMLElement): void {
+  if (hasNegativeValue(fieldElement)) {
+    applyInactiveEffect(fieldElement);
+  } else {
+    removeInactiveEffect(fieldElement);
+  }
+}
+
+/**
+ * Check if the current model matches the models whitelist in the mutual exclusive config.
+ * Returns true if mutual exclusivity should be applied.
+ */
+function isModelInWhitelist(fieldElement: HTMLElement, form: HTMLFormElement): boolean {
+  const mutualExclusiveAttr = fieldElement.getAttribute('data-mutually-exclusive');
+  if (!mutualExclusiveAttr) return true; // No config, apply to all
+
+  try {
+    const config = JSON.parse(mutualExclusiveAttr);
+    const whitelistedModels = config.models;
+
+    // If no models specified, apply to all models
+    if (!whitelistedModels || !Array.isArray(whitelistedModels) || whitelistedModels.length === 0) {
+      return true;
+    }
+
+    // Get the current model from the form's model selector
+    const modelSelector = form.querySelector('#model') as HTMLSelectElement;
+    if (!modelSelector) return true; // No model selector found, apply to all
+
+    const currentModel = modelSelector.value?.toLowerCase();
+    if (!currentModel) return true;
+
+    // Check if current model is in the whitelist (case-insensitive)
+    return whitelistedModels.some(
+      (model: string) => model.toLowerCase() === currentModel,
+    );
+  } catch {
+    return true; // On error, apply to all
+  }
 }
 
 /**
@@ -283,22 +343,30 @@ function handleFieldChange(
   // Prevent re-entry during reset operations
   if (isResetting) return;
 
+  // Check if mutual exclusivity applies to the current model
+  if (!isModelInWhitelist(changedField, form)) return;
+
   const groupRegistry = formGroupRegistry.get(form);
   if (!groupRegistry) return;
 
   const groupFields = groupRegistry.get(groupName);
   if (!groupFields) return;
 
-  // Only reset other fields if this field has a non-default value
-  if (!hasNonDefaultValue(changedField)) return;
+  // Check if the changed field now has a non-negative value (user is activating it)
+  // If the field still has a negative value, don't reset other fields
+  if (hasNegativeValue(changedField)) return;
+
+  // Remove inactive effect from the field being changed (it's now active)
+  removeInactiveEffect(changedField);
 
   // Set flag to prevent re-entry
   isResetting = true;
 
   try {
-    // Reset all other fields in the group to their defaults
+    // Reset all other fields in the group to their empty/reset values
+    // This clears other fields regardless of their current value
     groupFields.forEach((field) => {
-      if (field !== changedField && hasNonDefaultValue(field)) {
+      if (field !== changedField) {
         clearField(field);
       }
     });
@@ -383,157 +451,48 @@ function registerFieldWithForm(
 
   // Store handler reference for potential cleanup
   (fieldElement as any)._mutuallyExclusiveHandler = changeHandler;
+
+  // Apply blur effect on initial load if field already has a negative value
+  // This handles cases where saved configuration has a "not set" value
+  if (hasNegativeValue(fieldElement)) {
+    applyInactiveEffect(fieldElement);
+  }
 }
 
 /**
- * Unregister a field from its mutually exclusive group
- * Call this when a field is removed from the DOM
+ * Update the visibility of mutual exclusive hint messages based on the current model.
+ * Hints with a `data-mutual-exclusive-models` attribute are only shown when the
+ * current model is in the whitelist.
+ *
+ * Call this function when the model selection changes to ensure hints are only
+ * visible for models that support mutual exclusivity (e.g., Anthropic models).
+ *
+ * @param form The form element containing the hints and model selector
  */
-export function unregisterMutuallyExclusiveField(fieldElement: HTMLElement): void {
-  const form = fieldElement.closest('form') as HTMLFormElement;
-  if (!form) return;
+export function updateMutualExclusiveHintsVisibility(form: HTMLFormElement): void {
+  // Get the current model from the form's model selector
+  const modelSelector = form.querySelector('#model') as HTMLSelectElement;
+  if (!modelSelector) return;
 
-  const groupRegistry = formGroupRegistry.get(form);
-  if (!groupRegistry) return;
+  const currentModel = modelSelector.value?.toLowerCase();
+  if (!currentModel) return;
 
-  const groupName = fieldElement.getAttribute('data-mutually-exclusive');
-  if (!groupName) return;
+  // Find all hints with model whitelist
+  const hints = form.querySelectorAll('.mutual-exclusive-hint[data-mutual-exclusive-models]');
 
-  const groupFields = groupRegistry.get(groupName);
-  if (groupFields) {
-    groupFields.delete(fieldElement);
+  hints.forEach((hint: HTMLElement) => {
+    const modelsAttr = hint.getAttribute('data-mutual-exclusive-models');
+    if (!modelsAttr) return;
 
-    // Clean up empty groups
-    if (groupFields.size === 0) {
-      groupRegistry.delete(groupName);
+    try {
+      const whitelistedModels: string[] = JSON.parse(modelsAttr);
+      const shouldShow = whitelistedModels.some(
+        (model) => model.toLowerCase() === currentModel,
+      );
+      hint.style.display = shouldShow ? '' : 'none';
+    } catch {
+      // On parse error, hide the hint
+      hint.style.display = 'none';
     }
-  }
-
-  // Remove event listeners
-  const handler = (fieldElement as any)._mutuallyExclusiveHandler;
-  if (handler) {
-    fieldElement.removeEventListener('input', handler);
-    delete (fieldElement as any)._mutuallyExclusiveHandler;
-  }
-}
-
-/**
- * Get all fields in a mutually exclusive group within a form
- */
-export function getMutuallyExclusiveGroup(
-  form: HTMLFormElement,
-  groupName: string,
-): HTMLElement[] {
-  const groupRegistry = formGroupRegistry.get(form);
-  if (!groupRegistry) return [];
-
-  const groupFields = groupRegistry.get(groupName);
-  if (!groupFields) return [];
-
-  return Array.from(groupFields);
-}
-
-/**
- * Reset all fields in a mutually exclusive group to their defaults
- */
-export function resetMutuallyExclusiveGroup(
-  form: HTMLFormElement,
-  groupName: string,
-): void {
-  isResetting = true;
-  try {
-    const fields = getMutuallyExclusiveGroup(form, groupName);
-    fields.forEach((field) => clearField(field));
-  } finally {
-    isResetting = false;
-  }
-}
-
-/**
- * Check if any field in a mutually exclusive group has a non-default value
- */
-export function hasGroupNonDefaultValue(
-  form: HTMLFormElement,
-  groupName: string,
-): boolean {
-  const fields = getMutuallyExclusiveGroup(form, groupName);
-  return fields.some((field) => hasNonDefaultValue(field));
-}
-
-/**
- * Get the field in a group that currently has a non-default value
- * Returns null if all fields have default values
- */
-export function getActiveFieldInGroup(
-  form: HTMLFormElement,
-  groupName: string,
-): HTMLElement | null {
-  const fields = getMutuallyExclusiveGroup(form, groupName);
-  return fields.find((field) => hasNonDefaultValue(field)) || null;
-}
-
-/**
- * Normalize a field value for serialization/API submission
- * Converts -1 sentinel values to undefined for mutually exclusive numeric fields
- * 
- * @param value The raw field value
- * @param fieldElement Optional field element to check if it has mutually exclusive behavior
- * @returns The normalized value (undefined if it's a -1 sentinel, otherwise the original value)
- */
-export function normalizeMutuallyExclusiveValue(
-  value: any,
-  fieldElement?: HTMLElement,
-): any {
-  // If value is exactly -1 and field has mutually exclusive attribute, return undefined
-  if (value === -1 || value === '-1') {
-    if (fieldElement) {
-      const hasMutualExclusive = fieldElement.getAttribute('data-mutually-exclusive');
-      if (hasMutualExclusive) {
-        return undefined;
-      }
-    } else {
-      // If no field element provided, assume -1 should be treated as undefined
-      // This is safe because -1 is our sentinel value for "unset"
-      return undefined;
-    }
-  }
-  
-  return value;
-}
-
-/**
- * Normalize an object of field values, converting -1 sentinel values to undefined
- * This should be called before sending data to the backend API
- * 
- * @param data Object containing field names and values
- * @param form Optional form element to check field attributes
- * @returns Normalized object with -1 values converted to undefined
- * 
- * @example
- * const formData = { temperature: 0.7, topP: -1, maxTokens: 1000 };
- * const normalized = normalizeMutuallyExclusiveParams(formData);
- * // Result: { temperature: 0.7, topP: undefined, maxTokens: 1000 }
- */
-export function normalizeMutuallyExclusiveParams(
-  data: Record<string, any>,
-  form?: HTMLFormElement,
-): Record<string, any> {
-  const normalized: Record<string, any> = {};
-  
-  for (const [key, value] of Object.entries(data)) {
-    let fieldElement: HTMLElement | null = null;
-    
-    // Try to find the field element if form is provided
-    if (form) {
-      // Try common field selectors
-      fieldElement =
-        form.querySelector(`#${key}`) ||
-        form.querySelector(`[name="${key}"]`) ||
-        null;
-    }
-    
-    normalized[key] = normalizeMutuallyExclusiveValue(value, fieldElement || undefined);
-  }
-  
-  return normalized;
+  });
 }

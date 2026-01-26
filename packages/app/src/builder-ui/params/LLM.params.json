@@ -1,6 +1,7 @@
 {
   "default": {
     "defaultTemperature": 1,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -29,6 +30,7 @@
   },
   "openai": {
     "defaultTemperature": 1,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -57,6 +59,7 @@
   },
   "cohere": {
     "defaultTemperature": 0.75,
+    "minTemperature": 0,
     "maxTemperature": 5,
     "minMaxTokens": 4,
     "defaultMaxTokens": 100,
@@ -85,6 +88,7 @@
   },
   "togetherai": {
     "defaultTemperature": 0.7,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -112,13 +116,15 @@
     }
   },
   "anthropic": {
+    "_note": "minTemperature/minTopP are -0.01 to represent 'not set'. Anthropic requires only temperature OR top_p (mutually exclusive). Backend excludes values < 0.",
     "defaultTemperature": 1,
+    "minTemperature": -0.01,
     "maxTemperature": 1,
     "minMaxTokens": 2048,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
-    "defaultTopP": 0,
-    "minTopP": 0,
+    "defaultTopP": -0.01,
+    "minTopP": -0.01,
     "maxTopP": 1,
     "defaultTopK": 0,
     "minTopK": 0,
@@ -141,6 +147,7 @@
   },
   "googleai": {
     "defaultTemperature": 0.9,
+    "minTemperature": 0,
     "maxTemperature": 1,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -169,6 +176,7 @@
   },
   "groq": {
     "defaultTemperature": 0.2,
+    "minTemperature": 0,
     "maxTemperature": 1,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -197,6 +205,7 @@
   },
   "bedrock": {
     "defaultTemperature": 1,
+    "minTemperature": 0,
     "maxTemperature": 1,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -225,6 +234,7 @@
   },
   "vertexai": {
     "defaultTemperature": 0.9,
+    "minTemperature": 0,
     "maxTemperature": 1,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -253,6 +263,7 @@
   },
   "perplexity": {
     "defaultTemperature": 0.2,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -281,6 +292,7 @@
   },
   "xai": {
     "defaultTemperature": 0.2,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 4,
     "defaultMaxTokens": 8192,
@@ -309,6 +321,7 @@
   },
   "ollama": {
     "defaultTemperature": 0.8,
+    "minTemperature": 0,
     "maxTemperature": 2,
     "minMaxTokens": 1,
     "defaultMaxTokens": 128,

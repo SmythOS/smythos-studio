@@ -42,6 +42,7 @@ export class GenAILLM extends Component {
   private modelOptions: string[];
   private modelParams: Record<string, any>;
   private defaultModel: string;
+  private anthropicModels: string[];
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
   private groqReasoningModels: string[];
@@ -61,6 +62,10 @@ export class GenAILLM extends Component {
 
     this.defaultModel = LLMFormController.getDefaultModel(modelOptions);
 
+    // Get all Anthropic models using 'text' feature (all LLM models support text)
+    this.anthropicModels = LLMRegistry.getModelsByFeatures('text', 'anthropic').map(
+      (m) => m.entryId,
+    );
     this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures({
       features: 'reasoning',
       providers: 'anthropic',
@@ -307,6 +312,7 @@ export class GenAILLM extends Component {
       maxFrequencyPenalty: modelParams?.maxFrequencyPenalty,
       maxPresencePenalty: modelParams?.maxPresencePenalty,
 
+      minTemperature: modelParams?.minTemperature,
       minTopP: modelParams?.minTopP,
       minTopK: modelParams?.minTopK,
 
@@ -325,6 +331,7 @@ export class GenAILLM extends Component {
       allowedCompletionTokens,
       allowedWebSearchContextTokens,
       allowedReasoningTokens,
+      minTemperature,
       maxTemperature,
       maxStopSequences,
       maxTopP,
@@ -551,12 +558,12 @@ export class GenAILLM extends Component {
       temperature: {
         type: 'range',
         label: 'Temperature',
-        min: 0,
+        min: minTemperature,
         max: maxTemperature,
         value: defaultTemperature,
         step: 0.01,
-        validate: `min=0 max=${maxTemperature}`,
-        validateMessage: `Allowed range 0 to ${maxTemperature}`,
+        validate: `min=${minTemperature} max=${maxTemperature}`,
+        validateMessage: `Allowed range ${minTemperature} to ${maxTemperature}`,
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere,Ollama',
@@ -566,12 +573,17 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
-          // Temperature and Top P are mutually exclusive sampling parameters
-          // Setting one will reset the other to its default value
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTemperature instead of minTemperature because:
+          // - minTemperature is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
           'data-mutually-exclusive': JSON.stringify({
-            group: 'sampling-params',
-            with: 'Top P',
-            reason: 'The selected model supports either Temperature or Top P',
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTemperature,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Temperature will clear Top P.',
           }),
         },
         section: 'Advanced',
@@ -639,12 +651,17 @@ export class GenAILLM extends Component {
             //...this.anthropicThinkingModels,
             ...this.groqReasoningModels,
           ].join(','),
-          // Temperature and Top P are mutually exclusive sampling parameters
-          // Setting one will reset the other to its default value
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTopP instead of minTopP because:
+          // - minTopP is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
           'data-mutually-exclusive': JSON.stringify({
-            group: 'sampling-params',
-            with: 'Temperature',
-            reason: 'The selected model supports either Temperature or Top P',
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTopP,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Top P will clear Temperature.',
           }),
         },
         section: 'Advanced',
@@ -664,7 +681,7 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'GoogleAI,VertexAI,Anthropic,TogetherAI,Perplexity,cohere,Ollama,xAI,Groq',
-          'data-excluded-models': this.anthropicThinkingModels.join(','),
+          //'data-excluded-models': this.anthropicThinkingModels.join(','),
         },
         section: 'Advanced',
         help: 'Restrict generation to the top K most likely words to reduce randomness.',
