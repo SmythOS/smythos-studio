@@ -29,9 +29,13 @@ const PreviewableAsset = ({ asset }: { asset: string }) => {
       try {
         const mimeType = getMimeTypeFromUrl(asset.trim());
         if (!mimeType.mimetype) {
+          setStateProps((prev) => ({
+            ...prev,
+            isContentLoaded: true,
+          }));
           return;
         }
-        let fileType = getFileCategory(mimeType.mimetype) || '';
+        const fileType = getFileCategory(mimeType.mimetype) || '';
         setStateProps((prev) => ({
           ...prev,
           fileType,

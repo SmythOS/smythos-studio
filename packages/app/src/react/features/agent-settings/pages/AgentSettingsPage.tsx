@@ -10,6 +10,10 @@ import {
   AgentSettingsProvider,
   useAgentSettingsCtx,
 } from '@react/features/agent-settings/contexts/agent-settings.context';
+import {
+  CollapsibleTabConfig,
+  CollapsibleTabs,
+} from '@react/shared/components/ui/collapsible-tabs';
 import { Button as CustomButton } from '@react/shared/components/ui/newDesign/button';
 import { TooltipProvider } from '@react/shared/components/ui/tooltip';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
@@ -19,16 +23,14 @@ import FullScreenError from '@src/react/features/error-pages/pages/FullScreenErr
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { Observability } from '@src/shared/observability';
 import { Breadcrumb } from 'flowbite-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { BaseAgentSettingsTabs } from '../constants';
 
 const OPEN_TAB = 'Overview';
 
-type Props = {};
-
-export const AgentSettingsPage = (props: Props) => {
+export const AgentSettingsPage = () => {
   return (
     <TooltipProvider delayDuration={300} skipDelayDuration={100}>
       <AgentSettingsProvider>
@@ -103,39 +105,48 @@ export const AgentSettingTabs = () => {
     ],
   };
 
-  let mergedWidgets = { ...baseWidgets, ...pluginWidgets };
+  const mergedWidgets = { ...baseWidgets, ...pluginWidgets };
 
-  // we need to make sure that the original widgets objects are not overridden by the plugin widgets if the same key exists
+  // Merge base widgets with plugin widgets, ensuring base widgets are not overridden
   Object.keys(baseWidgets).forEach((key) => {
     if (pluginWidgets[key]) {
       mergedWidgets[key] = [...(baseWidgets[key] || []), ...(pluginWidgets[key] || [])];
     }
   });
 
+  // Build tab configurations for CollapsibleTabs component
+  const tabConfigs: CollapsibleTabConfig[] = useMemo(() => {
+    return Object.keys(mergedWidgets).map((name) => ({
+      id: name,
+      label: name,
+    }));
+  }, [mergedWidgets]);
+
+  /**
+   * Handle tab change from CollapsibleTabs
+   */
+  const handleTabChange = (tabId: string) => {
+    setCurrentTab(tabId);
+  };
+
   return (
     <>
-      <div className="flex justify-around mb-6 border-solid border-b-2 border-gray-200">
-        {Object.keys(mergedWidgets).map((name, index) => {
-          return (
-            <button
-              key={index}
-              id={`agent-settings-${name}`}
-              className={`text-sm font-medium -mb-[2px] after:content-["_"] mt-2 after:w-0 after:border-b-2 after:border-v2-blue after:block after:transition-all after:duration-700 ${
-                currentTab === name
-                  ? 'text-gray-900 after:w-full'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setCurrentTab(name)}
-            >
-              {name}
-            </button>
-          );
-        })}
-      </div>
+      <CollapsibleTabs
+        tabs={tabConfigs}
+        selectedTab={currentTab}
+        onTabChange={handleTabChange}
+        className="mb-6"
+      />
       <div className="grid grid-cols-1 gap-6">
-        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, any[]], index) =>
+        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, React.ReactNode[]]) =>
           widgetlist.map((widget, index) => (
-            <div key={index} hidden={currentTab !== key}>
+            <div
+              key={`${key}-${index}`}
+              id={`tabpanel-${key}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${key}`}
+              hidden={currentTab !== key}
+            >
               {widget}
             </div>
           )),
@@ -145,42 +156,11 @@ export const AgentSettingTabs = () => {
   );
 };
 
-export const AgentSettingsPageBody = (props: Props) => {
+export const AgentSettingsPageBody = () => {
   const { agentId, agentQuery, agentTestDomainQuery, settingsQuery } = useAgentSettingsCtx();
   const { userInfo } = useAuthCtx();
   const isOnPaidPlan = userInfo?.subs?.plan?.paid ?? false;
   const containerRef = useRef<HTMLDivElement>(null);
-  if (!agentQuery.isLoading && !agentTestDomainQuery.isLoading) {
-    if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
-      window.location.href = '/error/403';
-    } else if (agentQuery.isError) {
-      return <FullScreenError error={{ message: "Agent doesn't exist", code: '404' }} />;
-    } else if (agentTestDomainQuery.isError) {
-      return <FullScreenError error={{ message: 'Application Error', code: '500' }} />;
-    }
-  }
-
-  const breadcrumb = (
-    <Breadcrumb aria-label="Breadcrumb" className="mb-2 sm:mb-0">
-      <Breadcrumb.Item icon={FaHome}>
-        <Link to="/agents">Home</Link>
-      </Breadcrumb.Item>
-
-      {agentQuery.data?.name && (
-        <Breadcrumb.Item>
-          <Link to={`/agent-settings/${agentId}`}>'{agentQuery.data?.name}' Settings</Link>
-        </Breadcrumb.Item>
-      )}
-    </Breadcrumb>
-  );
-
-  const handleUpgrade = () => {
-    Observability.observeInteraction('upgrade_click', {
-      page_url: '/agent_settings',
-      source: 'upgrade button displayed alongside My Workflow',
-    });
-    window.location.href = config.env.IS_DEV ? '/plans' : PRICING_PLAN_REDIRECT;
-  };
 
   useEffect(() => {
     Observability.observeInteraction('upgrade_impression', {
@@ -194,6 +174,40 @@ export const AgentSettingsPageBody = (props: Props) => {
       containerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
   }, [agentQuery.isFetched, settingsQuery.isFetched]);
+
+  if (!agentQuery.isLoading && !agentTestDomainQuery.isLoading) {
+    if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
+      window.location.href = '/error/403';
+    } else if (agentQuery.isError) {
+      return <FullScreenError error={{ message: 'Agent doesn\'t exist', code: '404' }} />;
+    } else if (agentTestDomainQuery.isError) {
+      return <FullScreenError error={{ message: 'Application Error', code: '500' }} />;
+    }
+  }
+
+  const breadcrumb = (
+    <Breadcrumb aria-label="Breadcrumb" className="mb-2 sm:mb-0">
+      <Breadcrumb.Item icon={FaHome}>
+        <Link to="/agents">Home</Link>
+      </Breadcrumb.Item>
+
+      {agentQuery.data?.name && (
+        <Breadcrumb.Item>
+          <Link to={`/agent-settings/${agentId}`}>
+            &apos;{agentQuery.data?.name}&apos; Settings
+          </Link>
+        </Breadcrumb.Item>
+      )}
+    </Breadcrumb>
+  );
+
+  const handleUpgrade = () => {
+    Observability.observeInteraction('upgrade_click', {
+      page_url: '/agent_settings',
+      source: 'upgrade button displayed alongside My Workflow',
+    });
+    window.location.href = config.env.IS_DEV ? '/plans' : PRICING_PLAN_REDIRECT;
+  };
 
   return (
     <div ref={containerRef} className="w-full max-w-[822px] m-auto pb-10 pl-[58px] md:pl-0">

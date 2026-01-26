@@ -237,9 +237,8 @@ export const createSelectBox = (
         template = `data-template="$1 ${_badge.replace(/\"/g, `'`)}"`;
       }
 
-      return `<option value="${_value}" ${
-        value == _value ? 'selected' : ''
-      } ${template}>${_text}</option>`;
+      return `<option value="${_value}" ${value == _value ? 'selected' : ''
+        } ${template}>${_text}</option>`;
     })
     .join('');
 
@@ -406,19 +405,7 @@ async function handleKeyValueModalForModal(
       ?.querySelector('textarea') as HTMLTextAreaElement;
     const fieldName = originalTextarea?.id || 'body';
 
-    // Extract options from the original button's onclick handler
-    const originalHandler = (originalButton as any).onclick;
-    let options = { title: 'Body', showVault: true, vaultScope: 'apiCall' }; // Default options
-
-    // Try to extract options from the bound function
-    if (originalHandler && originalHandler.length > 1) {
-      // This is a bound function, try to extract the bound arguments
-      const handlerString = originalHandler.toString();
-      if (handlerString.includes('showVault')) {
-        // Extract options from the handler string or use defaults
-        options = { title: 'Body', showVault: true, vaultScope: 'apiCall' };
-      }
-    }
+    const options = { title: 'Body', showVault: true, vaultScope: 'apiCall', dialogClasses: 'overflow-x-hidden' }; // Default options
 
     // Call the key/value modal handler directly
     await handleKvFieldEditBtn(fieldName, options);

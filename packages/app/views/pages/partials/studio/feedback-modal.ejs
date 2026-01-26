@@ -246,8 +246,8 @@
     const errors = validateFeedback(feedbackText, selectedEmoji);
 
     if (errors.length > 0) {
-      if (typeof toast === 'function') {
-        toast(`${errors.join(' and ')}`, 'Error', 'alert');
+      if (typeof errorToast === 'function') {
+        errorToast(`${errors.join(' and ')}`);
       }
       return;
     }
@@ -265,13 +265,13 @@
 
     if (result && result.success) {
       closeFeedbackModal();
-      if (typeof toast === 'function') {
-        toast('Thank you for your feedback!', 'Success', 'success');
+      if (typeof successToast === 'function') {
+        successToast('Thank you for your feedback!');
       }
       console.log('Feedback submitted successfully to HubSpot');
     } else {
-      if (typeof toast === 'function') {
-        toast('Failed to submit feedback. Please try again.', 'Error', 'alert');
+      if (typeof errorToast === 'function') {
+        errorToast('Failed to submit feedback. Please try again.');
       }
       console.error('Failed to submit feedback to HubSpot');
     }

@@ -35,7 +35,7 @@ export function AgentDeleteConfirmationModal({
         <div className="pt-4">
           <div className="flex justify-end items-center flex-row gap-2">
             <CustomButton
-              className="ml-auto rounded-lg"
+              className="ml-auto rounded-sm"
               handleClick={onConfirm}
               label={isDeleting ? 'Deleting...' : 'Delete'}
               addIcon

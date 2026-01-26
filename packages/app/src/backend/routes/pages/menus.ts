@@ -12,7 +12,6 @@ export const navPages = [
 export const profilePages = [
   { url: '/account', name: 'Account' },
   { url: '/teams/members', name: 'User Management' },
-  { url: '/teams/roles', name: 'Manage Roles' },
   { url: '/my-plan', name: 'My Plan', reload: true },
 ];
 

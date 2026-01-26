@@ -68,11 +68,11 @@ export const DeleteCredentialsModal: FC<DeleteCredentialsModalProps> = ({
 
     setIsDeleting(true);
     setError(null);
-    
+
     try {
       // Try to delete without consent first
       const result = await credentialsClient.deleteCredential(credentialId, group, false);
-      
+
       // If warnings are returned, show them
       if (!result.success && result.warnings && result.warnings.length > 0) {
         setWarnings(result.warnings);
@@ -95,11 +95,11 @@ export const DeleteCredentialsModal: FC<DeleteCredentialsModalProps> = ({
   const handleConfirmWithWarnings = async () => {
     setIsDeleting(true);
     setError(null);
-    
+
     try {
       // Delete with consent
       const result = await credentialsClient.deleteCredential(credentialId, group, true);
-      
+
       if (result.success) {
         successToast('Credential deleted successfully.');
         onClose();
@@ -122,7 +122,7 @@ export const DeleteCredentialsModal: FC<DeleteCredentialsModalProps> = ({
   const isValid = confirmText === credentialName;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={showWarnings ? handleBackFromWarnings : onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
@@ -207,12 +207,6 @@ export const DeleteCredentialsModal: FC<DeleteCredentialsModalProps> = ({
           {!showWarnings ? (
             <>
               <CustomButton
-                variant="secondary"
-                label="Cancel"
-                handleClick={onClose}
-                disabled={isDeleting}
-              />
-              <CustomButton
                 variant="primary"
                 label={isDeleting ? 'Checking...' : 'Delete Credential'}
                 handleClick={handleConfirm}
@@ -223,12 +217,6 @@ export const DeleteCredentialsModal: FC<DeleteCredentialsModalProps> = ({
             </>
           ) : (
             <>
-              <CustomButton
-                variant="secondary"
-                label="Cancel"
-                handleClick={handleBackFromWarnings}
-                disabled={isDeleting}
-              />
               <CustomButton
                 variant="primary"
                 label={isDeleting ? 'Deleting...' : 'Delete Anyway'}

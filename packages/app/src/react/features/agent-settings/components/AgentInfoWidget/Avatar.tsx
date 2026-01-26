@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { useEffect, useMemo } from 'react';
 import { FaCircleNotch, FaUpload } from 'react-icons/fa6';
 import { IoMdAdd } from 'react-icons/io';
-import { toast } from 'react-toastify';
 
 import AvatarModal from '@react/features/agent-settings/components/AgentInfoWidget/AvatarModal';
 import { useAgentSettingsCtx } from '@react/features/agent-settings/contexts/agent-settings.context';
@@ -10,6 +9,7 @@ import AgentAvatar from '@react/features/agents/components/agentCard/AgentAvatar
 import { EAgentSettings } from '@react/features/agents/types/agents.types';
 import { processAvatar } from '@react/features/agents/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
+import { errorToast } from '@src/shared/components/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface AgentInfoWidgetAvatarProps {
@@ -96,7 +96,7 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
       }
     },
     onError() {
-      toast.error('We could not generate an avatar. Please try again.');
+      errorToast('We could not generate an avatar. Please try again.');
     },
   });
 
@@ -214,7 +214,7 @@ const AgentInfoWidgetAvatar: React.FC<AgentInfoWidgetAvatarProps> = ({ data, too
                 }
               }
             } catch (error) {
-              toast.error('Failed to upload avatar');
+              errorToast('Failed to upload avatar');
             } finally {
               setIsLoading(false);
             }
