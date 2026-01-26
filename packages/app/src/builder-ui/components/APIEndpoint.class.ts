@@ -6,6 +6,7 @@ import { openEmbodimentDialog } from '../pages/builder/agent-settings';
 import { alert, confirm } from '../ui/dialogs';
 import { renderEndpointFormPreviewSidebar } from '../ui/react-injects';
 import { delay } from '../utils';
+import { hasGraphCycle } from '../workspace/ComponentSort';
 import { Component } from './Component.class';
 declare var Metro;
 
@@ -781,7 +782,10 @@ export class APIEndpoint extends Component {
       EMBODIMENT_DESCRIPTIONS.agent_skill.tooltipTitle,
     );
 
-    const skillErrors = this.getSkillErrors();
+    // Skip skill errors for cyclic workflows (e.g., retry loops, polling)
+    // These are intentional cycles and don't need settings validation
+    const hasCycle = this.hasConnectionCycle();
+    const skillErrors = hasCycle ? null : this.getSkillErrors();
 
     // this.workspace.
 
@@ -810,6 +814,40 @@ export class APIEndpoint extends Component {
       formPreviewButtonIcon.classList.remove('animate-spin');
       formPreviewButtonIcon.classList.add('fa-play');
     }
+  }
+
+  /**
+   * Checks if the current workflow has circular dependencies.
+   * Builds a connection graph and uses DFS to detect cycles.
+   * @returns true if a cycle is detected, false otherwise
+   */
+  private hasConnectionCycle(): boolean {
+    const connections = this.workspace.jsPlumbInstance
+      .getAllConnections()
+      .map((connection) => {
+        const source = connection.source;
+        const target = connection.target;
+        const sourceComponent = source.closest('.component');
+        const targetComponent = target.closest('.component');
+
+        if (!sourceComponent || !targetComponent) return null;
+        return {
+          sourceId: sourceComponent.id,
+          targetId: targetComponent.id,
+        };
+      })
+      .filter((c): c is { sourceId: string; targetId: string } => c !== null);
+
+    // Build adjacency list with Set for deduplication
+    const connectionGraph = new Map<string, Set<string>>();
+    for (const conn of connections) {
+      if (!connectionGraph.has(conn.sourceId)) {
+        connectionGraph.set(conn.sourceId, new Set());
+      }
+      connectionGraph.get(conn.sourceId)?.add(conn.targetId);
+    }
+
+    return hasGraphCycle(this.uid, connectionGraph);
   }
 
   private getSkillErrors() {
@@ -848,124 +886,140 @@ export class APIEndpoint extends Component {
       }
     }
 
-    const skillErrors = new SkillError();
-    const checkConnections = () => {
-      let connections = this.workspace.jsPlumbInstance
-        .getAllConnections()
-        .map((connection) => {
-          const source = connection.source;
-          const target = connection.target;
-          const sourceComponent = source.closest('.component');
-          const targetComponent = target.closest('.component');
+    try {
 
-          if (!sourceComponent || !targetComponent) return null; //exclude connections that are not connected to components, these can be used for other visual stuff
-          return {
-            sourceId: source.closest('.component').id,
-            sourceIndex: [...source.parentElement.querySelectorAll('.output-endpoint')].findIndex(
-              (c) => c === source,
-            ),
-            targetId: target.closest('.component').id,
-            targetIndex: [...target.parentElement.querySelectorAll('.input-endpoint')].findIndex(
-              (r) => r === target,
-            ),
-          };
-        })
-        .filter((c) => c);
-      const sourceConnections = connections.filter((c) => c.sourceId === this.uid);
 
-      // if no connections, then we need to add a default connection
-      if (sourceConnections.length === 0) {
-        skillErrors.addError({
-          error_slug: 'missing_connection',
-          error_message:
-            'Tip: Add or connect components to bring your workflow to life. Components work together seamlessly to create a powerful, intuitive agent experience.',
-        });
-      } else {
-        skillErrors.removeError('missing_connection');
-      }
-    };
-    this.workspace.jsPlumbInstance.bind('connection', debounce(checkConnections, 100));
-    this.workspace.jsPlumbInstance.bind('connectionDetached', debounce(checkConnections, 100));
+      const skillErrors = new SkillError();
+      const checkConnections = () => {
+        let connections = this.workspace.jsPlumbInstance
+          .getAllConnections()
+          .map((connection) => {
+            const source = connection.source;
+            const target = connection.target;
+            const sourceComponent = source.closest('.component');
+            const targetComponent = target.closest('.component');
 
-    checkConnections();
+            if (!sourceComponent || !targetComponent) return null; //exclude connections that are not connected to components, these can be used for other visual stuff
+            return {
+              sourceId: source.closest('.component').id,
+              sourceIndex: [...source.parentElement.querySelectorAll('.output-endpoint')].findIndex(
+                (c) => c === source,
+              ),
+              targetId: target.closest('.component').id,
+              targetIndex: [...target.parentElement.querySelectorAll('.input-endpoint')].findIndex(
+                (r) => r === target,
+              ),
+            };
+          })
+          .filter((c) => c);
+        const sourceConnections = connections.filter((c) => c.sourceId === this.uid);
 
-    const checkSettingsErr = () => {
-      let connections = this.workspace.jsPlumbInstance
-        .getAllConnections()
-        .map((connection) => {
-          const source = connection.source;
-          const target = connection.target;
-          const sourceComponent = source.closest('.component');
-          const targetComponent = target.closest('.component');
+        // if no connections, then we need to add a default connection
+        if (sourceConnections.length === 0) {
+          skillErrors.addError({
+            error_slug: 'missing_connection',
+            error_message:
+              'Tip: Add or connect components to bring your workflow to life. Components work together seamlessly to create a powerful, intuitive agent experience.',
+          });
+        } else {
+          skillErrors.removeError('missing_connection');
+        }
+      };
+      this.workspace.jsPlumbInstance.bind('connection', debounce(checkConnections, 100));
+      this.workspace.jsPlumbInstance.bind('connectionDetached', debounce(checkConnections, 100));
 
-          if (!sourceComponent || !targetComponent) return null; //exclude connections that are not connected to components, these can be used for other visual stuff
-          return {
-            sourceId: source.closest('.component').id,
-            sourceIndex: [...source.parentElement.querySelectorAll('.output-endpoint')].findIndex(
-              (c) => c === source,
-            ),
-            targetId: target.closest('.component').id,
-            targetIndex: [...target.parentElement.querySelectorAll('.input-endpoint')].findIndex(
-              (r) => r === target,
-            ),
-          };
-        })
-        .filter((c) => c);
+      checkConnections();
 
-      // BFS to see if any node has an err
-      let hasError = false;
-      let compsToVisit = [this.uid];
-      let visited = [];
-      while (compsToVisit.length > 0) {
-        let cId = compsToVisit.shift();
-        visited.push(cId);
+      const checkSettingsErr = () => {
+        let connections = this.workspace.jsPlumbInstance
+          .getAllConnections()
+          .map((connection) => {
+            const source = connection.source;
+            const target = connection.target;
+            const sourceComponent = source.closest('.component');
+            const targetComponent = target.closest('.component');
 
-        const cmpCtrl = (document.querySelector(`.component#${cId}`) as any)?._control;
-        if (!cmpCtrl) continue;
+            if (!sourceComponent || !targetComponent) return null; //exclude connections that are not connected to components, these can be used for other visual stuff
+            return {
+              sourceId: source.closest('.component').id,
+              sourceIndex: [...source.parentElement.querySelectorAll('.output-endpoint')].findIndex(
+                (c) => c === source,
+              ),
+              targetId: target.closest('.component').id,
+              targetIndex: [...target.parentElement.querySelectorAll('.input-endpoint')].findIndex(
+                (r) => r === target,
+              ),
+            };
+          })
+          .filter((c) => c);
 
-        // check settings
-        let requiredSettings = [];
-        for (let settingId in cmpCtrl.settings) {
-          const setting = cmpCtrl.settings[settingId];
-          if (setting.validate?.includes('required')) {
-            requiredSettings.push({ id: settingId, name: setting.label || settingId });
+        // BFS to see if any node has an error
+        // Using Set for O(1) lookup (cycle check is done before getSkillErrors is called)
+        let hasError = false;
+        let compsToVisit = [this.uid];
+        const visited = new Set<string>();
+        while (compsToVisit.length > 0) {
+          let cId = compsToVisit.shift();
+          if (!cId) continue;
+
+          // Skip if already visited
+          if (visited.has(cId)) continue;
+          visited.add(cId);
+
+          const cmpCtrl = (document.querySelector(`.component#${cId}`) as Element & { _control?: Component })?.['_control'];
+          if (!cmpCtrl) continue;
+
+          // Check settings for required fields
+          const requiredSettings: Array<{ id: string; name: string }> = [];
+          for (const settingId in cmpCtrl.settings) {
+            const setting = cmpCtrl.settings[settingId];
+            if (setting.validate?.includes('required')) {
+              requiredSettings.push({ id: settingId, name: setting.label ?? settingId });
+            }
           }
+
+          const missingSettings = requiredSettings.filter((setting) => !cmpCtrl.data[setting.id]);
+
+          if (missingSettings.length > 0) {
+            hasError = true;
+            // if there an error, listen on cmp settingsSaved event to re-trigger the check
+            const listener = () => {
+              checkSettingsErr();
+              cmpCtrl.off('settingsSaved', listener);
+            };
+            cmpCtrl.on('settingsSaved', listener);
+            break;
+          }
+
+          // Add connected component IDs (deduplicated)
+          const connectedCmpIds = [
+            ...new Set(
+              connections
+                .filter((c) => c.sourceId === cId && !visited.has(c.targetId))
+                .map((c) => c.targetId),
+            ),
+          ];
+          compsToVisit.push(...connectedCmpIds);
         }
 
-        const missingSettings = requiredSettings.filter((setting) => !cmpCtrl.data[setting.id]);
-
-        if (missingSettings.length > 0) {
-          hasError = true;
-          // if there an error, listen on cmp settingsSaved event to re-trigger the check
-          const listener = () => {
-            checkSettingsErr();
-            cmpCtrl.off('settingsSaved', listener);
-          };
-          cmpCtrl.on('settingsSaved', listener);
-          break;
+        if (hasError) {
+          skillErrors.addError({
+            error_slug: 'connected_components_settings_err',
+            error_message:
+              'Tip: resolve missing information from components (the red boxes) first, otherwise the agent will get stuck at that step and not return anything useful.',
+          });
+        } else {
+          skillErrors.removeError('connected_components_settings_err');
         }
+      };
 
-        // add connected
-        const connectedCmpIds = connections
-          .filter((c) => c.sourceId === cId && !visited.includes(c.targetId))
-          .map((c) => c.targetId);
-        compsToVisit.push(...connectedCmpIds);
-      }
+      checkSettingsErr();
 
-      if (hasError) {
-        skillErrors.addError({
-          error_slug: 'connected_components_settings_err',
-          error_message:
-            'Tip: resolve missing information from components (the red boxes) first, otherwise the agent will get stuck at that step and not return anything useful.',
-        });
-      } else {
-        skillErrors.removeError('connected_components_settings_err');
-      }
-    };
-
-    checkSettingsErr();
-
-    return skillErrors;
+      return skillErrors;
+    } catch (error) {
+      console.log('error', error);
+      return null;
+    }
   }
 
   public redraw(triggerSettings?: boolean): any {
