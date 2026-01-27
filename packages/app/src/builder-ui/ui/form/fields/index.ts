@@ -1534,6 +1534,9 @@ export function createRangeInput({ name, min, max, value, step }: RangeEntry) {
     await delay(50);
 
     range.value = elm.value;
+
+    // Dispatch input event on range to trigger mutually exclusive field handlers
+    range.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
   // sync the range with number input
@@ -1544,6 +1547,18 @@ export function createRangeInput({ name, min, max, value, step }: RangeEntry) {
     await delay(50);
 
     range.value = elm.value;
+
+    // Dispatch input event on range to trigger mutually exclusive field handlers
+    range.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // sync the range with number input when value is changed directly (e.g., typing and unfocusing)
+  input.addEventListener('change', (event) => {
+    const elm = event.target as HTMLInputElement;
+    range.value = elm.value;
+
+    // Dispatch input event on range to trigger mutually exclusive field handlers
+    range.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
   return { rangeInput: range, numberInput: input };
