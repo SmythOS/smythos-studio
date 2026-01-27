@@ -51,6 +51,7 @@ export class GenAILLM extends Component {
   private gpt5Models: string[];
   private gptO3andO4Models: string[];
   private gptSearchModels: string[];
+  private perplexityModels: string[];
 
   protected async prepare() {
     const model = this.data.model || this.defaultModel;
@@ -77,6 +78,9 @@ export class GenAILLM extends Component {
       (m) => m.entryId,
     );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+    this.perplexityModels = LLMRegistry.getModelsByFeatures('text', 'perplexity').map(
+      (m) => m.entryId,
+    );
 
     // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
     this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
@@ -704,6 +708,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultFrequencyPenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Frequency Penalty will clear Presence Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Reduce repeats by penalising words already used in the reply.',
@@ -726,6 +737,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultPresencePenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Presence Penalty will clear Frequency Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Encourage new topics by penalising words seen in the input.',

@@ -274,7 +274,7 @@
     "defaultTopK": 0,
     "minTopK": 0,
     "maxTopK": 2048,
-    "defaultFrequencyPenalty": 1,
+    "defaultFrequencyPenalty": 0,
     "defaultPresencePenalty": 0,
     "maxFrequencyPenalty": 2,
     "maxPresencePenalty": 2,

@@ -193,7 +193,8 @@ function updateRangeCompanion(rangeInput: HTMLInputElement): void {
 }
 
 /**
- * Check if a field has a negative value (representing "not set")
+ * Check if a field has a negative value or equals the reset value (representing "not set")
+ * For mutually exclusive fields, the reset value (e.g., 0 for penalty fields) should also be considered inactive
  */
 export function hasNegativeValue(fieldElement: HTMLElement): boolean {
   const tagName = fieldElement.tagName.toLowerCase();
@@ -201,7 +202,27 @@ export function hasNegativeValue(fieldElement: HTMLElement): boolean {
     const inputType = (fieldElement as HTMLInputElement).type;
     if (inputType === 'number' || inputType === 'range') {
       const value = parseFloat((fieldElement as HTMLInputElement).value);
-      return value < 0;
+      
+      // Check if value is negative (original behavior)
+      if (value < 0) {
+        return true;
+      }
+      
+      // For mutually exclusive fields, also check if value equals the reset value
+      const mutualExclusiveAttr = fieldElement.getAttribute('data-mutually-exclusive');
+      if (mutualExclusiveAttr) {
+        try {
+          const config = JSON.parse(mutualExclusiveAttr);
+          // If reset value is defined and current value equals it, consider it inactive
+          if (config.reset !== undefined && value === config.reset) {
+            return true;
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+      
+      return false;
     }
   }
   return false;
@@ -454,18 +475,20 @@ function registerFieldWithForm(
 
   // Apply blur effect on initial load if field already has a negative value
   // This handles cases where saved configuration has a "not set" value
-  if (hasNegativeValue(fieldElement)) {
+  // But only if the current model is in the whitelist (mutual exclusivity applies)
+  if (hasNegativeValue(fieldElement) && isModelInWhitelist(fieldElement, form)) {
     applyInactiveEffect(fieldElement);
   }
 }
 
 /**
  * Update the visibility of mutual exclusive hint messages based on the current model.
- * Hints with a `data-mutual-exclusive-models` attribute are only shown when the
- * current model is in the whitelist.
+ * This function is generic and automatically finds all mutually exclusive fields,
+ * reads their config from the `data-mutually-exclusive` attribute, and shows/hides
+ * hints based on whether the current model is in the whitelist.
  *
  * Call this function when the model selection changes to ensure hints are only
- * visible for models that support mutual exclusivity (e.g., Anthropic models).
+ * visible for models that support mutual exclusivity (e.g., Perplexity models).
  *
  * @param form The form element containing the hints and model selector
  */
@@ -477,22 +500,88 @@ export function updateMutualExclusiveHintsVisibility(form: HTMLFormElement): voi
   const currentModel = modelSelector.value?.toLowerCase();
   if (!currentModel) return;
 
-  // Find all hints with model whitelist
-  const hints = form.querySelectorAll('.mutual-exclusive-hint[data-mutual-exclusive-models]');
+  // Find all fields with mutually exclusive configuration
+  const mutuallyExclusiveFields = form.querySelectorAll('[data-mutually-exclusive]');
 
-  hints.forEach((hint: HTMLElement) => {
-    const modelsAttr = hint.getAttribute('data-mutual-exclusive-models');
-    if (!modelsAttr) return;
+  mutuallyExclusiveFields.forEach((fieldElement: HTMLElement) => {
+    // Find the form-group container that contains this field
+    const formGroup = fieldElement.closest('.form-group') as HTMLElement;
+    if (!formGroup) return;
+
+    // Get the hint element from the container (stored on the form-group div)
+    // Fallback: find by class name if stored reference is not available
+    let hint = (formGroup as any)._mutualExclusiveHint as HTMLElement | undefined;
+    if (!hint) {
+      hint = formGroup.querySelector('.mutual-exclusive-hint') as HTMLElement | undefined;
+    }
+    if (!hint) return;
+
+    // Get the mutual exclusive config from the field
+    const mutualExclusiveAttr = fieldElement.getAttribute('data-mutually-exclusive');
+    if (!mutualExclusiveAttr) {
+      // No config, hide the hint
+      hint.style.display = 'none';
+      return;
+    }
 
     try {
-      const whitelistedModels: string[] = JSON.parse(modelsAttr);
-      const shouldShow = whitelistedModels.some(
-        (model) => model.toLowerCase() === currentModel,
-      );
+      const config = JSON.parse(mutualExclusiveAttr);
+      const whitelistedModels = config.models;
+
+      // If models array doesn't exist or is not an array, show for all models (backward compatibility)
+      // If models array is empty, hide the hint (intentional empty whitelist means show for no models)
+      if (!whitelistedModels || !Array.isArray(whitelistedModels)) {
+        hint.style.display = '';
+        return;
+      }
+      
+      // Empty array means intentionally show for no models (hide the hint)
+      if (whitelistedModels.length === 0) {
+        hint.style.display = 'none';
+        return;
+      }
+
+      // Check if current model is in the whitelist (case-insensitive)
+      const whitelistedModelsLower = whitelistedModels.map((m: string) => m.toLowerCase());
+      const shouldShow = whitelistedModelsLower.includes(currentModel);
+
       hint.style.display = shouldShow ? '' : 'none';
     } catch {
       // On parse error, hide the hint
       hint.style.display = 'none';
+    }
+  });
+  
+  // Also update blur effects - remove blur from fields when model is not in whitelist
+  updateMutualExclusiveBlurEffects(form);
+}
+
+/**
+ * Update the blur effects on mutually exclusive fields based on the current model.
+ * Remove blur effects from fields when the current model is not in the whitelist.
+ * This ensures fields are only dimmed when mutual exclusivity applies to the current model.
+ * 
+ * @param form The form element containing the fields
+ */
+function updateMutualExclusiveBlurEffects(form: HTMLFormElement): void {
+  const mutuallyExclusiveFields = form.querySelectorAll('[data-mutually-exclusive]');
+  
+  mutuallyExclusiveFields.forEach((fieldElement: HTMLElement) => {
+    // Check if the field has a reset/negative value
+    if (!hasNegativeValue(fieldElement)) {
+      // Field has a non-reset value, no blur effect needed
+      return;
+    }
+    
+    // Field has a reset value - check if model is in whitelist
+    const isInWhitelist = isModelInWhitelist(fieldElement, form);
+    
+    if (isInWhitelist) {
+      // Model is in whitelist, apply blur effect
+      applyInactiveEffect(fieldElement);
+    } else {
+      // Model is not in whitelist, remove blur effect
+      removeInactiveEffect(fieldElement);
     }
   });
 }
