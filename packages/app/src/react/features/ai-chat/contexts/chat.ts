@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
 import type { IFileUpload, TChatMessage } from '@react/features/ai-chat/types';
-import type { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
+import type { Agent, AgentSettings } from '@react/shared/types/agent-data.types';
 import { createContext, RefObject } from 'react';
+
+export type TPageState = 'loading' | 'error' | 'auth-required' | 'disabled' | 'ready';
 
 export interface IChatContext {
   refs: {
@@ -9,7 +11,7 @@ export interface IChatContext {
     container?: RefObject<HTMLDivElement | null>;
   };
   agent: {
-    data?: AgentDetails;
+    data?: Agent;
     settings?: AgentSettings;
     isLoading: { agent: boolean; settings: boolean };
   };
@@ -32,6 +34,13 @@ export interface IChatContext {
   };
   modelOverride: string | null;
   setModelOverride: (model: string | null) => void;
+  auth: {
+    isRequired: boolean;
+    method?: string;
+    authorizationUrl?: string;
+    onAuthSuccess: () => Promise<void>;
+  };
+  pageState: TPageState;
 }
 
 export const ChatContext = createContext<IChatContext>({
@@ -46,6 +55,7 @@ export const ChatContext = createContext<IChatContext>({
     remove: () => {},
     clear: () => {},
     clearError: () => {},
+    removeByIds: () => {},
   },
   chat: {
     isChatCreating: false,
@@ -65,4 +75,9 @@ export const ChatContext = createContext<IChatContext>({
   },
   modelOverride: null,
   setModelOverride: () => {},
+  auth: {
+    isRequired: false,
+    onAuthSuccess: async () => {},
+  },
+  pageState: 'loading',
 });
