@@ -1,6 +1,7 @@
+import { TClassName } from '@react/features/ai-chat/types';
 import { cn } from '@react/shared/utils/general';
 
-export const ArrowLeftIcon = ({ className }: { className?: string }) => (
+export const ArrowLeftIcon = ({ className }: TClassName) => (
   <svg
     className={cn('size-5', className)}
     fill="none"
@@ -13,13 +14,13 @@ export const ArrowLeftIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const CloseIcon = ({ className }: { className?: string }) => (
+export const CloseIcon = ({ className }: TClassName) => (
   <svg className={cn('size-6', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
-export const AttachmentIcon = ({ className }: { className?: string }) => (
+export const AttachmentIcon = ({ className }: TClassName) => (
   <svg
     className={cn('w-[17px] h-4', className)}
     viewBox="0 0 17 16"
@@ -38,7 +39,7 @@ export const AttachmentIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const SendIcon = ({ className }: { className?: string }) => (
+export const SendIcon = ({ className }: TClassName) => (
   <svg
     className={cn('size-4', className)}
     viewBox="0 0 16 16"
@@ -55,7 +56,7 @@ export const SendIcon = ({ className }: { className?: string }) => (
 );
 
 // Info circle icon
-export const InfoIcon = ({ className }: { className?: string }) => (
+export const InfoIcon = ({ className }: TClassName) => (
   <svg
     width="20"
     height="20"
@@ -75,7 +76,7 @@ export const InfoIcon = ({ className }: { className?: string }) => (
 );
 
 /** Retry/refresh icon (circular arrow) */
-export const RetryIcon = ({ className }: { className?: string }) => (
+export const RetryIcon = ({ className }: TClassName) => (
   <svg
     width="20"
     height="20"
