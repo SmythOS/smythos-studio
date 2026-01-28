@@ -4,6 +4,45 @@ import { delay } from '../utils';
 declare var workspace: any;
 let isSorting = false;
 
+/**
+ * Detects if there's a cycle in the graph starting from the given node.
+ * Uses DFS with recursion stack tracking to detect back-edges.
+ * @param startId - The node ID to start the cycle detection from
+ * @param graph - Adjacency list representation of the graph (Map with Set or Array values)
+ * @returns true if a cycle is detected, false otherwise
+ */
+export function hasGraphCycle(
+  startId: string,
+  graph: Map<string, Set<string> | string[]>,
+): boolean {
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+
+  const dfs = (nodeId: string): boolean => {
+    if (inStack.has(nodeId)) {
+      return true; // Cycle detected (back-edge found)
+    }
+    if (visited.has(nodeId)) {
+      return false; // Already processed, no cycle from this path
+    }
+
+    visited.add(nodeId);
+    inStack.add(nodeId);
+
+    const neighbors = graph.get(nodeId) ?? [];
+    for (const neighbor of neighbors) {
+      if (dfs(neighbor)) {
+        return true;
+      }
+    }
+
+    inStack.delete(nodeId);
+    return false;
+  };
+
+  return dfs(startId);
+}
+
 /** Bounding box type for elements */
 interface Bounds {
   left: number;
@@ -281,6 +320,7 @@ export async function extractWorkflows(data) {
   const { components, connections } = data;
 
   // Build adjacency list for graph representation
+  // Note: Uses arrays and initializes all component IDs for level calculation
   function buildGraph() {
     const graph = new Map();
     components.forEach((component) => {
@@ -296,41 +336,11 @@ export async function extractWorkflows(data) {
     return graph;
   }
 
-  // Check if the graph has a cycle starting from a given node
-  function hasCycle(startId, graph) {
-    const visited = new Set();
-    const inStack = new Set();
-
-    function dfs(nodeId) {
-      if (inStack.has(nodeId)) {
-        return true; // Cycle detected
-      }
-      if (visited.has(nodeId)) {
-        return false; // Already processed, no cycle from this path
-      }
-
-      visited.add(nodeId);
-      inStack.add(nodeId);
-
-      const neighbors = graph.get(nodeId) || [];
-      for (const neighbor of neighbors) {
-        if (dfs(neighbor)) {
-          return true;
-        }
-      }
-
-      inStack.delete(nodeId);
-      return false;
-    }
-
-    return dfs(startId);
-  }
-
   // Perform Topological Sort and Calculate Levels
   // Throws an error if a cycle is detected
   function calculateLevels(startId, graph) {
     // Check for cycles first - if found, throw error
-    const _hasCycle = hasCycle(startId, graph);
+    const _hasCycle = hasGraphCycle(startId, graph);
 
     if (_hasCycle) {
       throw new Error('Circular dependency detected in the workflow');

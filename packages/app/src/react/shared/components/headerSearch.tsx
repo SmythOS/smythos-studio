@@ -15,9 +15,11 @@ interface HeaderSearchComponent {
   handleChange?: (e: ChangeEvent<HTMLInputElement>) => void; // eslint-disable-line no-unused-vars
   BtnComponent?: ReactNode;
   leftComponent?: ReactNode;
+  dataAttributes?: { [key: string]: string };
 }
 
 const HeaderSearch: FC<HeaderSearchComponent> = ({
+  dataAttributes,
   search,
   placeholder,
   addIcon,
@@ -31,7 +33,7 @@ const HeaderSearch: FC<HeaderSearchComponent> = ({
   leftComponent,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full" {...dataAttributes}>
       {/* Render the left side component (e.g. verification badge, title, etc) */}
       {leftComponent}
 
