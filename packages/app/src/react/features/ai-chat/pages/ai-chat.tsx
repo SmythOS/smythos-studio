@@ -1,5 +1,5 @@
-import { AuthOverlay } from '@react/features/ai-chat/components/auth/auth-overlay';
 import { Chats, Container, Footer, Header } from '@react/features/ai-chat/components';
+import { AuthOverlay } from '@react/features/ai-chat/components/auth/auth-overlay';
 import { Skeleton } from '@react/features/ai-chat/components/header/skeleton';
 import { ChatContextProvider } from '@react/features/ai-chat/contexts';
 import { useChatStores } from '@react/features/ai-chat/hooks';
@@ -11,32 +11,26 @@ import { memo } from 'react';
 const LoadingSkeleton = () => (
   <>
     {/* Header skeleton */}
-    <div className="w-full max-w-4xl flex items-center gap-3 py-4 px-2">
-      <Skeleton className="w-10 h-10 rounded-full" />
-      <div className="flex flex-col gap-2">
-        <Skeleton className="w-32 h-4 rounded" />
-        <Skeleton className="w-20 h-3 rounded" />
+    <div className="w-full max-w-4xl flex justify-between items-center pt-2">
+      <div className="w-full flex items-center gap-2.5">
+        <Skeleton className="size-10 rounded-full" />
+        <div className="flex flex-col gap-0.5">
+          <Skeleton className="w-32 h-4 rounded" />
+          <Skeleton className="w-20 h-3 rounded" />
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Skeleton className="size-7 rounded-xl" />
+        <Skeleton className="size-7 rounded-xl" />
       </div>
     </div>
 
     {/* Chat area skeleton */}
-    <div className="w-full h-full flex-1 flex flex-col items-center justify-start pt-8 gap-4 overflow-hidden">
-      <div className="w-full max-w-4xl space-y-4 px-2">
-        <div className="flex justify-start">
-          <Skeleton className="w-3/4 h-16 rounded-2xl" />
-        </div>
-        <div className="flex justify-end">
-          <Skeleton className="w-1/2 h-12 rounded-2xl" />
-        </div>
-        <div className="flex justify-start">
-          <Skeleton className="w-2/3 h-20 rounded-2xl" />
-        </div>
-      </div>
-    </div>
+    <div className="w-full h-full flex-1" />
 
-    {/* Footer skeleton */}
-    <div className="w-full max-w-4xl py-4 px-2">
-      <Skeleton className="w-full h-14 rounded-2xl" />
+    <div className="w-full max-w-4xl py-4 space-y-4">
+      <Skeleton className="w-full h-[124px] rounded-xl" />
+      <Skeleton className="w-4/6 h-4 rounded-md mx-auto" />
     </div>
   </>
 );
