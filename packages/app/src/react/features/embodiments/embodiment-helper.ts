@@ -32,7 +32,7 @@ type AgentSetting = {
   codeSnippetComponent?: JSX.Element;
 };
 
-type AgentSettingsCallback = (agentSettings: AgentSetting[]) => void;
+type AgentSettingsCallback = (data: AgentSetting[] | Embodiment[]) => void;
 
 export function structureAgentSetting(
   key: string,
