@@ -9,7 +9,7 @@ import { Embodiment } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 /**
  * Props for the AllowedDomainsWidget component
@@ -48,7 +48,7 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
  * @param embodiments - Array of embodiments to extract domains from
  * @returns Array of unique domain strings
  */
-  const extractDomainsFromEmbodiments = (embodiments: Embodiment[]): void => {
+  const extractDomainsFromEmbodiments = useCallback((embodiments: Embodiment[]): void => {
     const domainSet = new Set<string>();
 
     embodiments.forEach((embodiment) => {
@@ -66,14 +66,24 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
 
     const allDomains = Array.from(domainSet).sort();
     setDomains(allDomains);
-  };
+  }, [setDomains]);
 
 
   // Use React Query helper for agent embodiments first
   const {
     data: embodimentsData = [],
-    isLoading: embodimentsLoading,
-  } = useAgentEmbodiments(agentId, extractDomainsFromEmbodiments);
+    isLoading,
+    isFetched
+
+  } = useAgentEmbodiments(agentId);
+
+  useEffect(() => {
+    if (embodimentsData && isFetched) {
+      extractDomainsFromEmbodiments(embodimentsData);
+    }
+  }, [embodimentsData, isFetched, extractDomainsFromEmbodiments]);
+
+
 
   /**
    * Validates a single domain string
@@ -188,7 +198,7 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
   }, [embodimentsData, domains, agentId, queryClient]);
 
   // Show loading state
-  if (embodimentsLoading) {
+  if (isLoading) {
     return <SkeletonLoader title="Allowed Domains" />;
   }
 
@@ -247,7 +257,7 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
 
           <div className="bg-amber-50 border border-amber-200 rounded-md p-3 w-full my-2">
             <p className="text-amber-800 text-xs">
-              <strong>Note:</strong> If no domain is allowed, the embodiment will be restricted from all domains.
+              <strong>Note:</strong> If no domain is added, the embodiment will be blocked from all domains.
             </p>
           </div>
 
