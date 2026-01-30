@@ -10,7 +10,6 @@ import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
-import VoiceDialog from '../agent-settings/dialogs/Voice';
 import VoiceEmbodimentModalWrapper from './alexa-embodiment-modal-wrapper';
 import ChatbotEmbodimentModal from './chatbot-embodiment-modal';
 import FormEmbodimentModal from './form-embodiment-modal';
@@ -175,26 +174,6 @@ export const getFormPreviewDialog = (
       agentId={agentId}
       currentData={currentData}
       style={{}}
-    />
-  );
-};
-
-export const getVoiceDialog = (
-  isOpen: boolean,
-  closeModal: () => void,
-  agent,
-  agentId,
-  currentData,
-) => {
-  // Always render the component for preloading, HeadlessUI Transition handles visibility
-  // This ensures the component is initialized and ready when the user opens it
-  return (
-    <VoiceDialog
-      isOpen={isOpen}
-      closeModal={closeModal}
-      activeAgent={agent}
-      agentId={agentId}
-      currentData={currentData}
     />
   );
 };

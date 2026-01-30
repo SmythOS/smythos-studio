@@ -42,11 +42,6 @@ export type TFormPreviewProperties = {
   outputPreview: boolean;
 };
 
-export type TVoiceProperties = {
-  name: string;
-  allowedDomains: string[];
-};
-
 export type TGptEmbodimentProperties = {
   humanName: string;
   modelName: string;

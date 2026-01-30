@@ -26,7 +26,6 @@ import { EMBODIMENT_TYPE } from '@react/shared/enums';
 import { Agent } from '@react/shared/types/agent-data.types';
 import { extractError } from '@react/shared/utils/errors';
 import { cn, validateDomains, validateURL } from '@react/shared/utils/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { ChatbotEmbodimentData } from '@src/react/shared/types/api-results.types';
 import { errorToast, successToast, warningToast } from '@src/shared/components/toast';
 import { Observability } from '@src/shared/observability';
@@ -412,85 +411,6 @@ const ChatBotDialog = ({
                                   className="text-red-500 text-sm"
                                 />
                               </div>
-                              {/* ALLOWED DOMAINS START */}
-                              <div>
-                                <label
-                                  htmlFor="allowedDomains"
-                                  className="text-[#1E1E1E] mb-1 text-base font-normal flex items-center"
-                                >
-                                  Allowed Domains{' '}
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Info className="w-5 h-5 ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent className="max-w-[240px] text-center text-wrap">
-                                      <div>
-                                        Restrict chatbot to specific domains.
-                                        <br /> Use commas to separate multiple domains (e.g.,
-                                        example.com, mysite.org).
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </label>
-
-                                <Field
-                                  type="text"
-                                  id="allowedDomains"
-                                  className={`bg-white
-                                  border
-                                  text-gray-900
-                                  rounded
-                                  block
-                                  w-full
-                                  outline-none
-                                  focus:outline-none
-                                  focus:ring-0
-                                  focus:ring-offset-0
-                                  focus:ring-shadow-none
-                                  text-sm
-                                  font-normal
-                                  placeholder:text-sm
-                                  placeholder:font-normal
-                                  mb-4
-                                border-gray-300 border-b-gray-500 focus:border-b-2 focus:border-b-blue-500 focus-visible:border-b-2 focus-visible:border-b-blue-500 ${
-                                  domainError
-                                    ? 'border-red-500 text-red-900 placeholder-red-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500'
-                                    : ''
-                                }`}
-                                  name="allowedDomains"
-                                  placeholder="Enter comma separated values for domains"
-                                  value={
-                                    Array.isArray(props.values?.allowedDomains)
-                                      ? props.values.allowedDomains.join(',')
-                                      : props.values?.allowedDomains || ''
-                                  }
-                                  onChange={(e) => {
-                                    if (domainError) {
-                                      setDomainError(false);
-                                    }
-                                    const newValue = e.target.value
-                                      ? e.target.value.split(',')
-                                      : [];
-                                    props.setFieldValue('allowedDomains', newValue);
-                                  }}
-                                />
-
-                                {domainError && (
-                                  <p className="mb-2 text-sm text-red-600 dark:text-red-500">
-                                    <span className="font-medium">
-                                      One or more domains are invalid. Make sure there is no
-                                      trailing comma.
-                                    </span>
-                                  </p>
-                                )}
-
-                                <ErrorMessage
-                                  name="allowedDomains"
-                                  component="div"
-                                  className="text-red-500 text-sm mb-2"
-                                />
-                              </div>
-                              {/* ALLOWED DOMAINS END */}
 
                               <div className="mb-4">
                                 <label

@@ -12,8 +12,7 @@ import {
   getEmbodimentDescription,
   getEmbodimentIcon,
   getEmbodimentTitle,
-  getFormPreviewDialog,
-  getVoiceDialog,
+  getFormPreviewDialog
 } from './embodiment-configs';
 
 type AgentSetting = {
@@ -149,18 +148,6 @@ export function structureAgentSetting(
         );
       }
 
-      if (key === EMBODIMENT_TYPE.ALEXA) {
-        result.dialogComponent = getVoiceDialog(
-          modalHandlers.activeModal === key, // Pass visibility state
-          modalHandlers.closeModal,
-          modalHandlers.agent,
-          agentData.agentId,
-          modalHandlers.embodimentsData?.find(
-            (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.ALEXA,
-          ),
-        );
-      }
-
       // Add code snippet modal for chat bot (preload when it should be visible)
       // Note: iframe-based components are conditionally rendered to allow reload as requested
       if (
@@ -219,6 +206,7 @@ const shouldConfigurationVisible = (
     !agentData.isReadOnlyAccess &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.API.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.MCP.toLocaleLowerCase() &&
+    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.ALEXA.toLocaleLowerCase() &&
     // NOTE: TEMPORARY DISABLE CONFIGURATION FOR AGENT LLM
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.LLM.toLocaleLowerCase()
   );
