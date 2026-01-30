@@ -868,14 +868,6 @@ export async function attachLiveDebugSession(agentID, maxRetries = 1) {
 
 //Live debug session is typically initiated from embodiments, but can be triggered from outside
 async function _attachLiveDebugSession(agentID) {
-  console.log('attachLiveDebugSession', agentID);
-  clearDebugUIInfo();
-
-  if (AttachedAgent != agentID) {
-    await stopDebugSession();
-    await delay(200);
-  }
-
   const dbgUrl = `${DEBUG_SERVER}/debugSession/${agentID}`;
 
   const result = await fetch(dbgUrl).then((res) => res.json());
@@ -883,15 +875,25 @@ async function _attachLiveDebugSession(agentID) {
 
   const SessionID = result.dbgSession;
 
-  if (SessionID) {
-    const dbgResult = await processDebugStep(null, workspace.agent.id, SessionID);
-    if (!dbgResult.attached) {
-      warningToast(
-        'Cannot attach to this session.<br />Make sure that the session ID is valid and that the corresponding agent is loaded',
-        'Invalid Debug Session',
-      );
-      log('Cannot attach to session ' + SessionID);
-    }
+  // Only proceed if there's a valid session to attach to
+  // This prevents clearing existing output data when no new session exists
+  if (!SessionID) return null;
+
+  // Clear previous debug UI only when we have a valid new session
+  clearDebugUIInfo();
+
+  if (AttachedAgent != agentID) {
+    await stopDebugSession();
+    await delay(200);
+  }
+
+  const dbgResult = await processDebugStep(null, workspace.agent.id, SessionID);
+  if (!dbgResult.attached) {
+    warningToast(
+      'Cannot attach to this session.<br />Make sure that the session ID is valid and that the corresponding agent is loaded',
+      'Invalid Debug Session',
+    );
+    log('Cannot attach to session ' + SessionID);
   }
 
   AttachedAgent = agentID;
@@ -1199,7 +1201,7 @@ function showPreviewDialog(content: string) {
     {
       Close: {
         class: 'border border-gray-700 hover:opacity-75',
-        handler: () => { },
+        handler: () => {},
       },
     },
     {
@@ -2055,9 +2057,7 @@ export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?
     } else {
       log('Debug session completed successfully');
     }
-    console.log('Deleting debug session', agentID, sessionID);
     delete debugSessions[agentID].sessionID;
-    //await stopDebugSession(false);
     stopDebugUI(false);
     //}
 
@@ -2265,7 +2265,6 @@ export async function runDebugStep(agentID, sessionID?) {
   }).then((res) => res.json());
 
   if (!result.dbgSession) {
-    console.log('Debug session ended');
     delete debugSessions[agentID].sessionID;
 
     stopDebugUI(false);
@@ -2857,7 +2856,7 @@ export function createDebugInjectDialog(
         callback: (dialog) => handleDebugAction(component, dialog, 'run'),
       },
     ],
-    onCloseClick: () => { },
+    onCloseClick: () => {},
     onDOMReady: function (dialog) {
       if (debugInputs[component.uid]?.inputs) {
         //console.log('debugInputs', debugInputs[component.uid]?.inputs);
