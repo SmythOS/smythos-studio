@@ -147,10 +147,10 @@ router.get('/params', async (req, res) => {
     const responseData = result.data;
 
     // Check if session already has a valid token for this agent (persist auth across page reloads)
-    const sessionToken = req.session?.agentTokens?.[agentId];
-    if (sessionToken && responseData.authRequired) {
-      responseData.authRequired = false;
-    }
+    // const sessionToken = req.session?.agentTokens?.[agentId];
+    // if (sessionToken && responseData.authRequired) {
+    //   responseData.authRequired = false;
+    // }
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -191,18 +191,18 @@ router.post('/verify-token', async (req, res) => {
     );
 
     // Forward any cookies from SRE response
-    const setCookie = result.headers['set-cookie'];
-    if (setCookie) {
-      res.setHeader('set-cookie', setCookie);
-    }
+    // const setCookie = result.headers['set-cookie'];
+    // if (setCookie) {
+    //   res.setHeader('set-cookie', setCookie);
+    // }
 
     // Store token in session for subsequent requests (Option B: server-side storage)
-    if (result.data.success) {
-      if (!req.session.agentTokens) {
-        req.session.agentTokens = {};
-      }
-      req.session.agentTokens[agentId as string] = bearerToken;
-    }
+    // if (result.data.success) {
+    //   if (!req.session.agentTokens) {
+    //     req.session.agentTokens = {};
+    //   }
+    //   req.session.agentTokens[agentId as string] = bearerToken;
+    // }
 
     return res.json(result.data);
   } catch (error) {
@@ -282,7 +282,7 @@ router.get('/messages', async (req, res) => {
   try {
     const result = await axios.get(
       getAgentServerURL(agentId as string, isUsingLocalServer) +
-        `/aichat/messages?page=${page}&limit=${limit}`,
+      `/aichat/messages?page=${page}&limit=${limit}`,
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -321,7 +321,7 @@ router.post('/upload', [includeTeamDetails], (req: any, res, next) => {
         (url.searchParams.get('agentId') as string | undefined) ||
         (url.searchParams.get('aiAgentId') as string | undefined) ||
         (url.searchParams.get('agent-id') as string | undefined);
-    } catch {}
+    } catch { }
   }
   const agentId = headerAgentId || queryAgentId || refererAgentId;
 
