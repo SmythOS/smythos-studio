@@ -120,7 +120,7 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
               DeleteAccountType.IS_NOT_TEAM_OWNER,
             ].includes(deleteAccRequirement.type) && (
               <Button
-                className="w-full bg-[#3C89F9] hover:bg-[#2B7CE9] text-white text-[14px] font-inter font-normal"
+                className="w-full bg-[#3C89F9] hover:bg-[#2B7CE9] text-white text-[14px] font-inter font-normal rounded-sm"
                 onClick={handleManageTeamMembers}
               >
                 <Users className="w-4 h-4 mr-2" />
@@ -133,7 +133,7 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
 
             {[DeleteAccountType.USER_HAS_SUBSCRIPTION].includes(deleteAccRequirement.type) && (
               <Button
-                className="w-full bg-[#3C89F9] hover:bg-[#2B7CE9] text-white text-[14px] font-inter font-normal"
+                className="w-full bg-[#3C89F9] hover:bg-[#2B7CE9] text-white text-[14px] font-inter font-normal rounded-sm"
                 onClick={handleManageSubscription}
               >
                 <Crown className="w-4 h-4 mr-2" />
@@ -143,7 +143,7 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
 
             <Button
               variant="outline"
-              className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-[14px] font-inter font-normal rounded-lg"
+              className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-[14px] font-inter font-normal rounded-sm"
               onClick={handleClose}
             >
               Close

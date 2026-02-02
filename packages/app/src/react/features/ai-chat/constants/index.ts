@@ -14,12 +14,12 @@ export const MAX_UPLOADS = 5;
 export const DEFAULT_AVATAR_URL =
   'https://gravatar.com/avatar/ccd5b19e810febbfd3d4321e27b15f77?s=400&d=mp&r=x';
 
-type TMessageKey = 'USER' | 'SYSTEM' | 'ERROR' | 'DEBUG' | 'META' | 'LOADING';
+type TMessageKey = 'USER' | 'SYSTEM' | 'ERROR' | 'META' | 'LOADING' | 'INFO';
 export const MESSAGE_TYPES: Record<TMessageKey, TMessageType> = {
   USER: 'user',
   SYSTEM: 'system',
   ERROR: 'error',
-  DEBUG: 'debug',
   META: 'meta',
   LOADING: 'loading',
+  INFO: 'info',
 };

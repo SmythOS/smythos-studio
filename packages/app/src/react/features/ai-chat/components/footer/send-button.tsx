@@ -18,7 +18,7 @@ export const SendButton: FC<IProps> = ({ isStreaming, disabled, onClick }) => (
     disabled={disabled}
     handleClick={onClick}
     className={cn(
-      'h-[40px] w-[40px] rounded-lg px-0 py-0',
+      'h-[40px] w-[40px] rounded-lg px-0 py-0 disabled:cursor-not-allowed',
       isStreaming ? 'chat-stop' : 'chat-send',
     )}
     Icon={isStreaming ? <FaStop fontSize={14} /> : <SendIcon className="text-white" />}

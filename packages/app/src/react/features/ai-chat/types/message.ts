@@ -1,4 +1,4 @@
-export type TMessageType = 'user' | 'system' | 'debug' | 'error' | 'loading' | 'meta';
+export type TMessageType = 'user' | 'system' | 'error' | 'loading' | 'meta' | 'info';
 
 export type TThinkingType = 'tools' | 'general';
 
@@ -38,4 +38,3 @@ export type TChatMessage = {
   updatedAt?: number;
   attachments?: TAttachment[];
 };
-

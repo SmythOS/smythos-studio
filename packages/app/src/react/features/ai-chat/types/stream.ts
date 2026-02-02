@@ -1,8 +1,7 @@
-import type { TFunctionCall, TMetaMessage } from './message';
 import type { TUploadFile } from './file';
+import type { TFunctionCall, TMetaMessage } from './message';
 
 export type TStreamChunk = {
-  conversationTurnId?: string;
   content?: string;
   debugOn?: boolean;
   title?: string;
@@ -31,8 +30,8 @@ export type TStreamConfig = {
 };
 
 export interface IStreamCallbacks {
-  onContent: (content: string, turnId?: string) => void;
-  onMetaMessages?: (metaMessages: TMetaMessage, turnId?: string) => void;
+  onContent: (content: string) => void;
+  onMetaMessages?: (metaMessages: TMetaMessage) => void;
   onError: (error: TChatError) => void;
   onStart?: () => void;
   onComplete: () => void;
@@ -43,7 +42,6 @@ export type TErrorType = 'stream' | 'network' | 'abort' | 'system';
 export type TChatError = {
   message: string;
   type: TErrorType;
-  turnId?: string;
   originalError?: Error | unknown;
   isAborted?: boolean;
 };
@@ -56,4 +54,3 @@ export type TAPIConfig = {
   timeout?: number;
   retry?: { attempts: number; delay: number };
 };
-
