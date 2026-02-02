@@ -30,7 +30,7 @@
   "openai": {
     "defaultTemperature": 1,
     "maxTemperature": 2,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 1,
@@ -58,7 +58,7 @@
   "cohere": {
     "defaultTemperature": 0.75,
     "maxTemperature": 5,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 100,
     "defaultThinkingTokens": 100,
     "defaultTopP": 0.75,
@@ -86,7 +86,7 @@
   "togetherai": {
     "defaultTemperature": 0.7,
     "maxTemperature": 2,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 0.7,
@@ -142,7 +142,7 @@
   "googleai": {
     "defaultTemperature": 0.9,
     "maxTemperature": 1,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 1,
@@ -170,7 +170,7 @@
   "groq": {
     "defaultTemperature": 0.2,
     "maxTemperature": 1,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 0.8,
@@ -198,7 +198,7 @@
   "bedrock": {
     "defaultTemperature": 1,
     "maxTemperature": 1,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 0.8,
@@ -226,7 +226,7 @@
   "vertexai": {
     "defaultTemperature": 0.9,
     "maxTemperature": 1,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 1,
@@ -254,7 +254,7 @@
   "perplexity": {
     "defaultTemperature": 0.2,
     "maxTemperature": 2,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 0.9,
@@ -282,7 +282,7 @@
   "xai": {
     "defaultTemperature": 0.2,
     "maxTemperature": 2,
-    "minMaxTokens": 4,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 8192,
     "defaultThinkingTokens": 4096,
     "defaultTopP": 0.9,
@@ -310,7 +310,7 @@
   "ollama": {
     "defaultTemperature": 0.8,
     "maxTemperature": 2,
-    "minMaxTokens": 1,
+    "minMaxTokens": 16,
     "defaultMaxTokens": 128,
     "defaultThinkingTokens": 128,
     "defaultTopP": 0.9,
