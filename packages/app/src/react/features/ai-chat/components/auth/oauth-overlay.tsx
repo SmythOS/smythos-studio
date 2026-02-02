@@ -1,7 +1,7 @@
 import { useChatStores } from '@react/features/ai-chat/hooks';
 import { Button } from '@react/shared/components/ui/button';
 import { Spinner } from '@react/shared/components/ui/spinner';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * OAuth sign-in overlay component
@@ -9,7 +9,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 export const OAuthOverlay = () => {
   const { auth } = useChatStores();
-  const { authorizationUrl, onAuthSuccess } = auth;
+  const { onAuthSuccess, redirectInternalEndpoint, domain } = auth;
+
+  const oAuthUrl = useMemo(() => {
+    return `https://${domain}${redirectInternalEndpoint}`;
+  }, [domain, redirectInternalEndpoint]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [popupBlocked, setPopupBlocked] = useState(false);
@@ -45,10 +49,10 @@ export const OAuthOverlay = () => {
   }, [isLoading]);
 
   const handleSignIn = useCallback(() => {
-    if (!authorizationUrl) return;
+    if (!oAuthUrl) return;
 
     setPopupBlocked(false);
-    const popup = window.open(authorizationUrl, '_blank', 'width=500,height=600');
+    const popup = window.open(oAuthUrl, '_blank', 'width=500,height=600');
 
     if (!popup || popup.closed) {
       setPopupBlocked(true);
@@ -57,7 +61,7 @@ export const OAuthOverlay = () => {
 
     popupRef.current = popup;
     setIsLoading(true);
-  }, [authorizationUrl]);
+  }, [oAuthUrl]);
 
   return (
     <div className="space-y-4">
@@ -82,7 +86,7 @@ export const OAuthOverlay = () => {
           <p className="text-sm text-yellow-800">
             Popup was blocked. Please allow popups for this site or{' '}
             <a
-              href={authorizationUrl}
+              href={oAuthUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="underline font-medium"

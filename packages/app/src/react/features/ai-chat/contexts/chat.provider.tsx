@@ -201,6 +201,8 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
         isRequired: (chatParams?.authRequired && !isAuthOverridden) || false,
         method: chatParams?.auth?.method,
         authorizationUrl: chatParams?.auth?.authorizationUrl,
+        redirectInternalEndpoint: chatParams?.auth?.redirectInternalEndpoint,
+        domain: chatParams?.domain,
         onAuthSuccess: handleAuthSuccess,
       },
       pageState,

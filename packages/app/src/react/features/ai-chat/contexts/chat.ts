@@ -39,6 +39,8 @@ export interface IChatContext {
     method?: string;
     authorizationUrl?: string;
     onAuthSuccess: () => Promise<void>;
+    redirectInternalEndpoint?: string;
+    domain?: string;
   };
   pageState: TPageState;
 }
@@ -51,33 +53,35 @@ export const ChatContext = createContext<IChatContext>({
     status: {},
     uploading: false,
     errorMessage: '',
-    addFiles: async () => {},
-    remove: () => {},
-    clear: () => {},
-    clearError: () => {},
-    removeByIds: () => {},
+    addFiles: async () => { },
+    remove: () => { },
+    clear: () => { },
+    clearError: () => { },
+    removeByIds: () => { },
   },
   chat: {
     isChatCreating: false,
     messages: [],
     isStreaming: false,
-    sendMessage: async () => {},
-    retryMessage: async () => {},
-    stopStreaming: () => {},
-    resetSession: async () => {},
+    sendMessage: async () => { },
+    retryMessage: async () => { },
+    stopStreaming: () => { },
+    resetSession: async () => { },
   },
   scroll: {
     showScrollButton: false,
-    handleScroll: () => {},
-    scrollToBottom: () => {},
-    smartScrollToBottom: () => {},
-    hideScrollButton: () => {},
+    handleScroll: () => { },
+    scrollToBottom: () => { },
+    smartScrollToBottom: () => { },
+    hideScrollButton: () => { },
   },
   modelOverride: null,
-  setModelOverride: () => {},
+  setModelOverride: () => { },
   auth: {
     isRequired: false,
-    onAuthSuccess: async () => {},
+    onAuthSuccess: async () => { },
+    redirectInternalEndpoint: '',
+    domain: '',
   },
   pageState: 'loading',
 });
