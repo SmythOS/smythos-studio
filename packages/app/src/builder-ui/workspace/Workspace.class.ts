@@ -483,7 +483,7 @@ export class Workspace extends EventEmitter {
     if (sourceBR.right > targetBR.left) {
       const cornerRadius =
         sourceComponentBR.left - targetComponentBR.left > 100 &&
-        sourceComponentBR.top - targetComponentBR.bottom > 100
+          sourceComponentBR.top - targetComponentBR.bottom > 100
           ? 80
           : 30;
 
@@ -1049,7 +1049,7 @@ export class Workspace extends EventEmitter {
         smoothScroll: true,
         duration: 300,
         easing: 'ease-out',
-        handleStartEvent(e) {},
+        handleStartEvent(e) { },
       });
 
       const parent = zoom.parentElement;
@@ -1260,7 +1260,7 @@ export class Workspace extends EventEmitter {
     components.forEach((component) => {
       try {
         this.componentTemplates[component.id] = JSON.parse(component.data);
-      } catch (error) {}
+      } catch (error) { }
     });
   }
   private async initServerData() {
@@ -2064,8 +2064,8 @@ export class Workspace extends EventEmitter {
     const viewportRect = viewport.getBoundingClientRect();
 
     // Check if component is not in the viewport or behind left sidebar
-    const isLeftSidebarOpen =
-      window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
+    const leftSidebar = document.getElementById('left-sidebar-container')
+    const isLeftSidebarOpen = leftSidebar.style.display !== 'none';
     const isBehindSidebar = isLeftSidebarOpen && componentRect.left < viewportRect.left + 400;
 
     if (
