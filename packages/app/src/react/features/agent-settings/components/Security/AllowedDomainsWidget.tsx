@@ -215,7 +215,10 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
               <h3 className="text-sm font-semibold text-gray-700">Allowed Domains</h3>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Specify which domains can host your embodiments. This setting applies to Chatbot, Form Preview, and Voice.
+              Specify which domains are allowed to host your agent embodiments.
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              This setting applies to Chatbot, Form Preview, and Voice.
             </p>
           </div>
         </div>
@@ -257,7 +260,7 @@ const AllowedDomainsWidget = ({ isWriteAccess }: Props) => {
 
           <div className="bg-amber-50 border border-amber-200 rounded-md p-3 w-full my-2">
             <p className="text-amber-800 text-xs">
-              <strong>Note:</strong> If no domain is added, the embodiment will be blocked from all domains.
+              <strong>Note:</strong> Note: A domain permission is only required if you want to host agent embodiments on an external website.
             </p>
           </div>
 
