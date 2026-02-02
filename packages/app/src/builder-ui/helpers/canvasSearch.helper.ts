@@ -15,10 +15,9 @@ import { Workspace } from '../workspace/Workspace.class';
  * Handles component searching, recently edited components tracking, and UI interactions.
  *
  * Features:
- * - Real-time component search by title and description
+ * - Real-time component search by title, description, and type
  * - Recently edited components tracking
  * - Keyboard navigation support
- * - Type-based search for "Other Results"
  * - Event-driven architecture for extensibility
  *
  */
@@ -311,7 +310,7 @@ export class CanvasSearchHelper {
   }
 
   /**
-   * Search through canvas components by title and description
+   * Search through canvas components by title, description, and type
    *
    * @param workspace - The workspace instance
    * @param query - The search query
@@ -327,21 +326,23 @@ export class CanvasSearchHelper {
       if (!control) return;
 
       const title = control.title || '';
+      const type = control.drawSettings?.displayName || '';
       const description =
         control.description ||
         control.drawSettings?.componentDescription ||
         control.drawSettings?.shortDescription ||
         '';
 
-      // Only match title or description (not type)
+      // Match title, description, or component type
       if (
         title.toLowerCase().includes(queryLower) ||
-        description.toLowerCase().includes(queryLower)
+        description.toLowerCase().includes(queryLower) ||
+        type.toLowerCase().includes(queryLower)
       ) {
         results.push({
           id: element.id,
-          name: title || control.drawSettings?.displayName || '',
-          type: control.drawSettings?.displayName || '',
+          name: title || type,
+          type,
           description,
           element: element as HTMLElement,
           iconHTML: this.getComponentIconHTML(control),
@@ -403,6 +404,7 @@ export class CanvasSearchHelper {
 
   /**
    * Sort search results by relevance
+   * Priority: exact title match > exact type match > exact description match > alphabetical
    *
    * @param results - Array of search results
    * @param query - The search query
@@ -412,16 +414,41 @@ export class CanvasSearchHelper {
     const queryLower = query.toLowerCase();
 
     return results.sort((a, b) => {
+      // Check for exact matches (highest priority)
       const aTitleExact = (a.name || '').toLowerCase() === queryLower;
       const bTitleExact = (b.name || '').toLowerCase() === queryLower;
+      const aTypeExact = (a.type || '').toLowerCase() === queryLower;
+      const bTypeExact = (b.type || '').toLowerCase() === queryLower;
       const aDescExact = (a.description || '').toLowerCase() === queryLower;
       const bDescExact = (b.description || '').toLowerCase() === queryLower;
 
+      // Check for partial matches (secondary priority)
+      const aTitleContains = (a.name || '').toLowerCase().includes(queryLower);
+      const bTitleContains = (b.name || '').toLowerCase().includes(queryLower);
+      const aTypeContains = (a.type || '').toLowerCase().includes(queryLower);
+      const bTypeContains = (b.type || '').toLowerCase().includes(queryLower);
+
+      // Priority 1: Exact title match
       if (aTitleExact && !bTitleExact) return -1;
       if (!aTitleExact && bTitleExact) return 1;
+
+      // Priority 2: Exact type match
+      if (aTypeExact && !bTypeExact) return -1;
+      if (!aTypeExact && bTypeExact) return 1;
+
+      // Priority 3: Exact description match
       if (aDescExact && !bDescExact) return -1;
       if (!aDescExact && bDescExact) return 1;
 
+      // Priority 4: Title contains query
+      if (aTitleContains && !bTitleContains) return -1;
+      if (!aTitleContains && bTitleContains) return 1;
+
+      // Priority 5: Type contains query
+      if (aTypeContains && !bTypeContains) return -1;
+      if (!aTypeContains && bTypeContains) return 1;
+
+      // Final fallback: alphabetical by name
       return a.name.localeCompare(b.name);
     });
   }
