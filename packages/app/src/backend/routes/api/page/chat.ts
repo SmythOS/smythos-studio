@@ -68,9 +68,9 @@ router.post('/stream', async (req, res) => {
   const modelId = req.headers['x-model-id']; // Extract model ID for backend override
 
   // Get auth token: priority header > session
-  const headerAuthToken = req.headers['x-auth-token'] as string | undefined;
-  const sessionAuthToken = req.session?.agentTokens?.[agentId];
-  const authToken = headerAuthToken || sessionAuthToken;
+  // const headerAuthToken = req.headers['x-auth-token'] as string | undefined;
+  // const sessionAuthToken = req.session?.agentTokens?.[agentId];
+  // const authToken = headerAuthToken || sessionAuthToken;
 
   try {
     const result = await axios.post(
@@ -85,7 +85,7 @@ router.post('/stream', async (req, res) => {
           'x-conversation-id': conversationId,
           'x-smyth-team-id': teamId,
           ...(modelId ? { 'x-model-id': modelId } : {}), // Forward model ID if provided
-          ...(authToken ? { 'X-Auth-Token': authToken } : {}), // Forward auth token if provided
+          // ...(authToken ? { 'X-Auth-Token': authToken } : {}), // Forward auth token if provided
         },
         responseType: 'stream',
       },

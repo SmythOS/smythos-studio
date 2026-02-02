@@ -48,7 +48,7 @@ export const ApiKeyOverlay = () => {
 
       if (data.success) {
         // Store auth token in localStorage for subsequent requests
-        localStorage.setItem('authToken', trimmedToken);
+        // localStorage.setItem('authToken', trimmedToken);
         await onAuthSuccess();
       } else {
         setError(data.message || 'Invalid token. Please check and try again.');
