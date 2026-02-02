@@ -1,6 +1,7 @@
-import { ChatContext, IChatContext } from '@react/features/ai-chat/contexts/chat';
+import { ChatContext, IChatContext, TPageState } from '@react/features/ai-chat/contexts/chat';
 import {
   useAgentSettings,
+  useChatParams,
   useChatState,
   useCreateChat,
   useFileUpload,
@@ -23,6 +24,7 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const hasInitializedChatRef = useRef(false);
 
   const [modelOverride, setModelOverride] = useState<string | null>(null);
+  const [isAuthOverridden, setIsAuthOverridden] = useState(false);
 
   const { data: agent, isLoading: isAgentLoading } = useAgent(agentId, {
     refetchOnWindowFocus: false,
@@ -33,6 +35,8 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
 
   const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId);
   const agentSettings = settingsData?.settings;
+
+  const { data: chatParams, isLoading: isChatParamsLoading } = useChatParams(agentId || null);
 
   const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChat();
   const { mutateAsync: updateAgentSettings } = useSaveAgentSettings();
@@ -120,19 +124,37 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
     Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_START);
   }, [createSession, setMessages, fileUpload, stopStreaming, scroll]);
 
-  // Display informational message when chatbot is disabled
-  useEffect(() => {
-    if (agentSettings?.chatbot === 'false') {
-      setMessages([
-        {
-          id: new Date().getTime(),
-          content:
-            'This feature is disabled for your SmythOS Agent. \n\n To enable it, go to ***Agent Settings > Deployments*** and turn on ***"Chatbot"***',
-          type: 'info',
-        },
-      ]);
+  /**
+   * Computes the current page state based on loading, auth, and chatbot status
+   */
+  const pageState: TPageState = useMemo(() => {
+    if (isAgentLoading || isAgentSettingsLoading || isChatParamsLoading) {
+      return 'loading';
     }
-  }, [agentSettings?.chatbot, setMessages]);
+    if (agentSettings?.chatbot === 'false' || chatParams?.chatbotEnabled === false) {
+      return 'disabled';
+    }
+    // Check auth - if overridden locally, skip auth requirement
+    if (chatParams?.authRequired && !isAuthOverridden) {
+      return 'auth-required';
+    }
+    return 'ready';
+  }, [
+    isAgentLoading,
+    isAgentSettingsLoading,
+    isChatParamsLoading,
+    agentSettings?.chatbot,
+    chatParams,
+    isAuthOverridden,
+  ]);
+
+  /**
+   * Handler called after successful authentication
+   * Directly sets auth as complete (like chatbot does)
+   */
+  const handleAuthSuccess = useCallback(async () => {
+    setIsAuthOverridden(true);
+  }, []);
 
   // Session tracking
   useEffect(() => {
@@ -140,13 +162,13 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
     return () => Observability.observeInteraction(EVENTS.CHAT_EVENTS.SESSION_END);
   }, []);
 
-  // Initialize chat session
+  // Initialize chat session when page is ready
   useEffect(() => {
-    if (agentSettings && agent && !hasInitializedChatRef.current) {
+    if (pageState === 'ready' && !hasInitializedChatRef.current) {
       hasInitializedChatRef.current = true;
       createSession().then(() => inputRef.current?.focus());
     }
-  }, [agentSettings, agent, createSession]);
+  }, [pageState, createSession]);
 
   // Auto-focus input
   useEffect(() => {
@@ -175,17 +197,30 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
       scroll,
       modelOverride,
       setModelOverride,
+      auth: {
+        isRequired: (chatParams?.authRequired && !isAuthOverridden) || false,
+        method: chatParams?.auth?.method,
+        authorizationUrl: chatParams?.auth?.authorizationUrl,
+        redirectInternalEndpoint: chatParams?.auth?.redirectInternalEndpoint,
+        domain: chatParams?.domain,
+        onAuthSuccess: handleAuthSuccess,
+      },
+      pageState,
     }),
     [
       agent,
       agentSettings,
+      chatParams,
       fileUpload,
+      handleAuthSuccess,
       isAgentLoading,
       isAgentSettingsLoading,
+      isAuthOverridden,
       isChatCreating,
       isStreaming,
       messages,
       modelOverride,
+      pageState,
       resetSession,
       retryLastMessage,
       scroll,

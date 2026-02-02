@@ -1,29 +1,30 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 
+import { TClassName } from '@react/features/ai-chat/types';
 import { Camera, Paperclip } from 'lucide-react';
 
-interface MenuItem {
+type TMenuItem = {
   id: string;
   label: string;
   shortcut?: string;
-  icon: FC<{ className?: string }>;
+  icon: FC<TClassName>;
   onClick: () => void;
-}
+};
 
-interface UploadMenuProps {
+type TProps = {
   isOpen: boolean;
   onClose: () => void;
   onAddFiles: () => void;
   onTakeScreenshot: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
-}
-export const UploadMenu: FC<UploadMenuProps> = (props) => {
+};
+export const UploadMenu: FC<TProps> = (props) => {
   const { isOpen, onClose, onAddFiles, onTakeScreenshot, triggerRef } = props;
 
   const menuRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  const menuItems: MenuItem[] = [
+  const menuItems: TMenuItem[] = [
     {
       id: 'add-files',
       label: 'Add files or photos',

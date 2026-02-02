@@ -63,13 +63,18 @@ router.post('/stream', async (req, res) => {
   const userId = req._user?.id;
   const teamId = req._team?.id;
   const token = req.user.accessToken;
-  const agentId = req.headers['x-agent-id'];
+  const agentId = req.headers['x-agent-id'] as string;
   const conversationId = req.headers['x-conversation-id'];
   const modelId = req.headers['x-model-id']; // Extract model ID for backend override
 
+  // Get auth token: priority header > session
+  // const headerAuthToken = req.headers['x-auth-token'] as string | undefined;
+  // const sessionAuthToken = req.session?.agentTokens?.[agentId];
+  // const authToken = headerAuthToken || sessionAuthToken;
+
   try {
     const result = await axios.post(
-      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stream',
+      getAgentServerURL(agentId, isUsingLocalServer) + '/v1/emb/chat/stream',
       { ...req.body },
       {
         headers: {
@@ -80,6 +85,7 @@ router.post('/stream', async (req, res) => {
           'x-conversation-id': conversationId,
           'x-smyth-team-id': teamId,
           ...(modelId ? { 'x-model-id': modelId } : {}), // Forward model ID if provided
+          // ...(authToken ? { 'X-Auth-Token': authToken } : {}), // Forward auth token if provided
         },
         responseType: 'stream',
       },
@@ -99,8 +105,8 @@ router.post('/stream', async (req, res) => {
     });
   } catch (error) {
     return res
-      .status(500)
-      .json({ error: error.message || 'Something went wrong while fetching chatbot stream' });
+      .status(error.response?.status || 500)
+      .json({ error: error.response?.data?.message || error.message || 'Something went wrong while fetching chatbot stream' });
   }
 });
 
@@ -116,6 +122,94 @@ router.get('/list', async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: 'Something went wrong while fetching the chat list' });
+  }
+});
+
+router.get('/params', async (req, res) => {
+  const userId = req._user?.id;
+  const teamId = req._team?.id;
+  const token = req.user.accessToken;
+  const agentId = req.headers['x-agent-id'] as string;
+
+  try {
+    const result = await axios.get(
+      getAgentServerURL(agentId, isUsingLocalServer) + '/v1/emb/chat/params',
+      {
+        headers: {
+          ...includeAxiosAuth(token).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
+          'x-agent-id': agentId,
+        },
+      },
+    );
+
+    const responseData = result.data;
+
+    // Check if session already has a valid token for this agent (persist auth across page reloads)
+    // const sessionToken = req.session?.agentTokens?.[agentId];
+    // if (sessionToken && responseData.authRequired) {
+    //   responseData.authRequired = false;
+    // }
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: error.message || 'Something went wrong while fetching chat params' });
+  }
+});
+
+router.post('/verify-token', async (req, res) => {
+  const agentId = req.headers['x-agent-id'];
+  const { token: bearerToken } = req.body;
+  const userId = req._user?.id;
+  const teamId = req._team?.id;
+  const accessToken = req.user.accessToken;
+
+  if (!agentId) {
+    return res.status(400).json({ success: false, message: 'Agent ID required' });
+  }
+
+  if (!bearerToken) {
+    return res.status(400).json({ success: false, message: 'Token required' });
+  }
+
+  try {
+    const result = await axios.post(
+      getAgentServerURL(agentId as string, isUsingLocalServer) + '/emb/auth/verify',
+      { token: bearerToken },
+      {
+        headers: {
+          ...includeAxiosAuth(accessToken).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
+          'X-AGENT-ID': agentId,
+        },
+        withCredentials: true,
+      },
+    );
+
+    // Forward any cookies from SRE response
+    // const setCookie = result.headers['set-cookie'];
+    // if (setCookie) {
+    //   res.setHeader('set-cookie', setCookie);
+    // }
+
+    // Store token in session for subsequent requests (Option B: server-side storage)
+    // if (result.data.success) {
+    //   if (!req.session.agentTokens) {
+    //     req.session.agentTokens = {};
+    //   }
+    //   req.session.agentTokens[agentId as string] = bearerToken;
+    // }
+
+    return res.json(result.data);
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.response?.data?.message || 'Token verification failed',
+    });
   }
 });
 
@@ -188,7 +282,7 @@ router.get('/messages', async (req, res) => {
   try {
     const result = await axios.get(
       getAgentServerURL(agentId as string, isUsingLocalServer) +
-        `/aichat/messages?page=${page}&limit=${limit}`,
+      `/aichat/messages?page=${page}&limit=${limit}`,
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -227,7 +321,7 @@ router.post('/upload', [includeTeamDetails], (req: any, res, next) => {
         (url.searchParams.get('agentId') as string | undefined) ||
         (url.searchParams.get('aiAgentId') as string | undefined) ||
         (url.searchParams.get('agent-id') as string | undefined);
-    } catch {}
+    } catch { }
   }
   const agentId = headerAgentId || queryAgentId || refererAgentId;
 
