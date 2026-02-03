@@ -22,6 +22,7 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasInitializedChatRef = useRef(false);
+  const authTokenRef = useRef<string | null>(null);
 
   const [modelOverride, setModelOverride] = useState<string | null>(null);
   const [isAuthOverridden, setIsAuthOverridden] = useState(false);
@@ -60,6 +61,7 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
     modelId: modelOverride || agentSettings?.chatGptModel,
     enableMetaMessages: true,
     inputRef,
+    authTokenRef,
   });
 
   const createSession = useCallback(async () => {
@@ -82,6 +84,21 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
       console.error('Error creating chat session', error); // eslint-disable-line no-console
     }
   }, [agentId, createChat, updateAgentSettings]);
+
+  const generateAuthToken = useCallback(async () => {
+    try {
+      if (!agentId) return null;
+      const response = await fetch(`/oauth/token/${agentId}`);
+      const data = await response.json();
+      if (data?.success && data?.token) {
+        authTokenRef.current = data.token;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error generating auth token', error); // eslint-disable-line no-console
+      return null;
+    }
+  }, [agentId]);
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -164,11 +181,14 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
 
   // Initialize chat session when page is ready
   useEffect(() => {
-    if (pageState === 'ready' && !hasInitializedChatRef.current) {
+    if (!hasInitializedChatRef.current && pageState === 'ready') {
       hasInitializedChatRef.current = true;
       createSession().then(() => inputRef.current?.focus());
     }
-  }, [pageState, createSession]);
+    if (!authTokenRef.current && pageState === 'auth-required') {
+      generateAuthToken();
+    }
+  }, [pageState, createSession, generateAuthToken]);
 
   // Auto-focus input
   useEffect(() => {
