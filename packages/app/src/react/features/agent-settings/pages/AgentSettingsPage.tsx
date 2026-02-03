@@ -4,6 +4,7 @@ import EnvironmentWidget from '@react/features/agent-settings/components/Deploym
 import EmbodimentsWidget from '@react/features/agent-settings/components/EmbodimentsWidget';
 import MyToolsWidget from '@react/features/agent-settings/components/MyToolsWidget';
 import OverviewWidgetsContainer from '@react/features/agent-settings/components/OverviewWidgetsContainer';
+import AllowedDomainsWidget from '@react/features/agent-settings/components/Security/AllowedDomainsWidget';
 import AuthWidget from '@react/features/agent-settings/components/Security/AuthWidget';
 import ChangeLogWidget from '@react/features/agent-settings/components/Security/ChangeLogWidget';
 import {
@@ -82,7 +83,10 @@ export const AgentSettingTabs = () => {
 
   const baseWidgets: Record<keyof typeof BaseAgentSettingsTabs, React.ReactNode[]> = {
     Overview: [<OverviewWidgetsContainer isWriteAccess={isWriteAccess} />],
-    Security: [<AuthWidget isWriteAccess={isWriteAccess} />],
+    Security: [
+      <AuthWidget isWriteAccess={isWriteAccess} />,
+      <AllowedDomainsWidget isWriteAccess={isWriteAccess} />,
+    ],
     Tasks: [
       <ChatWithAgentWidget
         isWriteAccess={isWriteAccess}
