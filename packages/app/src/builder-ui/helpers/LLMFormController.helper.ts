@@ -1,6 +1,10 @@
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
 import llmParams from '../params/LLM.params.json';
 import { generateModelCapabilityBadges, generateModelStatusBadges } from '../ui/badges';
+import {
+  updateInactiveEffectState,
+  updateMutualExclusiveHintsVisibility,
+} from '../ui/form/mutually-exclusive-fields';
 import { createSpinner } from '../utils/general.utils';
 
 declare var $;
@@ -70,6 +74,7 @@ export class LLMFormController {
 
     const {
       defaultTemperature,
+      minTemperature,
       maxTemperature,
       defaultTopP,
       minTopP,
@@ -87,9 +92,10 @@ export class LLMFormController {
     this.updateField({
       formElm,
       fieldElm: temperatureField,
-      minValue: 0,
+      minValue: minTemperature,
       maxValue: maxTemperature,
       defaultValue: defaultTemperature,
+      selectedModel,
     });
     temperatureField.closest('.form-group').setAttribute('data-hint-text', hint.temperature);
 
@@ -112,6 +118,7 @@ export class LLMFormController {
       minValue: minTopP,
       maxValue: maxTopP,
       defaultValue: defaultTopP,
+      selectedModel,
     });
     topPField.closest('.form-group').setAttribute('data-hint-text', hint.topP);
 
@@ -148,6 +155,10 @@ export class LLMFormController {
     presencePenaltyField
       .closest('.form-group')
       .setAttribute('data-hint-text', hint.presencePenalty);
+
+    // Update mutual exclusive hints visibility based on the selected model
+    // Hints are only shown for models in the whitelist (e.g., Anthropic models)
+    updateMutualExclusiveHintsVisibility(formElm as HTMLFormElement);
   }
 
   // * N:B Need to invoke this function with .bind(this), .call(this) or .apply(this) to get the correct context
@@ -457,15 +468,161 @@ export class LLMFormController {
     }
   }
 
-  private static updateField({ formElm, fieldElm, minValue, maxValue, defaultValue }) {
-    const currentValue = parseFloat(fieldElm.value);
+  /**
+   * Finds all fields in the form that belong to the same mutual exclusive group.
+   *
+   * @param formElm - Form element to search within
+   * @param groupName - Name of the mutual exclusive group
+   * @param selectedModel - Currently selected model (for whitelist checking)
+   * @returns Array of field elements in the group (in DOM order)
+   */
+  private static getFieldsInMutualExclusiveGroup(
+    formElm: HTMLElement,
+    groupName: string,
+    selectedModel: string,
+  ): HTMLInputElement[] {
+    const fields: HTMLInputElement[] = [];
+    const allInputs = formElm.querySelectorAll<HTMLInputElement>('input[data-mutually-exclusive]');
 
-    if (currentValue > maxValue) {
-      fieldElm.value = maxValue;
-    } else if (currentValue < minValue) {
-      fieldElm.value = minValue;
+    for (const input of Array.from(allInputs)) {
+      try {
+        const config = JSON.parse(input.getAttribute('data-mutually-exclusive') || '{}');
+        const whitelistedModels: string[] = config.models || [];
+        
+        // Check if this field belongs to the target group and applies to current model
+        const isModelApplicable =
+          whitelistedModels.length === 0 ||
+          whitelistedModels.some((model: string) => model.toLowerCase() === selectedModel.toLowerCase());
+
+        if (config.group === groupName && isModelApplicable) {
+          fields.push(input);
+        }
+      } catch {
+        // Ignore fields with invalid JSON
+      }
     }
 
+    return fields;
+  }
+
+  /**
+   * Resolves the value for a field that may be part of a mutually exclusive group.
+   *
+   * For mutually exclusive field groups (e.g., temperature/topP in Anthropic models):
+   * - The first field in DOM order keeps its value
+   * - Subsequent fields are reset to their default if BOTH the first field AND current field have active values
+   * - If the first field is already reset/inactive, subsequent fields keep their values
+   *
+   * @param formElm - Parent form element for context
+   * @param fieldElm - Input element to resolve value for
+   * @param currentValue - Current numeric value of the field
+   * @param defaultValue - Default value to reset to if mutual exclusivity requires it
+   * @param selectedModel - Currently selected model (for whitelist checking)
+   * @returns The resolved value (either currentValue or defaultValue based on mutual exclusivity rules)
+   */
+  private static resolveMutualExclusiveValue(
+    formElm: HTMLElement,
+    fieldElm: HTMLInputElement,
+    currentValue: number,
+    defaultValue: number,
+    selectedModel: string,
+  ): number {
+    const mutualExclusiveAttr = fieldElm.getAttribute('data-mutually-exclusive');
+    if (!mutualExclusiveAttr) {
+      return currentValue;
+    }
+
+    try {
+      const config = JSON.parse(mutualExclusiveAttr);
+      const groupName = config.group;
+      const whitelistedModels: string[] = config.models || [];
+
+      // Check if mutual exclusivity applies to the current model
+      const isModelApplicable =
+        whitelistedModels.length === 0 ||
+        whitelistedModels.some((model: string) => model.toLowerCase() === selectedModel.toLowerCase());
+
+      if (!isModelApplicable || !groupName) {
+        return currentValue;
+      }
+
+      // Get all fields in this mutual exclusive group (in DOM order)
+      const fieldsInGroup = this.getFieldsInMutualExclusiveGroup(formElm, groupName, selectedModel);
+      
+      if (fieldsInGroup.length <= 1) {
+        // No mutual exclusivity if only one field in group
+        return currentValue;
+      }
+
+      // Check if this is the first field in the group (by DOM order)
+      const isFirstField = fieldsInGroup[0] === fieldElm;
+      
+      if (isFirstField) {
+        // First field always keeps its value
+        return currentValue;
+      }
+
+      // This is NOT the first field - check if we should reset it
+      const firstField = fieldsInGroup[0];
+      const firstFieldValue = parseFloat(firstField.value);
+      const isFirstFieldActive = !isNaN(firstFieldValue) && firstFieldValue >= 0;
+      const isCurrentFieldActive = !isNaN(currentValue) && currentValue >= 0;
+
+      // Only reset if BOTH the first field AND current field have active values
+      if (isFirstFieldActive && isCurrentFieldActive) {
+        return defaultValue;
+      }
+
+      // Otherwise, keep current value (valid mutual exclusive state already exists)
+      return currentValue;
+    } catch {
+      // Ignore JSON parse errors
+      return currentValue;
+    }
+  }
+
+  /**
+   * Updates a field's validation rules and value when switching between LLM models.
+   *
+   * This method:
+   * 1. Resolves the field value based on mutual exclusivity rules
+   * 2. Clamps the value to fit within the new model's min/max range
+   * 3. Updates validation rules and applies the new value
+   *
+   * @param formElm - Parent form element for context
+   * @param fieldElm - Input element to update
+   * @param minValue - New minimum value for the field
+   * @param maxValue - New maximum value for the field
+   * @param defaultValue - Default value for the new model
+   * @param selectedModel - The currently selected model (for checking whitelist)
+   */
+  private static updateField({
+    formElm,
+    fieldElm,
+    minValue,
+    maxValue,
+    defaultValue,
+    selectedModel = '',
+  }) {
+    const currentValue = parseFloat(fieldElm.value);
+
+    // Resolve value based on mutual exclusivity rules
+    let newValue = this.resolveMutualExclusiveValue(
+      formElm,
+      fieldElm,
+      currentValue,
+      defaultValue,
+      selectedModel,
+    );
+
+    // Clamp value to valid range
+    if (newValue > maxValue) {
+      newValue = maxValue;
+    } else if (newValue < minValue) {
+      newValue = minValue;
+    }
+
+    // Update validation rules to reflect new model's constraints
     this.replaceValidationRules({
       fieldElm,
       attribute: 'min',
@@ -478,6 +635,12 @@ export class LLMFormController {
       targetValue: maxValue,
       inputType: 'range',
     });
-    this.setRangeInputValue(formElm, fieldElm.id, fieldElm.value || defaultValue);
+
+    // Apply the new value to both range and number inputs
+    this.setRangeInputValue(formElm, fieldElm.id, newValue);
+
+    // Update visual state (blur effect for negative/"not set" values)
+    updateInactiveEffectState(fieldElm);
   }
+
 }

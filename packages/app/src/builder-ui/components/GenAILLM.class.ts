@@ -42,6 +42,7 @@ export class GenAILLM extends Component {
   private modelOptions: string[];
   private modelParams: Record<string, any>;
   private defaultModel: string;
+  private anthropicModels: string[];
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
   private groqReasoningModels: string[];
@@ -50,6 +51,7 @@ export class GenAILLM extends Component {
   private gpt5Models: string[];
   private gptO3andO4Models: string[];
   private gptSearchModels: string[];
+  private perplexityModels: string[];
 
   protected async prepare() {
     const model = this.data.model || this.defaultModel;
@@ -61,6 +63,10 @@ export class GenAILLM extends Component {
 
     this.defaultModel = LLMFormController.getDefaultModel(modelOptions);
 
+    // Get all Anthropic models using 'text' feature (all LLM models support text)
+    this.anthropicModels = LLMRegistry.getModelsByFeatures('text', 'anthropic').map(
+      (m) => m.entryId,
+    );
     this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures({
       features: 'reasoning',
       providers: 'anthropic',
@@ -72,6 +78,9 @@ export class GenAILLM extends Component {
       (m) => m.entryId,
     );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+    this.perplexityModels = LLMRegistry.getModelsByFeatures('text', 'perplexity').map(
+      (m) => m.entryId,
+    );
 
     // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
     this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
@@ -312,6 +321,7 @@ export class GenAILLM extends Component {
       maxFrequencyPenalty: modelParams?.maxFrequencyPenalty,
       maxPresencePenalty: modelParams?.maxPresencePenalty,
 
+      minTemperature: modelParams?.minTemperature,
       minTopP: modelParams?.minTopP,
       minTopK: modelParams?.minTopK,
 
@@ -330,6 +340,7 @@ export class GenAILLM extends Component {
       allowedCompletionTokens,
       allowedWebSearchContextTokens,
       allowedReasoningTokens,
+      minTemperature,
       maxTemperature,
       maxStopSequences,
       maxTopP,
@@ -556,21 +567,33 @@ export class GenAILLM extends Component {
       temperature: {
         type: 'range',
         label: 'Temperature',
-        min: 0,
+        min: minTemperature,
         max: maxTemperature,
         value: defaultTemperature,
         step: 0.01,
-        validate: `min=0 max=${maxTemperature}`,
-        validateMessage: `Allowed range 0 to ${maxTemperature}`,
+        validate: `min=${minTemperature} max=${maxTemperature}`,
+        validateMessage: `Allowed range ${minTemperature} to ${maxTemperature}`,
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere,Ollama',
           'data-excluded-models': [
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTemperature instead of minTemperature because:
+          // - minTemperature is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTemperature,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Temperature will clear Top P.',
+          }),
         },
         section: 'Advanced',
         help: hint.temperature,
@@ -634,9 +657,21 @@ export class GenAILLM extends Component {
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.groqReasoningModels,
           ].join(','),
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTopP instead of minTopP because:
+          // - minTopP is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTopP,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Top P will clear Temperature.',
+          }),
         },
         section: 'Advanced',
         help: 'Control variety by sampling from the smallest set of likely words that reach probability P.',
@@ -655,7 +690,7 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'GoogleAI,VertexAI,Anthropic,TogetherAI,Perplexity,cohere,Ollama,xAI,Groq',
-          'data-excluded-models': this.anthropicThinkingModels.join(','),
+          //'data-excluded-models': this.anthropicThinkingModels.join(','),
         },
         section: 'Advanced',
         help: 'Restrict generation to the top K most likely words to reduce randomness.',
@@ -678,6 +713,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultFrequencyPenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Frequency Penalty will clear Presence Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Reduce repeats by penalising words already used in the reply.',
@@ -700,6 +742,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultPresencePenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Presence Penalty will clear Frequency Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Encourage new topics by penalising words seen in the input.',
