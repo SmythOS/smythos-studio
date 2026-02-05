@@ -498,6 +498,7 @@ export class Agent extends EventEmitter {
         [EMBODIMENT_TYPE.API.toUpperCase()]: 'true',
         [EMBODIMENT_TYPE.MCP]: 'true',
         [EMBODIMENT_TYPE.ALEXA]: 'true',
+        [EMBODIMENT_TYPE.VOICE]: 'true',
         [EMBODIMENT_TYPE.FORM]: 'true',
       };
       const currentSettings = await getAgentSettings(agentId);
