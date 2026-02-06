@@ -4,8 +4,8 @@ import { Readable } from 'stream';
 
 import { AccessCandidate, Agent, ConnectorService, Conversation, Logger } from '@smythos/sre';
 
-import ApiError from '@core/utils/apiError';
 import { getAgentIdAndVersion } from '@core/helpers/agent.helper';
+import ApiError from '@core/utils/apiError';
 
 const console = Logger('[Embodiment] Service: OpenAI Chat');
 
@@ -70,11 +70,11 @@ class OpenAIChatService {
       switch (message.role) {
         case 'user':
           const id = crypto.randomUUID();
-          conv.context.addUserMessage(message.content as string, id);
+          await conv.context.addUserMessage(message.content as string, id);
           break;
         case 'assistant':
           const id2 = crypto.randomUUID();
-          conv.context.addAssistantMessage(message.content as string, id2);
+          await conv.context.addAssistantMessage(message.content as string, id2);
           break;
       }
     }
