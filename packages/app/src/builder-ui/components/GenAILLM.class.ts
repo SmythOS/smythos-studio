@@ -1576,6 +1576,18 @@ export class GenAILLM extends Component {
 
     // Handle other nested fields (maxThinkingTokens) with the standard toggle logic
     this.toggleNestedFields(parentField, form, fieldsToShow);
+
+    // Anthropic API does not support temperature, top_p, or top_k when extended thinking is enabled.
+    // Hide these fields when reasoning is checked for Anthropic thinking models.
+    if (this.anthropicThinkingModels.includes(currentModel)) {
+      const samplingFields = ['temperature', 'topP', 'topK'];
+      samplingFields.forEach((fieldName) => {
+        const fieldElm = form?.querySelector(`[data-field-name="${fieldName}"]`) as HTMLElement;
+        if (fieldElm) {
+          fieldElm.classList.toggle('hidden', parentField.checked);
+        }
+      });
+    }
   }
 
   /**
