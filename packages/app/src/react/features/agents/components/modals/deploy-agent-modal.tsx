@@ -17,8 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@react/shared/componen
 import { useAppState } from '@react/shared/contexts/AppStateContext';
 import { OnboardingTaskType } from '@react/shared/types/onboard.types';
 import { UserSettingsKey } from '@src/backend/types/user-data';
+import AlexaEmbodimentModal from '@src/react/features/embodiments/alexa-embodiment-modal';
 import FormEmbodimentModal from '@src/react/features/embodiments/form-embodiment-modal';
 import LovableEmbodimentModal from '@src/react/features/embodiments/lovable-embodiment-modal';
+import VoiceEmbodimentModal from '@src/react/features/embodiments/voice-embodiment-modal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@src/react/shared/components/ui/tooltip';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
@@ -33,7 +35,6 @@ import { CloseIcon } from '../../../../shared/components/svgs';
 import Modal from '../../../../shared/components/ui/modals/Modal';
 import { EMBODIMENT_TYPE } from '../../../../shared/enums';
 import { Embodiment } from '../../../../shared/types/api-results.types';
-import VoiceEmbodimentModal from '../../../embodiments/alexa-embodiment-modal';
 import ApiEmbodimentModal from '../../../embodiments/api-embodiment-modal';
 import ChatbotEmbodimentModal from '../../../embodiments/chatbot-embodiment-modal';
 import { globalModalManager } from '../../../embodiments/embodiment-settings';
@@ -82,7 +83,7 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   const [hasDeployment, setHasDeployment] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  type PanelType = 'none' | 'gpt' | 'alexa' | 'chatbot' | 'api' | 'mcp' | 'lovable' | 'form';
+  type PanelType = 'none' | EMBODIMENT_TYPE.ALEXA | EMBODIMENT_TYPE.VOICE | EMBODIMENT_TYPE.CHAT_GPT | EMBODIMENT_TYPE.CHAT_BOT | EMBODIMENT_TYPE.API | EMBODIMENT_TYPE.MCP | EMBODIMENT_TYPE.LOVABLE | EMBODIMENT_TYPE.FORM;
   const [openPanel, setOpenPanel] = useState<PanelType>('none');
   const [dialogModal, setDialogModal] = useState<{
     open: boolean;
@@ -152,13 +153,13 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
   // Transform the embodiment data to match ChatbotEmbodimentModal props
   const chatbotEmbodimentData = chatbotEmbodiment
     ? {
-        properties: {
-          introMessage: chatbotEmbodiment.properties?.introMessage || '',
-          isFullScreen: chatbotEmbodiment.properties?.isFullScreen || false,
-          allowFileAttachments: chatbotEmbodiment.properties?.allowFileAttachments || false,
-          enableMetaMessages: chatbotEmbodiment.properties?.enableMetaMessages || false,
-        },
-      }
+      properties: {
+        introMessage: chatbotEmbodiment.properties?.introMessage || '',
+        isFullScreen: chatbotEmbodiment.properties?.isFullScreen || false,
+        allowFileAttachments: chatbotEmbodiment.properties?.allowFileAttachments || false,
+        enableMetaMessages: chatbotEmbodiment.properties?.enableMetaMessages || false,
+      },
+    }
     : undefined;
 
   // Get domain for chatbot/voice/form integration
@@ -440,11 +441,14 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
 
   return (
     <>
-      {openPanel === 'alexa' && (
-        <VoiceEmbodimentModal domain={agentDomain} onClose={handleClosePanel} />
+      {openPanel === EMBODIMENT_TYPE.ALEXA && (
+        <AlexaEmbodimentModal onClose={handleClosePanel} />
       )}
-      {openPanel === 'gpt' && <GptEmbodimentModal onClose={handleClosePanel} />}
-      {openPanel === 'chatbot' && (
+      {openPanel === EMBODIMENT_TYPE.VOICE && (
+        <VoiceEmbodimentModal onClose={handleClosePanel} />
+      )}
+      {openPanel === EMBODIMENT_TYPE.CHAT_GPT && <GptEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === EMBODIMENT_TYPE.CHAT_BOT && (
         <ChatbotEmbodimentModal
           onClose={handleClosePanel}
           domain={agentDomain}
@@ -452,16 +456,16 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
           isLoading={isLoadingEmbodiments}
         />
       )}
-      {openPanel === 'form' && (
+      {openPanel === EMBODIMENT_TYPE.FORM && (
         <FormEmbodimentModal
           onClose={handleClosePanel}
           domain={agentDomain}
           isLoading={isLoadingEmbodiments}
         />
       )}
-      {openPanel === 'api' && <ApiEmbodimentModal onClose={handleClosePanel} />}
-      {openPanel === 'mcp' && <McpEmbodimentModal onClose={handleClosePanel} />}
-      {openPanel === 'lovable' && <LovableEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === EMBODIMENT_TYPE.API && <ApiEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === EMBODIMENT_TYPE.MCP && <McpEmbodimentModal onClose={handleClosePanel} />}
+      {openPanel === EMBODIMENT_TYPE.LOVABLE && <LovableEmbodimentModal onClose={handleClosePanel} />}
       {dialogModal && dialogModal.open && (
         <Modal
           isOpen={dialogModal.open}
@@ -803,15 +807,16 @@ function DeployAgentModal({ userInfo, deploymentSidebarCtx }) {
                       onClose={toggleDeployModal}
                       onReopenDeployModal={() => setIsVisible(true)}
                       onOpenLlmModal={handleOpenLlmModal}
-                      onOpenCustomGptModal={() => handleOpenPanel('gpt')}
+                      onOpenCustomGptModal={() => handleOpenPanel(EMBODIMENT_TYPE.CHAT_GPT)}
                       onOpenDialogModal={handleOpenDialogModal}
                       onOpenCodeSnippetModal={handleOpenCodeSnippetModal}
-                      onOpenAlexaPanel={() => handleOpenPanel('alexa')}
-                      onOpenChatbotPanel={() => handleOpenPanel('chatbot')}
-                      onOpenFormPanel={() => handleOpenPanel('form')}
-                      onOpenApiPanel={() => handleOpenPanel('api')}
-                      onOpenMcpPanel={() => handleOpenPanel('mcp')}
-                      onOpenLovablePanel={() => handleOpenPanel('lovable')}
+                      onOpenAlexaPanel={() => handleOpenPanel(EMBODIMENT_TYPE.ALEXA)}
+                      onOpenVoicePanel={() => handleOpenPanel(EMBODIMENT_TYPE.VOICE)}
+                      onOpenChatbotPanel={() => handleOpenPanel(EMBODIMENT_TYPE.CHAT_BOT)}
+                      onOpenFormPanel={() => handleOpenPanel(EMBODIMENT_TYPE.FORM)}
+                      onOpenApiPanel={() => handleOpenPanel(EMBODIMENT_TYPE.API)}
+                      onOpenMcpPanel={() => handleOpenPanel(EMBODIMENT_TYPE.MCP)}
+                      onOpenLovablePanel={() => handleOpenPanel(EMBODIMENT_TYPE.LOVABLE)}
                       isVisible={isCollapsed && !isAnyOverlayOpen}
                     />
                   </div>

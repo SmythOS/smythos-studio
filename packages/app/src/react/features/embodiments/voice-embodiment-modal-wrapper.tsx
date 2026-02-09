@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useAgentSettingsCtx } from '../agent-settings/contexts/agent-settings.context';
-import AlexaEmbodimentModal from './alexa-embodiment-modal';
+import VoiceEmbodimentModal from './voice-embodiment-modal';
 
-const AlexaEmbodimentModalWrapper = ({
+const VoiceEmbodimentModalWrapper = ({
   onClose,
+  domain,
 }: {
   onClose: () => void;
+  domain: string;
 }) => {
   const { workspace, agentId, serverStatusData } = useAgentSettingsCtx();
 
@@ -31,7 +33,7 @@ const AlexaEmbodimentModalWrapper = ({
     }
   }, [workspace, agentId, serverStatusData]);
 
-  return <AlexaEmbodimentModal onClose={onClose} agentDomains={agentDomains} />;
+  return <VoiceEmbodimentModal onClose={onClose} agentDomains={agentDomains} />;
 };
 
-export default AlexaEmbodimentModalWrapper;
+export default VoiceEmbodimentModalWrapper;
