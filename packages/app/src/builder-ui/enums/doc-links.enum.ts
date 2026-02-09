@@ -12,6 +12,7 @@ export enum ComponentDocLinks {
   Async = '/agent-studio/components/advanced/async',
   Await = '/agent-studio/components/advanced/await',
   Code = '/agent-studio/components/advanced/code',
+  FileStore = '/agent-studio/components/advanced/filestore',
   ForEach = '/agent-studio/components/advanced/for-each',
   JSONFilter = '/agent-studio/components/advanced/json-filter',
   LLMAssistant = '/agent-studio/components/advanced/llm-assistant',

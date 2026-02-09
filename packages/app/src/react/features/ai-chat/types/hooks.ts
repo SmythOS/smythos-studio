@@ -30,6 +30,7 @@ export type TChatStateConfig = {
   modelId?: string;
   enableMetaMessages?: boolean;
   inputRef?: RefObject<TFocusable | null>;
+  authTokenRef?: RefObject<string | null>;
 };
 
 export interface IChatState {

@@ -12,7 +12,7 @@ import { forceScrollToBottomImmediate } from '@react/features/ai-chat/utils';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const useChatState = (options: TChatStateConfig): IChatState => {
-  const { agentId, chatId, modelId, enableMetaMessages = false, inputRef } = options;
+  const { agentId, chatId, modelId, enableMetaMessages = false, inputRef, authTokenRef } = options;
 
   const [messages, setMessages] = useState<TChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
@@ -209,23 +209,23 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
 
           const userMessage: TChatMessage | null = shouldSetUserMessage
             ? {
-                id: msgCount + 1,
-                type: MESSAGE_TYPES.USER,
-                content: message?.trim() || '',
-                attachments:
-                  currentAttachments.length > 0
-                    ? currentAttachments.map((a) => ({
-                        id: a.id,
-                        name: a.name,
-                        type: a.type,
-                        size: a.size,
-                        url: a.url,
-                        blobUrl: a.blobUrl,
-                        file: a.file,
-                      }))
-                    : undefined,
-                updatedAt: now,
-              }
+              id: msgCount + 1,
+              type: MESSAGE_TYPES.USER,
+              content: message?.trim() || '',
+              attachments:
+                currentAttachments.length > 0
+                  ? currentAttachments.map((a) => ({
+                    id: a.id,
+                    name: a.name,
+                    type: a.type,
+                    size: a.size,
+                    url: a.url,
+                    blobUrl: a.blobUrl,
+                    file: a.file,
+                  }))
+                  : undefined,
+              updatedAt: now,
+            }
             : null;
 
           const loadingMessage: TChatMessage = {
@@ -247,21 +247,24 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
             attachments:
               currentAttachments.length > 0
                 ? currentAttachments
-                    .filter((a) => a.file)
-                    .map((a) => ({
-                      id: `${Date.now()}_${Math.random()}`,
-                      file: a.file as File,
-                      name: a.name,
-                      type: a.type,
-                      size: a.size,
-                      url: a.url || '',
-                      metadata: {},
-                    }))
+                  .filter((a) => a.file)
+                  .map((a) => ({
+                    id: `${Date.now()}_${Math.random()}`,
+                    file: a.file as File,
+                    name: a.name,
+                    type: a.type,
+                    size: a.size,
+                    url: a.url || '',
+                    metadata: {},
+                  }))
                 : undefined,
             agentId,
             chatId,
             modelId,
             signal: abortRef.current.signal,
+            headers: {
+              'x-agent-chat-token': authTokenRef.current || '',
+            },
           },
           {
             onContent: onStreamContent,
@@ -299,6 +302,7 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
       onMetaMessage,
       onStreamError,
       inputRef,
+      authTokenRef,
     ],
   );
 

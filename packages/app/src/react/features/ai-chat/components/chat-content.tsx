@@ -1,10 +1,9 @@
 import {
   ArrowLeftIcon,
-  AuthOverlay,
   Chats,
   Footer,
   Header,
-  LoadingSkeleton,
+  LoadingSkeleton
 } from '@react/features/ai-chat/components';
 import { DEFAULT_AVATAR_URL } from '@react/features/ai-chat/constants';
 import { useChatStores } from '@react/features/ai-chat/hooks';
@@ -20,9 +19,6 @@ export const ChatContent = () => {
 
   // Loading state
   if (pageState === 'loading') return <LoadingSkeleton />;
-
-  // Auth required
-  if (pageState === 'auth-required') return <AuthOverlay />;
 
   // Chatbot disabled
   if (pageState === 'disabled') {

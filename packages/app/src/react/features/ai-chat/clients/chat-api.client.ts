@@ -98,9 +98,6 @@ export class ChatAPIClient {
       // Notify stream start
       if (onStart) onStart();
 
-      // Get auth token from localStorage
-      // const authToken = localStorage.getItem('authToken');
-
       // Prepare request headers with optional model override
       const requestHeaders: Record<string, string> = {
         ...this.config.defaultHeaders,
@@ -110,10 +107,6 @@ export class ChatAPIClient {
         ...headers,
       };
 
-      // Add auth token to headers if it exists
-      // if (authToken) {
-      //   requestHeaders['X-Auth-Token'] = authToken;
-      // }
 
       const requestBody = { message, attachments, enableMetaMessages: true };
 
