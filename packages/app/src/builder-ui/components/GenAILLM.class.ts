@@ -362,6 +362,10 @@ export class GenAILLM extends Component {
 
     const defaultPromptValue = `Summarize {{Input}} in one paragraph.`;
 
+    const reasoningEffortOptions = this.getReasoningEffortOptions(
+      this.data.model || this.defaultModel,
+    );
+
     return {
       model: {
         type: 'select',
@@ -887,11 +891,8 @@ export class GenAILLM extends Component {
       reasoningEffort: {
         type: 'select',
         label: 'Reasoning Effort',
-        value: this.getDefaultReasoningEffortForModel(
-          this.data.model || this.defaultModel,
-          this.getReasoningEffortOptions(this.data.model || this.defaultModel),
-        ),
-        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        value: this.getDefaultReasoningEffortForModel(reasoningEffortOptions),
+        options: reasoningEffortOptions,
         help: 'Set how deeply the model reasons; higher is slower but more accurate.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -1625,7 +1626,7 @@ export class GenAILLM extends Component {
 
     const valueToSet = isValidOption
       ? existingValue
-      : this.getDefaultReasoningEffortForModel(model, options);
+      : this.getDefaultReasoningEffortForModel(options);
 
     selectElem.val(valueToSet);
   }
@@ -1634,10 +1635,7 @@ export class GenAILLM extends Component {
    * Get the appropriate default reasoning effort value for a given model
    * Always returns the first option as the default
    */
-  private getDefaultReasoningEffortForModel(
-    model: string,
-    options: { text: string; value: string }[],
-  ): string {
+  private getDefaultReasoningEffortForModel(options: { text: string; value: string }[]): string {
     if (options.length === 0) return '';
 
     // Always use the first available option as the default
