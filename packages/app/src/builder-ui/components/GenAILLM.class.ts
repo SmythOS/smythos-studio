@@ -3,6 +3,7 @@ import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
 import { LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
+import { createBadge } from '../ui/badges';
 import { registerDatalistOptions } from '../ui/form/fields';
 import { IconArrowRight, IconConfigure } from '../ui/icons';
 import { refreshLLMModels, saveApiKey, setupSidebarTooltips } from '../utils';
@@ -555,7 +556,9 @@ export class GenAILLM extends Component {
       webSearchContextSizeInfo: {
         type: 'div',
         html: `<strong class="px-2">Search Context Size: <span class="tokens_num">${
-          allowedWebSearchContextTokens ? formatTokenCount(allowedWebSearchContextTokens) : 'Unknown'
+          allowedWebSearchContextTokens
+            ? formatTokenCount(allowedWebSearchContextTokens)
+            : 'Unknown'
         }</span> tokens</strong>`,
         attributes: {
           'data-supported-models': [...this.searchModels].join(','),
