@@ -771,7 +771,11 @@ export class Component extends EventEmitter {
     for (let keyName of matches) {
       if (
         keyName &&
-        vaultEntries.find((e: any) => e.name === keyName || e.name === keyName.replace(/\+/g, ' '))
+        vaultEntries.find(
+          (e: any) =>
+            e.name?.toLowerCase() === keyName.toLowerCase() ||
+            e.name?.toLowerCase() === keyName.replace(/\+/g, ' ').toLowerCase(),
+        )
       ) {
         console.log('Vault Key Found', keyName);
         existKeys.add(keyName);
