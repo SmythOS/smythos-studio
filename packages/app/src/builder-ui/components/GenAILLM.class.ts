@@ -1,6 +1,6 @@
 // TODO: Refactor this file (specially setting fields for different providers)
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
-import { LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
+import { BETA_CONTEXT_WINDOWS, LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
 import { createBadge } from '../ui/badges';
@@ -360,6 +360,10 @@ export class GenAILLM extends Component {
       hint,
     } = this.modelParams;
 
+    const currentModel = this.data.model || this.defaultModel;
+    const betaContextConfig = BETA_CONTEXT_WINDOWS.find((c) => c.pattern.test(currentModel));
+    const displayContextTokens = betaContextConfig ? betaContextConfig.tokens : allowedContextTokens;
+
     const defaultPromptValue = `Summarize {{Input}} in one paragraph.`;
 
     return {
@@ -535,8 +539,12 @@ export class GenAILLM extends Component {
       maxContextTokens: {
         type: 'div',
         html: `<strong class="px-2">Context window size: <span class="tokens_num">${
-          allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
-        }</span> tokens</strong>`,
+          displayContextTokens ? displayContextTokens.toLocaleString() : 'Unknown'
+        }</span> tokens${
+          betaContextConfig
+            ? ` ${createBadge('Beta', 'context-window-beta-badge text-smyth-amber-500 border-smyth-amber-500')}`
+            : ''
+        }</strong>`,
         cls: 'mb-0',
         attributes: {
           'data-supported-models':
@@ -831,7 +839,7 @@ export class GenAILLM extends Component {
         type: 'range',
         label: 'Max Context Window Length',
         min: 0,
-        max: allowedContextTokens,
+        max: displayContextTokens,
         step: 1,
         value: 4096,
         attributes: {},
