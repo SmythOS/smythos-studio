@@ -3,11 +3,10 @@ import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
 import { LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
-import { createBadge } from '../ui/badges';
 import { registerDatalistOptions } from '../ui/form/fields';
 import { IconArrowRight, IconConfigure } from '../ui/icons';
 import { refreshLLMModels, saveApiKey, setupSidebarTooltips } from '../utils';
-import { delay } from '../utils/general.utils';
+import { delay, formatTokenCount } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // Import modules statically - this happens at module load but doesn't process arrays yet
@@ -539,7 +538,7 @@ export class GenAILLM extends Component {
       maxContextTokens: {
         type: 'div',
         html: `<strong class="px-2">Context window size: <span class="tokens_num">${
-          allowedContextTokens ? allowedContextTokens.toLocaleString() : 'Unknown'
+          allowedContextTokens ? formatTokenCount(allowedContextTokens) : 'Unknown'
         }</span> tokens</strong>`,
         cls: 'mb-0',
         attributes: {
@@ -556,7 +555,7 @@ export class GenAILLM extends Component {
       webSearchContextSizeInfo: {
         type: 'div',
         html: `<strong class="px-2">Search Context Size: <span class="tokens_num">${
-          allowedWebSearchContextTokens ? allowedWebSearchContextTokens.toLocaleString() : 'Unknown'
+          allowedWebSearchContextTokens ? formatTokenCount(allowedWebSearchContextTokens) : 'Unknown'
         }</span> tokens</strong>`,
         attributes: {
           'data-supported-models': [...this.searchModels].join(','),
