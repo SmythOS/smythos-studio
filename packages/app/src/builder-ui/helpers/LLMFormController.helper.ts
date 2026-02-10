@@ -1,12 +1,11 @@
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
-import { BETA_CONTEXT_WINDOWS } from '../constants';
 import llmParams from '../params/LLM.params.json';
-import { createBadge, generateModelCapabilityBadges, generateModelStatusBadges } from '../ui/badges';
+import { generateModelCapabilityBadges, generateModelStatusBadges } from '../ui/badges';
 import {
   updateInactiveEffectState,
   updateMutualExclusiveHintsVisibility,
 } from '../ui/form/mutually-exclusive-fields';
-import { createSpinner } from '../utils/general.utils';
+import { createSpinner, formatTokenCount } from '../utils/general.utils';
 
 declare var $;
 
@@ -286,32 +285,14 @@ export class LLMFormController {
 
     // #region update the context tokens information
     const allowedMaxContextTokens = LLMRegistry.getAllowedContextTokens(model);
-    const betaContextConfig = BETA_CONTEXT_WINDOWS.find((c) => c.pattern.test(model));
-    const displayContextTokens = betaContextConfig ? betaContextConfig.tokens : allowedMaxContextTokens;
 
     const contextTokensElm = formElm.querySelector('#maxContextTokens') as HTMLInputElement;
 
     if (contextTokensElm) {
-      if (displayContextTokens) {
+      if (allowedMaxContextTokens) {
         contextTokensElm.querySelector('.tokens_num').textContent =
-          displayContextTokens.toLocaleString();
+          formatTokenCount(allowedMaxContextTokens);
         contextTokensElm.classList.remove('hidden');
-
-        // Toggle Beta badge for models with beta context window override
-        const existingBetaBadge = contextTokensElm.querySelector('.context-window-beta-badge');
-        if (betaContextConfig) {
-          if (!existingBetaBadge) {
-            const strong = contextTokensElm.querySelector('strong');
-            if (strong) {
-              strong.insertAdjacentHTML(
-                'beforeend',
-                ` ${createBadge('Beta', 'context-window-beta-badge text-smyth-amber-500 border-smyth-amber-500')}`,
-              );
-            }
-          }
-        } else {
-          existingBetaBadge?.remove();
-        }
       } else {
         contextTokensElm.classList.add('hidden');
       }
@@ -323,19 +304,19 @@ export class LLMFormController {
       '#maxContextWindowLength',
     ) as HTMLInputElement;
 
-    if (maxContextWindowLengthElm && displayContextTokens) {
+    if (maxContextWindowLengthElm && allowedMaxContextTokens) {
       const currentValue = maxContextWindowLengthElm.valueAsNumber || 0;
 
       // Update the max attribute for the range input
       this.replaceValidationRules({
         fieldElm: maxContextWindowLengthElm,
         attribute: 'max',
-        targetValue: displayContextTokens,
+        targetValue: allowedMaxContextTokens,
         inputType: 'range',
       });
 
       // Ensure current value doesn't exceed the new max
-      const validMaxContextWindowLength = Math.min(displayContextTokens, currentValue);
+      const validMaxContextWindowLength = Math.min(allowedMaxContextTokens, currentValue);
       this.setRangeInputValue(formElm, 'maxContextWindowLength', `${validMaxContextWindowLength}`);
     }
     // #endregion
@@ -350,7 +331,7 @@ export class LLMFormController {
     if (webSearchContextSizeElm) {
       if (allowedWebSearchContextTokens) {
         webSearchContextSizeElm.querySelector('.tokens_num').textContent =
-          allowedWebSearchContextTokens.toLocaleString();
+          formatTokenCount(allowedWebSearchContextTokens);
         webSearchContextSizeElm.classList.remove('hidden');
       } else {
         webSearchContextSizeElm.classList.add('hidden');

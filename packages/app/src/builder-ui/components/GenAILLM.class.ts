@@ -1,13 +1,12 @@
 // TODO: Refactor this file (specially setting fields for different providers)
 import { LLMRegistry } from '../../shared/services/LLMRegistry.service';
-import { BETA_CONTEXT_WINDOWS, LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
+import { LLM_PROVIDERS, REASONING_EFFORTS } from '../constants';
 import { LLMFormController } from '../helpers/LLMFormController.helper';
 import llmParams from '../params/LLM.params.json';
-import { createBadge } from '../ui/badges';
 import { registerDatalistOptions } from '../ui/form/fields';
 import { IconArrowRight, IconConfigure } from '../ui/icons';
 import { refreshLLMModels, saveApiKey, setupSidebarTooltips } from '../utils';
-import { delay } from '../utils/general.utils';
+import { delay, formatTokenCount } from '../utils/general.utils';
 import { Component } from './Component.class';
 
 // Import modules statically - this happens at module load but doesn't process arrays yet
@@ -360,10 +359,6 @@ export class GenAILLM extends Component {
       hint,
     } = this.modelParams;
 
-    const currentModel = this.data.model || this.defaultModel;
-    const betaContextConfig = BETA_CONTEXT_WINDOWS.find((c) => c.pattern.test(currentModel));
-    const displayContextTokens = betaContextConfig ? betaContextConfig.tokens : allowedContextTokens;
-
     const defaultPromptValue = `Summarize {{Input}} in one paragraph.`;
 
     return {
@@ -539,12 +534,8 @@ export class GenAILLM extends Component {
       maxContextTokens: {
         type: 'div',
         html: `<strong class="px-2">Context window size: <span class="tokens_num">${
-          displayContextTokens ? displayContextTokens.toLocaleString() : 'Unknown'
-        }</span> tokens${
-          betaContextConfig
-            ? ` ${createBadge('Beta', 'context-window-beta-badge text-smyth-amber-500 border-smyth-amber-500')}`
-            : ''
-        }</strong>`,
+          allowedContextTokens ? formatTokenCount(allowedContextTokens) : 'Unknown'
+        }</span> tokens</strong>`,
         cls: 'mb-0',
         attributes: {
           'data-supported-models':
@@ -560,7 +551,7 @@ export class GenAILLM extends Component {
       webSearchContextSizeInfo: {
         type: 'div',
         html: `<strong class="px-2">Search Context Size: <span class="tokens_num">${
-          allowedWebSearchContextTokens ? allowedWebSearchContextTokens.toLocaleString() : 'Unknown'
+          allowedWebSearchContextTokens ? formatTokenCount(allowedWebSearchContextTokens) : 'Unknown'
         }</span> tokens</strong>`,
         attributes: {
           'data-supported-models': [...this.searchModels].join(','),
@@ -839,7 +830,7 @@ export class GenAILLM extends Component {
         type: 'range',
         label: 'Max Context Window Length',
         min: 0,
-        max: displayContextTokens,
+        max: allowedContextTokens,
         step: 1,
         value: 4096,
         attributes: {},

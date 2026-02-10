@@ -100,19 +100,3 @@ export const REASONING_EFFORTS = [
     options: [{ text: 'Default', value: 'default' }],
   },
 ];
-
-/**
- * Models with beta context window overrides.
- * When a model matches a pattern, its context window size will be overridden
- * with the specified token count and a "Beta" badge will be shown.
- *
- * To add support for new models or providers:
- * - Add a new entry with a regex `pattern` matching the model ID(s)
- * - Set `tokens` to the beta context window size
- */
-export const BETA_CONTEXT_WINDOWS: { pattern: RegExp; tokens: number }[] = [
-  {
-    pattern: /^(claude-opus-4-6|smythos\/claude-opus-4-6|claude-sonnet-4-5|smythos\/claude-sonnet-4-5)/i,
-    tokens: 1000000,
-  },
-];
