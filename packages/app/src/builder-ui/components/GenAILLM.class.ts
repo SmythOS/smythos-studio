@@ -1560,6 +1560,22 @@ export class GenAILLM extends Component {
             reasoningEffortField.classList.add('hidden');
           }
         }
+      } else if (this.anthropicThinkingModels.includes(currentModel)) {
+        // For Anthropic thinking models: hide and uncheck "Use Reasoning" toggle
+        // Reasoning effort is the standalone control for these models
+        const useReasoningGroup = parentField.closest('.form-group') as HTMLElement;
+        if (useReasoningGroup) {
+          useReasoningGroup.classList.add('hidden');
+        }
+        if (parentField.checked) {
+          parentField.checked = false;
+        }
+        // Always show reasoningEffort regardless of useReasoning state
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.remove('hidden');
+        }
+        // Update reasoning effort options
+        this.updateReasoningEffortOptions(currentModel);
       } else {
         // Hide for all other models (GPT-4, etc.)
         if (reasoningEffortField) {
@@ -1644,7 +1660,7 @@ export class GenAILLM extends Component {
 
   /**
    * Get the appropriate default reasoning effort value for a given model
-   * Always returns the first option as the default
+   * Uses the defaultValue from REASONING_EFFORTS config if available, otherwise first option
    */
   private getDefaultReasoningEffortForModel(
     model: string,
@@ -1652,8 +1668,19 @@ export class GenAILLM extends Component {
   ): string {
     if (options.length === 0) return '';
 
-    // Always use the first available option as the default
-    // Because with higher reasoning effort, GPT-5 models cannot provide the expected output if the maximum output tokens are insufficient for the reasoning process.
+    // Find matching model configuration to check for a custom defaultValue
+    const modelLower = model.toLowerCase();
+    const modelConfig = REASONING_EFFORTS.find((config) => config.pattern.test(modelLower));
+
+    // Use config's defaultValue if available and valid, otherwise use first option
+    if (modelConfig?.defaultValue) {
+      const isValidDefault = options.some((opt) => opt.value === modelConfig.defaultValue);
+      if (isValidDefault) {
+        return modelConfig.defaultValue;
+      }
+    }
+
+    // Fallback to first option (for GPT-5 models where higher effort may cause issues with max tokens)
     return options[0].value;
   }
 

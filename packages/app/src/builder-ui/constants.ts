@@ -17,6 +17,30 @@ export const COMPONENT_STATE_KEY = 'component:state';
 
 export const REASONING_EFFORTS = [
   {
+    // Claude Opus 4.6 supports 'low', 'medium', 'high', 'max' effort
+    // 'max' is only available on Opus 4.6
+    // Default is 'high' (same as Anthropic API default)
+    pattern: /^(claude-opus-4-6|smythos\/claude-opus-4-6)/i,
+    defaultValue: 'high',
+    options: [
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+      { text: 'Max', value: 'max' },
+    ],
+  },
+  {
+    // Claude Opus 4.5 supports 'low', 'medium', 'high' effort
+    // Default is 'high' (same as Anthropic API default)
+    pattern: /^(claude-opus-4-5|smythos\/claude-opus-4-5)/i,
+    defaultValue: 'high',
+    options: [
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+    ],
+  },
+  {
     // Gemini 3 models support 'low' and 'high' reasoning effort
     // 'medium' is coming soon but not available at launch
     pattern: /^(gemini-3|smythos\/gemini-3)/i,
