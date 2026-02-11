@@ -759,6 +759,22 @@ export class GenAILLM extends Component {
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
       },
+
+      reasoningEffort: {
+        type: 'select',
+        label: 'Reasoning Effort',
+        value: this.getDefaultReasoningEffortForModel(
+          this.data.model || this.defaultModel,
+          this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        ),
+        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        help: 'Set how deeply the model reasons; higher is slower but more accurate.',
+        tooltipClasses: 'w-56 ',
+        arrowClasses: '-ml-11',
+        section: 'Advanced',
+        fieldsGroup: 'Reasoning Effort',
+      },
+
       verbosity: {
         type: 'select',
         label: 'Verbosity',
@@ -886,18 +902,6 @@ export class GenAILLM extends Component {
         arrowClasses: '-ml-11',
         section: 'Advanced',
         fieldsGroup: 'Max Thinking Tokens',
-      },
-
-      reasoningEffort: {
-        type: 'select',
-        label: 'Reasoning Effort',
-        value: this.getDefaultReasoningEffortForModel(currentModel, reasoningEffortOptions),
-        options: reasoningEffortOptions,
-        help: 'Set how deeply the model reasons; higher is slower but more accurate.',
-        tooltipClasses: 'w-56 ',
-        arrowClasses: '-ml-11',
-        section: 'Advanced',
-        fieldsGroup: 'Reasoning Effort',
       },
 
       ...this.getWebSearchFields(),
@@ -1534,25 +1538,49 @@ export class GenAILLM extends Component {
     ) as HTMLElement;
     const reasoningOptions = this.getReasoningEffortOptions(currentModel);
 
+    // Default position anchor: reasoningEffort renders before verbosity in the object,
+    // so its default DOM position is right before the verbosity field.
+    const defaultPositionAnchor = form?.querySelector(
+      '[data-field-name="verbosity"]',
+    ) as HTMLElement;
+
+    // Nested sub-field styling class for indentation when shown under a parent checkbox
+    const nestedFieldClass = 'pl-6';
+
     // Handle reasoning effort field visibility for GPT-5, Groq, and Gemini 3 models
     if (reasoningOptions.length > 0) {
       if (this.gpt5ReasoningModels.includes(currentModel)) {
         // For GPT-5 models: Always show reasoningEffort regardless of useReasoning state
         if (reasoningEffortField) {
-          reasoningEffortField.classList.remove('hidden');
+          // Restore to default position (before checkboxes)
+          if (defaultPositionAnchor) {
+            defaultPositionAnchor.before(reasoningEffortField);
+          }
+          reasoningEffortField.classList.remove('hidden', nestedFieldClass);
         }
         // Update reasoning effort options
         this.updateReasoningEffortOptions(currentModel);
       } else if (LLMRegistry.isGemini3Model(currentModel)) {
         // For Gemini 3 models: Always show reasoningEffort regardless of useReasoning state
         if (reasoningEffortField) {
-          reasoningEffortField.classList.remove('hidden');
+          // Restore to default position (before checkboxes)
+          if (defaultPositionAnchor) {
+            defaultPositionAnchor.before(reasoningEffortField);
+          }
+          reasoningEffortField.classList.remove('hidden', nestedFieldClass);
         }
         // Update reasoning effort options
         this.updateReasoningEffortOptions(currentModel);
       } else if (this.groqReasoningModels.includes(currentModel)) {
-        // For Groq reasoning models: Only show when useReasoning is checked
+        // For Groq reasoning models: Move below useReasoning and only show when checked
         if (reasoningEffortField) {
+          const useReasoningGroup = parentField.closest('.form-group') as HTMLElement;
+          if (useReasoningGroup) {
+            useReasoningGroup.after(reasoningEffortField);
+          }
+          // Add indentation to visually nest under the parent checkbox
+          reasoningEffortField.classList.add(nestedFieldClass);
+
           if (parentField.checked) {
             reasoningEffortField.classList.remove('hidden');
             // Update reasoning effort options when shown
@@ -1571,21 +1599,34 @@ export class GenAILLM extends Component {
         if (parentField.checked) {
           parentField.checked = false;
         }
-        // Always show reasoningEffort regardless of useReasoning state
+        // Always show reasoningEffort in its default position (before checkboxes)
         if (reasoningEffortField) {
-          reasoningEffortField.classList.remove('hidden');
+          if (defaultPositionAnchor) {
+            defaultPositionAnchor.before(reasoningEffortField);
+          }
+          reasoningEffortField.classList.remove('hidden', nestedFieldClass);
         }
         // Update reasoning effort options
         this.updateReasoningEffortOptions(currentModel);
       } else {
         // Hide for all other models (GPT-4, etc.)
         if (reasoningEffortField) {
+          // Restore to default position even when hidden, so it's ready for next model switch
+          if (defaultPositionAnchor) {
+            defaultPositionAnchor.before(reasoningEffortField);
+          }
+          reasoningEffortField.classList.remove(nestedFieldClass);
           reasoningEffortField.classList.add('hidden');
         }
       }
     } else {
       // If no reasoning options available, hide the field
       if (reasoningEffortField) {
+        // Restore to default position even when hidden
+        if (defaultPositionAnchor) {
+          defaultPositionAnchor.before(reasoningEffortField);
+        }
+        reasoningEffortField.classList.remove(nestedFieldClass);
         reasoningEffortField.classList.add('hidden');
       }
     }
