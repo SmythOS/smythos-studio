@@ -294,7 +294,7 @@ export class GenAILLM extends Component {
     /* We need to regenerate settings (this.settings) to sync with updated fields info
             Otherwise, old values will be saved when we update field information during switching models. */
     this.setModelParams(target.value);
-    this.settings = await this.generateSettings();
+    this.settings = await this.generateSettings(target.value);
 
     LLMFormController.toggleFields(target);
   }
@@ -334,7 +334,7 @@ export class GenAILLM extends Component {
     };
   }
 
-  private async generateSettings(): Promise<Record<string, any>> {
+  private async generateSettings(activeModel?: string): Promise<Record<string, any>> {
     const {
       allowedContextTokens,
       allowedCompletionTokens,
@@ -362,9 +362,9 @@ export class GenAILLM extends Component {
 
     const defaultPromptValue = `Summarize {{Input}} in one paragraph.`;
 
-    const reasoningEffortOptions = this.getReasoningEffortOptions(
-      this.data.model || this.defaultModel,
-    );
+    const currentModel = activeModel || this.data.model || this.defaultModel;
+
+    const reasoningEffortOptions = this.getReasoningEffortOptions(currentModel);
 
     return {
       model: {
@@ -891,7 +891,7 @@ export class GenAILLM extends Component {
       reasoningEffort: {
         type: 'select',
         label: 'Reasoning Effort',
-        value: this.getDefaultReasoningEffortForModel(reasoningEffortOptions),
+        value: this.getDefaultReasoningEffortForModel(currentModel, reasoningEffortOptions),
         options: reasoningEffortOptions,
         help: 'Set how deeply the model reasons; higher is slower but more accurate.',
         tooltipClasses: 'w-56 ',
@@ -1654,7 +1654,7 @@ export class GenAILLM extends Component {
 
     const valueToSet = isValidOption
       ? existingValue
-      : this.getDefaultReasoningEffortForModel(options);
+      : this.getDefaultReasoningEffortForModel(model, options);
 
     selectElem.val(valueToSet);
   }
@@ -1663,11 +1663,14 @@ export class GenAILLM extends Component {
    * Get the appropriate default reasoning effort value for a given model
    * Uses the defaultValue from REASONING_EFFORTS config if available, otherwise first option
    */
-  private getDefaultReasoningEffortForModel(options: { text: string; value: string }[]): string {
+  private getDefaultReasoningEffortForModel(
+    model: string,
+    options: { text: string; value: string }[],
+  ): string {
     if (options.length === 0) return '';
 
     // Find matching model configuration to check for a custom defaultValue
-    const modelLower = model.toLowerCase();
+    const modelLower = (model || '').toLowerCase();
     const modelConfig = REASONING_EFFORTS.find((config) => config.pattern.test(modelLower));
 
     // Use config's defaultValue if available and valid, otherwise use first option
