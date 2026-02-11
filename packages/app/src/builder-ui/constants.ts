@@ -53,12 +53,14 @@ export const REASONING_EFFORTS = [
   {
     // GPT-5-pro only supports 'high' reasoning effort
     pattern: /^(gpt-5-pro|smythos\/gpt-5-pro)/i,
+    defaultValue: 'high',
     options: [{ text: 'High', value: 'high' }],
   },
   {
     // GPT-5.1 models support 'none', 'low', 'medium', 'high' (not 'minimal')
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.1|smythos\/gpt-5\.1)/i,
+    defaultValue: 'none',
     options: [
       { text: 'None', value: 'none' },
       { text: 'Low', value: 'low' },
@@ -70,6 +72,7 @@ export const REASONING_EFFORTS = [
     // GPT-5.2 models support 'none', 'low', 'medium', 'high', 'xhigh'
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.2|smythos\/gpt-5\.2)/i,
+    defaultValue: 'none',
     options: [
       { text: 'None', value: 'none' },
       { text: 'Low', value: 'low' },
@@ -80,6 +83,7 @@ export const REASONING_EFFORTS = [
   },
   {
     pattern: /^(gpt|smythos\/gpt)/i,
+    defaultValue: 'minimal',
     options: [
       { text: 'Minimal', value: 'minimal' },
       { text: 'Low', value: 'low' },
