@@ -508,12 +508,12 @@ export class APICall extends Component {
       OAuthServicesRegistry.isClientCredentialsService(selectedValue);
     let fieldsToUse = isOAuth2 ? [...oauth2Fields] : oauth1Fields; // Use a copy of oauth2Fields to prevent modifying the original array
     if (OAuthServicesRegistry.isClientCredentialsService(selectedValue)) {
-      // if value is 'OAuth2 Client Credentials',Remove 'authorizationURL', 'oauth2CallbackURL', and 'scope' from fieldsToUse, also hide oauth1Fields
+      // if value is 'OAuth2 Client Credentials',Remove 'authorizationURL' and 'oauth2CallbackURL' from fieldsToUse, but keep 'scope'
       fieldsToUse = fieldsToUse.filter(
-        (field) => !['authorizationURL', 'oauth2CallbackURL', 'scope'].includes(field),
+        (field) => !['authorizationURL', 'oauth2CallbackURL'].includes(field),
       );
       oauth2Fields = fieldsToUse;
-      oauth1Fields = ['authorizationURL', 'oauth2CallbackURL', 'scope', ...oauth1Fields];
+      oauth1Fields = ['authorizationURL', 'oauth2CallbackURL', ...oauth1Fields];
     }
     const isNewSelection = this.data.oauthService !== selectedValue; // Determine if it's a new selection
     if (isNewSelection) {
@@ -1852,10 +1852,15 @@ export class APICall extends Component {
                   newOauthInfo.tokenURL = formData.tokenURL || '';
                   newOauthInfo.clientID = formData.clientID || '';
                   newOauthInfo.clientSecret = formData.clientSecret || '';
+                  // Scope is supported for both OAuth2 and Client Credentials
+                  newOauthInfo.scope = formData.scope || '';
+                  // Audience is typically used for Client Credentials (e.g., Auth0)
+                  if (type === 'oauth2_client_credentials') {
+                    newOauthInfo.audience = formData.audience || '';
+                  }
                   if (type === 'oauth2') {
                     // Only for full OAuth2
                     newOauthInfo.authorizationURL = formData.authorizationURL || '';
-                    newOauthInfo.scope = formData.scope || '';
                   }
                 } else if (type === 'oauth') {
                   newOauthInfo.requestTokenURL = formData.requestTokenURL || '';
@@ -2248,10 +2253,16 @@ export class APICall extends Component {
 
       // Toggle specific fields within OAuth2
       const scopeGroup = dialog.querySelector('[data-oauth-field="scope"]');
+      const audienceGroup = dialog.querySelector('[data-oauth-field="audience"]');
       const authURLGroup = dialog.querySelector('#authorizationURL')?.closest('.form-group');
 
+      // Show scope for both OAuth2 and Client Credentials, but hide auth URL for Client Credentials
       if (scopeGroup) {
-        scopeGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
+        scopeGroup.classList.toggle('hidden', !isOAuth2 && !isClientCreds);
+      }
+      // Show audience only for Client Credentials
+      if (audienceGroup) {
+        audienceGroup.classList.toggle('hidden', !isClientCreds);
       }
       if (authURLGroup) {
         authURLGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);

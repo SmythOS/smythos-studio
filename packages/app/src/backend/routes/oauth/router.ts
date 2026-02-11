@@ -73,6 +73,7 @@ function normalizeAuthSettings(mergedSettings: any): any {
       'service',
       'platform',
       'scope',
+      'audience',
       'authorizationURL',
       'tokenURL',
       'clientID',
@@ -803,7 +804,7 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
   }
 });
 
-async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
+async function getClientCredentialToken({ clientID, clientSecret, tokenURL, scope, audience }) {
   try {
     // Sanity checks
     if (!clientID || !clientSecret || !tokenURL) {
@@ -816,6 +817,16 @@ async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
       client_secret: clientSecret,
     });
 
+    // Add audience if provided (required by some providers like Auth0)
+    if (audience && typeof audience === 'string' && audience.trim()) {
+      params.append('audience', audience.trim());
+    }
+
+    // Add scope if provided (OAuth2 Client Credentials supports scopes)
+    if (scope && typeof scope === 'string' && scope.trim()) {
+      params.append('scope', scope.trim());
+    }
+
     const response = await axios.post(tokenURL, params.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
@@ -826,7 +837,9 @@ async function getClientCredentialToken({ clientID, clientSecret, tokenURL }) {
       params: { expires_in },
     };
   } catch (error) {
-    throw new Error(`Failed to get token: ${error.response?.statusText || error.message}`);
+    const providerErrorMsg = JSON.stringify(error?.response?.data);
+    console.error('Error in getClientCredentialToken:', providerErrorMsg, error?.message);
+    throw new Error(`Failed to get token: ${providerErrorMsg || error.response?.statusText || error.message}`);
   }
 }
 router.post('/client_credentials', includeTeamDetails, async (req, res) => {

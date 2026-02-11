@@ -42,6 +42,7 @@ export class GenAILLM extends Component {
   private modelOptions: string[];
   private modelParams: Record<string, any>;
   private defaultModel: string;
+  private anthropicModels: string[];
   private anthropicThinkingModels: string[];
   private openaiReasoningModels: string[];
   private groqReasoningModels: string[];
@@ -50,6 +51,7 @@ export class GenAILLM extends Component {
   private gpt5Models: string[];
   private gptO3andO4Models: string[];
   private gptSearchModels: string[];
+  private perplexityModels: string[];
 
   protected async prepare() {
     const model = this.data.model || this.defaultModel;
@@ -61,6 +63,10 @@ export class GenAILLM extends Component {
 
     this.defaultModel = LLMFormController.getDefaultModel(modelOptions);
 
+    // Get all Anthropic models using 'text' feature (all LLM models support text)
+    this.anthropicModels = LLMRegistry.getModelsByFeatures('text', 'anthropic').map(
+      (m) => m.entryId,
+    );
     this.anthropicThinkingModels = LLMRegistry.getSortedModelsByFeatures({
       features: 'reasoning',
       providers: 'anthropic',
@@ -72,6 +78,9 @@ export class GenAILLM extends Component {
       (m) => m.entryId,
     );
     this.searchModels = LLMRegistry.getModelsByFeatures('search').map((m) => m.entryId);
+    this.perplexityModels = LLMRegistry.getModelsByFeatures('text', 'perplexity').map(
+      (m) => m.entryId,
+    );
 
     // Why getGpt5ReasoningModels instead of gptReasoningModels, some field like reasoning effort, verbosity etc only supported by gpt 5 models right now.
     this.gpt5ReasoningModels = LLMRegistry.getGpt5ReasoningModels();
@@ -285,7 +294,7 @@ export class GenAILLM extends Component {
     /* We need to regenerate settings (this.settings) to sync with updated fields info
             Otherwise, old values will be saved when we update field information during switching models. */
     this.setModelParams(target.value);
-    this.settings = await this.generateSettings();
+    this.settings = await this.generateSettings(target.value);
 
     LLMFormController.toggleFields(target);
   }
@@ -312,6 +321,7 @@ export class GenAILLM extends Component {
       maxFrequencyPenalty: modelParams?.maxFrequencyPenalty,
       maxPresencePenalty: modelParams?.maxPresencePenalty,
 
+      minTemperature: modelParams?.minTemperature,
       minTopP: modelParams?.minTopP,
       minTopK: modelParams?.minTopK,
 
@@ -324,12 +334,13 @@ export class GenAILLM extends Component {
     };
   }
 
-  private async generateSettings(): Promise<Record<string, any>> {
+  private async generateSettings(activeModel?: string): Promise<Record<string, any>> {
     const {
       allowedContextTokens,
       allowedCompletionTokens,
       allowedWebSearchContextTokens,
       allowedReasoningTokens,
+      minTemperature,
       maxTemperature,
       maxStopSequences,
       maxTopP,
@@ -350,6 +361,10 @@ export class GenAILLM extends Component {
     } = this.modelParams;
 
     const defaultPromptValue = `Summarize {{Input}} in one paragraph.`;
+
+    const currentModel = activeModel || this.data.model || this.defaultModel;
+
+    const reasoningEffortOptions = this.getReasoningEffortOptions(currentModel);
 
     return {
       model: {
@@ -556,21 +571,33 @@ export class GenAILLM extends Component {
       temperature: {
         type: 'range',
         label: 'Temperature',
-        min: 0,
+        min: minTemperature,
         max: maxTemperature,
         value: defaultTemperature,
         step: 0.01,
-        validate: `min=0 max=${maxTemperature}`,
-        validateMessage: `Allowed range 0 to ${maxTemperature}`,
+        validate: `min=${minTemperature} max=${maxTemperature}`,
+        validateMessage: `Allowed range ${minTemperature} to ${maxTemperature}`,
         attributes: {
           'data-supported-models':
             'OpenAI,Anthropic,GoogleAI,Groq,xAI,TogetherAI,VertexAI,Bedrock,Perplexity,cohere,Ollama',
           'data-excluded-models': [
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTemperature instead of minTemperature because:
+          // - minTemperature is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTemperature,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Temperature will clear Top P.',
+          }),
         },
         section: 'Advanced',
         help: hint.temperature,
@@ -634,9 +661,21 @@ export class GenAILLM extends Component {
             ...this.gpt5Models,
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
-            ...this.anthropicThinkingModels,
+            //...this.anthropicThinkingModels,
             ...this.groqReasoningModels,
           ].join(','),
+          // Anthropic API requires only temperature OR top_p (mutually exclusive).
+          // We use llmParams.anthropic.minTopP instead of minTopP because:
+          // - minTopP is dynamic and depends on the currently selected model at form generation time
+          // - This attribute is set once when the form is created (via JSON.stringify)
+          // - Since this feature is Anthropic-specific, we need Anthropic's "not set" value (-0.01)
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'anthropic-temperature-topp',
+            models: this.anthropicModels,
+            reset: llmParams.anthropic.minTopP,
+            reason:
+              'Anthropic models support either Temperature or Top P at a time. Setting Top P will clear Temperature.',
+          }),
         },
         section: 'Advanced',
         help: 'Control variety by sampling from the smallest set of likely words that reach probability P.',
@@ -655,7 +694,7 @@ export class GenAILLM extends Component {
         attributes: {
           'data-supported-models':
             'GoogleAI,VertexAI,Anthropic,TogetherAI,Perplexity,cohere,Ollama,xAI,Groq',
-          'data-excluded-models': this.anthropicThinkingModels.join(','),
+          //'data-excluded-models': this.anthropicThinkingModels.join(','),
         },
         section: 'Advanced',
         help: 'Restrict generation to the top K most likely words to reduce randomness.',
@@ -678,6 +717,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultFrequencyPenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Frequency Penalty will clear Presence Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Reduce repeats by penalising words already used in the reply.',
@@ -700,6 +746,13 @@ export class GenAILLM extends Component {
             ...this.gptO3andO4Models,
             ...this.gptSearchModels,
           ].join(','),
+          'data-mutually-exclusive': JSON.stringify({
+            group: 'perplexity-frequency-presence',
+            models: this.perplexityModels,
+            reset: llmParams.perplexity.defaultPresencePenalty,
+            reason:
+              'Perplexity models support either Frequency Penalty or Presence Penalty at a time. Setting Presence Penalty will clear Frequency Penalty.',
+          }),
         },
         section: 'Advanced',
         help: 'Encourage new topics by penalising words seen in the input.',
@@ -838,11 +891,8 @@ export class GenAILLM extends Component {
       reasoningEffort: {
         type: 'select',
         label: 'Reasoning Effort',
-        value: this.getDefaultReasoningEffortForModel(
-          this.data.model || this.defaultModel,
-          this.getReasoningEffortOptions(this.data.model || this.defaultModel),
-        ),
-        options: this.getReasoningEffortOptions(this.data.model || this.defaultModel),
+        value: this.getDefaultReasoningEffortForModel(currentModel, reasoningEffortOptions),
+        options: reasoningEffortOptions,
         help: 'Set how deeply the model reasons; higher is slower but more accurate.',
         tooltipClasses: 'w-56 ',
         arrowClasses: '-ml-11',
@@ -1511,6 +1561,22 @@ export class GenAILLM extends Component {
             reasoningEffortField.classList.add('hidden');
           }
         }
+      } else if (this.anthropicThinkingModels.includes(currentModel)) {
+        // For Anthropic thinking models: hide and uncheck "Use Reasoning" toggle
+        // Reasoning effort is the standalone control for these models
+        const useReasoningGroup = parentField.closest('.form-group') as HTMLElement;
+        if (useReasoningGroup) {
+          useReasoningGroup.classList.add('hidden');
+        }
+        if (parentField.checked) {
+          parentField.checked = false;
+        }
+        // Always show reasoningEffort regardless of useReasoning state
+        if (reasoningEffortField) {
+          reasoningEffortField.classList.remove('hidden');
+        }
+        // Update reasoning effort options
+        this.updateReasoningEffortOptions(currentModel);
       } else {
         // Hide for all other models (GPT-4, etc.)
         if (reasoningEffortField) {
@@ -1526,6 +1592,18 @@ export class GenAILLM extends Component {
 
     // Handle other nested fields (maxThinkingTokens) with the standard toggle logic
     this.toggleNestedFields(parentField, form, fieldsToShow);
+
+    // Anthropic API does not support temperature, top_p, or top_k when extended thinking is enabled.
+    // Hide these fields when reasoning is checked for Anthropic thinking models.
+    if (this.anthropicThinkingModels.includes(currentModel)) {
+      const samplingFields = ['temperature', 'topP', 'topK'];
+      samplingFields.forEach((fieldName) => {
+        const fieldElm = form?.querySelector(`[data-field-name="${fieldName}"]`) as HTMLElement;
+        if (fieldElm) {
+          fieldElm.classList.toggle('hidden', parentField.checked);
+        }
+      });
+    }
   }
 
   /**
@@ -1583,7 +1661,7 @@ export class GenAILLM extends Component {
 
   /**
    * Get the appropriate default reasoning effort value for a given model
-   * Always returns the first option as the default
+   * Uses the defaultValue from REASONING_EFFORTS config if available, otherwise first option
    */
   private getDefaultReasoningEffortForModel(
     model: string,
@@ -1591,8 +1669,19 @@ export class GenAILLM extends Component {
   ): string {
     if (options.length === 0) return '';
 
-    // Always use the first available option as the default
-    // Because with higher reasoning effort, GPT-5 models cannot provide the expected output if the maximum output tokens are insufficient for the reasoning process.
+    // Find matching model configuration to check for a custom defaultValue
+    const modelLower = (model || '').toLowerCase();
+    const modelConfig = REASONING_EFFORTS.find((config) => config.pattern.test(modelLower));
+
+    // Use config's defaultValue if available and valid, otherwise use first option
+    if (modelConfig?.defaultValue) {
+      const isValidDefault = options.some((opt) => opt.value === modelConfig.defaultValue);
+      if (isValidDefault) {
+        return modelConfig.defaultValue;
+      }
+    }
+
+    // Fallback to first option (for GPT-5 models where higher effort may cause issues with max tokens)
     return options[0].value;
   }
 

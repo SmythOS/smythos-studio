@@ -105,7 +105,7 @@ export const COMPONENT_DOCUMENTATION: Record<string, ComponentDocumentation> = {
     description:
       'Use Filestore to save binary data and get a public link you can share. Name the file as users will download it, then set how long the link should stay valid.',
     docsLink:
-      'https://smythos.com/docs/agent-studio/components/base/filestore/?utm_source=studio&utm_medium=tooltip&utm_campaign=filestore&utm_content=component-header',
+      'https://smythos.com/docs/agent-studio/components/advanced/filestore/?utm_source=studio&utm_medium=tooltip&utm_campaign=filestore&utm_content=component-header',
   },
 
   Code: {

@@ -5,6 +5,11 @@ export const CHAT_ACCEPTED_FILE_TYPES = {
   input: '*/*',
 } as const;
 
+export const AUTH_METHODS = {
+  OAUTH: 'oauth-oidc',
+  API_KEY: 'api-key-bearer',
+} as const;
+
 /** Maximum allowed file size in bytes (5MB) */
 export const ALLOWED_FILE_SIZE = 5 * 1024 * 1024;
 

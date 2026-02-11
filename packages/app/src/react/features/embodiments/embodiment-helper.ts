@@ -12,8 +12,7 @@ import {
   getEmbodimentDescription,
   getEmbodimentIcon,
   getEmbodimentTitle,
-  getFormPreviewDialog,
-  getVoiceDialog,
+  getFormPreviewDialog
 } from './embodiment-configs';
 
 type AgentSetting = {
@@ -32,7 +31,7 @@ type AgentSetting = {
   codeSnippetComponent?: JSX.Element;
 };
 
-type AgentSettingsCallback = (agentSettings: AgentSetting[]) => void;
+type AgentSettingsCallback = (data: AgentSetting[] | Embodiment[]) => void;
 
 export function structureAgentSetting(
   key: string,
@@ -149,24 +148,13 @@ export function structureAgentSetting(
         );
       }
 
-      if (key === EMBODIMENT_TYPE.ALEXA) {
-        result.dialogComponent = getVoiceDialog(
-          modalHandlers.activeModal === key, // Pass visibility state
-          modalHandlers.closeModal,
-          modalHandlers.agent,
-          agentData.agentId,
-          modalHandlers.embodimentsData?.find(
-            (e) => e.aiAgentId === agentData.agentId && e.type === EMBODIMENT_TYPE.ALEXA,
-          ),
-        );
-      }
-
       // Add code snippet modal for chat bot (preload when it should be visible)
       // Note: iframe-based components are conditionally rendered to allow reload as requested
       if (
         (key === EMBODIMENT_TYPE.CHAT_BOT ||
           key === EMBODIMENT_TYPE.FORM ||
           key === EMBODIMENT_TYPE.CHAT_GPT ||
+          key === EMBODIMENT_TYPE.VOICE ||
           key === EMBODIMENT_TYPE.ALEXA) &&
         shouldCodeSnippetVisible(key, {
           canUseEmbodiments: agentData.canUseEmbodiments,
@@ -201,6 +189,7 @@ const shouldCodeSnippetVisible = (
     (embodimentType === EMBODIMENT_TYPE.CHAT_BOT ||
       embodimentType === EMBODIMENT_TYPE.FORM ||
       embodimentType === EMBODIMENT_TYPE.CHAT_GPT ||
+      embodimentType === EMBODIMENT_TYPE.VOICE ||
       embodimentType === EMBODIMENT_TYPE.ALEXA) &&
     agentData?.agentDeployed &&
     agentData.canUseEmbodiments
@@ -219,6 +208,8 @@ const shouldConfigurationVisible = (
     !agentData.isReadOnlyAccess &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.API.toLocaleLowerCase() &&
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.MCP.toLocaleLowerCase() &&
+    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.VOICE.toLocaleLowerCase() &&
+    embodimentType.toLowerCase() !== EMBODIMENT_TYPE.ALEXA.toLocaleLowerCase() &&
     // NOTE: TEMPORARY DISABLE CONFIGURATION FOR AGENT LLM
     embodimentType.toLowerCase() !== EMBODIMENT_TYPE.LLM.toLocaleLowerCase()
   );

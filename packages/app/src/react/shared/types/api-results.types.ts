@@ -85,11 +85,6 @@ export interface FormPreviewEmbodimentData {
   outputPreview: boolean;
 }
 
-export interface VoiceEmbodimentData {
-  name: string;
-  allowedDomains: string[];
-}
-
 export interface ChatbotEmbodimentData {
   name: string;
   introMessage: string;

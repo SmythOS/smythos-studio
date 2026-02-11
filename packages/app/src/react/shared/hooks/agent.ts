@@ -6,10 +6,10 @@ const { data, error, isLoading, refetch, invalidate, setData  } = useAgent(agent
 });
 */
 
-import { AgentDetails } from '@react/shared/types/agent-data.types';
+import { Agent } from '@react/shared/types/agent-data.types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const getAgent = async (agentId: string): Promise<AgentDetails> => {
+const getAgent = async (agentId: string): Promise<Agent> => {
   const res = await fetch(`/api/agent/${agentId}`);
   if (!res.ok) {
     throw new Error('Network response was not ok');
