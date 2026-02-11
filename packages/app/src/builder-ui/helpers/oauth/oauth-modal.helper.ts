@@ -102,6 +102,17 @@ export function generateOAuthModalHTML(
             <label for="clientSecret" class="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Client Secret</label>
             <div class="col-span-3"><input type="password" id="clientSecret" name="clientSecret" value="${currentOauthInfo.clientSecret || ''}" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
           </div>
+          <div class="grid grid-cols-4 items-center gap-4 form-group" data-oauth-field="audience">
+            <label id="audience-label" for="audience" class="w-fit text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center">
+              Audience
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2 cursor-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+            </label>
+            <div class="col-span-3"><input type="text" id="audience" name="audience" value="${currentOauthInfo.audience || ''}" placeholder="e.g., https://api.example.com or https://your-api.auth0.com" class="input bg-white border border-gray-300 text-gray-900 rounded block w-full h-9 px-3 py-2 text-sm outline-none focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-blue-500" /></div>
+          </div>
            <div class="grid grid-cols-4 items-center gap-4 form-group" data-oauth-field="scope">
             <label id="scope-label" for="scope" class="w-fit text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center">
               Scopes
@@ -195,10 +206,16 @@ export function updateOAuthFieldVisibility(
 
   // Toggle specific fields within OAuth2
   const scopeGroup = dialog.querySelector('[data-oauth-field="scope"]');
+  const audienceGroup = dialog.querySelector('[data-oauth-field="audience"]');
   const authURLGroup = dialog.querySelector('#authorizationURL')?.closest('.form-group');
 
+  // Show scope for both OAuth2 and Client Credentials, but hide auth URL for Client Credentials
   if (scopeGroup) {
-    scopeGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);
+    scopeGroup.classList.toggle('hidden', !isOAuth2 && !isClientCreds);
+  }
+  // Show audience only for Client Credentials
+  if (audienceGroup) {
+    audienceGroup.classList.toggle('hidden', !isClientCreds);
   }
   if (authURLGroup) {
     authURLGroup.classList.toggle('hidden', isClientCreds || !isOAuth2);

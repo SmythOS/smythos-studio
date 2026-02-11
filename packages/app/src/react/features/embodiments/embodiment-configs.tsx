@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { FaCommentDots, FaDiscord, FaGear, FaIdCard, FaRobot } from 'react-icons/fa6';
 import {
+  AlexaIcon,
   ChatGptIcon,
   LovableIcon,
   MCPIcon,
@@ -10,16 +11,17 @@ import { EMBODIMENT_TYPE } from '../../shared/enums';
 import ChatBotDialog from '../agent-settings/dialogs/ChatBot';
 import ChatGptDialog from '../agent-settings/dialogs/ChatGpt';
 import FormPreviewDialog from '../agent-settings/dialogs/FormPreview';
-import VoiceDialog from '../agent-settings/dialogs/Voice';
-import VoiceEmbodimentModalWrapper from './alexa-embodiment-modal-wrapper';
+import AlexaEmbodimentModalWrapper from './alexa-embodiment-modal-wrapper';
 import ChatbotEmbodimentModal from './chatbot-embodiment-modal';
 import FormEmbodimentModal from './form-embodiment-modal';
 import GptEmbodimentModal from './gpt-embodiment-modal';
+import VoiceEmbodimentModalWrapper from './voice-embodiment-modal-wrapper';
 
 export const AlwaysAvailableEmbodiments = [
   'API',
   EMBODIMENT_TYPE.MCP,
   EMBODIMENT_TYPE.ALEXA,
+  EMBODIMENT_TYPE.VOICE,
   // TODO: Uncomment this when Ingrid provides the updated prompt for integration
   // EMBODIMENT_TYPE.LOVABLE,
 ];
@@ -41,6 +43,8 @@ export const getEmbodimentIcon = (embodimentType: string, classes = ''): JSX.Ele
     case EMBODIMENT_TYPE.LLM:
       return <FaRobot className={classes} style={{ marginTop: '-3px' }} />;
     case EMBODIMENT_TYPE.ALEXA:
+      return <AlexaIcon className={classes} />;
+    case EMBODIMENT_TYPE.VOICE:
       return <VoiceEmbodimentIcon className={classes} />;
     case EMBODIMENT_TYPE.LOVABLE:
       return <LovableIcon className={classes} />;
@@ -58,6 +62,8 @@ export const getEmbodimentTitle = (embodimentType: string): string => {
     case EMBODIMENT_TYPE.FORM:
       return 'Form Preview';
     case EMBODIMENT_TYPE.ALEXA:
+      return 'Alexa';
+    case EMBODIMENT_TYPE.VOICE:
       return 'Voice';
     default:
       return embodimentType;
@@ -75,13 +81,15 @@ export const getEmbodimentDescription = (embodimentType: string): string => {
     case EMBODIMENT_TYPE.MCP:
       return 'Enable MCP Client to communicate with your agent.';
     case EMBODIMENT_TYPE.ALEXA:
-      return 'Enable Voice and Alexa to communicate with your agent.';
+      return 'Enable Alexa Skill to communicate with your agent.';
     case EMBODIMENT_TYPE.LLM:
       return 'Use your agent as an OpenAI-compatible API endpoint for seamless integration with existing LLM workflows.';
     case EMBODIMENT_TYPE.FORM:
       return 'Preview your agent as a form for seamless integration with existing workflows.';
     case EMBODIMENT_TYPE.LOVABLE:
       return 'Get step-by-step instructions to connect this agent or workflow to Lovable.';
+    case EMBODIMENT_TYPE.VOICE:
+      return 'Enable Voice to communicate with your agent for natural, real-time conversations.';
     default:
       return '';
   }
@@ -105,6 +113,8 @@ export const getEmbodimentDataAttribute = (embodimentType: string): string => {
       return 'form-embodiment-card';
     case EMBODIMENT_TYPE.LOVABLE:
       return 'lovable-embodiment-card';
+    case EMBODIMENT_TYPE.VOICE:
+      return 'voice-embodiment-card';
     default:
       return '';
   }
@@ -179,31 +189,12 @@ export const getFormPreviewDialog = (
   );
 };
 
-export const getVoiceDialog = (
-  isOpen: boolean,
-  closeModal: () => void,
-  agent,
-  agentId,
-  currentData,
-) => {
-  // Always render the component for preloading, HeadlessUI Transition handles visibility
-  // This ensures the component is initialized and ready when the user opens it
-  return (
-    <VoiceDialog
-      isOpen={isOpen}
-      closeModal={closeModal}
-      activeAgent={agent}
-      agentId={agentId}
-      currentData={currentData}
-    />
-  );
-};
-
 export const getCodeSnippetModal = (
   embodimentType:
     | EMBODIMENT_TYPE.FORM
     | EMBODIMENT_TYPE.CHAT_BOT
     | EMBODIMENT_TYPE.CHAT_GPT
+    | EMBODIMENT_TYPE.VOICE
     | EMBODIMENT_TYPE.ALEXA,
   isOpen: boolean,
   closeModal: () => void,
@@ -246,9 +237,16 @@ export const getCodeSnippetModal = (
     );
   }
 
-  if (embodimentType === EMBODIMENT_TYPE.ALEXA) {
+  if (embodimentType === EMBODIMENT_TYPE.VOICE) {
     return createPortal(
       <VoiceEmbodimentModalWrapper onClose={closeModal} domain={agent?.domain?.[0]?.name} />,
+      document.body,
+    );
+  }
+
+  if (embodimentType === EMBODIMENT_TYPE.ALEXA) {
+    return createPortal(
+      <AlexaEmbodimentModalWrapper onClose={closeModal} />,
       document.body,
     );
   }

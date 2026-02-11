@@ -434,6 +434,13 @@ export class DynamicHeaders {
   private manageResponsiveTabs(): void {
     if (!this.container || !this.nav) return;
 
+    // Early exit if container is not visible (e.g., sidebar closed)
+    // This prevents infinite retry loops when the component is hidden
+    const containerWidth = this.container.getBoundingClientRect().width;
+    if (containerWidth === 0 || this.container.offsetParent === null) {
+      return;
+    }
+
     // Check if already running to prevent concurrent execution
     if (this.isRunning) {
       this.isPending = true;
@@ -507,8 +514,11 @@ export class DynamicHeaders {
     // Force reflows and check if tabs have rendered widths - retry if not
     (void this.container.offsetHeight, void this.nav.offsetHeight);
     if (sortedTabs.some((tab) => tab.offsetWidth === 0 && this.nav?.contains(tab))) {
-      handleEarlyReturn();
-      setTimeout(() => this.manageResponsiveTabs(), 50);
+      // Only retry if container is still visible; avoids infinite loop when hidden
+      this.isRunning = false;
+      if (this.container.getBoundingClientRect().width > 0) {
+        setTimeout(() => this.manageResponsiveTabs(), 50);
+      }
       return;
     }
 

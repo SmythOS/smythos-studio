@@ -2,6 +2,26 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { TAttachment, TChatMessage, TUploadStatus } from '.';
 
+/**
+ * Chat configuration parameters returned from SRE server
+ * Response from GET /v1/emb/chat/params
+ */
+export type TChatParams = {
+  name?: string;
+  domain?: string;
+  port?: number;
+  chatbotEnabled: boolean;
+  authRequired?: boolean;
+  auth?: {
+    method?: string;
+    redirectUri?: string;
+    authorizationUrl?: string;
+    clientID?: string;
+    redirectInternalEndpoint?: string;
+  };
+  headers?: Record<string, string>;
+};
+
 export type TFocusable = { focus: () => void };
 
 export type TChatStateConfig = {
@@ -10,6 +30,7 @@ export type TChatStateConfig = {
   modelId?: string;
   enableMetaMessages?: boolean;
   inputRef?: RefObject<TFocusable | null>;
+  authTokenRef?: RefObject<string | null>;
 };
 
 export interface IChatState {
@@ -32,6 +53,7 @@ export interface IFileUpload {
   errorMessage: string;
   addFiles: (files: File[]) => Promise<void>;
   remove: (index: number) => void;
+  removeByIds: (ids: Set<string>) => void;
   clear: (preserveBlobUrls?: boolean) => void;
   clearError: () => void;
 }

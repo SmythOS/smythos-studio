@@ -63,6 +63,7 @@ export function CreateOAuthConnectionModal({
             platform: resolvedOAuthInfo.platform,
             oauthService: serviceName,
             scope: resolvedOAuthInfo.scope,
+            audience: resolvedOAuthInfo.audience,
             authorizationURL: resolvedOAuthInfo.authorizationURL,
             tokenURL: resolvedOAuthInfo.tokenURL,
             clientID: resolvedOAuthInfo.clientID,
@@ -83,6 +84,7 @@ export function CreateOAuthConnectionModal({
             platform: editConnection.oauth_info.platform,
             oauthService: serviceName,
             scope: editConnection.oauth_info.scope,
+            audience: editConnection.oauth_info.audience,
             authorizationURL: editConnection.oauth_info.authorizationURL,
             tokenURL: editConnection.oauth_info.tokenURL,
             clientID: editConnection.oauth_info.clientID,
@@ -190,10 +192,9 @@ export function CreateOAuthConnectionModal({
   const showScopeField = useMemo(
     () =>
       !OAuthServicesRegistry.isOAuth1Service(selectedService) &&
-      !OAuthServicesRegistry.isClientCredentialsService(selectedService) &&
       selectedService !== 'None',
     [selectedService],
-  ); // Scope not typically used in 1.0a or Client Credentials
+  ); // Scope is supported for OAuth2 and Client Credentials, but not for OAuth1.0a
 
   // Pre-fill URLs for known providers using centralized configuration
   useEffect(() => {

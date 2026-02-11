@@ -77,6 +77,12 @@ export class Workspace extends EventEmitter {
   //private _agent: any = {};
   private _loading = false;
   private _saving = false;
+  /** Flag indicating a save is pending while another save is in progress */
+  private _pendingSave = false;
+  /** Timeout ID for debounced save operations */
+  private _debouncedSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+  /** Default debounce delay in milliseconds for saveAgentDebounced */
+  private static readonly DEBOUNCE_SAVE_DELAY_MS = 500;
   // public get agentInfo() {
   //     return this._agent;
   // }
@@ -477,7 +483,7 @@ export class Workspace extends EventEmitter {
     if (sourceBR.right > targetBR.left) {
       const cornerRadius =
         sourceComponentBR.left - targetComponentBR.left > 100 &&
-        sourceComponentBR.top - targetComponentBR.bottom > 100
+          sourceComponentBR.top - targetComponentBR.bottom > 100
           ? 80
           : 30;
 
@@ -742,7 +748,8 @@ export class Workspace extends EventEmitter {
     await delay(400); // wait for stateManager to unlock workspace
     if (this._loading) return;
     if (this._saving) {
-      //console.log('Agent already saving ... skip');
+      // Queue pending save to ensure final state is persisted
+      this._pendingSave = true;
       if (fireEvent) await this.export(fireEvent); //just export the data in order to trigger stateManager diff
 
       return;
@@ -784,9 +791,17 @@ export class Workspace extends EventEmitter {
       if (name) {
         document.title = name + ' | SmythOS';
       }
+
+      // Process pending save with fresh data to ensure final state is persisted
+      if (this._pendingSave) {
+        this._pendingSave = false;
+        return this.saveAgent();
+      }
+
       return result;
     } catch (error) {
       this._saving = false;
+      this._pendingSave = false; // Clear pending on error
       console.error('Error', error);
       if (error?.errorCode === 'LOCKED_AGENT' || error?.errorCode === 'LOCKED_AGENT_HANDLED') {
         this.updateAgentSaveStatus('View Only', 'alert');
@@ -806,17 +821,24 @@ export class Workspace extends EventEmitter {
         }
       }
       this.updateAgentSaveStatus('Error', 'alert');
-
-      // if (error?.errorCode === 'LOCKED_AGENT') {
-      //     alert(error.message, 'Agent Lock', 'OK')
-      //         .then((result) => {})
-      //         .catch((error) => {});
-      //     // this.locked = true;
-      // } else {
-      //     toast(error.message ?? 'Saving Failed', 'Error', 'alert');
-      // }
-      // return null;
     }
+  }
+
+  /**
+   * Debounced version of saveAgent - only the last call within the delay window triggers the save.
+   * @param delayMs - The debounce delay in milliseconds (default: 500ms)
+   */
+  saveAgentDebounced(delayMs: number = Workspace.DEBOUNCE_SAVE_DELAY_MS): void {
+    if (this._debouncedSaveTimeout !== null) {
+      clearTimeout(this._debouncedSaveTimeout);
+    }
+
+    this._debouncedSaveTimeout = setTimeout(() => {
+      this._debouncedSaveTimeout = null;
+      this.saveAgent().catch((error) => {
+        console.error('Debounced saveAgent failed:', error);
+      });
+    }, delayMs);
   }
 
   async createAgent(name, description = '', callback?) {
@@ -1027,7 +1049,7 @@ export class Workspace extends EventEmitter {
         smoothScroll: true,
         duration: 300,
         easing: 'ease-out',
-        handleStartEvent(e) {},
+        handleStartEvent(e) { },
       });
 
       const parent = zoom.parentElement;
@@ -1238,7 +1260,7 @@ export class Workspace extends EventEmitter {
     components.forEach((component) => {
       try {
         this.componentTemplates[component.id] = JSON.parse(component.data);
-      } catch (error) {}
+      } catch (error) { }
     });
   }
   private async initServerData() {
@@ -2042,8 +2064,8 @@ export class Workspace extends EventEmitter {
     const viewportRect = viewport.getBoundingClientRect();
 
     // Check if component is not in the viewport or behind left sidebar
-    const isLeftSidebarOpen =
-      window?.localStorage?.getItem('currentSidebarTab') === 'agentBuilderTab';
+    const leftSidebar = document.getElementById('left-sidebar-container')
+    const isLeftSidebarOpen = leftSidebar.style.display !== 'none';
     const isBehindSidebar = isLeftSidebarOpen && componentRect.left < viewportRect.left + 400;
 
     if (

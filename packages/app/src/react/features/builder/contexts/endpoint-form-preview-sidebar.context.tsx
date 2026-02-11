@@ -1,5 +1,6 @@
 import EventEmitter from '@src/react/features/builder/utils';
 import { Input } from '@src/react/shared/types/agent-data.types';
+import { builderStore } from '@src/shared/state_stores/builder/store';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import {
   createContext,
@@ -10,6 +11,7 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -169,6 +171,12 @@ export const EndpointFormPreviewProvider: FC<EndpointFormPreviewProviderProps> =
     );
   };
 
+  const { dev: devDomain, scheme } = builderStore.getState().agentDomains;
+  const agentDomain = useMemo(
+    () => (devDomain && scheme ? `${scheme}://${devDomain}` : ''),
+    [devDomain, scheme],
+  );
+
   const callSkillMutation = useMutation({
     mutationFn: async (values: any) => {
       abortController.current?.abort();
@@ -179,6 +187,7 @@ export const EndpointFormPreviewProvider: FC<EndpointFormPreviewProviderProps> =
           payload: values,
           componentId: selectedSkill?.skillId,
           version: 'dev',
+          domain: agentDomain,
         }),
         signal: abortController.current?.signal,
         headers: {

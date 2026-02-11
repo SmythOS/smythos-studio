@@ -1,7 +1,47 @@
+import { errorToast } from '@src/shared/components/toast';
 import { delay } from '../utils';
 
 declare var workspace: any;
 let isSorting = false;
+
+/**
+ * Detects if there's a cycle in the graph starting from the given node.
+ * Uses DFS with recursion stack tracking to detect back-edges.
+ * @param startId - The node ID to start the cycle detection from
+ * @param graph - Adjacency list representation of the graph (Map with Set or Array values)
+ * @returns true if a cycle is detected, false otherwise
+ */
+export function hasGraphCycle(
+  startId: string,
+  graph: Map<string, Set<string> | string[]>,
+): boolean {
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+
+  const dfs = (nodeId: string): boolean => {
+    if (inStack.has(nodeId)) {
+      return true; // Cycle detected (back-edge found)
+    }
+    if (visited.has(nodeId)) {
+      return false; // Already processed, no cycle from this path
+    }
+
+    visited.add(nodeId);
+    inStack.add(nodeId);
+
+    const neighbors = graph.get(nodeId) ?? [];
+    for (const neighbor of neighbors) {
+      if (dfs(neighbor)) {
+        return true;
+      }
+    }
+
+    inStack.delete(nodeId);
+    return false;
+  };
+
+  return dfs(startId);
+}
 
 /** Bounding box type for elements */
 interface Bounds {
@@ -280,6 +320,7 @@ export async function extractWorkflows(data) {
   const { components, connections } = data;
 
   // Build adjacency list for graph representation
+  // Note: Uses arrays and initializes all component IDs for level calculation
   function buildGraph() {
     const graph = new Map();
     components.forEach((component) => {
@@ -296,20 +337,25 @@ export async function extractWorkflows(data) {
   }
 
   // Perform Topological Sort and Calculate Levels
+  // Throws an error if a cycle is detected
   function calculateLevels(startId, graph) {
-    const levels = {};
-    const visited = new Set();
+    // Check for cycles first - if found, throw error
+    const _hasCycle = hasGraphCycle(startId, graph);
 
-    // Initialize levels with 0
+    if (_hasCycle) {
+      throw new Error('Circular dependency detected in the workflow');
+    }
+
+    const levels = {};
+
+    // Initialize levels with 0 for APIEndpoint, 1 for others
     components.forEach((component) => {
       levels[component.id] = component.name === 'APIEndpoint' ? 0 : 1;
     });
 
     // Recursive DFS to calculate levels
+    // Since we already checked for cycles with hasCycle, this is safe
     function dfs(nodeId, currentLevel) {
-      //if (visited.has(nodeId)) return;
-
-      visited.add(nodeId);
       levels[nodeId] = Math.max(levels[nodeId], currentLevel);
 
       const neighbors = graph.get(nodeId) || [];
@@ -561,6 +607,7 @@ async function sortAll() {
     // Resolve collisions with components that weren't originally inside Notes
     await resolveNoteCollisions(noteGroups);
   } catch (error) {
+    errorToast(error instanceof Error ? error.message : 'Unknown error occurred', 'Prettify Failed');
     console.error('Error during sort:', error);
   } finally {
     workspace.unlock();

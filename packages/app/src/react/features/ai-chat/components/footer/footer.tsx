@@ -1,4 +1,4 @@
-import { ChatInput, ErrorToast, ScrollToBottomButton } from '@react/features/ai-chat/components';
+import { ErrorToast, Input, ScrollToBottomButton } from '@react/features/ai-chat/components';
 import { useChatStores } from '@react/features/ai-chat/hooks';
 import { FC } from 'react';
 
@@ -12,7 +12,7 @@ export const Footer: FC = () => {
       {errorMessage && <ErrorToast message={errorMessage} onClose={clearError} />}
       <div className="relative">
         {showScrollButton && <ScrollToBottomButton onClick={() => scrollToBottom()} />}
-        <ChatInput />
+        <Input />
       </div>
 
       <h6 className="py-4 text-center text-xs text-gray-500">

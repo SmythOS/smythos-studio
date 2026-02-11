@@ -26,13 +26,15 @@ const ResponseJsonViewer = ({ response, SyntaxHighlighter }: Props) => {
       <div className="absolute top-3 right-3">
         <Tooltip>
           <TooltipTrigger asChild>
-            <FaRegCopy
-              cursor={'pointer'}
-              onClick={() => {
-                navigator.clipboard.writeText(isText ? response : JSON.stringify(response, null, 2));
-                setCopied(true);
-              }}
-            />
+            <div>
+              <FaRegCopy
+                cursor={'pointer'}
+                onClick={() => {
+                  navigator.clipboard.writeText(isText ? response : JSON.stringify(response, null, 2));
+                  setCopied(true);
+                }}
+              />
+            </div>
           </TooltipTrigger>
           <TooltipContent side="top">
             <p>{copied ? 'Copied!' : 'Copy'}</p>

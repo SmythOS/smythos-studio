@@ -239,6 +239,32 @@ export function OAuthFormFields({
                   />
                 </div>
               </div>
+              {showClientCredentialsFields && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="flex items-center">
+                    <Label htmlFor="audience">Audience</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-4 h-4 cursor-help ml-2" />
+                      </TooltipTrigger>
+                      <TooltipContent className="w-64 text-center" side="right">
+                        <p>API identifier (required by Auth0 and some providers). Usually the API URL or identifier.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="col-span-3">
+                    <Input
+                      id="audience"
+                      name="audience"
+                      value={formData.audience || ''}
+                      onChange={handleChange}
+                      placeholder="e.g., https://api.example.com or https://your-api.auth0.com"
+                      disabled={isDisabled}
+                      fullWidth
+                    />
+                  </div>
+                </div>
+              )}
               {showOAuth2Fields && oauth2CallbackURL && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label>Callback URL</Label>

@@ -220,7 +220,7 @@
   display: block !important;
   margin-top: 5px;
 }
-.toast-vault {
+.vault-info-msg {
   margin-top: 10px;
 }
 a.inner-link,
@@ -497,3 +497,26 @@ button.inner-link:hover {
   box-shadow: 0 0 0 2px #c3e6cb;
 }
 /* #endregion JSON Field Synchronizer */
+
+/* #region Mutually Exclusive Fields */
+/**
+ * Visual feedback for fields reset due to mutual exclusivity.
+ * When a field is reset (e.g., Temperature resets Top P for Anthropic),
+ * the inactive field appears dimmed until the user hovers over it.
+ */
+.form-group.mutual-exclusive-inactive {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.form-group.mutual-exclusive-inactive:hover {
+  opacity: 1;
+}
+
+/* Ensure input elements inside also get proper cursor */
+.form-group.mutual-exclusive-inactive input,
+.form-group.mutual-exclusive-inactive select,
+.form-group.mutual-exclusive-inactive textarea {
+  cursor: pointer;
+}
+/* #endregion Mutually Exclusive Fields */

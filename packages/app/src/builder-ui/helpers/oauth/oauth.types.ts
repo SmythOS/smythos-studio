@@ -15,6 +15,7 @@ export interface OAuthInfo {
   clientSecret?: string;
   authorizationURL?: string;
   scope?: string;
+  audience?: string; // Required by some providers like Auth0 for Client Credentials
   oauth2CallbackURL?: string;
   // OAuth1
   requestTokenURL?: string;

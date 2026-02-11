@@ -168,6 +168,7 @@ const fetchOAuthConnections = async (): Promise<OAuthSettings> => {
       'service',
       'platform',
       'scope',
+      'audience',
       'authorizationURL',
       'tokenURL',
       'clientID',
@@ -351,7 +352,7 @@ const getRelevantOAuthInfoFields = (
     // oauth2CallbackURL is derived, not directly from form data passed here
   } else if (type === 'oauth2_client_credentials') {
     // Client Credentials specific config fields from the form
-    ['tokenURL', 'clientID', 'clientSecret'].forEach((key) => {
+    ['tokenURL', 'clientID', 'clientSecret', 'audience'].forEach((key) => {
       if (formData[key] !== undefined) relevantInfo[key] = formData[key];
     });
   } else if (type === 'oauth') {
@@ -491,10 +492,17 @@ export function useUpdateOAuthConnection() {
             updatedOAuthInfo.scope = updatedFields.scope;
           }
         }
-        // For client credentials, ensure auth URL and scope are removed
+        // For client credentials, ensure auth URL is removed but keep scope and audience
         if (finalType === 'oauth2_client_credentials') {
           delete updatedOAuthInfo.authorizationURL;
-          delete updatedOAuthInfo.scope;
+          // Scope is supported for Client Credentials
+          if ('scope' in updatedFields) {
+            updatedOAuthInfo.scope = updatedFields.scope;
+          }
+          // Audience is supported for Client Credentials (e.g., Auth0)
+          if ('audience' in updatedFields) {
+            updatedOAuthInfo.audience = updatedFields.audience;
+          }
         }
       } else if (finalType === 'oauth') {
         // Update OAuth1 fields only if explicitly provided in updatedFields
@@ -634,14 +642,10 @@ export function useInitiateOAuth() {
         // Add listener here or manage globally? Usually managed where the hook is called.
       } else {
         console.error('Authentication URL was not returned from the server.');
-        // Optionally show a toast message to the user
-        // toast({ title: 'Error', description: 'Could not start authentication.', variant: 'destructive' });
       }
     },
     onError: (error) => {
       console.error('Failed to initiate OAuth:', error);
-      // Optionally show a toast message to the user
-      // toast({ title: 'Error', description: `Authentication failed: ${error.message}`, variant: 'destructive' });
     },
   });
 }
@@ -742,8 +746,6 @@ export function useSignOutOAuth() {
     },
     onError: (error) => {
       console.error('Failed to sign out:', error);
-      // Optionally show a toast message to the user
-      // toast({ title: 'Error', description: `Sign out failed: ${error.message}`, variant: 'destructive' });
     },
   });
 }

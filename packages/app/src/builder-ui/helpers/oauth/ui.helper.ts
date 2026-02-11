@@ -261,9 +261,13 @@ export class UIHelper {
       oauth2Container?.classList.toggle('hidden', !(isOAuth2 || isClientCreds));
 
       const scopeGroup = dialog.querySelector('[data-oauth-field="scope"]');
+      const audienceGroup = dialog.querySelector('[data-oauth-field="audience"]');
       const authURLGroup = dialog.querySelector('#authorizationURL')?.closest('.form-group');
 
-      scopeGroup?.classList.toggle('hidden', isClientCreds || !isOAuth2);
+      // Show scope for both OAuth2 and Client Credentials, but hide auth URL for Client Credentials
+      scopeGroup?.classList.toggle('hidden', !isOAuth2 && !isClientCreds);
+      // Show audience only for Client Credentials
+      audienceGroup?.classList.toggle('hidden', !isClientCreds);
       authURLGroup?.classList.toggle('hidden', isClientCreds || !isOAuth2);
 
       this.updateCallbackDisplay(
@@ -292,6 +296,7 @@ export class UIHelper {
       { id: '#clientSecret', value: currentOauthInfo.clientSecret },
       { id: '#tokenURL', value: currentOauthInfo.tokenURL },
       { id: '#authorizationURL', value: currentOauthInfo.authorizationURL },
+      { id: '#audience', value: currentOauthInfo.audience },
       { id: '#scope', value: currentOauthInfo.scope },
     ];
 

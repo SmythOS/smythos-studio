@@ -60,6 +60,7 @@ export interface Agent {
     };
   }[];
   data?: {
+    id: string;
     version: string;
     components: Component[];
     connections: Connection[];

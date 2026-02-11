@@ -48,8 +48,8 @@ export function useAgentsPageTutorial(options: UseAgentsPageTutorialOptions = {}
       if (!TutorialCtor) return false;
       const main = document.querySelector('main');
       const sidebar = document.querySelector('div[data-qa="navigation-sidebar"]');
-      const createBtn = document.querySelector('button[data-qa="create-agent-button"]');
-      return Boolean(main && sidebar && createBtn);
+      const searchAgentsInput = document.querySelector('div[data-qa="search-agents-input"]');
+      return Boolean(main && sidebar && searchAgentsInput);
     };
 
     const startTutorial = () => {

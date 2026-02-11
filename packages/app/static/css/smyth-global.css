@@ -802,7 +802,8 @@ input:disabled {
 
 .notify-container > div.success-toast,
 .notify-container > div.warning-toast,
-.notify-container > div.error-toast {
+.notify-container > div.error-toast,
+.notify-container > div.info-toast {
   border-bottom: none !important;
   border-radius: 4px !important;
   padding: 12px !important;
@@ -1119,6 +1120,12 @@ html {
 .new-agent-btn .text-emerald-600:hover {
   padding-right: 4px;
   transition: padding 0.2s ease-in-out;
+}
+
+/* Fix: Ensure agent dropdown visibility on hover */
+.new-agent-btn:hover #recent-agents-dropdown,
+.new-agent-btn:hover #recent-agents-dropdown.hidden {
+  display: block !important;
 }
 
 .file-drag-active::after {

@@ -7,6 +7,7 @@ import {
   IStreamCallbacks,
   TAPIConfig,
   TChatError,
+  TChatParams,
   TStreamChunk,
   TStreamConfig,
 } from '@react/features/ai-chat/types';
@@ -98,13 +99,14 @@ export class ChatAPIClient {
       if (onStart) onStart();
 
       // Prepare request headers with optional model override
-      const requestHeaders = {
+      const requestHeaders: Record<string, string> = {
         ...this.config.defaultHeaders,
         'X-AGENT-ID': agentId,
         'x-conversation-id': chatId,
         ...(modelId ? { 'x-model-id': modelId } : {}), // Include model override if provided
         ...headers,
       };
+
 
       const requestBody = { message, attachments, enableMetaMessages: true };
 
@@ -114,6 +116,7 @@ export class ChatAPIClient {
         headers: requestHeaders,
         body: JSON.stringify(requestBody),
         signal,
+        credentials: 'include', // Required for session cookie
       });
 
       // Handle HTTP errors
@@ -354,6 +357,7 @@ export class ChatAPIClient {
       method: 'POST',
       headers: this.config.defaultHeaders,
       body: JSON.stringify(data),
+      credentials: 'include', // Required for session cookie
     });
 
     if (!response.ok) {
@@ -362,5 +366,36 @@ export class ChatAPIClient {
     }
 
     return response.json() as Promise<CreateChatsResponse>;
+  }
+
+  /**
+   * Fetches chat configuration parameters for an agent
+   *
+   * @param agentId - The agent ID to fetch params for
+   * @returns Promise resolving to chat params
+   * @throws {Error} If the request fails
+   *
+   * @example
+   * ```typescript
+   * const params = await client.getChatParams('agent-123');
+   * console.log(params.chatbotEnabled);
+   * ```
+   */
+  async getChatParams(agentId: string): Promise<TChatParams> {
+    const response = await fetch(`${this.config.baseUrl}/params`, {
+      method: 'GET',
+      headers: {
+        ...this.config.defaultHeaders,
+        'X-AGENT-ID': agentId,
+      },
+      credentials: 'include', // Required for session cookie
+    });
+
+    if (!response.ok) {
+      const errorData = await this.parseErrorResponse(response);
+      throw new Error(errorData.message || `Failed to fetch chat params: ${response.statusText}`);
+    }
+
+    return response.json() as Promise<TChatParams>;
   }
 }

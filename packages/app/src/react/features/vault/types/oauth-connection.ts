@@ -8,6 +8,7 @@ export interface OAuthInfo {
   name: string; // User-defined friendly name for the connection
   platform: string; // *** ADDED: The platform name (e.g., 'Google Mail', 'HubSpot') ***
   scope?: string;
+  audience?: string; // Required by some providers like Auth0 for Client Credentials
   authorizationURL?: string;
   tokenURL?: string;
   clientID?: string;
@@ -80,6 +81,7 @@ export interface OAuthConnectionFormData {
   platform: string; // *** ADDED: Platform field for the form ***
   oauthService: string; // Maps to oauth_info.service, e.g., 'Google', 'Custom OAuth2.0'
   scope?: string;
+  audience?: string; // Required by some providers like Auth0 for Client Credentials
   authorizationURL?: string;
   tokenURL?: string;
   clientID?: string;

@@ -102,6 +102,10 @@ export function AgentsHeader({
           search
           placeholder="Search Agents"
           isReadOnlyAccess={isReadOnlyAccess}
+          dataAttributes={{
+            'data-qa': 'search-agents-input',
+            'data-test': 'search-agents-input',
+          }}
         />
       </div>
     </div>

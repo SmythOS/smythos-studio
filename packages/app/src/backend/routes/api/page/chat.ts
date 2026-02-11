@@ -63,13 +63,14 @@ router.post('/stream', async (req, res) => {
   const userId = req._user?.id;
   const teamId = req._team?.id;
   const token = req.user.accessToken;
-  const agentId = req.headers['x-agent-id'];
+  const agentId = req.headers['x-agent-id'] as string;
   const conversationId = req.headers['x-conversation-id'];
   const modelId = req.headers['x-model-id']; // Extract model ID for backend override
+  const authToken = req.headers['x-agent-chat-token'] as string | undefined;
 
   try {
     const result = await axios.post(
-      getAgentServerURL(agentId as string, isUsingLocalServer) + '/v1/emb/chat/stream',
+      getAgentServerURL(agentId, isUsingLocalServer) + '/v1/emb/chat/stream',
       { ...req.body },
       {
         headers: {
@@ -80,6 +81,7 @@ router.post('/stream', async (req, res) => {
           'x-conversation-id': conversationId,
           'x-smyth-team-id': teamId,
           ...(modelId ? { 'x-model-id': modelId } : {}), // Forward model ID if provided
+          ...(authToken ? { 'x-agent-chat-token': authToken } : {}), // Forward auth token if provided
         },
         responseType: 'stream',
       },
@@ -99,8 +101,8 @@ router.post('/stream', async (req, res) => {
     });
   } catch (error) {
     return res
-      .status(500)
-      .json({ error: error.message || 'Something went wrong while fetching chatbot stream' });
+      .status(error.response?.status || 500)
+      .json({ error: error.response?.data?.message || error.message || 'Something went wrong while fetching chatbot stream' });
   }
 });
 
@@ -116,6 +118,35 @@ router.get('/list', async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ error: 'Something went wrong while fetching the chat list' });
+  }
+});
+
+router.get('/params', async (req, res) => {
+  const userId = req._user?.id;
+  const teamId = req._team?.id;
+  const token = req.user.accessToken;
+  const agentId = req.headers['x-agent-id'] as string;
+
+  try {
+    const result = await axios.get(
+      getAgentServerURL(agentId, isUsingLocalServer) + '/v1/emb/chat/params',
+      {
+        headers: {
+          ...includeAxiosAuth(token).headers,
+          'x-user-id': userId,
+          'x-team-id': teamId,
+          'x-agent-id': agentId,
+        },
+      },
+    );
+
+    const responseData = result.data;
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: error.message || 'Something went wrong while fetching chat params' });
   }
 });
 
@@ -188,7 +219,7 @@ router.get('/messages', async (req, res) => {
   try {
     const result = await axios.get(
       getAgentServerURL(agentId as string, isUsingLocalServer) +
-        `/aichat/messages?page=${page}&limit=${limit}`,
+      `/aichat/messages?page=${page}&limit=${limit}`,
       {
         headers: {
           ...includeAxiosAuth(token).headers,
@@ -227,7 +258,7 @@ router.post('/upload', [includeTeamDetails], (req: any, res, next) => {
         (url.searchParams.get('agentId') as string | undefined) ||
         (url.searchParams.get('aiAgentId') as string | undefined) ||
         (url.searchParams.get('agent-id') as string | undefined);
-    } catch {}
+    } catch { }
   }
   const agentId = headerAgentId || queryAgentId || refererAgentId;
 

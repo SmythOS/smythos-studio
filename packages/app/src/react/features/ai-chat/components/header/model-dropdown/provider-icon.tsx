@@ -1,13 +1,13 @@
 import { FC, useState } from 'react';
 
 import { cn } from '@react/shared/utils/general';
+import { TClassName } from '@react/features/ai-chat/types';
 
-interface IProps {
+type TProps = TClassName & {
   provider: string;
-  className?: string;
-}
+};
 
-export const ProviderIcon: FC<IProps> = ({ provider, className = 'size-5 rounded-full' }) => {
+export const ProviderIcon: FC<TProps> = ({ provider, className = 'size-5 rounded-full' }) => {
   const [hasError, setHasError] = useState<boolean>(false);
 
   if (hasError) {
