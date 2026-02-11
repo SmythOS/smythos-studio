@@ -1106,6 +1106,14 @@ html {
   transition-delay: 0s;
 }
 
+/* Fix: Override hidden class on #recent-agents-dropdown when hovering over the new-agent-btn.
+   This ensures the agent list is visible even if 'hidden' class is dynamically added by other 
+   parts of the builder UI (e.g., during debug toggle or agent save operations). */
+.new-agent-btn:hover #recent-agents-dropdown,
+.new-agent-btn:hover #recent-agents-dropdown.hidden {
+  display: block !important;
+}
+
 /* Add smooth transition for dropdown items */
 .new-agent-btn .group .absolute {
   transform: translateX(10px);
