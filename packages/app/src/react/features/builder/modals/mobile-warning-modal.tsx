@@ -164,11 +164,14 @@ export function MobileHandler({
               Need help? Visit our{' '}
               <a href={SMYTHOS_DOCS_URL} className="text-[#3C89F9] hover:underline">
                 documentation
-              </a>{' '}
+              </a>
+              {/*
+              // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+              {' '}
               or{' '}
               <a href="https://discord.gg/smythos" className="text-[#3C89F9] hover:underline">
                 contact support
-              </a>
+              </a> */}
             </p>
           </div>
         </CardContent>

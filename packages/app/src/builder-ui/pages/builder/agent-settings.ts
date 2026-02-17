@@ -1755,8 +1755,6 @@ function initializeRecentAgentsDropdown() {
     const dropdownContent = document.getElementById('recent-agents-dropdown');
     if (!dropdownContent) return;
 
-    // Always remove the hidden class on hover to ensure visibility
-    // (it may be added by other parts of the builder UI during changes)
     dropdownContent.classList.remove('hidden');
 
     if (isInitialized) return;
