@@ -17,10 +17,10 @@ export const COMPONENT_STATE_KEY = 'component:state';
 
 export const REASONING_EFFORTS = [
   {
-    // Claude Opus 4.6 supports 'low', 'medium', 'high', 'max' effort
-    // 'max' is only available on Opus 4.6
+    // Claude Opus/Sonnet/Haiku version >= 4.6 supports 'low', 'medium', 'high', 'max' effort
+    // Dynamically matches all current and future versions (4-6, 4-7, 5-0, 5-9, 10-3, etc.)
     // Default is 'high' (same as Anthropic API default)
-    pattern: /^(claude-opus-4-6|smythos\/claude-opus-4-6)/i,
+    pattern: /^(smythos\/)?claude-(opus|sonnet|haiku)-(4-([6-9]|[1-9]\d+)|([5-9]|[1-9]\d+)-\d+)/i,
     defaultValue: 'high',
     options: [
       { text: 'Low', value: 'low' },
@@ -32,7 +32,7 @@ export const REASONING_EFFORTS = [
   {
     // Claude Opus 4.5 supports 'low', 'medium', 'high' effort
     // Default is 'high' (same as Anthropic API default)
-    pattern: /^(claude-opus-4-5|smythos\/claude-opus-4-5)/i,
+    pattern: /^(smythos\/)?claude-opus-4-5/i,
     defaultValue: 'high',
     options: [
       { text: 'Low', value: 'low' },
