@@ -183,7 +183,9 @@ export const AgentSettingsPageBody = () => {
     if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
       window.location.href = '/error/403';
     } else if (agentQuery.isError) {
-      return <FullScreenError error={{ message: 'Agent doesn\'t exist', code: '404' }} />;
+      // We need to disable the eslint rule because the message contains single quotes.
+      // eslint-disable-next-line
+      return <FullScreenError error={{ message: "Agent doesn't exist", code: '404' }} />;
     } else if (agentTestDomainQuery.isError) {
       return <FullScreenError error={{ message: 'Application Error', code: '500' }} />;
     }
@@ -218,13 +220,17 @@ export const AgentSettingsPageBody = () => {
       <div className="flex justify-between items-center">{breadcrumb}</div>
       <div className="mt-3 flex justify-between items-center">
         <h2 className="text-3xl font-semibold">
-          Agent Settings{' '}
+          Agent Settings
+          {
+            // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+            /*
           <p className=" text-base inline text-gray-500 hidden">
             - Alpha Prerelease -{' '}
             <a href="https://discord.gg/smythos" target="_blank" className="text-blue-500">
               Feedback
             </a>
-          </p>
+          </p> */
+          }
         </h2>
 
         <div className="flex gap-4">
