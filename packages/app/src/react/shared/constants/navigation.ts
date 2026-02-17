@@ -1,6 +1,7 @@
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { SMYTHOS_DOCS_URL } from '@src/shared/constants/general';
-import { BookIcon, DiscordIcon, HomeIcon, KeyIcon } from '../components/svgs';
+// TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+import { BookIcon, /* DiscordIcon, */ HomeIcon, KeyIcon } from '../components/svgs';
 
 export const PRICING_PLAN_REDIRECT = 'https://smythos.com/pricing/';
 
@@ -30,12 +31,13 @@ export const getSidebarMenuItems = (): SidebarMenuItem[] => {
 
 export const bottomLinks = [
   { title: 'Docs', path: SMYTHOS_DOCS_URL, icon: BookIcon, isExternal: true },
-  {
-    title: 'Discord Support',
-    path: 'https://discord.gg/smythos',
-    icon: DiscordIcon,
-    isExternal: true,
-  },
+  // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+  // {
+  //   title: 'Discord Support',
+  //   path: 'https://discord.gg/smythos',
+  //   icon: DiscordIcon,
+  //   isExternal: true,
+  // },
 ];
 
 export const profileDropdownItems = () => {

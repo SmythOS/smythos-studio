@@ -160,7 +160,10 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
                 rel="noopener noreferrer"
               >
                 documentation
-              </a>{' '}
+              </a>
+              {
+                // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+                /* {' '}
               or{' '}
               <a
                 href="https://discord.gg/smythos"
@@ -169,7 +172,8 @@ export default function BlockAccountDeleteModal({ handleToggle, deleteAccRequire
                 rel="noopener noreferrer"
               >
                 contact support
-              </a>
+              </a> */
+              }
             </p>
           </div>
         </CardContent>
