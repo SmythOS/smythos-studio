@@ -1,7 +1,6 @@
 # SmythOS UI - The Visual Agent Builder
 
 [![Homepage](https://img.shields.io/badge/_Homepage-SmythOS-green?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJHSURBVHgBfVNNqBJRFL7jT1IYCeUqcRG+AsGVFLhIJIIHLVq93MRsSgpTWgRudaELBRctBDeB2qpdohsVdSOKok+eBC4UAiNSKX9440PtzYydM9yJqV4eOPfOvff8fd85Q8jFosElHo8fJhIJN71TgTJkj+CjWj6sVqu2KIo7VBCuUCg8VNj9E0iLSyQSuQmOx7VaLS4IAjqKsJ/jx3K5PKlUKg88Ho/p74ok58lkkkXDTCbziuO4rz9BMDvP898Ain04HL7fUVksFp+SyeS93+mn02kODKXHer3OYmbQTalUeoLveI8VbTabNQ36o1wuH0nOdrtdiw4iBTsYDALtdjuhwCsR2mw22e12e1YsFo/+gGC1WvW0MilALpd7Tg3UCo4kY4vFooOEV5SEq/r9/gqSD8GXASVQ6mXqJCgCiIjE7/e7Op3OWa/Xe03fNRhZo1arb7darRcMwxCDwXCN/EeAAw53m832FpJ+xyCIj8dKHA7HOygv7XQ6ryogCAoI4nq9FiViGKl7N7xer03uJe47t9t9KxwO97vdrlyiigYSG43GS7PZfJcG3OGi0+lOpVM0GrVB74+RRGB6Kw+Rz+e7HovF7sDVBC+CwSC2GNsogH4mcou0Wq0KymP0ej25BDKfz09SqdSzUCj00Wg03gfjc8xqMplwJ3D+wrLsgewvYySBQOAAhufxaDT6QIcHp0sEB348Hldms1k5m80eUh8NuUAkdqrV6iP8gRAKHbBTl8ulUfC196+UiSPpdPppPp9/sy/jL4yPfDIO4aFTAAAAAElFTkSuQmCC&logoWidth=14)](https://smythos.com)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Chat-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/smythos)
 [![](https://img.shields.io/badge/📄_Code_License-MIT-green)](LICENSE)
 
 The complete visual interface for building, deploying, and managing intelligent AI agents. SmythOS UI provides an intuitive drag-and-drop workspace where you can create sophisticated agent workflows without writing code, while still offering the flexibility of custom integrations when needed. <br/><br/> If you prefer to build agents with code instead, or you want to run your visual agents on your local PC without overhead, check out [SmythOS Runtime, SDK and CLI](https://github.com/SmythOS/sre)! Great community, support, tutorials. Start in minutes!
@@ -10,9 +9,7 @@ The complete visual interface for building, deploying, and managing intelligent 
 
 [🚀 Getting Started](#quick-start) | [📖 Documentation](#documentation) | [🐳 Docker Setup](DOCKER_COMPOSE.md) | [🤝 Contributing](CONTRIBUTING.md)
 
-
-
-## Why SmythOS Studio 
+## Why SmythOS Studio
 
 1. **Visual Agent Building**: Creating AI agents should be as intuitive as drawing a flowchart.
 2. **No-Code to Pro-Code**: Start with visual building, extend with custom code when needed.
@@ -39,7 +36,6 @@ This approach makes AI agent development **accessible to everyone** - from busin
 ## Quick Start
 
 [![SmythOS Studio Tutorial](https://github.com/user-attachments/assets/54c12bb7-e6d2-4f0c-bc0f-77f812920802)](https://www.youtube.com/watch?v=iEpW5j-h6BM)
-
 
 ### Method 1: Docker Quick Start
 
@@ -148,7 +144,6 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 1. Read our [Contributing Guide](CONTRIBUTING.md)
 2. Check out [open issues](https://github.com/SmythOS/smythos-studio/issues)
-3. Join our [Discord community](https://discord.gg/smythos)
 
 ## Contributors
 
@@ -158,7 +153,6 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 ## Community & Support
 
-- **💬 Discord**: [Join our community](https://discord.gg/smythos) for real-time support and discussions
 - **🐛 Issues**: [Report bugs](https://github.com/SmythOS/smythos-studio/issues) and request features
 - **📧 Email**: Contact us at support@smythos.com for enterprise inquiries
 - **🌐 Website**: Visit [SmythOS.com](https://smythos.com) for more information
@@ -169,7 +163,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 **Ready to build your first AI agent?**
 
-🚀 [Get Started Now](#quick-start) | 💬 [Join our Discord](https://discord.gg/smythos) | 🌟 [Star this repo](https://github.com/SmythOS/smythos-studio)
+🚀 [Get Started Now](#quick-start) | 🌟 [Star this repo](https://github.com/SmythOS/smythos-studio)
 
 ---
 
