@@ -5,7 +5,7 @@ import {
   updateInactiveEffectState,
   updateMutualExclusiveHintsVisibility,
 } from '../ui/form/mutually-exclusive-fields';
-import { createSpinner } from '../utils/general.utils';
+import { createSpinner, formatTokenCount } from '../utils/general.utils';
 
 declare var $;
 
@@ -291,7 +291,7 @@ export class LLMFormController {
     if (contextTokensElm) {
       if (allowedMaxContextTokens) {
         contextTokensElm.querySelector('.tokens_num').textContent =
-          allowedMaxContextTokens.toLocaleString();
+          formatTokenCount(allowedMaxContextTokens);
         contextTokensElm.classList.remove('hidden');
       } else {
         contextTokensElm.classList.add('hidden');
@@ -331,7 +331,7 @@ export class LLMFormController {
     if (webSearchContextSizeElm) {
       if (allowedWebSearchContextTokens) {
         webSearchContextSizeElm.querySelector('.tokens_num').textContent =
-          allowedWebSearchContextTokens.toLocaleString();
+          formatTokenCount(allowedWebSearchContextTokens);
         webSearchContextSizeElm.classList.remove('hidden');
       } else {
         webSearchContextSizeElm.classList.add('hidden');
