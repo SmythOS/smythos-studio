@@ -263,10 +263,15 @@ export class OAuthService {
       oauthInfo.tokenURL = formData.tokenURL || '';
       oauthInfo.clientID = formData.clientID || '';
       oauthInfo.clientSecret = formData.clientSecret || '';
+      // Scope is supported for both OAuth2 and Client Credentials
+      oauthInfo.scope = formData.scope || '';
+      // Audience is typically used for Client Credentials (e.g., Auth0)
+      if (type === 'oauth2_client_credentials') {
+        oauthInfo.audience = formData.audience || '';
+      }
 
       if (type === 'oauth2') {
         oauthInfo.authorizationURL = formData.authorizationURL || '';
-        oauthInfo.scope = formData.scope || '';
       }
     } else if (type === 'oauth') {
       oauthInfo.requestTokenURL = formData.requestTokenURL || '';

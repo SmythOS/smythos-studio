@@ -16,7 +16,9 @@ export const onboardingTasks: OnboardingTaskProps[] = [
         completeOnClick: true,
       },
     ],
-    completeDescription: 'You\'ve successfully completed the interactive quickstart guide',
+    // We need to disable the eslint rule because the description contains single quotes.
+    // eslint-disable-next-line
+    completeDescription: "You've successfully completed the interactive quickstart guide",
   },
   {
     type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
@@ -31,7 +33,9 @@ export const onboardingTasks: OnboardingTaskProps[] = [
         type: OnboardingTaskType.INVITE_TEAM_MEMBERS,
       },
     ],
-    completeDescription: 'You\'ve successfully invited your team members to the platform',
+    // We need to disable the eslint rule because the description contains single quotes.
+    // eslint-disable-next-line
+    completeDescription: "You've successfully invited your team members to the platform",
   },
   {
     type: OnboardingTaskType.TRY_AGENT_TEMPLATE,
@@ -46,24 +50,27 @@ export const onboardingTasks: OnboardingTaskProps[] = [
         completeOnClick: true,
       },
     ],
-    completeDescription: 'You\'ve successfully created an agent using our template',
+    // We need to disable the eslint rule because the description contains single quotes.
+    // eslint-disable-next-line
+    completeDescription: "You've successfully created an agent using our template",
   },
-  {
-    type: OnboardingTaskType.JOIN_COMMUNITY,
-    title: 'Join Community',
-    icon: '/img/onboard/community.svg',
-    description: 'Get live support in our vibrant community.',
-    completed: false,
-    buttons: [
-      {
-        label: 'Join our Discord',
-        link: 'https://discord.gg/smythos',
-        external: true,
-        completeOnClick: true,
-      },
-    ],
-    completeDescription: 'You\'ve successfully joined our community',
-  },
+  // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+  // {
+  //   type: OnboardingTaskType.JOIN_COMMUNITY,
+  //   title: 'Join Community',
+  //   icon: '/img/onboard/community.svg',
+  //   description: 'Get live support in our vibrant community.',
+  //   completed: false,
+  //   buttons: [
+  //     {
+  //       label: 'Join our Discord',
+  //       link: 'https://discord.gg/smythos',
+  //       external: true,
+  //       completeOnClick: true,
+  //     },
+  //   ],
+  //   completeDescription: 'You\'ve successfully joined our community',
+  // },
   {
     type: OnboardingTaskType.CREATE_FIRST_AGENT,
     title: 'Build Agent from Scratch',
@@ -78,6 +85,8 @@ export const onboardingTasks: OnboardingTaskProps[] = [
         external: true,
       },
     ],
-    completeDescription: 'You\'ve successfully created an agent using our step-by-step guide',
+    // We need to disable the eslint rule because the description contains single quotes.
+    // eslint-disable-next-line
+    completeDescription: "You've successfully created an agent using our step-by-step guide",
   },
 ];

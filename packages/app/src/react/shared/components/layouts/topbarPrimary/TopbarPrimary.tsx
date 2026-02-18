@@ -6,9 +6,8 @@ import { PAGE_TITLE_MAP } from '@shared/constants/general';
 import { userSettingKeys } from '@shared/userSettingKeys';
 import { PluginComponents } from '@src/react/shared/plugins/PluginComponents';
 import { PluginTarget } from '@src/react/shared/plugins/Plugins';
-import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { UserAvatar } from './UserAvatar';
 
 export const TopbarPrimary = () => {
@@ -29,7 +28,6 @@ export const TopbarPrimary = () => {
   }, [userSettings, userTeams]);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Function to get title based on current path
   const getPageTitle = () => {
@@ -48,25 +46,14 @@ export const TopbarPrimary = () => {
       if (currTeam?.name) {
         const teamName = currTeam.name;
         const endsWithTeam = teamName?.trim()?.toLowerCase()?.endsWith('team');
-        
+
         // If team name ends with "Team", just append "Dashboard"
         // Otherwise, append "Team Dashboard"
         const suffix = endsWithTeam ? 'Dashboard' : PAGE_TITLE_MAP[matchingPath];
         return `${teamName}'s ${suffix}`;
       }
-      
-      return `Your ${PAGE_TITLE_MAP[matchingPath]}`;
-    }
 
-    if (matchingPath === '/teams/roles') {
-      return (
-        <div className="flex items-center gap-2 justify-center">
-          <button onClick={() => navigate('/teams/members')} className="cursor-pointer">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          Team Roles
-        </div>
-      );
+      return `Your ${PAGE_TITLE_MAP[matchingPath]}`;
     }
 
     return PAGE_TITLE_MAP[matchingPath];

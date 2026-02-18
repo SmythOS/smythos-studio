@@ -241,13 +241,12 @@ function createAgent() {
       }
     };
 
-    // agentCreateBtn.onclick = createAgentClick; // * We'll remove the New Agent creation form
-    createAgentClick();
 
     if (templateId) {
       await delay(100);
-      createAgentClick();
     }
+    
+    createAgentClick();
   });
 }
 
@@ -1753,10 +1752,12 @@ function initializeRecentAgentsDropdown() {
   let isInitialized = false;
 
   dropdownTrigger?.addEventListener('mouseenter', async () => {
-    if (isInitialized) return;
-
     const dropdownContent = document.getElementById('recent-agents-dropdown');
     if (!dropdownContent) return;
+
+    dropdownContent.classList.remove('hidden');
+
+    if (isInitialized) return;
 
     const agents = await fetchRecentAgents();
 

@@ -3,12 +3,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { CodeBlock } from '@react/features/ai-chat/components';
+import { TClassName, TMessageProps } from '@react/features/ai-chat/types';
 import { cn } from '@react/shared/utils/general';
 
-type TProps = {
-  message: string;
-  className?: string;
-};
+type TProps = TClassName & TMessageProps;
 
 export const MarkdownRenderer: FC<TProps> = ({ message, className }) => {
   return (

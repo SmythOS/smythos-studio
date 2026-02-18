@@ -66,6 +66,10 @@ interface Props {
    */
   onOpenAlexaPanel: () => void;
   /**
+   * Called when the user requests to open the Voice panel.
+   */
+  onOpenVoicePanel: () => void;
+  /**
    * Called when the user requests to open the Chatbot panel.
    */
   onOpenChatbotPanel: () => void;
@@ -99,6 +103,7 @@ function PostDeploymentModal({
   onOpenLlmModal,
   onOpenCustomGptModal,
   onOpenAlexaPanel,
+  onOpenVoicePanel,
   onOpenChatbotPanel,
   onOpenFormPanel,
   onOpenApiPanel,
@@ -397,27 +402,14 @@ function PostDeploymentModal({
       );
     }
     // Alexa
-    else if (key === EMBODIMENT_TYPE.ALEXA) {
-      if (setting.openModal) {
-        buttons.push(
-          <button
-            key={'configuration-' + EMBODIMENT_TYPE.ALEXA}
-            className="flex items-center px-2 py-1 h-8 text-xl text-blue-600 hover:bg-smythos-blue-500 hover:text-white rounded"
-            onClick={() => setting.openModal()}
-            type="button"
-            aria-label="Configuration"
-          >
-            <FaSliders />
-          </button>,
-        );
-      }
+    else if (key === EMBODIMENT_TYPE.ALEXA || key === EMBODIMENT_TYPE.VOICE) {
       buttons.push(
         <Button
-          key={'get-endpoints-' + EMBODIMENT_TYPE.ALEXA}
+          key={'get-endpoints-' + key}
           label="Get Endpoints"
           variant="tertiary"
           className="px-3 py-1 h-8 text-xs"
-          handleClick={onOpenAlexaPanel}
+          handleClick={key === EMBODIMENT_TYPE.ALEXA ? onOpenAlexaPanel : onOpenVoicePanel}
           aria-label="Get Endpoints"
           type="button"
         />,
@@ -449,9 +441,8 @@ function PostDeploymentModal({
 
   return (
     <div
-      className={`relative bg-white rounded-2xl shadow-lg w-full p-6 flex flex-col gap-4 max-h-[90vh] max-w-[480px] ${
-        !isVisible ? 'hidden' : ''
-      }`}
+      className={`relative bg-white rounded-2xl shadow-lg w-full p-6 flex flex-col gap-4 max-h-[90vh] max-w-[480px] ${!isVisible ? 'hidden' : ''
+        }`}
       style={{
         boxShadow: '0 4px 32px 0 rgba(0,0,0,0.10)',
         borderRadius: '20px',
@@ -480,9 +471,8 @@ function PostDeploymentModal({
                   <div
                     key={setting.key}
                     data-qa={getEmbodimentLocator(setting.key)}
-                    className={`flex items-center justify-between bg-white rounded-lg px-2 py-2 ${
-                      !isSettingEnabled ? 'opacity-80' : ''
-                    }`}
+                    className={`flex items-center justify-between bg-white rounded-lg px-2 py-2 ${!isSettingEnabled ? 'opacity-80' : ''
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       {/* Icon */}

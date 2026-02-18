@@ -1122,6 +1122,12 @@ html {
   transition: padding 0.2s ease-in-out;
 }
 
+/* Fix: Ensure agent dropdown visibility on hover */
+.new-agent-btn:hover #recent-agents-dropdown,
+.new-agent-btn:hover #recent-agents-dropdown.hidden {
+  display: block !important;
+}
+
 .file-drag-active::after {
   content: '';
   position: fixed;

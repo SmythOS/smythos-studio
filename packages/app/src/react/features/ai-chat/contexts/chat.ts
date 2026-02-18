@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
 import type { IFileUpload, TChatMessage } from '@react/features/ai-chat/types';
-import type { AgentDetails, AgentSettings } from '@react/shared/types/agent-data.types';
+import type { Agent, AgentSettings } from '@react/shared/types/agent-data.types';
 import { createContext, RefObject } from 'react';
+
+export type TPageState = 'loading' | 'error' | 'auth-required' | 'disabled' | 'ready';
 
 export interface IChatContext {
   refs: {
@@ -9,7 +11,7 @@ export interface IChatContext {
     container?: RefObject<HTMLDivElement | null>;
   };
   agent: {
-    data?: AgentDetails;
+    data?: Agent;
     settings?: AgentSettings;
     isLoading: { agent: boolean; settings: boolean };
   };
@@ -32,6 +34,15 @@ export interface IChatContext {
   };
   modelOverride: string | null;
   setModelOverride: (model: string | null) => void;
+  auth: {
+    isRequired: boolean;
+    method?: string;
+    authorizationUrl?: string;
+    onAuthSuccess: () => Promise<void>;
+    redirectInternalEndpoint?: string;
+    domain?: string;
+  };
+  pageState: TPageState;
 }
 
 export const ChatContext = createContext<IChatContext>({
@@ -42,27 +53,35 @@ export const ChatContext = createContext<IChatContext>({
     status: {},
     uploading: false,
     errorMessage: '',
-    addFiles: async () => {},
-    remove: () => {},
-    clear: () => {},
-    clearError: () => {},
+    addFiles: async () => { },
+    remove: () => { },
+    clear: () => { },
+    clearError: () => { },
+    removeByIds: () => { },
   },
   chat: {
     isChatCreating: false,
     messages: [],
     isStreaming: false,
-    sendMessage: async () => {},
-    retryMessage: async () => {},
-    stopStreaming: () => {},
-    resetSession: async () => {},
+    sendMessage: async () => { },
+    retryMessage: async () => { },
+    stopStreaming: () => { },
+    resetSession: async () => { },
   },
   scroll: {
     showScrollButton: false,
-    handleScroll: () => {},
-    scrollToBottom: () => {},
-    smartScrollToBottom: () => {},
-    hideScrollButton: () => {},
+    handleScroll: () => { },
+    scrollToBottom: () => { },
+    smartScrollToBottom: () => { },
+    hideScrollButton: () => { },
   },
   modelOverride: null,
-  setModelOverride: () => {},
+  setModelOverride: () => { },
+  auth: {
+    isRequired: false,
+    onAuthSuccess: async () => { },
+    redirectInternalEndpoint: '',
+    domain: '',
+  },
+  pageState: 'loading',
 });

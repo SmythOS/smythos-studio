@@ -17,6 +17,30 @@ export const COMPONENT_STATE_KEY = 'component:state';
 
 export const REASONING_EFFORTS = [
   {
+    // Claude Opus/Sonnet/Haiku version >= 4.6 supports 'low', 'medium', 'high', 'max' effort
+    // Dynamically matches all current and future versions (4-6, 4-7, 5-0, 5-9, 10-3, etc.)
+    // Default is 'high' (same as Anthropic API default)
+    pattern: /^(smythos\/)?claude-(opus|sonnet|haiku)-(4-([6-9]|[1-9]\d+)|([5-9]|[1-9]\d+)-\d+)/i,
+    defaultValue: 'high',
+    options: [
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+      { text: 'Max', value: 'max' },
+    ],
+  },
+  {
+    // Claude Opus 4.5 supports 'low', 'medium', 'high' effort
+    // Default is 'high' (same as Anthropic API default)
+    pattern: /^(smythos\/)?claude-opus-4-5/i,
+    defaultValue: 'high',
+    options: [
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+    ],
+  },
+  {
     // Gemini 3 models support 'low' and 'high' reasoning effort
     // 'medium' is coming soon but not available at launch
     pattern: /^(gemini-3|smythos\/gemini-3)/i,
@@ -29,12 +53,14 @@ export const REASONING_EFFORTS = [
   {
     // GPT-5-pro only supports 'high' reasoning effort
     pattern: /^(gpt-5-pro|smythos\/gpt-5-pro)/i,
+    defaultValue: 'high',
     options: [{ text: 'High', value: 'high' }],
   },
   {
     // GPT-5.1 models support 'none', 'low', 'medium', 'high' (not 'minimal')
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.1|smythos\/gpt-5\.1)/i,
+    defaultValue: 'none',
     options: [
       { text: 'None', value: 'none' },
       { text: 'Low', value: 'low' },
@@ -46,6 +72,7 @@ export const REASONING_EFFORTS = [
     // GPT-5.2 models support 'none', 'low', 'medium', 'high', 'xhigh'
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.2|smythos\/gpt-5\.2)/i,
+    defaultValue: 'none',
     options: [
       { text: 'None', value: 'none' },
       { text: 'Low', value: 'low' },
@@ -56,6 +83,7 @@ export const REASONING_EFFORTS = [
   },
   {
     pattern: /^(gpt|smythos\/gpt)/i,
+    defaultValue: 'minimal',
     options: [
       { text: 'Minimal', value: 'minimal' },
       { text: 'Low', value: 'low' },

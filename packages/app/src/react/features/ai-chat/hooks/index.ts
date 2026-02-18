@@ -1,4 +1,5 @@
 export * from './use-agent-settings';
+export * from './use-chat-params';
 export * from './use-create-chat';
 export * from './use-chat-state';
 export * from './use-clipboard-paste';

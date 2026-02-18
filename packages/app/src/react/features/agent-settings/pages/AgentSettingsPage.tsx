@@ -4,12 +4,17 @@ import EnvironmentWidget from '@react/features/agent-settings/components/Deploym
 import EmbodimentsWidget from '@react/features/agent-settings/components/EmbodimentsWidget';
 import MyToolsWidget from '@react/features/agent-settings/components/MyToolsWidget';
 import OverviewWidgetsContainer from '@react/features/agent-settings/components/OverviewWidgetsContainer';
+import AllowedDomainsWidget from '@react/features/agent-settings/components/Security/AllowedDomainsWidget';
 import AuthWidget from '@react/features/agent-settings/components/Security/AuthWidget';
 import ChangeLogWidget from '@react/features/agent-settings/components/Security/ChangeLogWidget';
 import {
   AgentSettingsProvider,
   useAgentSettingsCtx,
 } from '@react/features/agent-settings/contexts/agent-settings.context';
+import {
+  CollapsibleTabConfig,
+  CollapsibleTabs,
+} from '@react/shared/components/ui/collapsible-tabs';
 import { Button as CustomButton } from '@react/shared/components/ui/newDesign/button';
 import { TooltipProvider } from '@react/shared/components/ui/tooltip';
 import { PRICING_PLAN_REDIRECT } from '@react/shared/constants/navigation';
@@ -19,7 +24,7 @@ import FullScreenError from '@src/react/features/error-pages/pages/FullScreenErr
 import { plugins, PluginTarget, PluginType } from '@src/react/shared/plugins/Plugins';
 import { Observability } from '@src/shared/observability';
 import { Breadcrumb } from 'flowbite-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { BaseAgentSettingsTabs } from '../constants';
@@ -78,7 +83,10 @@ export const AgentSettingTabs = () => {
 
   const baseWidgets: Record<keyof typeof BaseAgentSettingsTabs, React.ReactNode[]> = {
     Overview: [<OverviewWidgetsContainer isWriteAccess={isWriteAccess} />],
-    Security: [<AuthWidget isWriteAccess={isWriteAccess} />],
+    Security: [
+      <AuthWidget isWriteAccess={isWriteAccess} />,
+      <AllowedDomainsWidget isWriteAccess={isWriteAccess} />,
+    ],
     Tasks: [
       <ChatWithAgentWidget
         isWriteAccess={isWriteAccess}
@@ -103,37 +111,46 @@ export const AgentSettingTabs = () => {
 
   const mergedWidgets = { ...baseWidgets, ...pluginWidgets };
 
-  // we need to make sure that the original widgets objects are not overridden by the plugin widgets if the same key exists
+  // Merge base widgets with plugin widgets, ensuring base widgets are not overridden
   Object.keys(baseWidgets).forEach((key) => {
     if (pluginWidgets[key]) {
       mergedWidgets[key] = [...(baseWidgets[key] || []), ...(pluginWidgets[key] || [])];
     }
   });
 
+  // Build tab configurations for CollapsibleTabs component
+  const tabConfigs: CollapsibleTabConfig[] = useMemo(() => {
+    return Object.keys(mergedWidgets).map((name) => ({
+      id: name,
+      label: name,
+    }));
+  }, [mergedWidgets]);
+
+  /**
+   * Handle tab change from CollapsibleTabs
+   */
+  const handleTabChange = (tabId: string) => {
+    setCurrentTab(tabId);
+  };
+
   return (
     <>
-      <div className="flex justify-around mb-6 border-solid border-b-2 border-gray-200">
-        {Object.keys(mergedWidgets).map((name, index) => {
-          return (
-            <button
-              key={index}
-              id={`agent-settings-${name}`}
-              className={`text-sm font-medium -mb-[2px] after:content-["_"] mt-2 after:w-0 after:border-b-2 after:border-v2-blue after:block after:transition-all after:duration-700 ${
-                currentTab === name
-                  ? 'text-gray-900 after:w-full'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setCurrentTab(name)}
-            >
-              {name}
-            </button>
-          );
-        })}
-      </div>
+      <CollapsibleTabs
+        tabs={tabConfigs}
+        selectedTab={currentTab}
+        onTabChange={handleTabChange}
+        className="mb-6"
+      />
       <div className="grid grid-cols-1 gap-6">
-        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, any[]]) =>
+        {Object.entries(mergedWidgets).map(([key, widgetlist]: [string, React.ReactNode[]]) =>
           widgetlist.map((widget, index) => (
-            <div key={index} hidden={currentTab !== key}>
+            <div
+              key={`${key}-${index}`}
+              id={`tabpanel-${key}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${key}`}
+              hidden={currentTab !== key}
+            >
               {widget}
             </div>
           )),
@@ -166,6 +183,8 @@ export const AgentSettingsPageBody = () => {
     if (agentQuery?.error?.['status'] == 403 || agentTestDomainQuery?.error?.['status'] == 403) {
       window.location.href = '/error/403';
     } else if (agentQuery.isError) {
+      // We need to disable the eslint rule because the message contains single quotes.
+      // eslint-disable-next-line
       return <FullScreenError error={{ message: "Agent doesn't exist", code: '404' }} />;
     } else if (agentTestDomainQuery.isError) {
       return <FullScreenError error={{ message: 'Application Error', code: '500' }} />;
@@ -201,13 +220,17 @@ export const AgentSettingsPageBody = () => {
       <div className="flex justify-between items-center">{breadcrumb}</div>
       <div className="mt-3 flex justify-between items-center">
         <h2 className="text-3xl font-semibold">
-          Agent Settings{' '}
+          Agent Settings
+          {
+            // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+            /*
           <p className=" text-base inline text-gray-500 hidden">
             - Alpha Prerelease -{' '}
             <a href="https://discord.gg/smythos" target="_blank" className="text-blue-500">
               Feedback
             </a>
-          </p>
+          </p> */
+          }
         </h2>
 
         <div className="flex gap-4">

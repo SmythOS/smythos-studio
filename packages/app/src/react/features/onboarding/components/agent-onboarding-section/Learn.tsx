@@ -10,21 +10,23 @@ const learnCards: LearnCardProps[] = [
       'Basics, Tutorials, Components, Integrations, Data, Deployment, Security, Advanced Topics, Best Practices, Troubleshooting, and more. ',
     link: SMYTHOS_DOCS_URL,
   },
-  {
-    image: '/img/onboard/life-ring.png',
-    title: 'Community Support',
-    description: 'Join Discord for live support from our team and thousands of agent engineers.',
-    link: 'https://discord.gg/smythos',
-    external: true,
-  },
-  {
-    image: '/img/onboard/academy.png',
-    title: 'Visit Academy',
-    description:
-      'Access free courses and certifications to master building AI agents and boost your skills.',
-    link: 'https://academy.smythos.com',
-    external: true,
-  },
+  // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+  // {
+  //   image: '/img/onboard/life-ring.png',
+  //   title: 'Community Support',
+  //   description: 'Join Discord for live support from our team and thousands of agent engineers.',
+  //   link: 'https://discord.gg/smythos',
+  //   external: true,
+  // },
+  // TODO: Delete this commented block once removal is confirmed. Discord & Academy links were removed from the app; code kept for traceability.
+  // {
+  //   image: '/img/onboard/academy.png',
+  //   title: 'Visit Academy',
+  //   description:
+  //     'Access free courses and certifications to master building AI agents and boost your skills.',
+  //   link: 'https://academy.smythos.com',
+  //   external: true,
+  // },
 ];
 
 export const Learn = () => {

@@ -37,6 +37,7 @@ import {
   createActionButtonAfterDropdown,
   createHtmlElm,
 } from './misc';
+import { registerMutuallyExclusiveField } from './mutually-exclusive-fields';
 
 declare var workspace;
 declare var Metro;
@@ -596,6 +597,20 @@ export default function createFormField(entry, displayType = 'block', entryIndex
     window['__FIELD_TEMPLATE_VARIABLES__'][entry?.name] = variables;
   }
 
+  // Setup mutually exclusive field registration and hint (if applicable)
+  const mutuallyExclusiveResult = setupMutuallyExclusiveField(
+    eventTarget,
+    div,
+    attributes,
+    entry.value,
+  );
+  
+  // Store hint reference if present (will be appended to div later)
+  if (mutuallyExclusiveResult.hint) {
+    div.setAttribute('data-has-mutual-exclusive-hint', 'true');
+    (div as any)._mutualExclusiveHint = mutuallyExclusiveResult.hint;
+  }
+
   // Real-time validation - only clear error when field becomes valid
   if (
     (entry.validate?.includes('custom') || entry.smythValidate?.includes('func=')) &&
@@ -892,6 +907,11 @@ export default function createFormField(entry, displayType = 'block', entryIndex
   }
   if (entry?.withoutSearch) {
     div.classList.add('without-search');
+  }
+
+  // Append mutual exclusive hint if present
+  if ((div as any)._mutualExclusiveHint) {
+    div.appendChild((div as any)._mutualExclusiveHint);
   }
 
   return div;
@@ -1537,4 +1557,102 @@ function configureSelectMultiple(
    * Return the actual select element for event listener attachment
    */
   return actualSelect;
+}
+
+/**
+ * Configuration interface for mutually exclusive fields
+ */
+interface MutuallyExclusiveConfig {
+  group: string;
+  reason?: string;
+  reset?: number;
+  models?: string[];
+}
+
+/**
+ * Result interface for mutually exclusive field setup
+ */
+interface MutuallyExclusiveResult {
+  hint: HTMLElement | null;
+}
+
+/**
+ * Sets up mutually exclusive field registration and hint creation.
+ * 
+ * This function extracts the mutually exclusive field logic from createFormField
+ * to improve code organization and maintainability.
+ * 
+ * ## What it does:
+ * 1. Parses the `data-mutually-exclusive` attribute configuration
+ * 2. Registers the field with the mutually exclusive system
+ * 3. Creates a hint element explaining the mutual exclusivity
+ * 4. Configures visibility based on model whitelist
+ * 
+ * ## Example configuration:
+ * ```json
+ * {
+ *   "group": "anthropic-temperature-topp",
+ *   "models": ["claude-3-opus", "claude-3-sonnet"],
+ *   "reset": -0.01,
+ *   "reason": "Anthropic models support either Temperature or Top P at a time."
+ * }
+ * ```
+ * 
+ * @param fieldElement - The input element to register (e.g., HTMLInputElement)
+ * @param containerDiv - The form-group container div
+ * @param attributes - Field attributes containing data-mutually-exclusive config
+ * @param defaultValue - The default value for this field (for reset behavior)
+ * @returns Object containing the hint element (null if not a mutually exclusive field)
+ */
+function setupMutuallyExclusiveField(
+  fieldElement: HTMLElement,
+  containerDiv: HTMLElement,
+  attributes: Record<string, any>,
+  defaultValue: any,
+): MutuallyExclusiveResult {
+  const mutuallyExclusiveAttr = attributes['data-mutually-exclusive'];
+  
+  // Not a mutually exclusive field - return early
+  if (!mutuallyExclusiveAttr) {
+    return { hint: null };
+  }
+
+  // Parse the configuration object from the attribute
+  let config: MutuallyExclusiveConfig;
+  try {
+    config = JSON.parse(mutuallyExclusiveAttr);
+  } catch {
+    // Fallback for legacy string format (just the group name)
+    config = { group: mutuallyExclusiveAttr };
+  }
+
+  const { group, reason, reset: resetValue, models: whitelistedModels } = config;
+
+  // Register the field with the mutually exclusive system
+  // This enables automatic reset behavior when another field in the group is changed
+  registerMutuallyExclusiveField(fieldElement, group, defaultValue);
+
+  // Create hint message explaining the mutual exclusivity
+  const hintMessage = reason || 'Only one field in this group can have a value at a time.';
+
+  // Create the hint element
+  const mutualExclusiveHint = document.createElement('div');
+  mutualExclusiveHint.className = 'mutual-exclusive-hint text-xs text-amber-500 mx-2';
+  mutualExclusiveHint.textContent = hintMessage;
+
+  // Configure model-specific visibility
+  // The hint should only be visible when the current model is in the whitelist
+  if (whitelistedModels && Array.isArray(whitelistedModels) && whitelistedModels.length > 0) {
+    mutualExclusiveHint.setAttribute(
+      'data-mutual-exclusive-models',
+      JSON.stringify(whitelistedModels.map((m) => m.toLowerCase())),
+    );
+    // Initially hide - will be shown by updateMutualExclusiveHintsVisibility when appropriate
+    mutualExclusiveHint.style.display = 'none';
+  }
+
+  // Store hint reference on the field element for later access
+  (fieldElement as any)._mutualExclusiveHint = mutualExclusiveHint;
+
+  return { hint: mutualExclusiveHint };
 }
