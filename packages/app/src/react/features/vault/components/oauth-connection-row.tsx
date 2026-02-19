@@ -41,7 +41,7 @@ const PROVIDER_TO_SERVICE_MAP: Record<string, string> = {
   oauth2_client_credentials: 'oauth2_client_credentials',
 };
 function buildOAuthInfoFromCred(connection: CredentialConnection): OAuthInfo | null {
-  if (!connection.credentials || !connection.id) return null;
+  if (!connection  ||!connection.credentials || !connection.id) return null;
 
   const service = PROVIDER_TO_SERVICE_MAP[connection.provider] || connection.provider;
 
