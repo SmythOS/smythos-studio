@@ -396,6 +396,32 @@ export async function renderDropdown(targetElm: HTMLElement, dropdownElm: HTMLEl
   dropdownElm.classList.add('visible');
 }
 
+/**
+ * Formats a token count into a human-friendly label.
+ * Millions (M) are floored to 1 decimal place.
+ * Thousands (K) and below show only whole numbers.
+ *
+ * Examples:
+ *   1000000  → "1M"
+ *   1048576  → "1M"
+ *   1500000  → "1.5M"
+ *   200000   → "200K"
+ *   128000   → "128K"
+ *   8192     → "8K"
+ *   500      → "500"
+ */
+export function formatTokenCount(tokens: number): string {
+  if (tokens >= 1000000) {
+    const value = Math.floor((tokens / 1000000) * 10) / 10;
+    return `${value % 1 === 0 ? value.toFixed(0) : value}M`;
+  }
+  if (tokens >= 1000) {
+    const value = Math.floor(tokens / 1000);
+    return `${value}K`;
+  }
+  return Math.floor(tokens).toLocaleString();
+}
+
 export const safe = (fn: () => void, name: string) => {
   try {
     fn();
