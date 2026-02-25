@@ -26,4 +26,9 @@ type TUseChatParams = ReturnType<typeof useQuery<TChatParams, Error>>;
 export const useChatParams = (agentId: string | null): TUseChatParams =>
   useQuery([...CHAT_PARAMS_QUERY, agentId], () => chatClient.getChatParams(agentId as string), {
     enabled: !!agentId,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    cacheTime: 0,
   });
