@@ -8,7 +8,6 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { CiExport } from 'react-icons/ci';
 import { ApiKeys } from '../components/api-keys';
-import { OAuthConnections } from '../components/oauth-connections';
 import { OAuthConnectionsCredentials } from '../components/oauth-connections-creds';
 import UserCustomModels from '../components/user-custom-models';
 import { UserModels } from '../components/user-models';
@@ -50,13 +49,11 @@ export default function VaultPage() {
     }
   };
 
-  
-
   useEffect(() => {
     if (window.location.hash) {
       async function scrollToHash() {
         const id = window.location.hash.replace('#', '');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         const el = document.getElementById(id);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
@@ -101,10 +98,10 @@ export default function VaultPage() {
       <UserModels pageAccess={pageAccess} />
       <UserCustomModels pageAccess={pageAccess} />
       <PluginComponents targetId={PluginTarget.VaultPageEnterpriseModels} />
-      <OAuthConnections />
+      {/* <OAuthConnections /> */}
       <OAuthConnectionsCredentials />
 
-       <VectorDatabases />
+      <VectorDatabases />
 
       <ErrorBoundarySuspense
         loadingFallback={<div>Loading...</div>}
@@ -115,4 +112,3 @@ export default function VaultPage() {
     </div>
   );
 }
-
