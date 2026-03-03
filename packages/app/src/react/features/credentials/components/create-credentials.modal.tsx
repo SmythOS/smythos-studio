@@ -486,7 +486,7 @@ export function CreateCredentialsModal({
                       label="Connection Name"
                       required
                       fullWidth
-                      placeholder="e.g., My Vector Database"
+                      // placeholder="e.g
                       value={connectionName}
                       onChange={(e) => {
                         setConnectionName(e.target.value);

@@ -1706,6 +1706,20 @@ export class APICall extends Component {
     }
   }
 
+  /**
+   * Checks whether a connection is a legacy component-specific connection
+   * that should be hidden from selection unless it belongs to this component.
+   * Legacy IDs follow the pattern `OAUTH_{componentId}_TOKENS`.
+   */
+  private isHiddenLegacyConnection(connectionId: string, conn: Record<string, unknown>): boolean {
+    const isLegacy = Boolean(conn?._isLegacy);
+    if (!isLegacy) {
+      return false;
+    }
+    // Only keep legacy connections whose ID contains this component's uid
+    return !connectionId.includes(this.uid);
+  }
+
   // Build OAuth select options from connections with unified name detection and legacy fallback
   private buildOAuthSelectOptions(
     connections: Record<string, any>,
@@ -1717,6 +1731,11 @@ export class APICall extends Component {
     // First pass: add ALL connections that have a name property under auth_data (new structure)
     for (const [id, conn] of Object.entries(connections)) {
       if (conn && typeof conn === 'object') {
+        // Skip legacy component-specific connections unless already selected
+        if (this.isHiddenLegacyConnection(id, conn as Record<string, unknown>)) {
+          continue;
+        }
+
         // Check for name in the new structure: auth_settings.name
         const connectionName = conn?.auth_settings?.name;
 
@@ -1749,27 +1768,32 @@ export class APICall extends Component {
     ) {
       const conn = connections[componentSpecificId];
 
-      // Check if this connection has been converted to new structure
-      const hasNewStructure = conn?.auth_data && conn?.auth_settings;
+      // Skip legacy component-specific connections unless already selected
+      if (this.isHiddenLegacyConnection(componentSpecificId, conn as Record<string, unknown>)) {
+        // Do not add this legacy connection to options
+      } else {
+        // Check if this connection has been converted to new structure
+        const hasNewStructure = conn?.auth_data && conn?.auth_settings;
 
-      if (!hasNewStructure) {
-        // Only add legacy connection if it hasn't been converted to new structure
-        const serviceName =
-          conn?.auth_settings?.oauth_info?.service ||
-          conn?.oauth_info?.service ||
-          conn?.auth_settings?.type ||
-          conn?.type ||
-          'Unknown';
-        const shortId = componentSpecificId.replace('OAUTH_', '').replace('_TOKENS', '');
+        if (!hasNewStructure) {
+          // Only add legacy connection if it hasn't been converted to new structure
+          const serviceName =
+            conn?.auth_settings?.oauth_info?.service ||
+            conn?.oauth_info?.service ||
+            conn?.auth_settings?.type ||
+            conn?.type ||
+            'Unknown';
+          const shortId = componentSpecificId.replace('OAUTH_', '').replace('_TOKENS', '');
 
-        // Only add if not already in options (avoid duplicates)
-        const alreadyExists = options.some((opt) => opt.value === componentSpecificId);
-        if (!alreadyExists) {
-          options.push({
-            value: componentSpecificId,
-            text: `${serviceName} [${shortId}]`,
-            badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1'),
-          });
+          // Only add if not already in options (avoid duplicates)
+          const alreadyExists = options.some((opt) => opt.value === componentSpecificId);
+          if (!alreadyExists) {
+            options.push({
+              value: componentSpecificId,
+              text: `${serviceName} [${shortId}]`,
+              badge: createBadge('Legacy', 'text-orange-500 border-orange-500 ml-1'),
+            });
+          }
         }
       }
     }

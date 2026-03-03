@@ -50,8 +50,7 @@ export function getConnectionOauthInfo(connection: any, connectionId?: string): 
       // Ensure oauth_keys_prefix is set
       if (!reconstructed.oauth_keys_prefix && connectionId) {
         // reconstructed.oauth_keys_prefix = connectionId.replace('_TOKENS', '');
-        reconstructed.oauth_keys_prefix = connectionId
-
+        reconstructed.oauth_keys_prefix = connectionId;
       }
 
       return Object.keys(reconstructed).length > 0 ? reconstructed : null;
@@ -508,6 +507,12 @@ export function transformOAuthCredEntry(
         service: credentialEntry.provider,
         platform: credentialEntry.name,
       },
+
+      ...(credentialEntry.customProperties?._isLegacy
+        ? {
+            _isLegacy: true,
+          }
+        : {}),
     };
   }
 
@@ -524,5 +529,11 @@ export function transformOAuthCredEntry(
       platform: credentialEntry.name,
       ...credentialEntry.credentials,
     },
+
+    ...(credentialEntry.customProperties?._isLegacy
+      ? {
+          _isLegacy: true,
+        }
+      : {}),
   };
 }
