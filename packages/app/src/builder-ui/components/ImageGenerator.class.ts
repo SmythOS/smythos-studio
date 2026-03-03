@@ -15,6 +15,8 @@ enum DALL_E_MODELS {
 export class ImageGenerator extends Component {
   private modelOptions: string[];
   private defaultModel: string;
+  private nanoBananaModels: string[];
+  private imagenModels: string[];
 
   protected async prepare() {
     const modelOptions = LLMFormController.prepareModelSelectOptionsByFeatures([
@@ -46,6 +48,9 @@ export class ImageGenerator extends Component {
       // Otherwise, filter out hidden models
       return !item?.hidden;
     });
+
+    this.nanoBananaModels = Object.keys(models).filter(isNanoBananaModel);
+    this.imagenModels = Object.keys(models).filter(isImagenModel);
 
     return true;
   }
@@ -80,6 +85,7 @@ export class ImageGenerator extends Component {
       //#region Google AI
       // 'numberOfImages', // More adjustments are needed because Imagen 4 Ultra supports only 1, while Imagen 4 can support up to 4.
       'aspectRatio',
+      'resolution',
       'personGeneration',
       //#endregion
     ];
@@ -235,8 +241,23 @@ export class ImageGenerator extends Component {
       ...getDallESettings(this.data),
       ...getRunwareSettings(this.data),
       ...getGPTSettings(this.data),
-      ...getGoogleAISettings(this.data),
+      ...getGoogleAISettings(this.data, this.nanoBananaModels, this.imagenModels),
     };
+  }
+
+  protected async run() {
+    this.addEventListener('settingsOpened', this.handleSettingsOpened.bind(this));
+  }
+
+  private async handleSettingsOpened(sidebar, component) {
+    if (component !== this) return;
+
+    const form = sidebar.querySelector('form');
+    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
+    if (modelSelect) {
+      await delay(100);
+      redrawSelectBoxesByModel(modelSelect.value, this.data);
+    }
   }
 
   modelChangeHandler(target: HTMLSelectElement) {
@@ -372,7 +393,13 @@ function getDallESettings(savedData: Record<string, string>) {
   };
 }
 
-function getGoogleAISettings(savedData: Record<string, any>) {
+function getGoogleAISettings(
+  savedData: Record<string, any>,
+  nanoBananaModels: string[],
+  imagenModels: string[],
+) {
+  const allGoogleAIImageModels = [...nanoBananaModels, ...imagenModels];
+
   return {
     aspectRatio: {
       type: 'select',
@@ -382,17 +409,34 @@ function getGoogleAISettings(savedData: Record<string, any>) {
       tooltipClasses: 'w-56',
       arrowClasses: '-ml-11',
       value: savedData.aspectRatio || '1:1',
+      // Default options shown initially (Imagen); will be updated by redrawSelectBoxesByModel on model change
+      options: IMAGEN_ASPECT_RATIOS,
+      section: 'Advanced',
+      attributes: {
+        // Show for all Google AI image models; fall back to provider if model lists not yet loaded
+        'data-supported-models':
+          allGoogleAIImageModels.length > 0
+            ? allGoogleAIImageModels.join(',')
+            : LLM_PROVIDERS.GOOGLEAI,
+      },
+    },
+    resolution: {
+      type: 'select',
+      withoutSearch: true,
+      label: 'Output Size',
+      help: 'Set the resolution of the generated image.',
+      tooltipClasses: 'w-56',
+      arrowClasses: '-ml-11',
+      value: savedData.resolution || '1K',
+      // Default options; will be updated by redrawSelectBoxesByModel (0.5K added for 3.1 Flash)
       options: [
-        { text: 'Square (1:1)', value: '1:1' },
-        { text: 'Portrait (9:16)', value: '9:16' },
-        { text: 'Landscape (16:9)', value: '16:9' },
-        { text: 'Wide (3:4)', value: '3:4' },
-        { text: 'Tall (4:3)', value: '4:3' },
+        { text: '1K', value: '1K' },
+        { text: '2K', value: '2K' },
+        { text: '4K', value: '4K' },
       ],
       section: 'Advanced',
       attributes: {
-        'data-supported-models': LLM_PROVIDERS.GOOGLEAI,
-        'data-excluded-models': 'gemini-2.5-flash-image',
+        'data-supported-models': nanoBananaModels.join(','),
       },
     },
     personGeneration: {
@@ -410,8 +454,9 @@ function getGoogleAISettings(savedData: Record<string, any>) {
       ],
       section: 'Advanced',
       attributes: {
-        'data-supported-models': LLM_PROVIDERS.GOOGLEAI,
-        'data-excluded-models': 'gemini-2.5-flash-image',
+        // Only Imagen models support personGeneration (not Nano Banana native generation models)
+        'data-supported-models':
+          imagenModels.length > 0 ? imagenModels.join(',') : LLM_PROVIDERS.GOOGLEAI,
       },
     },
   };
@@ -423,8 +468,56 @@ enum MODEL_FAMILY {
   GPT = 'gpt',
   RUNWARE = 'runware',
   DALL_E = 'dall-e',
-  GOOGLE_AI = 'googleai',
+  NANO_BANANA = 'nano-banana', // Gemini native image generation models
+  IMAGEN = 'imagen', // Google Imagen models
 }
+
+/**
+ * Standard aspect ratios shared by most Nano Banana models
+ * (e.g. Gemini 2.5 Flash Image, Gemini 3 Pro Image Preview).
+ */
+const NANO_BANANA_ASPECT_RATIOS = [
+  { text: 'Square (1:1)', value: '1:1' },
+  { text: 'Photo Portrait (2:3)', value: '2:3' },
+  { text: 'Photo Landscape (3:2)', value: '3:2' },
+  { text: 'Portrait (3:4)', value: '3:4' },
+  { text: 'Standard (4:3)', value: '4:3' },
+  { text: 'Social Portrait (4:5)', value: '4:5' },
+  { text: 'Classic Print (5:4)', value: '5:4' },
+  { text: 'Vertical (9:16)', value: '9:16' },
+  { text: 'Widescreen (16:9)', value: '16:9' },
+  { text: 'Cinematic (21:9)', value: '21:9' },
+];
+
+/**
+ * Extended aspect ratios exclusively available on Gemini 3.1 Flash Image models.
+ * Includes extreme ratios (1:4, 1:8, 4:1, 8:1) not supported by other models.
+ */
+const NANO_BANANA_EXTENDED_ASPECT_RATIOS = [
+  { text: 'Square (1:1)', value: '1:1' },
+  { text: 'Tall Banner (1:4)', value: '1:4' },
+  { text: 'Skyscraper (1:8)', value: '1:8' },
+  { text: 'Photo Portrait (2:3)', value: '2:3' },
+  { text: 'Photo Landscape (3:2)', value: '3:2' },
+  { text: 'Portrait (3:4)', value: '3:4' },
+  { text: 'Banner (4:1)', value: '4:1' },
+  { text: 'Standard (4:3)', value: '4:3' },
+  { text: 'Social Portrait (4:5)', value: '4:5' },
+  { text: 'Classic Print (5:4)', value: '5:4' },
+  { text: 'Panoramic (8:1)', value: '8:1' },
+  { text: 'Vertical (9:16)', value: '9:16' },
+  { text: 'Widescreen (16:9)', value: '16:9' },
+  { text: 'Cinematic (21:9)', value: '21:9' },
+];
+
+/** Aspect ratio options for Imagen models. */
+const IMAGEN_ASPECT_RATIOS = [
+  { text: 'Square (1:1)', value: '1:1' },
+  { text: 'Vertical (9:16)', value: '9:16' },
+  { text: 'Widescreen (16:9)', value: '16:9' },
+  { text: 'Portrait (3:4)', value: '3:4' },
+  { text: 'Standard (4:3)', value: '4:3' },
+];
 
 const models = window['__LLM_MODELS__'] || {};
 
@@ -440,7 +533,7 @@ function redrawSelectBoxesByModel(model: string, savedData: Record<string, any>)
   const config = MODEL_SELECT_BOX_CONFIGS[modelFamily];
   if (!config) return;
 
-  // Iterate through all config properties (quality, outputFormat, etc.)
+  // Iterate through all config properties (quality, outputFormat, aspectRatio, etc.)
   const configProperties = Object.keys(config) as Array<keyof ModelSelectBoxConfig>;
 
   for (const propName of configProperties) {
@@ -451,6 +544,29 @@ function redrawSelectBoxesByModel(model: string, savedData: Record<string, any>)
       name: propName,
       options: propConfig.options,
       value: savedData[propName] || propConfig.defaultValue,
+    });
+  }
+
+  // For Nano Banana models, override model-specific options
+  if (modelFamily === MODEL_FAMILY.NANO_BANANA) {
+    // resolution: 0.5K available only for 3.1 Flash
+    const resolutionOptions = getNanoBananaResolutionOptions(model);
+    const currentSize = savedData.resolution;
+    const isValidSize = resolutionOptions.some((opt) => opt.value === currentSize);
+    redrawSelectBox({
+      name: 'resolution',
+      options: resolutionOptions,
+      value: isValidSize ? currentSize : resolutionOptions[0].value,
+    });
+
+    // aspectRatio: 3.1 Flash supports extended ratios; others use the standard set
+    const aspectRatioOptions = getNanoBananaAspectRatioOptions(model);
+    const currentRatio = savedData.aspectRatio;
+    const isValidRatio = aspectRatioOptions.some((opt) => opt.value === currentRatio);
+    redrawSelectBox({
+      name: 'aspectRatio',
+      options: aspectRatioOptions,
+      value: isValidRatio ? currentRatio : aspectRatioOptions[0].value,
     });
   }
 }
@@ -487,6 +603,10 @@ interface ModelSelectBoxConfig {
   };
   outputFormat?: {
     options: string[] | { text: string; value: string }[];
+    defaultValue: string;
+  };
+  aspectRatio?: {
+    options: { text: string; value: string }[];
     defaultValue: string;
   };
 }
@@ -529,8 +649,18 @@ const MODEL_SELECT_BOX_CONFIGS: Record<string, ModelSelectBoxConfig> = {
       defaultValue: 'standard',
     },
   },
-  [MODEL_FAMILY.GOOGLE_AI]: {
-    // Google AI doesn't have dynamic select boxes for now
+  [MODEL_FAMILY.NANO_BANANA]: {
+    aspectRatio: {
+      options: NANO_BANANA_ASPECT_RATIOS,
+      defaultValue: '1:1',
+    },
+    // resolution is handled separately in redrawSelectBoxesByModel (options differ per model)
+  },
+  [MODEL_FAMILY.IMAGEN]: {
+    aspectRatio: {
+      options: IMAGEN_ASPECT_RATIOS,
+      defaultValue: '1:1',
+    },
   },
 };
 
@@ -543,9 +673,58 @@ function getModelFamily(model: string): string | null {
   if (isGPTModel(model)) return MODEL_FAMILY.GPT;
   if (isRunwareModel(model)) return MODEL_FAMILY.RUNWARE;
   if (isDallEModel(model)) return MODEL_FAMILY.DALL_E;
-  if (isGoogleAIModel(model)) return MODEL_FAMILY.GOOGLE_AI;
+  if (isNanoBananaModel(model)) return MODEL_FAMILY.NANO_BANANA;
+  if (isGoogleAIModel(model)) return MODEL_FAMILY.IMAGEN;
 
   return null;
+}
+
+/**
+ * Returns true for Gemini native image generation models (Nano Banana family).
+ * These models have "gemini" and "image" in their ID.
+ */
+function isNanoBananaModel(model: string): boolean {
+  const cleanModel = model.replace('smythos/', '').toLowerCase();
+  return isGoogleAIModel(model) && cleanModel.includes('gemini') && cleanModel.includes('image');
+}
+
+/**
+ * Returns true for Google Imagen models (imagegeneration / imagen in ID).
+ */
+function isImagenModel(model: string): boolean {
+  const cleanModel = model.replace('smythos/', '').toLowerCase();
+  return (
+    isGoogleAIModel(model) &&
+    (cleanModel.includes('imagen') || cleanModel.includes('imagegeneration'))
+  );
+}
+
+/**
+ * Returns the resolution select options for a given Nano Banana model.
+ * 0.5K is available exclusively for the Gemini 3.1 Flash image model.
+ */
+function getNanoBananaResolutionOptions(model: string): { text: string; value: string }[] {
+  const baseOptions = [
+    { text: '1K', value: '1K' },
+    { text: '2K', value: '2K' },
+    { text: '4K', value: '4K' },
+  ];
+  if (/3\.1.*flash.*image/i.test(model.replace('smythos/', ''))) {
+    return [{ text: '0.5K', value: '0.5K' }, ...baseOptions];
+  }
+  return baseOptions;
+}
+
+/**
+ * Returns the aspect ratio options for a given Nano Banana model.
+ * Gemini 3.1 Flash Image supports extended ratios (1:4, 1:8, 4:1, 8:1);
+ * all other Nano Banana models use the standard 10-ratio set.
+ */
+function getNanoBananaAspectRatioOptions(model: string): { text: string; value: string }[] {
+  if (/3\.1.*flash.*image/i.test(model.replace('smythos/', ''))) {
+    return NANO_BANANA_EXTENDED_ASPECT_RATIOS;
+  }
+  return NANO_BANANA_ASPECT_RATIOS;
 }
 
 function isGPTModel(model: string) {
