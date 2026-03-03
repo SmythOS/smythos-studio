@@ -31,23 +31,22 @@ export const oauthStrategyInitialization = async (req, res, next) => {
     // Prepare the configuration
     let config: any = { ...defaultConfig }; // Spread operator for shallow clone
 
-
     // Use session-stored configuration instead of URL parameters
     if (isOAuth2 && req.session.oauth2Config) {
       const oauth2Config = req.session.oauth2Config;
 
       // Handle template variables in session-stored config
       const configToProcess = { ...oauth2Config };
-      const mockReq = {
-        body: configToProcess,
-        _team: req._team,
-        session: req.session,
-      };
-
-      const processedConfig = await replaceTemplateVariablesOptimized(mockReq).catch((error) => {
-        console.log('Template processing error for OAuth2:', error);
-        return configToProcess;
+      const templateReq = Object.create(req, {
+        body: { value: configToProcess, writable: true, enumerable: true },
       });
+
+      const processedConfig = await replaceTemplateVariablesOptimized(templateReq).catch(
+        (error) => {
+          console.log('Template processing error for OAuth2:', error);
+          return configToProcess;
+        },
+      );
 
       config.clientID = processedConfig.clientID;
       config.clientSecret = processedConfig.clientSecret; // Safe from session + templates resolved
@@ -60,17 +59,17 @@ export const oauthStrategyInitialization = async (req, res, next) => {
 
       // Handle template variables in session-stored config
       const configToProcess = { ...oauth1Config };
-      const mockReq = {
-        body: configToProcess,
-        _team: req._team,
-        session: req.session,
-      };
+      const templateReq = Object.create(req, {
+        body: { value: configToProcess, writable: true, enumerable: true },
+      });
 
       //TODO : do we really need to handle template variables for oauth
-      const processedConfig = await replaceTemplateVariablesOptimized(mockReq).catch((error) => {
-        console.log('Template processing error for OAuth1:', error);
-        return configToProcess;
-      });
+      const processedConfig = await replaceTemplateVariablesOptimized(templateReq).catch(
+        (error) => {
+          console.log('Template processing error for OAuth1:', error);
+          return configToProcess;
+        },
+      );
 
       config.consumerKey = processedConfig.consumerKey;
       config.consumerSecret = processedConfig.consumerSecret; // Safe from session + templates resolved
@@ -95,7 +94,6 @@ export const oauthStrategyInitialization = async (req, res, next) => {
         }
       });
     }
-
 
     // Derive callback URL when missing
     if (!config['callbackURL']) {
