@@ -490,8 +490,8 @@ const NANO_BANANA_ASPECT_RATIOS = [
 ];
 
 /**
- * Extended aspect ratios exclusively available on Gemini 3.1 Flash Image models.
- * Includes extreme ratios (1:4, 1:8, 4:1, 8:1) not supported by other models.
+ * Extended aspect ratios available on Gemini Flash Image models version >= 3.1.
+ * Includes extreme ratios (1:4, 1:8, 4:1, 8:1) not supported by earlier models.
  */
 const NANO_BANANA_EXTENDED_ASPECT_RATIOS = [
   { text: 'Square (1:1)', value: '1:1' },
@@ -700,8 +700,20 @@ function isImagenModel(model: string): boolean {
 }
 
 /**
+ * Matches Gemini Flash Image models at version >= 3.1.
+ * Dynamically covers 3.1, 3.2, ..., 4, 4.0, 5, 5.x, etc. so no manual update
+ * is needed when new model versions are released.
+ *
+ * Version breakdown:
+ *   3\.([1-9]|\d{2,})      → 3.1, 3.2, ..., 3.9, 3.10, 3.11, ... (excludes bare "3" and "3.0")
+ *   ([4-9]|\d{2,})(\.\d+)? → 4, 4.0, 4.1, 5, 5.x, 10, 10.x, ... (minor version optional)
+ */
+const NANO_BANANA_EXTENDED_FLASH_IMAGE_PATTERN =
+  /^(smythos\/)?gemini-(3\.([1-9]|\d{2,})|([4-9]|\d{2,})(\.\d+)?).*flash.*image/i;
+
+/**
  * Returns the resolution select options for a given Nano Banana model.
- * 0.5K is available exclusively for the Gemini 3.1 Flash image model.
+ * 0.5K is available for Gemini Flash Image models version >= 3.1.
  */
 function getNanoBananaResolutionOptions(model: string): { text: string; value: string }[] {
   const baseOptions = [
@@ -709,7 +721,7 @@ function getNanoBananaResolutionOptions(model: string): { text: string; value: s
     { text: '2K', value: '2K' },
     { text: '4K', value: '4K' },
   ];
-  if (/3\.1.*flash.*image/i.test(model.replace('smythos/', ''))) {
+  if (NANO_BANANA_EXTENDED_FLASH_IMAGE_PATTERN.test(model)) {
     return [{ text: '0.5K', value: '0.5K' }, ...baseOptions];
   }
   return baseOptions;
@@ -717,11 +729,11 @@ function getNanoBananaResolutionOptions(model: string): { text: string; value: s
 
 /**
  * Returns the aspect ratio options for a given Nano Banana model.
- * Gemini 3.1 Flash Image supports extended ratios (1:4, 1:8, 4:1, 8:1);
- * all other Nano Banana models use the standard 10-ratio set.
+ * Gemini Flash Image models version >= 3.1 support extended ratios (1:4, 1:8, 4:1, 8:1);
+ * all earlier Nano Banana models use the standard ratio set.
  */
 function getNanoBananaAspectRatioOptions(model: string): { text: string; value: string }[] {
-  if (/3\.1.*flash.*image/i.test(model.replace('smythos/', ''))) {
+  if (NANO_BANANA_EXTENDED_FLASH_IMAGE_PATTERN.test(model)) {
     return NANO_BANANA_EXTENDED_ASPECT_RATIOS;
   }
   return NANO_BANANA_ASPECT_RATIOS;
