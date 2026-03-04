@@ -249,12 +249,13 @@ export class ImageGenerator extends Component {
     this.addEventListener('settingsOpened', this.handleSettingsOpened.bind(this));
   }
 
-  private async handleSettingsOpened(sidebar, component) {
+  private async handleSettingsOpened(sidebar: Element, component: Component) {
     if (component !== this) return;
 
     const form = sidebar.querySelector('form');
-    const modelSelect = form?.querySelector('#model') as HTMLSelectElement;
-    if (modelSelect) {
+    const modelSelect = form?.querySelector('#model');
+    if (modelSelect instanceof HTMLSelectElement) {
+      // Wait for the sidebar form to fully render before redrawing select boxes
       await delay(100);
       redrawSelectBoxesByModel(modelSelect.value, this.data);
     }
