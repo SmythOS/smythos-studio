@@ -44,6 +44,7 @@ export type TChatError = {
   type: TErrorType;
   originalError?: Error | unknown;
   isAborted?: boolean;
+  isRetryable?: boolean;
 };
 
 export type TAPIConfig = {

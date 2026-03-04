@@ -178,11 +178,14 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
     }
 
     setMessages((prev) => {
-      const filtered = prev.filter((msg) => msg.type !== MESSAGE_TYPES.LOADING);
+      const filtered = prev.filter(
+        (msg) => msg.type !== MESSAGE_TYPES.LOADING && msg.type !== MESSAGE_TYPES.META,
+      );
       const errorMessage: TChatMessage = {
         id: Date.now() + Math.random(),
         type: MESSAGE_TYPES.ERROR,
         content: error.message || 'An error occurred',
+        isRetryable: error.isRetryable,
         updatedAt: Date.now(),
       };
       return [...filtered, errorMessage];
@@ -209,23 +212,23 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
 
           const userMessage: TChatMessage | null = shouldSetUserMessage
             ? {
-              id: msgCount + 1,
-              type: MESSAGE_TYPES.USER,
-              content: message?.trim() || '',
-              attachments:
-                currentAttachments.length > 0
-                  ? currentAttachments.map((a) => ({
-                    id: a.id,
-                    name: a.name,
-                    type: a.type,
-                    size: a.size,
-                    url: a.url,
-                    blobUrl: a.blobUrl,
-                    file: a.file,
-                  }))
-                  : undefined,
-              updatedAt: now,
-            }
+                id: msgCount + 1,
+                type: MESSAGE_TYPES.USER,
+                content: message?.trim() || '',
+                attachments:
+                  currentAttachments.length > 0
+                    ? currentAttachments.map((a) => ({
+                        id: a.id,
+                        name: a.name,
+                        type: a.type,
+                        size: a.size,
+                        url: a.url,
+                        blobUrl: a.blobUrl,
+                        file: a.file,
+                      }))
+                    : undefined,
+                updatedAt: now,
+              }
             : null;
 
           const loadingMessage: TChatMessage = {
@@ -247,16 +250,16 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
             attachments:
               currentAttachments.length > 0
                 ? currentAttachments
-                  .filter((a) => a.file)
-                  .map((a) => ({
-                    id: `${Date.now()}_${Math.random()}`,
-                    file: a.file as File,
-                    name: a.name,
-                    type: a.type,
-                    size: a.size,
-                    url: a.url || '',
-                    metadata: {},
-                  }))
+                    .filter((a) => a.file)
+                    .map((a) => ({
+                      id: `${Date.now()}_${Math.random()}`,
+                      file: a.file as File,
+                      name: a.name,
+                      type: a.type,
+                      size: a.size,
+                      url: a.url || '',
+                      metadata: {},
+                    }))
                 : undefined,
             agentId,
             chatId,
@@ -287,6 +290,7 @@ export const useChatState = (options: TChatStateConfig): IChatState => {
         );
       } catch (error) {
         console.error('Error in sendMessage:', error); // eslint-disable-line no-console
+        // onStreamError(error as TChatError);
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
