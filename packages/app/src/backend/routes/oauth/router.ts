@@ -195,8 +195,6 @@ router.post(
       }
 
       if (OAuthServicesRegistry.isOAuth2Service(service) || service === 'oauth2') {
-        // OAuth2 flow - Store sensitive data in session, return clean URL
-
         // Validate required OAuth2 fields
         if (!clientID || !clientSecret) {
           return res
@@ -204,26 +202,9 @@ router.post(
             .json({ error: 'clientID and clientSecret are required for OAuth2' });
         }
 
-        // Store OAuth2 configuration in session (server-side only)
-        req.session.oauth2Config = {
-          service,
-          clientID,
-          //TODO: Do we need a stronger protection for this?
-          clientSecret, // Safe in session
-          authorizationURL,
-          tokenURL,
-          scope,
-          callbackURL: oauth2CallbackURL,
-        };
-
-        // Return internal URL that will trigger Passport (no secrets exposed)
-        // Let Passport handle state management internally
         const authUrl = `/oauth/${service}`;
-
         return res.json({ authUrl });
       } else if (OAuthServicesRegistry.isOAuth1Service(service) || service === 'oauth1') {
-        // OAuth1 flow - Store sensitive data in session
-
         // Validate required OAuth1 fields
         if (!consumerKey || !consumerSecret) {
           return res
@@ -231,23 +212,7 @@ router.post(
             .json({ error: 'consumerKey and consumerSecret are required for OAuth1' });
         }
 
-        // Store OAuth1 configuration in session (server-side only)
-        req.session.oauth1Config = {
-          service,
-          consumerKey,
-          //TODO: Do we need a stronger protection for this?
-          consumerSecret, //Safe in session
-          requestTokenURL,
-          accessTokenURL,
-          userAuthorizationURL,
-          callbackURL: oauth1CallbackURL,
-          scope,
-        };
-
-        // Return internal URL that will trigger Passport (no secrets exposed)
-        // Let Passport handle state management internally
         const authUrl = `/oauth/${service}`;
-
         return res.json({ authUrl });
       } else {
         // Unsupported service
