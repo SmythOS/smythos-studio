@@ -1,8 +1,18 @@
-Review code changes on the current branch against origin/main.
+---
+description: Run a code review of changes on the current branch against origin/dev
+disable-model-invocation: true
+---
+
+<!-- Why this exists instead of built-in /review:
+  1. Pre-PR workflow — diffs against origin/dev before pushing, not PR-based.
+  2. Project-specific setup steps (test commands, audit, ignore lists).
+  3. Enforces project-specific CLAUDE.md rules with custom confidence thresholds. -->
+
+Run a code review of changes on the current branch against origin/dev.
 
 ## Setup
 
-1. Run: `git diff $(git merge-base HEAD origin/main) HEAD`
+1. Run: `git fetch origin dev && git diff $(git merge-base HEAD origin/dev) HEAD`
 2. If the diff exceeds 2000 lines, summarize changes per file first, then deep-dive into critical files.
 
 ## Ignore List
@@ -48,15 +58,15 @@ Check every changed file against these categories:
 ## Output Format
 
 For each issue found, report:
-- **File:line** — exact location
-- **Severity** — Critical / Warning / Nit
-- **Rule** — which rule or checklist item was violated
-- **Issue** — what's wrong
-- **Fix** — how to remediate
+- **Severity**: Critical / High / Medium / Low
+- **File**: path and line number
+- **Rule**: which rule or checklist item was violated
+- **Issue**: what's wrong
+- **Fix**: how to remediate
 
 ## Summary
 
 End with:
-1. Total issues by severity (Critical / Warning / Nit)
+1. Total issues by severity
 2. Overall verdict: **Approve** or **Request Changes**
 3. If Request Changes, list the blocking issues that must be fixed

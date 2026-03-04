@@ -1,8 +1,20 @@
-Run a security-focused review of changes on the current branch against origin/main.
+---
+description: Run a security-focused review of changes on the current branch against origin/dev
+disable-model-invocation: true
+---
+
+<!-- Why this exists instead of built-in /security-review:
+  1. Pre-PR workflow — diffs against origin/dev before pushing, not PR-based.
+  2. Zero confidence filtering — reports ALL findings (built-in filters at 80%).
+  3. Broader coverage — includes ReDoS, prototype pollution, and project-specific
+     checks (e.g. Vault subsystem bypasses) that the built-in excludes.
+  4. Runs pnpm/npm audit as an explicit step. -->
+
+Run a security-focused review of changes on the current branch against origin/dev.
 
 ## Setup
 
-1. Run: `git diff $(git merge-base HEAD origin/main) HEAD`
+1. Run: `git fetch origin dev && git diff $(git merge-base HEAD origin/dev) HEAD`
 2. Run: `pnpm audit` to check for known vulnerabilities in dependencies.
 
 ## Security Checks
