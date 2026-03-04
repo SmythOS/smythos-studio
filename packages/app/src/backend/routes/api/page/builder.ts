@@ -171,8 +171,9 @@ router.get('/keys/prefix/:keyName/exists', includeTeamDetails, async (req, res) 
   const team = req?._team?.id;
 
   const keys = await vault.get({ team }, req);
+  const keyNameLower = keyName.toLowerCase();
   const keyNames = Object.values(keys).filter((keyEntry: { name: string }) =>
-    keyEntry.name?.startsWith(keyName),
+    keyEntry.name?.toLowerCase().startsWith(keyNameLower),
   );
 
   /*
