@@ -82,6 +82,20 @@ export const REASONING_EFFORTS = [
     ],
   },
   {
+    // GPT 5.3+ and all future major versions (6, 6.x, 7, 7.x, ...) support 'none', 'low', 'medium', 'high'
+    // Dynamically matches all current and future versions beyond 5.2
+    // Minor version is optional to cover models like gpt-6, gpt-6-turbo, smythos/gpt-5.5-pro, etc.
+    // Default is 'none' (per OpenAI API default)
+    pattern: /^(smythos\/)?gpt-(5\.([3-9]|\d{2,})|([6-9]|[1-9]\d+)(\.\d+)?)/i,
+    defaultValue: 'none',
+    options: [
+      { text: 'None', value: 'none' },
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+    ],
+  },
+  {
     pattern: /^(gpt|smythos\/gpt)/i,
     defaultValue: 'minimal',
     options: [
