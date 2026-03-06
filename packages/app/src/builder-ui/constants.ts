@@ -18,9 +18,10 @@ export const COMPONENT_STATE_KEY = 'component:state';
 export const REASONING_EFFORTS = [
   {
     // Claude Opus/Sonnet/Haiku version >= 4.6 supports 'low', 'medium', 'high', 'max' effort
-    // Dynamically matches all current and future versions (4-6, 4-7, 5-0, 5-9, 10-3, etc.)
+    // Dynamically matches all current and future versions (4-6, 4-7, 5, 5-1, 6, 6-1, 10-3, etc.)
     // Default is 'high' (same as Anthropic API default)
-    pattern: /^(smythos\/)?claude-(opus|sonnet|haiku)-(4-([6-9]|[1-9]\d+)|([5-9]|[1-9]\d+)-\d+)/i,
+    pattern:
+      /^(smythos\/)?claude-(opus|sonnet|haiku)-(4-([6-9]|[1-9]\d+)|([5-9]|[1-9]\d+)(-\d+)?)/i,
     defaultValue: 'high',
     options: [
       { text: 'Low', value: 'low' },
@@ -41,9 +42,9 @@ export const REASONING_EFFORTS = [
     ],
   },
   {
-    // Gemini 3 models support 'low' and 'high' reasoning effort
-    // 'medium' is coming soon but not available at launch
-    pattern: /^(gemini-3|smythos\/gemini-3)/i,
+    // Gemini 3+ models support 'low' and 'high' reasoning effort
+    // Matches gemini-3, gemini-3.1-flash, gemini-4-pro, gemini-5-flash, etc.
+    pattern: /^(smythos\/)?gemini-([3-9]|[1-9]\d+)([.\-].*)?$/i,
     options: [
       { text: 'Low', value: 'low' },
       // { text: 'Medium', value: 'medium' }, // Coming soon, will be enabled when released
@@ -69,6 +70,17 @@ export const REASONING_EFFORTS = [
     ],
   },
   {
+    // GPT 5.2+ pro and all future major version pro models support 'medium', 'high', 'xhigh' only (no none/low)
+    // Must come before the non-pro catch-alls to avoid being matched by broader patterns
+    pattern: /^(smythos\/)?gpt-(5\.([2-9]|\d{2,})|([6-9]|[1-9]\d+)(\.\d+)?)-pro/i,
+    defaultValue: 'medium',
+    options: [
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+      { text: 'XHigh', value: 'xhigh' },
+    ],
+  },
+  {
     // GPT-5.2 models support 'none', 'low', 'medium', 'high', 'xhigh'
     // 'low' is set as the default (first option)
     pattern: /^(gpt-5\.2|smythos\/gpt-5\.2)/i,
@@ -82,9 +94,22 @@ export const REASONING_EFFORTS = [
     ],
   },
   {
-    // GPT 5.3+ and all future major versions (6, 6.x, 7, 7.x, ...) support 'none', 'low', 'medium', 'high'
-    // Dynamically matches all current and future versions beyond 5.2
-    // Minor version is optional to cover models like gpt-6, gpt-6-turbo, smythos/gpt-5.5-pro, etc.
+    // GPT-5.4 supports 'none', 'low', 'medium', 'high', 'xhigh'
+    // Must come before the 5.3+ catch-all to avoid being matched by the broader pattern
+    pattern: /^(smythos\/)?gpt-5\.4/i,
+    defaultValue: 'none',
+    options: [
+      { text: 'None', value: 'none' },
+      { text: 'Low', value: 'low' },
+      { text: 'Medium', value: 'medium' },
+      { text: 'High', value: 'high' },
+      { text: 'XHigh', value: 'xhigh' },
+    ],
+  },
+  {
+    // GPT 5.3+ and all future major versions (6, 6.x, 7, 7.x, ...) support 'none', 'low', 'medium', 'high', 'xhigh'
+    // Dynamically matches all current and future versions beyond 5.4 (5.4 has its own pattern above)
+    // Minor version is optional to cover models like gpt-6, gpt-6-turbo, smythos/gpt-5.5, etc.
     // Default is 'none' (per OpenAI API default)
     pattern: /^(smythos\/)?gpt-(5\.([3-9]|\d{2,})|([6-9]|[1-9]\d+)(\.\d+)?)/i,
     defaultValue: 'none',
@@ -93,6 +118,7 @@ export const REASONING_EFFORTS = [
       { text: 'Low', value: 'low' },
       { text: 'Medium', value: 'medium' },
       { text: 'High', value: 'high' },
+      { text: 'XHigh', value: 'xhigh' },
     ],
   },
   {
