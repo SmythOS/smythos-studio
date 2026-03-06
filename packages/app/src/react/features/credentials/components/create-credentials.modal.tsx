@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@src/react/shared/components/ui/select';
+import { Switch } from '@src/react/shared/components/ui/switch';
 import React, { useEffect, useMemo, useState } from 'react';
 import { credentialsClient } from '../clients/credentials.client';
 import credentialsSchema from '../credentials-schema.json';
@@ -38,10 +39,11 @@ import { PasswordInput } from './password-input';
 interface CredentialField {
   key: string;
   label: string;
-  type: 'string' | 'password' | 'number' | 'email' | 'url' | 'textarea';
+  type: 'string' | 'password' | 'number' | 'email' | 'url' | 'textarea' | 'toggle';
   required: boolean;
   placeholder?: string;
   default?: string;
+  description?: string;
 }
 
 /**
@@ -340,7 +342,7 @@ export function CreateCredentialsModal({
 
       if (selectedProvider) {
         selectedProvider.fields.forEach((field) => {
-          const value = credentials[field.key] || '';
+          const value = credentials[field.key] || field.default || '';
           credentialsWithMetadata[field.key] = {
             value,
             sensitive: field.type === 'password',
@@ -549,7 +551,30 @@ export function CreateCredentialsModal({
                   {/* Dynamic Fields */}
                   {selectedProvider.fields.map((field) => (
                     <div key={field.key}>
-                      {field.type === 'textarea' ? (
+                      {field.type === 'toggle' ? (
+                        <div className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2.5">
+                          <div className="flex flex-col gap-0.5">
+                            <label
+                              htmlFor={`toggle-${field.key}`}
+                              className="text-sm font-medium text-gray-700 cursor-pointer"
+                            >
+                              {field.label}
+                            </label>
+                            {field.description && (
+                              <span className="text-xs text-gray-500">{field.description}</span>
+                            )}
+                          </div>
+                          <Switch
+                            id={`toggle-${field.key}`}
+                            className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-200"
+                            checked={credentials[field.key] === 'true'}
+                            onCheckedChange={(checked) =>
+                              handleCredentialChange(field.key, String(checked))
+                            }
+                            disabled={isProcessing || isResolvingVaultKeys}
+                          />
+                        </div>
+                      ) : field.type === 'textarea' ? (
                         <TextArea
                           label={field.label}
                           required={field.required}

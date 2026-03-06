@@ -3,6 +3,24 @@ import passport from 'passport';
 import { replaceTemplateVariablesOptimized } from '../routes/oauth/helper/oauthHelper';
 import { strategyConfig } from '../routes/oauth/helper/strategyConfig';
 
+/**
+ * Hosts that require HTTP Basic auth for the token exchange instead of POST body params.
+ * Parsed via URL hostname for robust matching.
+ */
+const BASIC_AUTH_HOSTS = ['twitter.com', 'api.twitter.com', 'x.com', 'api.x.com'];
+
+/** Checks whether the token endpoint requires HTTP Basic auth by inspecting URL hostnames. */
+function requiresBasicAuthHeader(body: Record<string, string>): boolean {
+  const urlsToCheck = [body.authorizationURL, body.tokenURL].filter(Boolean);
+  return urlsToCheck.some((rawUrl) => {
+    try {
+      return BASIC_AUTH_HOSTS.includes(new URL(rawUrl).hostname);
+    } catch {
+      return false;
+    }
+  });
+}
+
 export const oauthStrategyInitialization = async (req, res, next) => {
   const { service, scope } = req.body;
   if (!service) {
@@ -39,6 +57,28 @@ export const oauthStrategyInitialization = async (req, res, next) => {
         config[key] = value;
       }
     });
+
+    if (isOAuth2) {
+      const userEnabledPkce = updatedReqBody.pkce === 'true' || updatedReqBody.pkce === true;
+      const hostRequiresBasicAuth = requiresBasicAuthHeader(updatedReqBody);
+
+      // Enable PKCE when the user toggled it on, or when the provider is known to require it
+      if (userEnabledPkce || hostRequiresBasicAuth) {
+        console.log('will  use PKCE');
+        config.pkce = true;
+      } else {
+        console.log('will not use PKCE');
+      }
+
+      // Some providers (e.g. Twitter/X, Spotify) require credentials as HTTP Basic auth
+      // header on the token exchange rather than POST body params
+      if (hostRequiresBasicAuth) {
+        const basicCredentials = Buffer.from(`${config.clientID}:${config.clientSecret}`).toString(
+          'base64',
+        );
+        config.customHeaders = { Authorization: `Basic ${basicCredentials}` };
+      }
+    }
 
     // Derive callback URL when missing
     if (!config['callbackURL']) {
