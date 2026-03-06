@@ -81,37 +81,10 @@ export const REASONING_EFFORTS = [
     ],
   },
   {
-    // GPT-5.2 models support 'none', 'low', 'medium', 'high', 'xhigh'
-    // 'low' is set as the default (first option)
-    pattern: /^(gpt-5\.2|smythos\/gpt-5\.2)/i,
-    defaultValue: 'none',
-    options: [
-      { text: 'None', value: 'none' },
-      { text: 'Low', value: 'low' },
-      { text: 'Medium', value: 'medium' },
-      { text: 'High', value: 'high' },
-      { text: 'XHigh', value: 'xhigh' },
-    ],
-  },
-  {
-    // GPT-5.4 supports 'none', 'low', 'medium', 'high', 'xhigh'
-    // Must come before the 5.3+ catch-all to avoid being matched by the broader pattern
-    pattern: /^(smythos\/)?gpt-5\.4/i,
-    defaultValue: 'none',
-    options: [
-      { text: 'None', value: 'none' },
-      { text: 'Low', value: 'low' },
-      { text: 'Medium', value: 'medium' },
-      { text: 'High', value: 'high' },
-      { text: 'XHigh', value: 'xhigh' },
-    ],
-  },
-  {
-    // GPT 5.3+ and all future major versions (6, 6.x, 7, 7.x, ...) support 'none', 'low', 'medium', 'high', 'xhigh'
-    // Dynamically matches all current and future versions beyond 5.4 (5.4 has its own pattern above)
+    // GPT 5.2+ and all future major versions (6, 6.x, 7, 7.x, ...) support 'none', 'low', 'medium', 'high', 'xhigh'
     // Minor version is optional to cover models like gpt-6, gpt-6-turbo, smythos/gpt-5.5, etc.
     // Default is 'none' (per OpenAI API default)
-    pattern: /^(smythos\/)?gpt-(5\.([3-9]|\d{2,})|([6-9]|[1-9]\d+)(\.\d+)?)/i,
+    pattern: /^(smythos\/)?gpt-(5\.([2-9]|\d{2,})|([6-9]|[1-9]\d+)(\.\d+)?)/i,
     defaultValue: 'none',
     options: [
       { text: 'None', value: 'none' },
