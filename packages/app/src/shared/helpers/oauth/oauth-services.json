@@ -51,6 +51,21 @@
         ]
       }
     },
+    "Twitter/X OAuth2": {
+      "displayName": "Twitter/X OAuth2",
+      "internalName": "twitter_oauth2",
+      "type": "oauth2",
+      "category": "predefined",
+      "config": {
+        "authorizationURL": "https://twitter.com/i/oauth2/authorize",
+        "tokenURL": "https://api.twitter.com/2/oauth2/token",
+        "scope": "tweet.read tweet.write users.read offline.access"
+      },
+      "callbackPath": "/oauth/twitter_oauth2/callback",
+      "validation": {
+        "required": ["clientID", "clientSecret", "authorizationURL", "tokenURL", "scope"]
+      }
+    },
     "Custom OAuth2.0": {
       "displayName": "Custom OAuth2.0",
       "internalName": "oauth2",

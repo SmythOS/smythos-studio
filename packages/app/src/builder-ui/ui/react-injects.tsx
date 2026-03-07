@@ -20,6 +20,10 @@ import {
 } from '@src/react/features/builder/contexts/deployment-sidebar.context';
 import ComponentInputEditor from '@src/react/features/builder/modals/ComponentInputEditor';
 import { MobileHandler } from '@src/react/features/builder/modals/mobile-warning-modal';
+import {
+  CreateCredentialsModal,
+  type CredentialConnection,
+} from '@src/react/features/credentials/components/create-credentials.modal';
 import ConfirmModal from '@src/react/shared/components/ui/modals/ConfirmModal';
 import { Spinner } from '@src/react/shared/components/ui/spinner';
 import { TooltipProvider } from '@src/react/shared/components/ui/tooltip';
@@ -351,3 +355,69 @@ export function renderMobileHandler({ rootID }: { rootID: string }) {
   const root = createRoot(container);
   root.render(<MobileHandler platformName="AI Agent Builder" showDismissOption={true} />);
 }
+
+/**
+ * Renders OAuth Credentials Modal for APICall component
+ * @param config Configuration for the OAuth credential modal
+ * @returns Promise that resolves with the saved credential or rejects on cancel
+ */
+export async function renderOAuthCredentialsModal({
+  editConnection,
+  onSuccess,
+  onClose,
+}: {
+  editConnection?: CredentialConnection;
+  onSuccess?: (data: {
+    id?: string;
+    name: string;
+    provider: string;
+    credentials: Record<string, string>;
+    isEdit: boolean;
+  }) => void;
+  onClose?: () => void;
+}): Promise<any> {
+  const { root, id } = createOneTimeRoot('oauth-credentials-modal');
+
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      root.unmount();
+      const modalRoot = document.getElementById(id);
+      if (modalRoot) {
+        modalRoot.remove();
+      }
+    };
+
+    const handleSuccess = (data: {
+      id?: string;
+      name: string;
+      provider: string;
+      credentials: Record<string, string>;
+      isEdit: boolean;
+    }) => {
+      if (onSuccess) onSuccess(data);
+      cleanup();
+      resolve(data);
+    };
+
+    const handleClose = () => {
+      if (onClose) onClose();
+      cleanup();
+      reject(new Error('Modal closed'));
+    };
+
+    root.render(
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+          <CreateCredentialsModal
+            isOpen={true}
+            onClose={handleClose}
+            onSuccess={handleSuccess}
+            group="oauth_connections_creds"
+            editConnection={editConnection}
+          />
+        </TooltipProvider>
+      </QueryClientProvider>,
+    );
+  });
+}
+
