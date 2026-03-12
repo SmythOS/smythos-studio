@@ -37,6 +37,11 @@ export const V4_ENTERPRISE_PLANS = [
   'Business Unlimited',
 ];
 
+export const EXPORT_LOGS_PLANS = [
+  ...V4_ENTERPRISE_PLANS,
+  'Startup',
+];
+
 export const WIDGETS_PRICING_ALERT_TEXT = {
   LOGS: 'You need a subscription to view logs.',
   CAPABILITIES: 'You need a subscription to view agent skills.',
