@@ -107,7 +107,6 @@ export class ChatAPIClient {
         ...headers,
       };
 
-
       const requestBody = { message, attachments, enableMetaMessages: true };
 
       // Make streaming request
@@ -276,40 +275,57 @@ export class ChatAPIClient {
    * @returns Structured chat error
    */
   private handleStreamError(error: unknown, signal: AbortSignal): TChatError {
-    // Check if this is an abort error
     if (error instanceof DOMException && error.name === 'AbortError') {
       return {
         message: signal.aborted ? 'Request was cancelled' : 'Stream was aborted',
         type: 'abort',
         isAborted: true,
+        isRetryable: false,
         originalError: error,
       };
     }
 
-    // Handle network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return {
         message: `Network request failed: ${error.message}`,
         type: 'network',
+        isRetryable: true,
         originalError: error,
       };
     }
 
-    // Handle generic errors
     if (error instanceof Error) {
       return {
         message: error.message || 'An unexpected error occurred',
         type: 'system',
+        isRetryable: true,
         originalError: error,
       };
     }
 
-    // Unknown error type
+    // Plain objects — TChatError thrown from processChunk / HTTP error handlers
+    const raw = error as TChatError;
+    const rawMessage = typeof raw?.message === 'string' ? raw.message : '';
+    const friendly = this.toUserFriendlyMessage(rawMessage);
+
     return {
-      message: 'An unexpected error occurred. Please try again.',
-      type: 'system',
-      originalError: error,
+      message: friendly.message || 'An unexpected error occurred. Please try again.',
+      type: raw?.type ?? 'system',
+      isRetryable: friendly.isRetryable,
+      originalError: raw?.originalError ?? error,
     };
+  }
+
+  private toUserFriendlyMessage(message: string): { message: string; isRetryable: boolean } {
+    if (/maximum context length/i.test(message)) {
+      return {
+        message:
+          'This conversation has reached its memory limit. Please start a new chat to keep things running smoothly.',
+        isRetryable: false,
+      };
+    }
+
+    return { message, isRetryable: true };
   }
 
   /**
