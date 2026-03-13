@@ -21,7 +21,7 @@ const LARGE_TEXT_THRESHOLD = 4000;
 const TEXTAREA_MAX_HEIGHT = 300;
 
 export const Input = () => {
-  const { refs, files: filesData, chat, agent } = useChatStores();
+  const { refs, files: filesData, chat, agent, pageState } = useChatStores();
   const [message, setMessage] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export const Input = () => {
   );
 
   const handleSubmit = useCallback((): void => {
-    if (isChatbotDisabled || uploading) return;
+    if (isChatbotDisabled || uploading || pageState === 'loading') return;
     if (isStreaming) return stopStreaming();
 
     const trimmedMessage = message.trim();
@@ -80,7 +80,18 @@ export const Input = () => {
         forceScrollToBottomImmediate({ behavior: 'smooth', delay: 0 });
       }, 150);
     }
-  }, [isChatbotDisabled, uploading, isStreaming, stopStreaming, message, attachments.length, sendMessage, clear, inputRef]);
+  }, [
+    isChatbotDisabled,
+    uploading,
+    pageState,
+    isStreaming,
+    stopStreaming,
+    message,
+    attachments.length,
+    sendMessage,
+    clear,
+    inputRef,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
