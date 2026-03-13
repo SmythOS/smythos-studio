@@ -2,7 +2,6 @@ import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.
 import { mapStatusCodeToMessage } from '@src/shared/helpers/oauth/oauth.utils';
 import { CredentialConnection } from '@src/shared/types/credentials.types';
 import axios from 'axios';
-import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
@@ -228,48 +227,9 @@ router.post(
 router.get('/:provider', async (req, res, next) => {
   try {
     const scopes = req?.session?.scopes?.split(' ') || [];
-    const strategyOptions: any = {
-      state: { beep: `${crypto.randomUUID()}` }, // Let Passport handle state internally
-    };
+    const strategyOptions: Record<string, unknown> = {};
 
-    // Check if it's Twitter OAuth
-    const isTwitter = [
-      req.session?.oauth_info?.authorizationURL,
-      req.session?.oauth_info?.tokenURL,
-    ].some((url) => url?.includes('x.com') || url?.includes('twitter.com'));
-
-    if (isTwitter && req.session.strategyType === 'oauth2') {
-      // Generate state for CSRF protection
-      const state = crypto.randomBytes(32).toString('base64url');
-
-      // Generate code verifier for PKCE
-      const codeVerifier = crypto.randomBytes(32).toString('base64url');
-
-      // Generate code challenge using SHA-256
-      const codeChallenge = await crypto.subtle
-        .digest('SHA-256', new TextEncoder().encode(codeVerifier))
-        .then((buffer) => Buffer.from(buffer).toString('base64url'));
-
-      // Store verifier and state in session for callback validation
-      req.session.code_verifier = codeVerifier;
-      req.session.oauth_state = state;
-
-      // Construct Twitter-specific OAuth URL
-      const twitterAuthUrl = new URL('https://x.com/i/oauth2/authorize');
-      const queryParams = new URLSearchParams({
-        response_type: 'code',
-        client_id: req.session.oauth_info.clientID,
-        redirect_uri: req.session.oauth_info.oauth2CallbackURL,
-        scope: scopes.join(' '),
-        state: state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-      });
-
-      return res.redirect(`${twitterAuthUrl.toString()}?${queryParams.toString()}`);
-    }
-    // For other providers, use passport authentication
-    else if (req.session.strategyType === 'oauth2') {
+    if (req.session.strategyType === 'oauth2') {
       strategyOptions.scope = scopes;
       strategyOptions.accessType = 'offline';
       strategyOptions.prompt = 'consent';
@@ -284,9 +244,6 @@ router.get('/:provider', async (req, res, next) => {
         console.error('Authentication failed:', info.message);
         return res.status(401).send('Authentication failed.');
       }
-      // Authentication success
-      // Handle user as needed
-      // For example, redirect or respond with a message
     })(req, res, next);
   } catch (error) {
     console.error('Error during authentication process:', error?.message);
@@ -342,127 +299,57 @@ function getCallbackOrigin(req: express.Request): string {
 }
 
 router.get('/:provider/callback', async (req, res, next) => {
-  const { state, code } = req.query;
-
-  // Detect Twitter/X based on the authorization URL in session
-  const isTwitterAuth =
-    req.session?.oauth_info?.authorizationURL?.includes('x.com') ||
-    req.session?.oauth_info?.authorizationURL?.includes('twitter.com');
-
-  // Handle Twitter OAuth2
-  if (isTwitterAuth && req.session.strategyType === 'oauth2') {
-    // Verify state parameter
-    if (!state || state !== req.session.oauth_state) {
-      console.error('State parameter mismatch or missing');
-      return res.status(401).send(`
-        <script>
-          window.opener.postMessage({
-              type: 'error',
-              data: { message: 'Invalid state parameter. Possible CSRF attack.' }
-          }, '${getCallbackOrigin(req)}');
-          window.close();
-        </script>`);
-    }
-
-    // If state is valid, exchange the code for tokens using PKCE
+  passport.authenticate(req.session.strategyType, async (err: unknown, user: unknown, info: { message?: string }) => {
     try {
-      const tokenResponse = await axios.post(
-        'https://api.twitter.com/2/oauth2/token',
-        new URLSearchParams({
-          code: code as string,
-          grant_type: 'authorization_code',
-          client_id: req.session.oauth_info.clientID,
-          redirect_uri: req.session.oauth_info.oauth2CallbackURL,
-          code_verifier: req.session.code_verifier,
-        }).toString(),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${Buffer.from(
-              `${req.session.oauth_info.clientID}:${req.session.oauth_info.clientSecret}`,
-            ).toString('base64')}`,
-          },
-        },
-      );
+      if (!req.session || !req.session.strategyType) {
+        throw new Error('Session or strategy type is not correctly set.');
+      }
+      if (err || !user) {
+        console.error(
+          `Authentication failed for provider ${req.session.strategyType}. Error:`,
+          err,
+          `Info:`,
+          info,
+        );
 
-      // Create user object with token response
-      const user = {
-        accessToken: tokenResponse.data.access_token,
-        refreshToken: tokenResponse.data.refresh_token,
-        params: {
-          expires_in: tokenResponse.data.expires_in,
-        },
-      };
+        let errorDescription = 'Authentication failed.';
+        let errorCode = 'unknown_error';
 
-      // Store tokens and complete authentication
+        if (err) {
+          const oauthErr = err as { message?: string; code?: string; oauthError?: { statusCode?: number } };
+          errorDescription = oauthErr.message || errorDescription;
+          errorCode = oauthErr.code || info?.message || errorCode;
+
+          if (oauthErr.oauthError && typeof oauthErr.oauthError.statusCode === 'number') {
+            const statusCode = oauthErr.oauthError.statusCode;
+            errorDescription = mapStatusCodeToMessage(statusCode);
+            errorCode = `HTTP ${statusCode}`;
+          }
+        } else if (info && typeof info.message === 'string') {
+          errorDescription = info.message;
+        }
+
+        throw new Error(`${errorDescription} (Error code: ${errorCode})`);
+      }
+
       await handleTokenStorage(req.session, user, req);
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error?.message);
+      const errorObj = error as Error;
+      console.error('Error in callback route:', errorObj.message);
+      const errorMessage = `${errorObj.message || 'Unknown error'}.`;
       const origin = getCallbackOrigin(req);
-      res.send(`
+      const errorScript = `
         <script>
           window.opener.postMessage({
               type: 'error',
-              data: { message: 'Failed to exchange authorization code for tokens.' }
+              data: { message: '${errorMessage.replace(/'/g, "\\'")}' }
           }, '${origin}');
           window.close();
-        </script>`);
+        </script>`;
+      res.send(errorScript);
     }
-  } else {
-    // Existing passport authentication for other providers
-    passport.authenticate(req.session.strategyType, async (err: any, user, info) => {
-      try {
-        if (!req.session || !req.session.strategyType) {
-          throw new Error('Session or strategy type is not correctly set.');
-        }
-        if (err || !user) {
-          console.error(
-            `Authentication failed for provider ${req.session.strategyType}. Error:`,
-            err,
-            `Info:`,
-            info,
-          );
-
-          let errorDescription = 'Authentication failed.'; // Default error message
-          let errorCode = 'unknown_error';
-
-          if (err) {
-            errorDescription = err.message || errorDescription;
-            errorCode = err?.code || info?.message || errorCode;
-
-            // Handling detailed OAuth errors
-            if (err.oauthError && typeof err.oauthError.statusCode === 'number') {
-              const statusCode = err.oauthError.statusCode;
-              errorDescription = mapStatusCodeToMessage(statusCode); // Use the function to map status code to message
-              errorCode = `HTTP ${statusCode}`;
-            }
-          } else if (info && typeof info.message === 'string') {
-            // Fallback to using the info message if available
-            errorDescription = info.message;
-          }
-
-          throw new Error(`${errorDescription} (Error code: ${errorCode})`);
-        }
-
-        await handleTokenStorage(req.session, user, req);
-        handleSuccessfulAuthentication(req.session.strategyType, res);
-      } catch (error) {
-        console.error('Error in callback route:', error?.message);
-        const errorMessage = `${error.message || 'Unknown error'}.`;
-        const origin = getCallbackOrigin(req);
-        const errorScript = `
-          <script>
-            window.opener.postMessage({
-                type: 'error',
-                data: { message: '${errorMessage.replace(/'/g, "\\'")}' }
-            }, '${origin}');
-            window.close();
-          </script>`;
-        res.send(errorScript);
-      }
-    })(req, res, next);
-  }
+  })(req, res, next);
 });
 
 // Helper function for expiration calculation (if needed)
