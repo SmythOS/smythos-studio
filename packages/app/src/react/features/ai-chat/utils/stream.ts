@@ -166,7 +166,7 @@ export const parseChunk = (chunk: TStreamChunk) => {
   const errorMessage = chunk.error || (chunk.isError ? chunk.content : null);
 
   return {
-    hasContent: Boolean(chunk.content && chunk.content.trim() !== ''),
+    hasContent: Boolean(chunk.content != null && chunk.content !== ''),
     content: chunk.content || '',
     hasMetaMessages: Boolean(
       chunk.debugOn ||
