@@ -33,7 +33,7 @@ export function toastWithIcon(
   const notify = Metro.notify;
 
   // Default timeout of 5 seconds if not specified
-  const toastTimeout = options.timeout || 5000;
+  const toastTimeout = options.timeout ?? 5000;
 
   // Toast type specific settings
   const typeConfig = {
@@ -103,9 +103,7 @@ export function toastWithIcon(
               <div class="toast-progress-bar-container w-full h-1 mt-3 rounded-full overflow-hidden" style="background-color: ${
                 config.progressBarBackgroundColor
               };">
-                <div class="toast-progress-bar h-full" style="width: 100%; transition: width ${
-                  options.timeout || 5000
-                }ms linear; background-color: ${config.progressBarColor};"></div>
+                <div class="toast-progress-bar h-full" style="width: 100%; transition: width ${toastTimeout}ms linear; background-color: ${config.progressBarColor};"></div>
               </div>
               ${ctaButtonHtml}
             </div>
@@ -124,7 +122,7 @@ export function toastWithIcon(
     if (!toastElement) return;
 
     // Store the timeout duration for use in calculations
-    const timeoutDuration = options.timeout || 5000;
+    const timeoutDuration = toastTimeout;
 
     // Set up our own timeout for closing the toast
     let closeTimeout;
