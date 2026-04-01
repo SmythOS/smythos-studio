@@ -37,4 +37,5 @@ export type TChatMessage = {
   metaMessages?: TMetaMessage;
   updatedAt?: number;
   attachments?: TAttachment[];
+  isRetryable?: boolean;
 };

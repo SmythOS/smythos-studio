@@ -25,7 +25,7 @@ export const Chat: FC<IProps> = memo((props) => {
     case MESSAGE_TYPES.INFO:
       return <Info message={content} />;
     case MESSAGE_TYPES.ERROR:
-      return <Error message={content} retry={retry} />;
+      return <Error message={content} retry={retry} isRetryable={props.isRetryable} />;
     default:
       return <Error message="Something went wrong!" retry={retry} />;
   }
