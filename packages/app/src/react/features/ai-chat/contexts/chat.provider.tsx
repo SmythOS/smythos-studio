@@ -37,7 +37,9 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
   const { data: settingsData, isLoading: isAgentSettingsLoading } = useAgentSettings(agentId);
   const agentSettings = settingsData?.settings;
 
-  const { data: chatParams, isLoading: isChatParamsLoading } = useChatParams(agentId || null);
+  const { data: chatParams, isLoading: isChatParamsLoading } = useChatParams(
+    agentId && agentSettings?.chatbot === 'true' ? agentId : null,
+  );
 
   const { mutateAsync: createChat, isPending: isChatCreating } = useCreateChat();
   const { mutateAsync: updateAgentSettings } = useSaveAgentSettings();
@@ -145,11 +147,11 @@ export const ChatContextProvider: FC<TChildren> = ({ children }) => {
    * Computes the current page state based on loading, auth, and chatbot status
    */
   const pageState: TPageState = useMemo(() => {
-    if (isAgentLoading || isAgentSettingsLoading || isChatParamsLoading) {
-      return 'loading';
-    }
     if (agentSettings?.chatbot === 'false' || chatParams?.chatbotEnabled === false) {
       return 'disabled';
+    }
+    if (isAgentLoading || isAgentSettingsLoading || isChatParamsLoading) {
+      return 'loading';
     }
     // Check auth - if overridden locally, skip auth requirement
     if (chatParams?.authRequired && !isAuthOverridden) {
