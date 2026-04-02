@@ -11,9 +11,19 @@ import * as openai from './openai-helper';
 import Cache from './Cache.class';
 import Store from './Store.class';
 
-// Increase the Happy Eyeballs (autoSelectFamily) timeout from the default 250ms to 2000ms.
-// On networks with broken IPv6, the default 250ms is too short for the IPv4 fallback to
-// connect before the failed IPv6 attempt aborts the whole connection.
+// Node.js 20+ enables the Happy Eyeballs algorithm (autoSelectFamily) by default, which
+// attempts IPv6 and IPv4 connections in parallel. The default fallback timeout is 250ms,
+// which can be too short on networks with broken or slow IPv6 — the IPv4 fallback doesn't
+// get enough time to connect before the whole attempt is aborted (ETIMEDOUT).
+//
+// We increase autoSelectFamilyAttemptTimeout to 2000ms to give the IPv4 fallback enough
+// time to establish a connection when IPv6 fails.
+//
+// Troubleshooting: If HuggingFace requests still time out locally, try increasing the
+// value (e.g. 2000, 5000). To diagnose, run in terminal:
+//   curl -4 --connect-timeout 5 https://huggingface.co/api/models?limit=1
+// If curl works but Node.js doesn't, the issue is Happy Eyeballs — increase the timeout.
+// If curl also fails, it's a network/firewall issue unrelated to this setting.
 const hfAxios = axios.create({
   timeout: 30000,
   httpAgent: new http.Agent({ keepAlive: true, autoSelectFamilyAttemptTimeout: 2000 }),
