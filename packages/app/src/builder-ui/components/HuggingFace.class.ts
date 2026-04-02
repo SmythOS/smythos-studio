@@ -1,11 +1,11 @@
-import { Component } from './Component.class';
 import hfParams from '../params/hugging-face.params.json';
 import {
-  kebabToCapitalize,
   handleKvFieldEditBtn,
-  setLogoForDynamicComp,
+  kebabToCapitalize,
   promptVaultInfo,
+  setLogoForDynamicComp,
 } from '../utils';
+import { Component } from './Component.class';
 
 declare var Metro;
 

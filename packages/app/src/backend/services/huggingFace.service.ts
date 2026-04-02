@@ -1,4 +1,6 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { load as cheerioLoad } from 'cheerio';
 import he from 'he';
 
@@ -9,13 +11,22 @@ import * as openai from './openai-helper';
 import Cache from './Cache.class';
 import Store from './Store.class';
 
+// Increase the Happy Eyeballs (autoSelectFamily) timeout from the default 250ms to 2000ms.
+// On networks with broken IPv6, the default 250ms is too short for the IPv4 fallback to
+// connect before the failed IPv6 attempt aborts the whole connection.
+const hfAxios = axios.create({
+  timeout: 30000,
+  httpAgent: new http.Agent({ keepAlive: true, autoSelectFamilyAttemptTimeout: 2000 }),
+  httpsAgent: new https.Agent({ keepAlive: true, autoSelectFamilyAttemptTimeout: 2000 }),
+});
+
 const modelInfoCache = new Cache({ directory: 'hf-model-info' });
 const modelResultCache = new Cache({ directory: 'hf-model-result' });
 const store = new Store('huggingFace/leftover-result');
 
 const _getModelLogo = async (modelName: string): Promise<string> => {
   try {
-    const res = await axios.get(`https://huggingface.co/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/${modelName}`);
 
     const $ = await cheerioLoad(res?.data);
     const imageElement = $('main header h1 > div:first-child > div:first-child img');
@@ -70,7 +81,7 @@ type ModelInfo = {
  */
 const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
   try {
-    const res = await axios.get(`https://huggingface.co/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/${modelName}`);
 
     const $ = await cheerioLoad(res?.data);
 
@@ -80,10 +91,23 @@ const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
     const modelInfo = JSON.parse(decodedStr);
 
     const modelId = modelInfo?.model?.id;
-    const modelTask = modelInfo?.model?.pipeline_tag;
+    let modelTask = modelInfo?.model?.pipeline_tag;
 
     // Make sure we have the required info
     if (!modelId || !modelTask) return null;
+
+    // Resolve the effective task using inference provider mappings.
+    // The crawled data may include the mapping; if not, fetch it from the API for text-generation models.
+    let providerMapping = modelInfo?.model?.inferenceProviderMapping;
+    if (!providerMapping && modelTask === 'text-generation') {
+      try {
+        const apiModel = await _fetchModel(modelName);
+        providerMapping = apiModel?.inferenceProviderMapping;
+      } catch {
+        // If API call fails, keep the crawled task
+      }
+    }
+    modelTask = _resolveEffectiveTask(modelTask, providerMapping);
 
     const inference = modelInfo?.model?.inference;
 
@@ -114,11 +138,36 @@ const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
 
 const _fetchModel = async (modelName: string) => {
   try {
-    const res = await axios.get(`https://huggingface.co/api/models/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/api/models/${modelName}`, {
+      params: { 'expand[]': 'inferenceProviderMapping' },
+    });
     return res?.data;
   } catch (error) {
     throw { message: error?.response?.data?.error || `Hugging Face Model not found!` };
   }
+};
+
+/**
+ * Resolve the effective task by checking inference provider mappings.
+ * Modern LLMs often have pipeline_tag "text-generation" but inference providers
+ * only support "conversational" (chatCompletion). This detects the correct task.
+ */
+const _resolveEffectiveTask = (pipelineTag: string, inferenceProviderMapping: any): string => {
+  if (!pipelineTag || !inferenceProviderMapping) return pipelineTag;
+
+  const mappings = Array.isArray(inferenceProviderMapping)
+    ? inferenceProviderMapping
+    : Object.entries(inferenceProviderMapping).map(
+        ([provider, mapping]: [string, any]) => ({ provider, task: mapping.task }),
+      );
+
+  if (mappings.length === 0) return pipelineTag;
+
+  const exactMatch = mappings.find((m: any) => m.task === pipelineTag);
+  if (exactMatch) return pipelineTag;
+
+  const resolvedTask = mappings[0]?.task;
+  return resolvedTask && supportedHfTasks.includes(resolvedTask) ? resolvedTask : pipelineTag;
 };
 
 /**
@@ -132,7 +181,7 @@ const _fallbackModelInfo = async (modelName: string): Promise<ModelInfo> => {
 
     const id = model?.id;
     const modelId = model?.modelId;
-    const modelTask = model?.pipeline_tag;
+    const modelTask = _resolveEffectiveTask(model?.pipeline_tag, model?.inferenceProviderMapping);
     const inference = model?.cardData?.inference;
 
     const logoUrl = await _getModelLogo(modelName);
@@ -179,7 +228,7 @@ const _fetchModels = async ({
 
     if (cursor) params['cursor'] = cursor;
 
-    const result = await axios.get(url, { params });
+    const result = await hfAxios.get(url, { params });
 
     const cursors = getCursorFromLinkHeader(result?.headers?.link);
 
@@ -422,8 +471,9 @@ const _filterModels: FilterModels = async ({ retry = 0, search = '', cursors, pa
 export async function getModelInfo(modelName: string): Promise<APIResponse> {
   try {
     const model = await _fetchModel(modelName);
+    const effectiveTask = _resolveEffectiveTask(model?.pipeline_tag, model?.inferenceProviderMapping);
 
-    const modelInfo = await _getModelInfo(modelName, model?.pipeline_tag);
+    const modelInfo = await _getModelInfo(modelName, effectiveTask);
 
     return { success: true, data: modelInfo };
   } catch (error) {
