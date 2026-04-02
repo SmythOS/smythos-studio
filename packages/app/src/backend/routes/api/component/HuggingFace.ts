@@ -11,56 +11,60 @@ const router = express.Router();
 const HUGGING_FACE_MODELS_SETTINGS_KEY = 'HuggingFaceModels';
 
 router.post('/', async (req: Request, res: Response<APIResponse>) => {
-  let { data = null } = req.body;
+  try {
+    let { data = null } = req.body;
 
-  const modelName = data?.resourceKey;
+    const modelName = data?.resourceKey;
 
-  if (modelName) {
-    const modelRes = await getModelInfo(modelName);
+    if (modelName) {
+      const modelRes = await getModelInfo(modelName);
 
-    if (!modelRes?.success) {
-      return res.status(400).json({ success: false, error: modelRes?.error });
+      if (!modelRes?.success) {
+        return res.status(400).json({ success: false, error: modelRes?.error });
+      }
+
+      data = modelRes?.data;
     }
 
-    data = modelRes?.data;
+    if (!data?.name) {
+      return res.status(400).json({ success: false, error: `Model not found!` });
+    }
+
+    if (!data?.inference) {
+      return res
+        .status(400)
+        .json({ success: false, error: `Currently, we support models with Hosted Inference API.` });
+    }
+
+    if (!data?.modelTask) {
+      return res
+        .status(400)
+        .json({ success: false, error: `Currently, we support models with "task"` });
+    }
+
+    if (!supportedHfTasks.includes(data?.modelTask)) {
+      return res.status(400).json({
+        success: false,
+        error: `Currently, Models under "${kebabToCapitalize(
+          data?.modelTask,
+        )}" task is not supported`,
+      });
+    }
+
+    const settingsRes = await userData.saveUserSettings(
+      req?.user?.accessToken,
+      HUGGING_FACE_MODELS_SETTINGS_KEY,
+      data,
+    );
+
+    if (!settingsRes?.success) {
+      return res.status(400).json({ success: false, error: settingsRes?.error });
+    }
+
+    res.send({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error?.message || 'Something went wrong!' });
   }
-
-  if (!data?.name) {
-    return res.status(400).json({ success: false, error: `Model not found!` });
-  }
-
-  if (!data?.inference) {
-    return res
-      .status(400)
-      .json({ success: false, error: `Currently, we support models with Hosted Inference API.` });
-  }
-
-  if (!data?.modelTask) {
-    return res
-      .status(400)
-      .json({ success: false, error: `Currently, we support models with "task"` });
-  }
-
-  if (!supportedHfTasks.includes(data?.modelTask)) {
-    return res.status(400).json({
-      success: false,
-      error: `Currently, Models under "${kebabToCapitalize(
-        data?.modelTask,
-      )}" task is not supported`,
-    });
-  }
-
-  const settingsRes = await userData.saveUserSettings(
-    req?.user?.accessToken,
-    HUGGING_FACE_MODELS_SETTINGS_KEY,
-    data,
-  );
-
-  if (!settingsRes?.success) {
-    return res.status(400).json({ success: false, error: settingsRes?.error });
-  }
-
-  res.send({ success: true, data });
 });
 
 router.get('/', async (req, res) => {

@@ -97,6 +97,7 @@ const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
 
     const dataElm = $('main > .SVELTE_HYDRATER.contents');
     const data = dataElm.attr('data-props');
+    if (!data) return null;
     const decodedStr = he.decode(data);
     const modelInfo = JSON.parse(decodedStr);
 
@@ -250,22 +251,22 @@ const _fetchModels = async ({
 
 const _getModelInfo = async (modelName: string, modelTask: string): Promise<ModelInfo> => {
   try {
-    let modelsInfo = await modelInfoCache.get(modelTask);
-    modelsInfo = modelsInfo?.data;
+    if (modelTask) {
+      let modelsInfo = await modelInfoCache.get(modelTask);
+      modelsInfo = modelsInfo?.data;
 
-    let modelInfo = {};
+      // If we have the model info in cache, then return it
+      if (isValidObj(modelsInfo)) {
+        const cachedInfo = modelsInfo?.[modelName];
 
-    // If we have the model info in cache, then return it
-    if (isValidObj(modelsInfo)) {
-      modelInfo = modelsInfo?.[modelName];
-
-      if (isValidObj(modelInfo)) {
-        return modelInfo;
+        if (isValidObj(cachedInfo)) {
+          return cachedInfo;
+        }
       }
     }
 
     // If we don't have the model info in cache, then crawl it
-    modelInfo = await _crawlModelInfo(modelName);
+    let modelInfo = await _crawlModelInfo(modelName);
 
     // If crawling fails, then fallback to the API approach
     if (!modelInfo) {
@@ -273,7 +274,7 @@ const _getModelInfo = async (modelName: string, modelTask: string): Promise<Mode
     }
 
     // Update the cache
-    if (isValidObj(modelInfo)) {
+    if (modelTask && isValidObj(modelInfo)) {
       modelInfoCache.update(modelTask, modelName, modelInfo);
     }
 
