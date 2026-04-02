@@ -1838,13 +1838,27 @@ export async function extensionsDialog(compName: ExtensionCompNames): Promise<vo
     btnElm.textContent = 'Adding...';
 
     try {
-      const openAPIDetails = await fetchOpenAPIDetails(resourceKey);
-      const data = {
-        specUrl: resourceKey,
-        name: openAPIDetails?.info?.title,
-        desc: openAPIDetails?.info?.description,
-        logoUrl: openAPIDetails?.info?.logo,
-      };
+      let data;
+
+      if (compName === EXTENSION_COMP_NAMES.gptPlugin) {
+        try {
+          const openAPIDetails = await fetchOpenAPIDetails(resourceKey);
+          data = {
+            specUrl: resourceKey,
+            name: openAPIDetails?.info?.title,
+            desc: openAPIDetails?.info?.description,
+            logoUrl: openAPIDetails?.info?.logo,
+          };
+        } catch (e) {
+          errorToast(
+            'Failed to add OpenAPI extension. Please verify that the URL is valid and points to a valid OpenAPI specification.',
+          );
+          return;
+        }
+      } else {
+        data = { resourceKey };
+      }
+
       await addExtension({ compName, btnElm, data, addingType: 'manual' });
 
       // #region close dialog
@@ -1857,9 +1871,7 @@ export async function extensionsDialog(compName: ExtensionCompNames): Promise<vo
 
       inputElm.value = '';
     } catch (e) {
-      errorToast(
-        'Failed to add OpenAPI extension. Please verify that the URL is valid and points to a valid OpenAPI specification.',
-      );
+      // addExtension already shows its own errorToast, no extra needed
     } finally {
       btnElm.disabled = false;
       btnElm.textContent = 'Add';

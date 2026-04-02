@@ -1,4 +1,6 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { load as cheerioLoad } from 'cheerio';
 import he from 'he';
 
@@ -9,13 +11,32 @@ import * as openai from './openai-helper';
 import Cache from './Cache.class';
 import Store from './Store.class';
 
+// Node.js 20+ enables the Happy Eyeballs algorithm (autoSelectFamily) by default, which
+// attempts IPv6 and IPv4 connections in parallel. The default fallback timeout is 250ms,
+// which can be too short on networks with broken or slow IPv6 — the IPv4 fallback doesn't
+// get enough time to connect before the whole attempt is aborted (ETIMEDOUT).
+//
+// We increase autoSelectFamilyAttemptTimeout to 2000ms to give the IPv4 fallback enough
+// time to establish a connection when IPv6 fails.
+//
+// Troubleshooting: If HuggingFace requests still time out locally, try increasing the
+// value (e.g. 2000, 5000). To diagnose, run in terminal:
+//   curl -4 --connect-timeout 5 https://huggingface.co/api/models?limit=1
+// If curl works but Node.js doesn't, the issue is Happy Eyeballs — increase the timeout.
+// If curl also fails, it's a network/firewall issue unrelated to this setting.
+const hfAxios = axios.create({
+  timeout: 30000,
+  httpAgent: new http.Agent({ keepAlive: true, autoSelectFamilyAttemptTimeout: 2000 }),
+  httpsAgent: new https.Agent({ keepAlive: true, autoSelectFamilyAttemptTimeout: 2000 }),
+});
+
 const modelInfoCache = new Cache({ directory: 'hf-model-info' });
 const modelResultCache = new Cache({ directory: 'hf-model-result' });
 const store = new Store('huggingFace/leftover-result');
 
 const _getModelLogo = async (modelName: string): Promise<string> => {
   try {
-    const res = await axios.get(`https://huggingface.co/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/${modelName}`);
 
     const $ = await cheerioLoad(res?.data);
     const imageElement = $('main header h1 > div:first-child > div:first-child img');
@@ -70,20 +91,34 @@ type ModelInfo = {
  */
 const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
   try {
-    const res = await axios.get(`https://huggingface.co/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/${modelName}`);
 
     const $ = await cheerioLoad(res?.data);
 
     const dataElm = $('main > .SVELTE_HYDRATER.contents');
     const data = dataElm.attr('data-props');
+    if (!data) return null;
     const decodedStr = he.decode(data);
     const modelInfo = JSON.parse(decodedStr);
 
     const modelId = modelInfo?.model?.id;
-    const modelTask = modelInfo?.model?.pipeline_tag;
+    let modelTask = modelInfo?.model?.pipeline_tag;
 
     // Make sure we have the required info
     if (!modelId || !modelTask) return null;
+
+    // Resolve the effective task using inference provider mappings.
+    // The crawled data may include the mapping; if not, fetch it from the API for text-generation models.
+    let providerMapping = modelInfo?.model?.inferenceProviderMapping;
+    if (!providerMapping && modelTask === 'text-generation') {
+      try {
+        const apiModel = await _fetchModel(modelName);
+        providerMapping = apiModel?.inferenceProviderMapping;
+      } catch {
+        // If API call fails, keep the crawled task
+      }
+    }
+    modelTask = _resolveEffectiveTask(modelTask, providerMapping);
 
     const inference = modelInfo?.model?.inference;
 
@@ -114,11 +149,36 @@ const _crawlModelInfo = async (modelName: string): Promise<ModelInfo> => {
 
 const _fetchModel = async (modelName: string) => {
   try {
-    const res = await axios.get(`https://huggingface.co/api/models/${modelName}`);
+    const res = await hfAxios.get(`https://huggingface.co/api/models/${modelName}`, {
+      params: { 'expand[]': 'inferenceProviderMapping' },
+    });
     return res?.data;
   } catch (error) {
     throw { message: error?.response?.data?.error || `Hugging Face Model not found!` };
   }
+};
+
+/**
+ * Resolve the effective task by checking inference provider mappings.
+ * Modern LLMs often have pipeline_tag "text-generation" but inference providers
+ * only support "conversational" (chatCompletion). This detects the correct task.
+ */
+const _resolveEffectiveTask = (pipelineTag: string, inferenceProviderMapping: any): string => {
+  if (!pipelineTag || !inferenceProviderMapping) return pipelineTag;
+
+  const mappings = Array.isArray(inferenceProviderMapping)
+    ? inferenceProviderMapping
+    : Object.entries(inferenceProviderMapping).map(
+        ([provider, mapping]: [string, any]) => ({ provider, task: mapping.task }),
+      );
+
+  if (mappings.length === 0) return pipelineTag;
+
+  const exactMatch = mappings.find((m: any) => m.task === pipelineTag);
+  if (exactMatch) return pipelineTag;
+
+  const resolvedTask = mappings[0]?.task;
+  return resolvedTask && supportedHfTasks.includes(resolvedTask) ? resolvedTask : pipelineTag;
 };
 
 /**
@@ -132,7 +192,7 @@ const _fallbackModelInfo = async (modelName: string): Promise<ModelInfo> => {
 
     const id = model?.id;
     const modelId = model?.modelId;
-    const modelTask = model?.pipeline_tag;
+    const modelTask = _resolveEffectiveTask(model?.pipeline_tag, model?.inferenceProviderMapping);
     const inference = model?.cardData?.inference;
 
     const logoUrl = await _getModelLogo(modelName);
@@ -179,7 +239,7 @@ const _fetchModels = async ({
 
     if (cursor) params['cursor'] = cursor;
 
-    const result = await axios.get(url, { params });
+    const result = await hfAxios.get(url, { params });
 
     const cursors = getCursorFromLinkHeader(result?.headers?.link);
 
@@ -191,22 +251,22 @@ const _fetchModels = async ({
 
 const _getModelInfo = async (modelName: string, modelTask: string): Promise<ModelInfo> => {
   try {
-    let modelsInfo = await modelInfoCache.get(modelTask);
-    modelsInfo = modelsInfo?.data;
+    if (modelTask) {
+      let modelsInfo = await modelInfoCache.get(modelTask);
+      modelsInfo = modelsInfo?.data;
 
-    let modelInfo = {};
+      // If we have the model info in cache, then return it
+      if (isValidObj(modelsInfo)) {
+        const cachedInfo = modelsInfo?.[modelName];
 
-    // If we have the model info in cache, then return it
-    if (isValidObj(modelsInfo)) {
-      modelInfo = modelsInfo?.[modelName];
-
-      if (isValidObj(modelInfo)) {
-        return modelInfo;
+        if (isValidObj(cachedInfo)) {
+          return cachedInfo;
+        }
       }
     }
 
     // If we don't have the model info in cache, then crawl it
-    modelInfo = await _crawlModelInfo(modelName);
+    let modelInfo = await _crawlModelInfo(modelName);
 
     // If crawling fails, then fallback to the API approach
     if (!modelInfo) {
@@ -214,7 +274,7 @@ const _getModelInfo = async (modelName: string, modelTask: string): Promise<Mode
     }
 
     // Update the cache
-    if (isValidObj(modelInfo)) {
+    if (modelTask && isValidObj(modelInfo)) {
       modelInfoCache.update(modelTask, modelName, modelInfo);
     }
 
@@ -422,8 +482,9 @@ const _filterModels: FilterModels = async ({ retry = 0, search = '', cursors, pa
 export async function getModelInfo(modelName: string): Promise<APIResponse> {
   try {
     const model = await _fetchModel(modelName);
+    const effectiveTask = _resolveEffectiveTask(model?.pipeline_tag, model?.inferenceProviderMapping);
 
-    const modelInfo = await _getModelInfo(modelName, model?.pipeline_tag);
+    const modelInfo = await _getModelInfo(modelName, effectiveTask);
 
     return { success: true, data: modelInfo };
   } catch (error) {
