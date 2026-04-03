@@ -1,3 +1,4 @@
+import { transformOAuthCredEntry } from '@src/shared/helpers/oauth/oauth-api.helper';
 import { StateCreator } from 'zustand';
 import { Slice } from '../..';
 import { BuilderStore } from '../store';
@@ -7,7 +8,7 @@ export interface OAuthSlice extends Slice {
   oauthConnectionsPromise: Promise<any> | null;
   oauthConnectionsLoading: boolean;
   oauthConnectionsError: Error | null;
-  getOAuthConnections: (forceRefresh?: boolean) => Promise<any>;
+  getOAuthConnections: (forceRefresh?: boolean, resolveVaultKeys?: boolean) => Promise<any>;
   invalidateOAuthConnectionsCache: () => void;
 }
 
@@ -17,9 +18,9 @@ export const oauthSlice: StateCreator<BuilderStore, [], [], OAuthSlice> = (set, 
   oauthConnectionsLoading: false,
   oauthConnectionsError: null,
 
-  init: async () => { },
+  init: async () => {},
 
-  getOAuthConnections: async (forceRefresh = false) => {
+  getOAuthConnections: async (forceRefresh = false, resolveVaultKeys = true) => {
     if (forceRefresh) {
       set({ oauthConnections: null, oauthConnectionsPromise: null });
     }
@@ -27,7 +28,11 @@ export const oauthSlice: StateCreator<BuilderStore, [], [], OAuthSlice> = (set, 
     if (oauthConnections !== null) return oauthConnections;
     if (oauthConnectionsPromise !== null) return oauthConnectionsPromise;
     set({ oauthConnectionsLoading: true, oauthConnectionsError: null });
-    const promise = fetch('/api/page/vault/oauth-connections', {
+
+    // Build URL with optional vault key resolution
+    const url = `/api/app/credentials?group=oauth_connections_creds${resolveVaultKeys ? '&resolveVaultKeys=true' : ''}`;
+
+    const promise = fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -36,23 +41,29 @@ export const oauthSlice: StateCreator<BuilderStore, [], [], OAuthSlice> = (set, 
         if (!response.ok) {
           throw new Error(`Failed to fetch OAuth connections: ${response.status}`);
         }
-        const data = await response.json();
-        // Normalize: parse string values
-        Object.keys(data || {}).forEach((id) => {
-          const value = data[id];
-          if (typeof value === 'string') {
-            try {
-              data[id] = JSON.parse(value);
-            } catch (e) {
-              // ignore
-            }
-          }
+        const result = await response.json();
+        const credentials = result.data || [];
+
+        // Transform to legacy format and index by ID
+        const connectionsMap: Record<string, any> = {};
+        credentials.forEach((credential: any) => {
+          connectionsMap[credential.id] = transformOAuthCredEntry(credential);
         });
-        set({ oauthConnections: data, oauthConnectionsLoading: false, oauthConnectionsPromise: null });
-        return data;
+
+        set({
+          oauthConnections: connectionsMap,
+          oauthConnectionsLoading: false,
+          oauthConnectionsPromise: null,
+        });
+        return connectionsMap;
       })
       .catch((error) => {
-        set({ oauthConnectionsError: error, oauthConnectionsLoading: false, oauthConnectionsPromise: null });
+        console.error('[OAuth Slice] Error fetching connections:', error);
+        set({
+          oauthConnectionsError: error,
+          oauthConnectionsLoading: false,
+          oauthConnectionsPromise: null,
+        });
         throw error;
       });
     set({ oauthConnectionsPromise: promise });

@@ -1,13 +1,13 @@
 import { OAuthServicesRegistry } from '@src/shared/helpers/oauth/oauth-services.helper';
 import { mapStatusCodeToMessage } from '@src/shared/helpers/oauth/oauth.utils';
+import { CredentialConnection } from '@src/shared/types/credentials.types';
 import axios from 'axios';
-import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { includeTeamDetails } from '../../middlewares/auth.mw';
 import { oauthStrategyInitialization } from '../../middlewares/oauthStrategy.mw';
-import { getTeamSettingsObj, saveTeamSettingsObj } from '../../services/team-data.service';
+import { CredentialsService } from '../api/credentials/credentials.service';
 import { replaceTemplateVariablesOptimized } from './helper/oauthHelper';
 const router = express.Router();
 
@@ -98,21 +98,24 @@ function normalizeAuthSettings(mergedSettings: any): any {
   return mergedSettings;
 }
 
-router.post('/checkAuth', includeTeamDetails, async (req, res) => {
+router.post('/check-auth', includeTeamDetails, async (req, res) => {
   try {
-    const existing = await getTeamSettingsObj(req, 'oauth');
-    if (existing) {
-      const result = await compareOAuthDetails(existing, req);
-      // Use res.send() or res.json() to send the result back to the client.
-      res.json({ success: result });
+    const credRecord = await CredentialsService.getCredentialById(
+      req.body.oauth_conn_id || req.body.oauth_keys_prefix,
+      'oauth_connections_creds',
+      req,
+      { resolveVaultKeys: true },
+    );
+
+    if (credRecord.customProperties?.tokens?.primary) {
+      return res.json({ success: true });
     } else {
-      // If there are no existing settings, respond accordingly.
-      res.status(404).send('No existing OAuth settings found.');
+      return res.json({ success: false });
     }
   } catch (error) {
-    console.error('Error during comparing oauth values:', error?.message);
+    console.error('Error during checking OAuth authentication:', error?.message);
     // Send a 500 Internal Server Error response with an error message.
-    res.status(500).send('Failed to compare oauth values.');
+    res.status(500).send('Failed to check OAuth authentication.');
   }
 });
 
@@ -178,7 +181,6 @@ router.post(
         }
       };
 
-
       try {
         if (authorizationURL) validateURL(authorizationURL, 'authorizationURL');
         if (tokenURL) validateURL(tokenURL, 'tokenURL');
@@ -192,9 +194,6 @@ router.post(
       }
 
       if (OAuthServicesRegistry.isOAuth2Service(service) || service === 'oauth2') {
-        // OAuth2 flow - Store sensitive data in session, return clean URL
-
-
         // Validate required OAuth2 fields
         if (!clientID || !clientSecret) {
           return res
@@ -202,26 +201,9 @@ router.post(
             .json({ error: 'clientID and clientSecret are required for OAuth2' });
         }
 
-        // Store OAuth2 configuration in session (server-side only)
-        req.session.oauth2Config = {
-          service,
-          clientID,
-          //TODO: Do we need a stronger protection for this?
-          clientSecret, // Safe in session
-          authorizationURL,
-          tokenURL,
-          scope,
-          callbackURL: oauth2CallbackURL,
-        };
-
-        // Return internal URL that will trigger Passport (no secrets exposed)
-        // Let Passport handle state management internally
         const authUrl = `/oauth/${service}`;
-
         return res.json({ authUrl });
       } else if (OAuthServicesRegistry.isOAuth1Service(service) || service === 'oauth1') {
-        // OAuth1 flow - Store sensitive data in session
-
         // Validate required OAuth1 fields
         if (!consumerKey || !consumerSecret) {
           return res
@@ -229,23 +211,7 @@ router.post(
             .json({ error: 'consumerKey and consumerSecret are required for OAuth1' });
         }
 
-        // Store OAuth1 configuration in session (server-side only)
-        req.session.oauth1Config = {
-          service,
-          consumerKey,
-          //TODO: Do we need a stronger protection for this?
-          consumerSecret, //Safe in session
-          requestTokenURL,
-          accessTokenURL,
-          userAuthorizationURL,
-          callbackURL: oauth1CallbackURL,
-          scope,
-        };
-
-        // Return internal URL that will trigger Passport (no secrets exposed)
-        // Let Passport handle state management internally
         const authUrl = `/oauth/${service}`;
-
         return res.json({ authUrl });
       } else {
         // Unsupported service
@@ -255,56 +221,15 @@ router.post(
       console.error('Error in /init route:', error);
       res.status(500).json({ error: 'Failed to initialize authentication' });
     }
-
   },
 );
-
 
 router.get('/:provider', async (req, res, next) => {
   try {
     const scopes = req?.session?.scopes?.split(' ') || [];
-    const strategyOptions: any = {
-      state: { beep: `${crypto.randomUUID()}` }, // Let Passport handle state internally
-    };
+    const strategyOptions: Record<string, unknown> = {};
 
-    // Check if it's Twitter OAuth
-    const isTwitter = [
-      req.session?.oauth_info?.authorizationURL,
-      req.session?.oauth_info?.tokenURL,
-    ].some((url) => url?.includes('x.com') || url?.includes('twitter.com'));
-
-    if (isTwitter && req.session.strategyType === 'oauth2') {
-      // Generate state for CSRF protection
-      const state = crypto.randomBytes(32).toString('base64url');
-
-      // Generate code verifier for PKCE
-      const codeVerifier = crypto.randomBytes(32).toString('base64url');
-
-      // Generate code challenge using SHA-256
-      const codeChallenge = await crypto.subtle
-        .digest('SHA-256', new TextEncoder().encode(codeVerifier))
-        .then((buffer) => Buffer.from(buffer).toString('base64url'));
-
-      // Store verifier and state in session for callback validation
-      req.session.code_verifier = codeVerifier;
-      req.session.oauth_state = state;
-
-      // Construct Twitter-specific OAuth URL
-      const twitterAuthUrl = new URL('https://x.com/i/oauth2/authorize');
-      const queryParams = new URLSearchParams({
-        response_type: 'code',
-        client_id: req.session.oauth_info.clientID,
-        redirect_uri: req.session.oauth_info.oauth2CallbackURL,
-        scope: scopes.join(' '),
-        state: state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-      });
-
-      return res.redirect(`${twitterAuthUrl.toString()}?${queryParams.toString()}`);
-    }
-    // For other providers, use passport authentication
-    else if (req.session.strategyType === 'oauth2') {
+    if (req.session.strategyType === 'oauth2') {
       strategyOptions.scope = scopes;
       strategyOptions.accessType = 'offline';
       strategyOptions.prompt = 'consent';
@@ -319,9 +244,6 @@ router.get('/:provider', async (req, res, next) => {
         console.error('Authentication failed:', info.message);
         return res.status(401).send('Authentication failed.');
       }
-      // Authentication success
-      // Handle user as needed
-      // For example, redirect or respond with a message
     })(req, res, next);
   } catch (error) {
     console.error('Error during authentication process:', error?.message);
@@ -377,127 +299,57 @@ function getCallbackOrigin(req: express.Request): string {
 }
 
 router.get('/:provider/callback', async (req, res, next) => {
-  const { state, code } = req.query;
-
-  // Detect Twitter/X based on the authorization URL in session
-  const isTwitterAuth =
-    req.session?.oauth_info?.authorizationURL?.includes('x.com') ||
-    req.session?.oauth_info?.authorizationURL?.includes('twitter.com');
-
-  // Handle Twitter OAuth2
-  if (isTwitterAuth) {
-    // Verify state parameter
-    if (!state || state !== req.session.oauth_state) {
-      console.error('State parameter mismatch or missing');
-      return res.status(401).send(`
-        <script>
-          window.opener.postMessage({
-              type: 'error',
-              data: { message: 'Invalid state parameter. Possible CSRF attack.' }
-          }, '${getCallbackOrigin(req)}');
-          window.close();
-        </script>`);
-    }
-
-    // If state is valid, exchange the code for tokens using PKCE
+  passport.authenticate(req.session.strategyType, async (err: unknown, user: unknown, info: { message?: string }) => {
     try {
-      const tokenResponse = await axios.post(
-        'https://api.twitter.com/2/oauth2/token',
-        new URLSearchParams({
-          code: code as string,
-          grant_type: 'authorization_code',
-          client_id: req.session.oauth_info.clientID,
-          redirect_uri: req.session.oauth_info.oauth2CallbackURL,
-          code_verifier: req.session.code_verifier,
-        }).toString(),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${Buffer.from(
-              `${req.session.oauth_info.clientID}:${req.session.oauth_info.clientSecret}`,
-            ).toString('base64')}`,
-          },
-        },
-      );
+      if (!req.session || !req.session.strategyType) {
+        throw new Error('Session or strategy type is not correctly set.');
+      }
+      if (err || !user) {
+        console.error(
+          `Authentication failed for provider ${req.session.strategyType}. Error:`,
+          err,
+          `Info:`,
+          info,
+        );
 
-      // Create user object with token response
-      const user = {
-        accessToken: tokenResponse.data.access_token,
-        refreshToken: tokenResponse.data.refresh_token,
-        params: {
-          expires_in: tokenResponse.data.expires_in,
-        },
-      };
+        let errorDescription = 'Authentication failed.';
+        let errorCode = 'unknown_error';
 
-      // Store tokens and complete authentication
+        if (err) {
+          const oauthErr = err as { message?: string; code?: string; oauthError?: { statusCode?: number } };
+          errorDescription = oauthErr.message || errorDescription;
+          errorCode = oauthErr.code || info?.message || errorCode;
+
+          if (oauthErr.oauthError && typeof oauthErr.oauthError.statusCode === 'number') {
+            const statusCode = oauthErr.oauthError.statusCode;
+            errorDescription = mapStatusCodeToMessage(statusCode);
+            errorCode = `HTTP ${statusCode}`;
+          }
+        } else if (info && typeof info.message === 'string') {
+          errorDescription = info.message;
+        }
+
+        throw new Error(`${errorDescription} (Error code: ${errorCode})`);
+      }
+
       await handleTokenStorage(req.session, user, req);
       handleSuccessfulAuthentication(req.session.strategyType, res);
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error?.message);
+      const errorObj = error as Error;
+      console.error('Error in callback route:', errorObj.message);
+      const errorMessage = `${errorObj.message || 'Unknown error'}.`;
       const origin = getCallbackOrigin(req);
-      res.send(`
+      const errorScript = `
         <script>
           window.opener.postMessage({
               type: 'error',
-              data: { message: 'Failed to exchange authorization code for tokens.' }
+              data: { message: '${errorMessage.replace(/'/g, "\\'")}' }
           }, '${origin}');
           window.close();
-        </script>`);
+        </script>`;
+      res.send(errorScript);
     }
-  } else {
-    // Existing passport authentication for other providers
-    passport.authenticate(req.session.strategyType, async (err: any, user, info) => {
-      try {
-        if (!req.session || !req.session.strategyType) {
-          throw new Error('Session or strategy type is not correctly set.');
-        }
-        if (err || !user) {
-          console.error(
-            `Authentication failed for provider ${req.session.strategyType}. Error:`,
-            err,
-            `Info:`,
-            info,
-          );
-
-          let errorDescription = 'Authentication failed.'; // Default error message
-          let errorCode = 'unknown_error';
-
-          if (err) {
-            errorDescription = err.message || errorDescription;
-            errorCode = err?.code || info?.message || errorCode;
-
-            // Handling detailed OAuth errors
-            if (err.oauthError && typeof err.oauthError.statusCode === 'number') {
-              const statusCode = err.oauthError.statusCode;
-              errorDescription = mapStatusCodeToMessage(statusCode); // Use the function to map status code to message
-              errorCode = `HTTP ${statusCode}`;
-            }
-          } else if (info && typeof info.message === 'string') {
-            // Fallback to using the info message if available
-            errorDescription = info.message;
-          }
-
-          throw new Error(`${errorDescription} (Error code: ${errorCode})`);
-        }
-
-        await handleTokenStorage(req.session, user, req);
-        handleSuccessfulAuthentication(req.session.strategyType, res);
-      } catch (error) {
-        console.error('Error in callback route:', error?.message);
-        const errorMessage = `${error.message || 'Unknown error'}.`;
-        const origin = getCallbackOrigin(req);
-        const errorScript = `
-          <script>
-            window.opener.postMessage({
-                type: 'error',
-                data: { message: '${errorMessage.replace(/'/g, "\\'")}' }
-            }, '${origin}');
-            window.close();
-          </script>`;
-        res.send(errorScript);
-      }
-    })(req, res, next);
-  }
+  })(req, res, next);
 });
 
 // Helper function for expiration calculation (if needed)
@@ -508,7 +360,7 @@ function calculateExpirationTimestamp(expiresInSeconds: number) {
 async function handleTokenStorage(session, oauthUser, req) {
   try {
     const { oauth_info, team, strategyType, templateKeys } = session;
-    const entryId = `${oauth_info?.oauth_keys_prefix}_TOKENS`;
+    const entryId = oauth_info?.oauth_keys_prefix;
     const accessToken = req.user.accessToken;
 
     // Check if it's Twitter OAuth 1.0a
@@ -566,6 +418,59 @@ async function handleTokenStorage(session, oauthUser, req) {
   }
 }
 
+type OAuthInfo = {
+  [key: string]: any; // you can refine this if you know the schema
+};
+
+type AuthSettings = {
+  name?: string;
+  platform?: string;
+  oauth_info?: OAuthInfo;
+  [key: string]: any; // other arbitrary setting fields
+};
+
+type AuthData = {
+  primary?: string;
+  secondary?: string;
+  expires_in?: number;
+};
+
+export type ExistingEntryData = {
+  // NEW structure
+  auth_data?: AuthData;
+  auth_settings?: AuthSettings;
+};
+
+function transformOAuthCredEntry(
+  credentialEntry: CredentialConnection & { tokens: any },
+): ExistingEntryData {
+  // if old flow, return the old structure
+  if (credentialEntry.credentials?.primary) {
+    const { primary, secondary, expires_in, ...credentials } = credentialEntry.credentials;
+    return {
+      auth_data: {
+        primary,
+        secondary,
+        expires_in,
+      },
+      auth_settings: credentials,
+    };
+  }
+
+  // if new flow, return the new structure
+  return {
+    auth_data: {
+      primary: credentialEntry.tokens?.primary,
+      secondary: credentialEntry.tokens?.secondary,
+      expires_in: credentialEntry.tokens?.expires_in,
+    },
+    auth_settings: {
+      platform: credentialEntry.name,
+      ...credentialEntry.credentials,
+    },
+  };
+}
+
 async function handleOAuthOperation(
   settingKey: string,
   entryId: string,
@@ -573,8 +478,15 @@ async function handleOAuthOperation(
   req: express.Request,
 ) {
   try {
-    const existingSettings = await getTeamSettingsObj(req, settingKey);
-    const existingEntryData = existingSettings?.[entryId] || {};
+    // const existingSettings = await getTeamSettingsObj(req, settingKey);
+    // const existingEntryData = existingSettings?.[entryId] || {};
+    // const credentialEntry = await CredentialsService.getCredentialById(
+    //   entryId,
+    //   'oauth_connections_creds',
+    //   req,
+    //   { resolveVaultKeys: true },
+    // );
+    // const existingEntryData = transformOAuthCredEntry(credentialEntry as any);
 
     // 1. Separate new token data from new settings data
     const { primary, secondary, expires_in, ...newSettingsFromAuthFlowRaw } = newDataFromAuthFlow;
@@ -584,49 +496,68 @@ async function handleOAuthOperation(
 
     // 2. Determine the base settings (existing or new)
     // If existing entry has auth_settings, use that as base, otherwise use the whole existing entry (old structure) or an empty object.
-    let baseSettings = {};
-    if (existingEntryData.auth_settings) {
-      baseSettings = existingEntryData.auth_settings;
-    } else if (Object.keys(existingEntryData).length > 0 && !existingEntryData.auth_data) {
-      // Handle old structure: extract settings from top level, excluding potential old token fields
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { primary: _p, secondary: _s, expires_in: _e, ...oldSettings } = existingEntryData;
-      baseSettings = oldSettings;
-    }
+    // let baseSettings = {};
+    // if (existingEntryData.auth_settings) {
+    //   baseSettings = existingEntryData.auth_settings;
+    // } else if (Object.keys(existingEntryData).length > 0 && !existingEntryData.auth_data) {
+    //   // Handle old structure: extract settings from top level, excluding potential old token fields
+    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //   const {
+    //     primary: _p,
+    //     secondary: _s,
+    //     expires_in: _e,
+    //     ...oldSettings
+    //   } = existingEntryData as any;
+    //   baseSettings = oldSettings;
+    // }
 
-    // 3. Merge new settings from auth flow into base settings and normalize
-    let mergedSettings: any = {
-      ...(baseSettings as any),
-      ...newSettingsFromAuthFlow,
-    };
+    // // 3. Merge new settings from auth flow into base settings and normalize
+    // let mergedSettings: any = {
+    //   ...(baseSettings as any),
+    //   ...newSettingsFromAuthFlow,
+    // };
 
-    // Ensure oauth_info is merged correctly if it exists in both
-    if ((baseSettings as any).oauth_info && newSettingsFromAuthFlow.oauth_info) {
-      mergedSettings.oauth_info = {
-        ...(baseSettings as any).oauth_info,
-        ...newSettingsFromAuthFlow.oauth_info,
-      };
-    }
+    // // Ensure oauth_info is merged correctly if it exists in both
+    // if ((baseSettings as any).oauth_info && newSettingsFromAuthFlow.oauth_info) {
+    //   mergedSettings.oauth_info = {
+    //     ...(baseSettings as any).oauth_info,
+    //     ...newSettingsFromAuthFlow.oauth_info,
+    //   };
+    // }
 
-    // Preserve existing display metadata if missing in incoming data
-    if ((baseSettings as any).name && !mergedSettings.name)
-      mergedSettings.name = (baseSettings as any).name;
-    if ((baseSettings as any).platform && !mergedSettings.platform)
-      mergedSettings.platform = (baseSettings as any).platform;
-    // Ensure name key exists to classify as named (even if empty)
-    if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
+    // // Preserve existing display metadata if missing in incoming data
+    // if ((baseSettings as any).name && !mergedSettings.name)
+    //   mergedSettings.name = (baseSettings as any).name;
+    // if ((baseSettings as any).platform && !mergedSettings.platform)
+    //   mergedSettings.platform = (baseSettings as any).platform;
+    // // Ensure name key exists to classify as named (even if empty)
+    // if (typeof mergedSettings.name === 'undefined') mergedSettings.name = '';
 
-    // Normalize
-    mergedSettings = normalizeAuthSettings(mergedSettings);
+    // // Normalize
+    // mergedSettings = normalizeAuthSettings(mergedSettings);
 
-    // 4. Construct the final data object with the new structure
-    const finalDataToSave = {
-      auth_data: newAuthData, // Always use the fresh tokens
-      auth_settings: mergedSettings, // Use the merged settings
-    };
+    // // 4. Construct the final data object with the new structure
+    // const finalDataToSave = {
+    //   auth_data: newAuthData, // Always use the fresh tokens
+    //   auth_settings: mergedSettings, // Use the merged settings
+    // };
 
     // 5. Save the final data object
-    await saveTeamSettingsObj({ req, settingKey, entryId, data: finalDataToSave });
+    // await saveTeamSettingsObj({ req, settingKey, entryId, data: finalDataToSave });
+
+    await CredentialsService.updateCredential(
+      entryId,
+      'oauth_connections_creds',
+      {
+        // ...credentialEntry,
+        // credentials: finalDataToSave.auth_settings,
+
+        customProperties: {
+          tokens: newAuthData,
+        },
+      },
+      req,
+    );
   } catch (error) {
     console.error(`[handleOAuthOperation] Error handling OAuth operation for ${entryId}:`, error);
     throw error; // Re-throw the error for higher-level handling
@@ -713,25 +644,22 @@ async function compareOAuthDetails(existing: Record<string, any>, req: express.R
 
 router.post('/signOut', includeTeamDetails, async (req, res) => {
   try {
-    // Accept either prefix (OAUTH_XXX) or full id (OAUTH_XXX_TOKENS)
-    const raw = String(req.body.oauth_keys_prefix || '');
-    const entryId = raw.endsWith('_TOKENS') ? raw : `${raw}_TOKENS`;
+    const entryId = req.body.oauth_keys_prefix;
     const { invalidateAuthentication } = req.body; // invalidateAuthentication flag is still used
 
-    const settings = await getTeamSettingsObj(req, 'oauth');
-    if (!settings || !settings[entryId]) {
-      return res
-        .status(404)
-        .json({ error: 'No existing OAuth settings found for the provided prefix.' });
-    }
-
-    // Parse existing data if it's a string
-    let existingData = settings[entryId];
+    let existingData: ExistingEntryData;
     try {
-      existingData = typeof existingData === 'string' ? JSON.parse(existingData) : existingData;
+      existingData = await CredentialsService.getCredentialById(
+        entryId,
+        'oauth_connections_creds',
+        req,
+        { resolveVaultKeys: true },
+      ).then(transformOAuthCredEntry);
     } catch (error) {
-      console.error('Error parsing existing settings:', error?.message);
-      return res.status(500).json({ error: 'Invalid settings format' });
+      console.error('Error getting OAuth settings:', error?.message);
+      return res
+        .status(500)
+        .json({ error: 'No existing OAuth settings found for the provided prefix' });
     }
 
     if (invalidateAuthentication !== true) {
@@ -741,60 +669,35 @@ router.post('/signOut', includeTeamDetails, async (req, res) => {
     }
 
     // Prepare the updated data structure
-    let updatedData;
+    let newAuthData: AuthData;
 
-    // Check if the existing data uses the new structure
-    if (existingData.auth_data && existingData.auth_settings) {
-      // New structure: Clear tokens within auth_data
-      updatedData = {
-        ...existingData,
-        auth_data: {
-          ...existingData.auth_data,
-          primary: '',
-          secondary: '',
-          // Optionally clear expires_in or leave it? Clearing for consistency.
-          expires_in: undefined, // or '' or null depending on desired state
+    // New structure: Clear tokens within auth_data
+    newAuthData = {
+      ...existingData.auth_data,
+      primary: '',
+      secondary: '',
+      // Optionally clear expires_in or leave it? Clearing for consistency.
+      expires_in: undefined, // or '' or null depending on desired state
+    };
+    // Remove undefined expires_in if set that way
+    if (newAuthData.expires_in === undefined) {
+      delete newAuthData.expires_in;
+    }
+
+    try {
+      const saveResult = await CredentialsService.updateCredential(
+        entryId,
+        'oauth_connections_creds',
+        {
+          customProperties: {
+            tokens: newAuthData,
+          },
         },
-      };
-      // Remove undefined expires_in if set that way
-      if (updatedData.auth_data.expires_in === undefined) {
-        delete updatedData.auth_data.expires_in;
-      }
-    } else {
-      // Old structure: Clear tokens at the top level
-      updatedData = {
-        ...existingData,
-        primary: '',
-        secondary: '',
-        expires_in: undefined, // or '' or null
-      };
-      if (updatedData.expires_in === undefined) {
-        delete updatedData.expires_in;
-      }
-    }
-
-    // If tokens were already empty, respond without saving (optional optimization)
-    const currentPrimary = existingData.auth_data
-      ? existingData.auth_data.primary
-      : existingData.primary;
-    const currentSecondary = existingData.auth_data
-      ? existingData.auth_data.secondary
-      : existingData.secondary;
-    if (currentPrimary === '' && currentSecondary === '') {
-      return res.json({ invalidate: true, message: 'Already signed out.' });
-    }
-
-    // Save the updated settings
-    const saveResult = await saveTeamSettingsObj({
-      req,
-      settingKey: 'oauth',
-      entryId,
-      data: updatedData, // Save the structure with cleared tokens
-    });
-
-    if (!saveResult.success) {
-      console.error('Failed to save team settings during sign out:', saveResult.error);
-      return res.status(500).json({ error: saveResult.error || 'Failed to process Sign out.' });
+        req,
+      );
+    } catch (error) {
+      console.error('Failed to save team settings during sign out:', error?.message);
+      return res.status(500).json({ error: error.message || 'Failed to process Sign out.' });
     }
 
     return res.json({ invalidate: true, message: 'Signed out successfully.' });

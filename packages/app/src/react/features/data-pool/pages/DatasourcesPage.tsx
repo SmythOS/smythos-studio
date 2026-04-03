@@ -10,6 +10,7 @@ import TableRowSkeleton from '@src/react/shared/components/ui/table/table.row.sk
 import { useScreenSize } from '@src/react/shared/hooks/useScreenSize';
 import { errorToast, successToast } from '@src/shared/components/toast';
 import { Breadcrumb } from 'flowbite-react';
+import { Loader2 } from 'lucide-react';
 import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { HiHome } from 'react-icons/hi';
 import { Link, useParams } from 'react-router-dom';
@@ -20,11 +21,14 @@ import { UploadDatasourceDialog } from '../components/UploadDatasourceDialog';
 import { ViewDatasourceDialog } from '../components/ViewDatasourceDialog';
 import type { Datasource } from '../types/datasource.types';
 
+const DATASOURCES_PAGE_SIZE = 10;
+
 const DatasourcesPage: FC = () => {
   const { namespaceLabel } = useParams<{ namespaceLabel: string }>();
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState<number>(DATASOURCES_PAGE_SIZE);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState<boolean>(false);
@@ -57,10 +61,13 @@ const DatasourcesPage: FC = () => {
   }, [fetchDatasources]);
 
   /**
-   * Handle search change
+   * Handle search change — reset visible count when clearing search
    */
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    if (!value) {
+      setVisibleCount(DATASOURCES_PAGE_SIZE);
+    }
   };
 
   /**
@@ -138,6 +145,18 @@ const DatasourcesPage: FC = () => {
     );
   }, [datasources, searchQuery]);
 
+  /** Progressively reveal items to avoid rendering huge lists at once */
+  const visibleDatasources: Datasource[] = useMemo(
+    () => (searchQuery ? filteredDatasources : filteredDatasources.slice(0, visibleCount)),
+    [filteredDatasources, visibleCount, searchQuery],
+  );
+
+  const totalFiltered = filteredDatasources.length;
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + DATASOURCES_PAGE_SIZE);
+  }, []);
+
   /**
    * Render skeleton loading rows
    */
@@ -204,9 +223,9 @@ const DatasourcesPage: FC = () => {
       {/* Main Content */}
       <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
         {/* Table */}
-        {filteredDatasources.length > 0 && (
+        {visibleDatasources.length > 0 && (
           <DatasourcesTable
-            datasources={filteredDatasources}
+            datasources={visibleDatasources}
             onDelete={handleDeleteClick}
             onView={handleViewClick}
           />
@@ -247,6 +266,25 @@ const DatasourcesPage: FC = () => {
 
         {/* Loading State */}
         {loading && renderSkeletonLoading()}
+
+        {/* Pagination Footer */}
+        {!loading && visibleDatasources.length > 0 && (
+          <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
+            <span className="text-xs text-gray-500">
+              Showing {visibleDatasources.length} of {totalFiltered} datasource{totalFiltered !== 1 ? 's' : ''}
+            </span>
+            {!searchQuery && visibleCount < totalFiltered && (
+              <button
+                onClick={handleLoadMore}
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                <Loader2 className="h-3 w-3 hidden" />
+                Load More
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Upload Datasource Dialog */}
