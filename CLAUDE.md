@@ -78,6 +78,11 @@ pnpm --filter middleware prisma:migrate       # Run DB migrations
 - Sanitize user input (DOMPurify is available for HTML)
 - Use `express-rate-limit` on public-facing endpoints
 
+## Pull Requests
+
+- When creating a GitHub PR, always use the template from `.github/pull_request_template.md` and fill in all sections.
+- Ask the user for an optional ClickUp ticket link before creating the PR.
+
 ## Do NOT
 
 - Introduce new dependencies without justification
