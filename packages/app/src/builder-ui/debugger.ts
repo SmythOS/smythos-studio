@@ -123,6 +123,26 @@ let initialized = false;
 let debugExperimentRun = false;
 let fixWithAIEExperimentRun = false;
 
+/**
+ * Disable/enable the debug toggle to prevent toggling during active processing.
+ * Aligns with the stop button disabled state — when stopping is impossible,
+ * toggling debug off is also prevented.
+ */
+function setDebugToggleEnabled(enabled: boolean) {
+  const dbgMenuToggle = document.getElementById('debug-menu-tgl') as HTMLInputElement;
+  const debugSwitcher = document.querySelector('.debug-switcher') as HTMLElement;
+  if (dbgMenuToggle) {
+    dbgMenuToggle.disabled = !enabled;
+  }
+  if (debugSwitcher) {
+    if (enabled) {
+      debugSwitcher.classList.remove('pointer-events-none', 'opacity-50');
+    } else {
+      debugSwitcher.classList.add('pointer-events-none', 'opacity-50');
+    }
+  }
+}
+
 function toggleSwitch(on: boolean) {
   const debugSwitcher = document.querySelector('.debug-switcher');
   const debugSwitcherContainer: HTMLElement = document.getElementById(
@@ -164,8 +184,6 @@ function toggleSwitch(on: boolean) {
     debugSwitcherContainer.classList.add('active');
     updateInspectButtonIcon(inspectButton, true);
   } else {
-    // Reset the components state before toggling the debug switch
-    resetComponentsState({ resetDebugMessages: true, resetPinned: true });
     // debugMenu.classList.add('hidden');
     switcherText.textContent = 'Debug Off';
     debugSwitcher.classList.remove('active');
@@ -297,9 +315,12 @@ export async function init() {
   });
 
   dbgMenuToggle?.addEventListener('change', () => {
+    // Stop the run loop immediately by removing the 'running' class
+    document.getElementById('debug-menubtn-run')?.classList.remove('running');
     stopDebugSession(); //Always stop debug when the button is toggled in order to prevent debug sessions conflicts
     if (dbgMenuToggle?.checked) {
       toggleSwitch(true);
+      setDebugMessage(); // Reset to default message for fresh session
       dbgStatus.classList.remove('hidden');
       debugMenu.classList.remove('hidden');
 
@@ -319,8 +340,6 @@ export async function init() {
       } else {
         el.setAttribute('disabled', 'true');
         workspace.domElement.classList.remove('debug-enabled');
-        stopDebugSession();
-        dbgStatus.classList.add('hidden');
       }
     });
     // Use debounced save to handle rapid toggling - only the final state will be saved
@@ -330,6 +349,11 @@ export async function init() {
       //workspace.redraw();
       repaintDebugComponentsAfter();
       updateDebugControlsOnSelection();
+      // When debug is toggled off, run a delayed cleanup to catch any debug classes
+      // that were re-added by background workflow completion after the initial cleanup
+      if (!dbgMenuToggle?.checked) {
+        resetComponentsState({ resetPinned: true });
+      }
     }, 500);
   });
 
@@ -394,6 +418,7 @@ export async function init() {
       stepBtn.removeAttribute('disabled');
       attachBtn.removeAttribute('disabled');
       stopBtn.removeAttribute('disabled');
+      setDebugToggleEnabled(true);
     } else {
       // label.innerHTML = 'Pause';
       // //runBtn.classList.add('running');
@@ -403,7 +428,7 @@ export async function init() {
       // stepBtn.setAttribute('disabled', 'true');
       // attachBtn.setAttribute('disabled', 'true');
       // stopBtn.setAttribute('disabled', 'true');
-      const { result } = await runDebug();
+      const { result } = (await runDebug()) || {};
       // Show deploy agent toast if the workflow executed successfully until the last component
       if (!result?.errorOccurred && result?.states?.sessionClosed) {
         showDeployAgentToast();
@@ -500,6 +525,9 @@ export async function init() {
       position: 'bottom center of builder',
       type: 'stop',
     });
+
+    // Stop the run loop immediately by removing the 'running' class
+    runBtn.classList.remove('running');
     stopDebugSession();
 
     runBtn.removeAttribute('disabled');
@@ -580,6 +608,7 @@ export async function runDebug() {
   stepBtn.setAttribute('disabled', 'true');
   attachBtn.setAttribute('disabled', 'true');
   stopBtn.setAttribute('disabled', 'true');
+  setDebugToggleEnabled(false);
 
   let isRunning = runBtn.classList.contains('running');
 
@@ -601,6 +630,8 @@ export async function runDebug() {
     let debugStepResult;
     if (processComponents) {
       debugStepResult = await runDebugStep(agent.id);
+      // Check if debug was disabled while awaiting
+      if (!debugSessions?.[agent.id]?.sessionID) break;
       sessionID = debugStepResult?.sessionID;
     }
 
@@ -616,6 +647,8 @@ export async function runDebug() {
 
     //if newState is included no need to send a read request
     result = await processDebugStep(debugStepResult?.result?.newState, agent.id);
+    // Check if debug was disabled while awaiting
+    if (!debugSessions?.[agent.id]?.sessionID) break;
     const activeComponents = Object.values(result.states.state).filter((c: any) => c.active);
     console.log(activeComponents);
     processComponents = activeComponents.length > 0;
@@ -642,6 +675,7 @@ export async function runDebug() {
   stepBtn.removeAttribute('disabled');
   attachBtn.removeAttribute('disabled');
   stopBtn.removeAttribute('disabled');
+  setDebugToggleEnabled(true);
 
   return { result };
 }
@@ -1512,6 +1546,13 @@ const DEBUG_LOG_MAX_LENGTH = 10000;
 export async function processDebugStep(debugInfo, agentID, sessionID?, IDFilter?: any[]) {
   console.log('processDebugStep', agentID, sessionID);
 
+  // Bail out if debug has been disabled — prevents stale UI updates
+  // from background workflow completion after toggling debug off
+  const dbgToggle = document.getElementById('debug-menu-tgl') as HTMLInputElement;
+  if (dbgToggle && !dbgToggle.checked) {
+    return { states: { state: {} }, attached: false, errorOccurred: false };
+  }
+
   if (!sessionID) sessionID = debugSessions?.[agentID]?.sessionID;
 
   //ensure that the sessionID is properly stored in case of debug session attach
@@ -2335,9 +2376,14 @@ function stopDebugUI(clearInfo = true) {
     el.classList.remove('active');
   });
 
-  resetComponentsState({ resetPinned: true });
+  // Hide all processing overlays immediately
+  workspace.domElement.querySelectorAll('.cpt-overlay').forEach((el: HTMLElement) => {
+    el.style.display = 'none';
+  });
 
   if (clearInfo) {
+    // Remove .pinned and .disabled-endpoint BEFORE resetComponentsState
+    // so that enableComponentEndpoints() is not skipped
     workspace.domElement.querySelectorAll('.pinned').forEach((el: HTMLElement) => {
       el.classList.remove('pinned');
     });
@@ -2375,6 +2421,10 @@ function stopDebugUI(clearInfo = true) {
       el.classList.remove('state-success', 'state-error', 'has-empty-inputs');
     });
   }
+
+  // Call resetComponentsState AFTER .pinned elements are removed
+  // so enableComponentEndpoints() runs on all components
+  resetComponentsState({ resetDebugMessages: true, resetPinned: true });
 }
 
 function clearDebugUIInfo() {
@@ -2781,7 +2831,7 @@ export function createDebugInjectDialog(
     }
     if (actionType === 'run') {
       // Start running the full workflow
-      const { result } = await runDebug();
+      const { result } = (await runDebug()) || {};
 
       // Show deploy agent toast if the workflow executed successfully until the last component
       if (
@@ -3048,6 +3098,10 @@ export async function registerDbgMonitorUI(monitor: Monitor) {
   //
 
   monitor.on('component', (e: any) => {
+    // Skip all monitor UI updates if debug is disabled
+    const dbgToggle = document.getElementById('debug-menu-tgl') as HTMLInputElement;
+    if (dbgToggle && !dbgToggle.checked) return;
+
     if (e.data.action === 'callStop' && e.data.duration) {
       // finished
       const comp = document.querySelector(`#${e.data.id}`);
@@ -3079,6 +3133,10 @@ export async function registerDbgMonitorUI(monitor: Monitor) {
 
   // Listen to the agent event
   monitor.on('agent', (e: any) => {
+    // Skip monitor UI updates if debug is disabled
+    const dbgToggle = document.getElementById('debug-menu-tgl') as HTMLInputElement;
+    if (dbgToggle && !dbgToggle.checked) return;
+
     const data = e.data;
 
     // Session START: when there's startTime but no endTime/duration
@@ -3145,6 +3203,7 @@ function resetComponentsState({
 
     component.classList.remove('dbg-async');
     component.classList.remove('dbg-active');
+    component.classList.remove('dbg-running');
     component.classList.remove('dbg-active-waiting');
     component.classList.remove('dbg-active-in_progress');
     component.classList.remove('dbg-active-error');
